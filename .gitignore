@@ -1,0 +1,6 @@
+# 数据
+backend/data/
+# Rust
+backend/target/
+# 备份
+backups/

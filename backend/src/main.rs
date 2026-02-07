@@ -1,0 +1,75 @@
+mod api;
+mod config;
+mod db;
+mod llm;
+
+use std::sync::Arc;
+
+use axum::{
+    routing::{get, post},
+    Router,
+};
+use tower_http::cors::{Any, CorsLayer};
+
+use api::routes::{self, AppState};
+use config::AppConfig;
+use db::{connection, schema};
+
+#[tokio::main]
+async fn main() {
+    // 初始化日志
+    tracing_subscriber::fmt::init();
+
+    // 加载配置
+    let config = AppConfig::from_env();
+    tracing::info!("Xenica 启动中...");
+    tracing::info!("端口: {}", config.port);
+    tracing::info!("LLM: {} ({})", config.llm_endpoint, config.llm_model);
+
+    // 初始化 SurrealDB
+    let db = connection::init_db(&config)
+        .await
+        .expect("SurrealDB 初始化失败");
+
+    // 初始化 Schema
+    schema::init_schema(&db)
+        .await
+        .expect("Schema 初始化失败");
+
+    // 共享状态
+    let state = Arc::new(AppState { db });
+
+    // CORS 配置 — 允许 localhost:3000（前端开发）
+    let cors = CorsLayer::new()
+        .allow_origin([
+            "http://localhost:3000".parse().unwrap(),
+        ])
+        .allow_methods(Any)
+        .allow_headers(Any);
+
+    // 路由
+    let app = Router::new()
+        .route("/api/health", get(routes::health))
+        .route("/api/conversations", post(routes::create_conversation).get(routes::list_conversations))
+        .route("/api/moments", post(routes::create_moment).get(routes::list_moments))
+        .route("/api/moments/{id}", get(routes::get_moment))
+        .route("/api/moments/{id}/related", get(routes::get_related))
+        .route("/api/entities", post(routes::create_entity).get(routes::list_entities))
+        .route("/api/search", get(routes::search))
+        .route("/api/relations", post(routes::create_relation))
+        .route("/api/goals", post(routes::create_goal).get(routes::list_goals))
+        .layer(cors)
+        .with_state(state);
+
+    // 启动服务
+    let addr = format!("0.0.0.0:{}", config.port);
+    tracing::info!("Xenica 已启动: http://localhost:{}", config.port);
+
+    let listener = tokio::net::TcpListener::bind(&addr)
+        .await
+        .expect("端口绑定失败");
+
+    axum::serve(listener, app)
+        .await
+        .expect("服务启动失败");
+}
