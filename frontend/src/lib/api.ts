@@ -12,6 +12,10 @@ import type {
   SearchResult,
   Perspective,
   OcrResult,
+  VideoImportResult,
+  ReviewDueItem,
+  ReviewSchedule,
+  ReviewResponse,
 } from './types'
 
 const BASE = '/api'
@@ -189,6 +193,16 @@ export async function ocrImage(file: File): Promise<OcrResult> {
   return json.data
 }
 
+// ─── Video Import ───
+
+/** 视频链接 → 文稿提取 */
+export async function importVideo(url: string) {
+  return request<VideoImportResult>('/import/video', {
+    method: 'POST',
+    body: JSON.stringify({ url }),
+  })
+}
+
 // ─── Extract ───
 
 export async function extractMoment(id: string) {
@@ -197,4 +211,27 @@ export async function extractMoment(id: string) {
 
 export async function extractConversation(id: string) {
   return request(`/conversations/${id}/extract`, { method: 'POST' })
+}
+
+// ─── Reviews (X6) ───
+
+/** 获取到期复习项 */
+export async function listDueReviews() {
+  return request<ReviewDueItem[]>('/reviews/due')
+}
+
+/** 为 moment 创建复习计划 */
+export async function createReviewSchedule(momentId: string) {
+  return request<ReviewSchedule>('/reviews/schedule', {
+    method: 'POST',
+    body: JSON.stringify({ moment_id: momentId }),
+  })
+}
+
+/** 用户反馈：again/hard/good/easy */
+export async function respondReview(reviewId: string, response: ReviewResponse) {
+  return request<ReviewSchedule>(`/reviews/${reviewId}/respond`, {
+    method: 'POST',
+    body: JSON.stringify({ response }),
+  })
 }

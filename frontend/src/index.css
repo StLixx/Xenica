@@ -694,6 +694,47 @@ body {
 .notif-action-btn.accept { background: var(--primary-muted); color: var(--primary); }
 .notif-action-btn.dismiss { background: var(--card); color: var(--text-dim); }
 
+/* --- X6: 复习卡片 --- */
+.review-card { background: var(--card); border-radius: 10px; padding: 12px; }
+.review-actions {
+  display: flex; gap: 6px; margin-top: 8px;
+}
+.review-respond-btn {
+  flex: 1; padding: 6px 0; border-radius: 6px; border: none;
+  font-size: 12px; font-weight: 600; cursor: pointer;
+  font-family: inherit; transition: all 0.2s;
+  display: flex; align-items: center; justify-content: center; gap: 4px;
+}
+.review-respond-btn:disabled { opacity: 0.5; cursor: wait; }
+.review-btn-again {
+  background: color-mix(in srgb, var(--accent-rose) 18%, transparent);
+  color: var(--accent-rose);
+}
+.review-btn-again:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent-rose) 28%, transparent);
+}
+.review-btn-hard {
+  background: color-mix(in srgb, var(--accent-sand) 18%, transparent);
+  color: var(--accent-sand);
+}
+.review-btn-hard:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent-sand) 28%, transparent);
+}
+.review-btn-good {
+  background: var(--primary-muted);
+  color: var(--primary);
+}
+.review-btn-good:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--primary) 25%, transparent);
+}
+.review-btn-easy {
+  background: color-mix(in srgb, var(--accent-green) 18%, transparent);
+  color: var(--accent-green);
+}
+.review-btn-easy:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent-green) 28%, transparent);
+}
+
 /* ============================================
    Settings
    ============================================ */

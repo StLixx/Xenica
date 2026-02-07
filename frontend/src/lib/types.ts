@@ -66,6 +66,31 @@ export interface Relation {
   strength?: number
 }
 
+// ─── Review (X6) ───
+
+export interface ReviewSchedule {
+  id: string
+  moment_id: string
+  next_review: string
+  interval: number
+  ease_factor: number
+  review_count: number
+  created_at: string
+}
+
+export interface ReviewDueItem {
+  id: string
+  moment_id: string
+  next_review: string
+  interval: number
+  ease_factor: number
+  review_count: number
+  created_at: string
+  moment_text?: string
+}
+
+export type ReviewResponse = 'again' | 'hard' | 'good' | 'easy'
+
 // ─── Chat ───
 
 export interface ChatInput {
@@ -136,6 +161,14 @@ export interface Perspective {
 export interface OcrResult {
   text: string
   confidence: number
+}
+
+// ─── Video Import ───
+
+export interface VideoImportResult {
+  title: string
+  transcript: string
+  source_url: string
 }
 
 // ─── Theme ───

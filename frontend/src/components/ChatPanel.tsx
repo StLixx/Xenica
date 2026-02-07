@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, List, ChevronDown, Send, Loader2, Paperclip } from 'lucide-react'
+import { Plus, List, ChevronDown, Send, Loader2, Paperclip, Video, Image, Link, X } from 'lucide-react'
 import { useChatStore } from '../stores/chat'
 import { useIsMobile } from '../hooks/useIsMobile'
-import { ocrImage } from '../lib/api'
+import { ocrImage, importVideo } from '../lib/api'
 import VoiceMicButton from './VoiceMicButton'
 
 const MODEL_OPTIONS = [
@@ -31,15 +31,33 @@ export default function ChatPanel() {
   const [showHistory, setShowHistory] = useState(false)
   const [hoveredAnchor, setHoveredAnchor] = useState<number | null>(null)
   const [ocrLoading, setOcrLoading] = useState(false)
+  const [showAttachMenu, setShowAttachMenu] = useState(false)
+  const [showVideoInput, setShowVideoInput] = useState(false)
+  const [videoUrl, setVideoUrl] = useState('')
+  const [videoLoading, setVideoLoading] = useState(false)
+  const [videoError, setVideoError] = useState('')
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const messagesContainerRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const imageInputRef = useRef<HTMLInputElement>(null)
+  const videoInputRef = useRef<HTMLInputElement>(null)
   const isMobile = useIsMobile()
 
   useEffect(() => {
     loadConversations()
   }, [loadConversations])
+
+  // 点击外部关闭附件菜单
+  useEffect(() => {
+    if (!showAttachMenu) return
+    const handleClick = () => setShowAttachMenu(false)
+    // 延迟绑定，避免本次点击立即触发
+    const timer = setTimeout(() => document.addEventListener('click', handleClick), 0)
+    return () => {
+      clearTimeout(timer)
+      document.removeEventListener('click', handleClick)
+    }
+  }, [showAttachMenu])
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -78,6 +96,46 @@ export default function ChatPanel() {
       setOcrLoading(false)
     }
   }, [isLoading, ocrLoading, sendMessage])
+
+  // 视频 URL 校验
+  const isVideoUrl = (url: string) => {
+    const trimmed = url.trim().toLowerCase()
+    return (
+      trimmed.includes('bilibili.com') ||
+      trimmed.includes('b23.tv') ||
+      trimmed.includes('youtube.com') ||
+      trimmed.includes('youtu.be') ||
+      trimmed.includes('douyin.com')
+    )
+  }
+
+  // 视频导入
+  const handleVideoImport = useCallback(async () => {
+    const url = videoUrl.trim()
+    if (!url || videoLoading || isLoading) return
+
+    if (!isVideoUrl(url)) {
+      setVideoError('请输入 B站、YouTube 或抖音的视频链接')
+      return
+    }
+
+    setVideoError('')
+    setVideoLoading(true)
+    try {
+      const result = await importVideo(url)
+      if (result.transcript) {
+        const msg = `[视频摘要] ${result.title}\n来源：${result.source_url}\n\n${result.transcript}`
+        await sendMessage(msg)
+      }
+      setVideoUrl('')
+      setShowVideoInput(false)
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : '视频内容提取失败'
+      setVideoError(errorMsg)
+    } finally {
+      setVideoLoading(false)
+    }
+  }, [videoUrl, videoLoading, isLoading, sendMessage])
 
   // 对话轮次 = 用户消息数量
   const rounds = messages.filter((m) => m.role === 'user')
@@ -376,6 +434,103 @@ export default function ChatPanel() {
         </div>
       )}
 
+      {/* 视频链接输入弹窗 */}
+      <AnimatePresence>
+        {showVideoInput && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            className="absolute left-4 right-4 z-30 rounded-xl p-4"
+            style={{
+              bottom: isMobile ? '70px' : '80px',
+              background: 'var(--card)',
+              border: '1px solid var(--border)',
+              boxShadow: '0 8px 32px var(--shadow-heavy)',
+            }}
+          >
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Video size={16} style={{ color: 'var(--primary)' }} />
+                <span className="text-sm font-medium" style={{ color: 'var(--text)' }}>
+                  粘贴视频链接
+                </span>
+              </div>
+              <button
+                onClick={() => {
+                  setShowVideoInput(false)
+                  setVideoError('')
+                  setVideoUrl('')
+                }}
+                className="w-6 h-6 flex items-center justify-center rounded-md transition-all"
+                style={{ color: 'var(--text-dim)' }}
+              >
+                <X size={14} />
+              </button>
+            </div>
+
+            <div className="flex gap-2">
+              <input
+                ref={videoInputRef}
+                type="url"
+                value={videoUrl}
+                onChange={(e) => {
+                  setVideoUrl(e.target.value)
+                  setVideoError('')
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    handleVideoImport()
+                  }
+                }}
+                placeholder="https://www.bilibili.com/video/BV..."
+                className="flex-1 px-3 py-2 rounded-lg text-sm outline-none transition-all"
+                style={{
+                  background: 'var(--bg)',
+                  border: '1px solid var(--border)',
+                  color: 'var(--text)',
+                }}
+                disabled={videoLoading}
+                autoFocus
+              />
+              <button
+                onClick={handleVideoImport}
+                disabled={!videoUrl.trim() || videoLoading}
+                className="px-3 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-1.5 shrink-0"
+                style={{
+                  background: videoUrl.trim() ? 'var(--primary)' : 'var(--border)',
+                  color: 'var(--bg)',
+                  opacity: videoUrl.trim() && !videoLoading ? 1 : 0.5,
+                }}
+              >
+                {videoLoading ? (
+                  <>
+                    <Loader2 size={14} className="animate-spin" />
+                    提取中…
+                  </>
+                ) : (
+                  <>
+                    <Link size={14} />
+                    提取
+                  </>
+                )}
+              </button>
+            </div>
+
+            {videoError && (
+              <p className="mt-2 text-xs" style={{ color: 'var(--accent-rose, #e88)' }}>
+                {videoError}
+              </p>
+            )}
+
+            <p className="mt-2 text-xs" style={{ color: 'var(--text-dim)' }}>
+              支持 B站、YouTube、抖音链接
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* 输入区域 */}
       <div
         className="shrink-0"
@@ -392,27 +547,85 @@ export default function ChatPanel() {
             borderRadius: isMobile ? '24px' : '10px',
           }}
         >
-          {/* 图片上传按钮 */}
-          <button
-            onClick={() => imageInputRef.current?.click()}
-            disabled={ocrLoading || isLoading}
-            className="w-8 h-8 flex items-center justify-center shrink-0 transition-all"
-            style={{
-              background: 'transparent',
-              color: ocrLoading ? 'var(--primary)' : 'var(--text-dim)',
-              border: 'none',
-              cursor: ocrLoading ? 'wait' : 'pointer',
-              borderRadius: isMobile ? '50%' : '8px',
-              opacity: ocrLoading || isLoading ? 0.5 : 1,
-            }}
-            title="上传图片识别文字"
-          >
-            {ocrLoading ? (
-              <Loader2 size={16} className="animate-spin" />
-            ) : (
-              <Paperclip size={16} />
-            )}
-          </button>
+          {/* 附件菜单按钮（图片 + 视频） */}
+          <div className="relative">
+            <button
+              onClick={() => setShowAttachMenu(!showAttachMenu)}
+              disabled={(ocrLoading || videoLoading) && !showAttachMenu}
+              className="w-8 h-8 flex items-center justify-center shrink-0 transition-all"
+              style={{
+                background: 'transparent',
+                color: (ocrLoading || videoLoading) ? 'var(--primary)' : 'var(--text-dim)',
+                border: 'none',
+                cursor: (ocrLoading || videoLoading) ? 'wait' : 'pointer',
+                borderRadius: isMobile ? '50%' : '8px',
+                opacity: (ocrLoading || videoLoading) && !showAttachMenu ? 0.5 : 1,
+              }}
+              title="附件"
+            >
+              {(ocrLoading || videoLoading) ? (
+                <Loader2 size={16} className="animate-spin" />
+              ) : (
+                <Paperclip size={16} />
+              )}
+            </button>
+
+            {/* 附件下拉菜单 */}
+            <AnimatePresence>
+              {showAttachMenu && (
+                <motion.div
+                  initial={{ opacity: 0, y: 6, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 6, scale: 0.95 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute bottom-full left-0 mb-2 rounded-lg py-1 z-50 min-w-[160px]"
+                  style={{
+                    background: 'var(--card)',
+                    border: '1px solid var(--border)',
+                    boxShadow: '0 8px 32px var(--shadow-heavy)',
+                  }}
+                >
+                  <button
+                    onClick={() => {
+                      setShowAttachMenu(false)
+                      imageInputRef.current?.click()
+                    }}
+                    disabled={ocrLoading || isLoading}
+                    className="w-full text-left px-3 py-2 text-sm flex items-center gap-2.5 transition-all"
+                    style={{
+                      color: 'var(--text-secondary)',
+                      opacity: ocrLoading || isLoading ? 0.5 : 1,
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--primary-subtle)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                  >
+                    <Image size={15} style={{ color: 'var(--text-dim)' }} />
+                    上传图片识别
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowAttachMenu(false)
+                      setShowVideoInput(true)
+                      // 下一帧聚焦输入框
+                      setTimeout(() => videoInputRef.current?.focus(), 100)
+                    }}
+                    disabled={videoLoading || isLoading}
+                    className="w-full text-left px-3 py-2 text-sm flex items-center gap-2.5 transition-all"
+                    style={{
+                      color: 'var(--text-secondary)',
+                      opacity: videoLoading || isLoading ? 0.5 : 1,
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--primary-subtle)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                  >
+                    <Video size={15} style={{ color: 'var(--text-dim)' }} />
+                    粘贴视频链接
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
           <input
             ref={imageInputRef}
             type="file"

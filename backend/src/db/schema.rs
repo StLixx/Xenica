@@ -92,6 +92,20 @@ pub async fn init_schema(db: &Db) -> Result<(), surrealdb::Error> {
     )
     .await?;
 
+    // 间隔重复计划（X6）
+    db.query(
+        "
+        DEFINE TABLE IF NOT EXISTS review_schedule SCHEMAFULL;
+        DEFINE FIELD IF NOT EXISTS moment_id ON review_schedule TYPE record<moment>;
+        DEFINE FIELD IF NOT EXISTS next_review ON review_schedule TYPE datetime;
+        DEFINE FIELD IF NOT EXISTS interval ON review_schedule TYPE float DEFAULT 1;
+        DEFINE FIELD IF NOT EXISTS ease_factor ON review_schedule TYPE float DEFAULT 2.5;
+        DEFINE FIELD IF NOT EXISTS review_count ON review_schedule TYPE int DEFAULT 0;
+        DEFINE FIELD IF NOT EXISTS created_at ON review_schedule TYPE datetime;
+        ",
+    )
+    .await?;
+
     tracing::info!("数据库 Schema 初始化完成");
     Ok(())
 }

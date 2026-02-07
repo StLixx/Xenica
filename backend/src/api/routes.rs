@@ -194,6 +194,50 @@ pub struct Message {
     pub moment_id: Option<Thing>,
 }
 
+// -- ReviewSchedule (X6) --
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ReviewSchedule {
+    pub id: Option<Thing>,
+    pub moment_id: Option<Thing>,
+    pub next_review: String,
+    #[serde(default = "default_interval")]
+    pub interval: f64,
+    #[serde(default = "default_ease")]
+    pub ease_factor: f64,
+    #[serde(default)]
+    pub review_count: i64,
+    pub created_at: String,
+}
+
+fn default_interval() -> f64 { 1.0 }
+fn default_ease() -> f64 { 2.5 }
+
+/// 带 moment 信息的到期复习项（JOIN 查询结果）
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ReviewDueItem {
+    pub id: Option<Thing>,
+    pub moment_id: Option<Thing>,
+    pub next_review: String,
+    pub interval: f64,
+    pub ease_factor: f64,
+    pub review_count: i64,
+    pub created_at: String,
+    /// 冗余：关联 moment 的文本（方便前端展示）
+    pub moment_text: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct CreateReviewSchedule {
+    pub moment_id: String, // moment 的 ID（不含表名前缀）
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ReviewRespond {
+    /// again | hard | good | easy
+    pub response: String,
+}
+
 // -- Chat --
 
 #[derive(Debug, Deserialize)]
@@ -754,10 +798,55 @@ pub async fn send_chat(
         })
         .collect();
 
+    // 5.5 (X6) 查询到期复习项，注入到 system prompt
+    let system_prompt = {
+        let now_str = chrono::Utc::now().to_rfc3339();
+        let due_result: Result<Vec<ReviewSchedule>, _> = state
+            .db
+            .query(
+                "SELECT * FROM review_schedule WHERE next_review <= <datetime>$now ORDER BY next_review ASC LIMIT 10",
+            )
+            .bind(("now", now_str))
+            .await
+            .and_then(|mut r| r.take(0));
+
+        let mut due_texts: Vec<String> = Vec::new();
+        if let Ok(schedules) = due_result {
+            for s in &schedules {
+                if let Some(ref mid) = s.moment_id {
+                    let mt = format!("{}:{}", mid.tb, mid.id.to_raw());
+                    let m_result: Result<Vec<Moment>, _> = state
+                        .db
+                        .query("SELECT * FROM <record>$id")
+                        .bind(("id", mt))
+                        .await
+                        .and_then(|mut r| r.take(0));
+
+                    if let Ok(mut moments) = m_result {
+                        if let Some(m) = moments.pop() {
+                            let text = m.refined.unwrap_or(m.raw_input);
+                            due_texts.push(format!("- {}", text));
+                        }
+                    }
+                }
+            }
+        }
+
+        if due_texts.is_empty() {
+            SYSTEM_PROMPT.to_string()
+        } else {
+            format!(
+                "{}\n\n用户有以下待复习的知识点，如果和当前对话相关，请自然地提到：\n{}",
+                SYSTEM_PROMPT,
+                due_texts.join("\n")
+            )
+        }
+    };
+
     // 6. 调用 LLM
     let reply = match state
         .llm
-        .chat(SYSTEM_PROMPT, llm_messages, model.as_deref())
+        .chat(&system_prompt, llm_messages, model.as_deref())
         .await
     {
         Ok(r) => r,
@@ -1248,6 +1337,203 @@ async fn recalculate_weights_internal(db: &Db) {
     tracing::info!("权重重算完成");
 }
 
+// ─── X6 间隔重复 API ───
+
+/// GET /api/reviews/due — 获取到期复习项（next_review <= now）
+pub async fn list_due_reviews(
+    State(state): State<Arc<AppState>>,
+) -> impl IntoResponse {
+    let now = chrono::Utc::now().to_rfc3339();
+
+    // 查询所有到期的复习计划，同时获取关联 moment 的文本
+    let result: Result<Vec<ReviewSchedule>, _> = state
+        .db
+        .query(
+            "SELECT * FROM review_schedule WHERE next_review <= <datetime>$now ORDER BY next_review ASC",
+        )
+        .bind(("now", now))
+        .await
+        .and_then(|mut r| r.take(0));
+
+    match result {
+        Ok(schedules) => {
+            // 为每个 schedule 获取关联 moment 的文本
+            let mut due_items: Vec<ReviewDueItem> = Vec::new();
+
+            for s in &schedules {
+                let moment_text = if let Some(ref mid) = s.moment_id {
+                    let moment_thing = format!("{}:{}", mid.tb, mid.id.to_raw());
+                    let m_result: Result<Vec<Moment>, _> = state
+                        .db
+                        .query("SELECT * FROM <record>$id")
+                        .bind(("id", moment_thing))
+                        .await
+                        .and_then(|mut r| r.take(0));
+
+                    m_result
+                        .ok()
+                        .and_then(|mut v| v.pop())
+                        .map(|m| m.refined.unwrap_or(m.raw_input))
+                } else {
+                    None
+                };
+
+                due_items.push(ReviewDueItem {
+                    id: s.id.clone(),
+                    moment_id: s.moment_id.clone(),
+                    next_review: s.next_review.clone(),
+                    interval: s.interval,
+                    ease_factor: s.ease_factor,
+                    review_count: s.review_count,
+                    created_at: s.created_at.clone(),
+                    moment_text,
+                });
+            }
+
+            ok_json(due_items).into_response()
+        }
+        Err(e) => err_json(StatusCode::INTERNAL_SERVER_ERROR, e).into_response(),
+    }
+}
+
+/// POST /api/reviews/schedule — 为某个 moment 创建复习计划
+pub async fn create_review_schedule(
+    State(state): State<Arc<AppState>>,
+    Json(input): Json<CreateReviewSchedule>,
+) -> impl IntoResponse {
+    let now = chrono::Utc::now();
+    let now_str = now.to_rfc3339();
+    // 首次复习：1 天后
+    let next_review = (now + chrono::Duration::days(1)).to_rfc3339();
+    let moment_thing = format!("moment:{}", input.moment_id);
+
+    // 检查 moment 是否存在
+    let check: Result<Vec<Moment>, _> = state
+        .db
+        .query("SELECT * FROM <record>$id")
+        .bind(("id", moment_thing.clone()))
+        .await
+        .and_then(|mut r| r.take(0));
+
+    match check {
+        Ok(ref records) if records.is_empty() => {
+            return err_json(
+                StatusCode::NOT_FOUND,
+                format!("moment {} 不存在", input.moment_id),
+            )
+            .into_response();
+        }
+        Err(e) => return err_json(StatusCode::INTERNAL_SERVER_ERROR, e).into_response(),
+        _ => {}
+    }
+
+    // 检查是否已有该 moment 的复习计划
+    let existing: Result<Vec<ReviewSchedule>, _> = state
+        .db
+        .query("SELECT * FROM review_schedule WHERE moment_id = <record>$mid")
+        .bind(("mid", moment_thing.clone()))
+        .await
+        .and_then(|mut r| r.take(0));
+
+    if let Ok(ref records) = existing {
+        if !records.is_empty() {
+            return err_json(
+                StatusCode::CONFLICT,
+                format!("moment {} 已有复习计划", input.moment_id),
+            )
+            .into_response();
+        }
+    }
+
+    let result: Result<Vec<ReviewSchedule>, _> = state
+        .db
+        .query(
+            "CREATE review_schedule SET moment_id = <record>$moment_id, next_review = <datetime>$next_review, interval = 1, ease_factor = 2.5, review_count = 0, created_at = <datetime>$created_at",
+        )
+        .bind(("moment_id", moment_thing))
+        .bind(("next_review", next_review))
+        .bind(("created_at", now_str))
+        .await
+        .and_then(|mut r| r.take(0));
+
+    match result {
+        Ok(records) => (
+            StatusCode::CREATED,
+            ok_json(records.into_iter().next()),
+        )
+            .into_response(),
+        Err(e) => err_json(StatusCode::INTERNAL_SERVER_ERROR, e).into_response(),
+    }
+}
+
+/// POST /api/reviews/{id}/respond — 用户反馈（again/hard/good/easy）→ SM-2 更新间隔
+pub async fn review_respond(
+    State(state): State<Arc<AppState>>,
+    Path(id): Path<String>,
+    Json(input): Json<ReviewRespond>,
+) -> impl IntoResponse {
+    let thing = format!("review_schedule:{}", id);
+
+    // 获取当前复习计划
+    let result: Result<Vec<ReviewSchedule>, _> = state
+        .db
+        .query("SELECT * FROM <record>$id")
+        .bind(("id", thing.clone()))
+        .await
+        .and_then(|mut r| r.take(0));
+
+    let schedule = match result {
+        Ok(mut records) => match records.pop() {
+            Some(s) => s,
+            None => {
+                return err_json(StatusCode::NOT_FOUND, "复习计划不存在").into_response()
+            }
+        },
+        Err(e) => return err_json(StatusCode::INTERNAL_SERVER_ERROR, e).into_response(),
+    };
+
+    // SM-2 算法（简化版）
+    let (new_interval, new_ease) = match input.response.as_str() {
+        "again" => (1.0_f64, (schedule.ease_factor - 0.2).max(1.3)),
+        "hard" => (schedule.interval * 1.2, (schedule.ease_factor - 0.15).max(1.3)),
+        "good" => (schedule.interval * schedule.ease_factor, schedule.ease_factor),
+        "easy" => (
+            schedule.interval * schedule.ease_factor * 1.3,
+            schedule.ease_factor + 0.15,
+        ),
+        _ => {
+            return err_json(
+                StatusCode::BAD_REQUEST,
+                "response 必须是 again/hard/good/easy",
+            )
+            .into_response()
+        }
+    };
+
+    // 计算下次复习时间
+    let interval_secs = (new_interval * 86400.0) as i64; // 天 → 秒
+    let next_review = (chrono::Utc::now() + chrono::Duration::seconds(interval_secs)).to_rfc3339();
+
+    // 更新数据库
+    let update_result: Result<Vec<ReviewSchedule>, _> = state
+        .db
+        .query(
+            "UPDATE <record>$id SET interval = $interval, ease_factor = $ease, next_review = <datetime>$next_review, review_count = $count",
+        )
+        .bind(("id", thing))
+        .bind(("interval", new_interval))
+        .bind(("ease", new_ease))
+        .bind(("next_review", next_review))
+        .bind(("count", schedule.review_count + 1))
+        .await
+        .and_then(|mut r| r.take(0));
+
+    match update_result {
+        Ok(records) => ok_json(records.into_iter().next()).into_response(),
+        Err(e) => err_json(StatusCode::INTERNAL_SERVER_ERROR, e).into_response(),
+    }
+}
+
 // ─── X5B OCR API ───
 
 /// OCR 响应
@@ -1338,4 +1624,137 @@ pub async fn ocr_image(
             .into_response()
         }
     }
+}
+
+// ─── X5C 视频导入 ───
+
+/// 视频导入请求
+#[derive(Debug, Deserialize)]
+pub struct VideoImportInput {
+    pub url: String,
+}
+
+/// 视频导入响应
+#[derive(Debug, Serialize)]
+pub struct VideoImportOutput {
+    pub title: String,
+    pub transcript: String,
+    pub source_url: String,
+}
+
+/// POST /api/import/video — 视频链接 → 文稿提取
+///
+/// 接收视频 URL，调用 Gemini Flash 提取视频内容摘要。
+/// 支持 B站、YouTube、抖音。超时 60 秒。
+pub async fn import_video(
+    State(state): State<Arc<AppState>>,
+    Json(input): Json<VideoImportInput>,
+) -> impl IntoResponse {
+    let url = input.url.trim().to_string();
+
+    // 1. 校验 URL 不为空
+    if url.is_empty() {
+        return err_json(StatusCode::BAD_REQUEST, "URL 不能为空").into_response();
+    }
+
+    // 2. 检查是否是支持的视频平台
+    let is_video_url = url.contains("bilibili.com")
+        || url.contains("b23.tv")
+        || url.contains("youtube.com")
+        || url.contains("youtu.be")
+        || url.contains("douyin.com");
+
+    if !is_video_url {
+        return err_json(
+            StatusCode::BAD_REQUEST,
+            "不支持的视频平台，目前支持：B站、YouTube、抖音",
+        )
+        .into_response();
+    }
+
+    tracing::info!("视频导入请求: {}", url);
+
+    // 3. 构建 prompt
+    let prompt = format!(
+        "请访问以下视频链接，提取视频的主要内容和要点，用中文输出摘要。\n\n\
+         要求：\n\
+         - 第一行输出视频标题（格式：标题：xxx）\n\
+         - 然后输出视频内容摘要\n\
+         - 列出关键要点\n\n\
+         链接：{}",
+        url
+    );
+
+    let messages = vec![ChatMessage {
+        role: "user".to_string(),
+        content: prompt,
+    }];
+
+    // 4. 调用 Gemini Flash（60 秒超时）
+    let result = tokio::time::timeout(
+        std::time::Duration::from_secs(60),
+        state.llm.chat(
+            "你是一个视频内容分析助手。用户会给你视频链接，请提取视频的主要内容和要点。",
+            messages,
+            Some("gemini-2.5-flash"),
+        ),
+    )
+    .await;
+
+    match result {
+        Ok(Ok(transcript)) => {
+            let transcript = transcript.trim().to_string();
+            let title = extract_video_title(&transcript);
+
+            tracing::info!(
+                "视频摘要提取成功: 标题「{}」, {} 字",
+                title,
+                transcript.chars().count()
+            );
+
+            ok_json(VideoImportOutput {
+                title,
+                transcript,
+                source_url: url,
+            })
+            .into_response()
+        }
+        Ok(Err(e)) => {
+            tracing::error!("视频摘要提取失败: {}", e);
+            err_json(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                format!(
+                    "视频内容提取失败: {}。如果 AI 无法访问视频，请手动粘贴视频文稿。",
+                    e
+                ),
+            )
+            .into_response()
+        }
+        Err(_) => {
+            tracing::error!("视频摘要提取超时（60秒）");
+            err_json(
+                StatusCode::GATEWAY_TIMEOUT,
+                "视频内容提取超时（60秒），请稍后重试，或手动粘贴视频文稿。",
+            )
+            .into_response()
+        }
+    }
+}
+
+/// 从 AI 响应中提取标题
+fn extract_video_title(text: &str) -> String {
+    for line in text.lines() {
+        let line = line.trim();
+        if line.starts_with("标题：") || line.starts_with("标题:") {
+            return line
+                .trim_start_matches("标题：")
+                .trim_start_matches("标题:")
+                .trim()
+                .to_string();
+        }
+        if line.starts_with("# ") {
+            return line.trim_start_matches("# ").trim().to_string();
+        }
+    }
+    "视频摘要".to_string()
 }

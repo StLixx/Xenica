@@ -76,8 +76,14 @@ async fn main() {
         .route("/api/graph/stats", get(routes::graph_stats))
         .route("/api/graph/recalculate", post(routes::recalculate_weights))
         .route("/api/perspectives", get(routes::list_perspectives))
+        // X6: 间隔重复
+        .route("/api/reviews/due", get(routes::list_due_reviews))
+        .route("/api/reviews/schedule", post(routes::create_review_schedule))
+        .route("/api/reviews/{id}/respond", post(routes::review_respond))
         // X5B: OCR 端点
         .route("/api/ocr", post(routes::ocr_image))
+        // X5C: 视频导入
+        .route("/api/import/video", post(routes::import_video))
         // 请求体大小限制 10MB（OCR 图片需要）
         .layer(DefaultBodyLimit::max(10 * 1024 * 1024))
         .layer(cors)

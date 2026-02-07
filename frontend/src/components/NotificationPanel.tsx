@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react'
-import { X, FileText, Link2, RotateCcw } from 'lucide-react'
+import { useState, useEffect, useCallback } from 'react'
+import { X, FileText, Link2, RotateCcw, Loader2 } from 'lucide-react'
 import { useNotificationStore } from '../stores/notification'
 import { useAppStore } from '../stores/app'
-import { listMoments } from '../lib/api'
+import { listMoments, listDueReviews, respondReview } from '../lib/api'
 import { timeAgo } from '../lib/timeago'
-import type { Moment } from '../lib/types'
+import type { Moment, ReviewDueItem, ReviewResponse } from '../lib/types'
 
 type Tab = 'expand' | 'confirm' | 'review'
 
@@ -14,6 +14,13 @@ const tabs: Array<{ id: Tab; label: string; icon: typeof FileText }> = [
   { id: 'review', label: '待复习', icon: RotateCcw },
 ]
 
+const reviewButtons: Array<{ response: ReviewResponse; label: string; className: string }> = [
+  { response: 'again', label: '重来', className: 'review-btn-again' },
+  { response: 'hard', label: '困难', className: 'review-btn-hard' },
+  { response: 'good', label: '良好', className: 'review-btn-good' },
+  { response: 'easy', label: '简单', className: 'review-btn-easy' },
+]
+
 export default function NotificationPanel() {
   const { isOpen, close: closeNotifications } = useNotificationStore()
   const { online } = useAppStore()
@@ -21,6 +28,12 @@ export default function NotificationPanel() {
   const [unextracted, setUnextracted] = useState<Moment[]>([])
   const [loading, setLoading] = useState(false)
 
+  // X6: 待复习数据
+  const [dueReviews, setDueReviews] = useState<ReviewDueItem[]>([])
+  const [reviewLoading, setReviewLoading] = useState(false)
+  const [respondingId, setRespondingId] = useState<string | null>(null)
+
+  // 加载待展开
   useEffect(() => {
     if (isOpen && online && activeTab === 'expand') {
       setLoading(true)
@@ -33,18 +46,62 @@ export default function NotificationPanel() {
     }
   }, [isOpen, activeTab, online])
 
+  // X6: 加载待复习
+  const loadReviews = useCallback(() => {
+    if (!online) return
+    setReviewLoading(true)
+    listDueReviews()
+      .then(setDueReviews)
+      .catch(() => setDueReviews([]))
+      .finally(() => setReviewLoading(false))
+  }, [online])
+
+  useEffect(() => {
+    if (isOpen && online && activeTab === 'review') {
+      loadReviews()
+    }
+  }, [isOpen, activeTab, online, loadReviews])
+
+  // X6: 用户反馈
+  const handleReviewRespond = async (reviewId: string, response: ReviewResponse) => {
+    // reviewId 格式可能是 "review_schedule:xxx"，需要提取纯 ID
+    const pureId = reviewId.includes(':') ? reviewId.split(':')[1] : reviewId
+    setRespondingId(reviewId)
+    try {
+      await respondReview(pureId, response)
+      // 从列表中移除已回复的项
+      setDueReviews((prev) => prev.filter((r) => {
+        const rId = typeof r.id === 'object' ? JSON.stringify(r.id) : r.id
+        return rId !== reviewId
+      }))
+    } catch (e) {
+      console.error('复习反馈失败:', e)
+    } finally {
+      setRespondingId(null)
+    }
+  }
+
   if (!isOpen) return null
 
-  // Mock 数据（X8 / X6 接入后替换）
+  // Mock 数据（X8 接入后替换）
   const mockConfirmations = [
     { id: '1', text: 'AI 建议关联「认知负荷」与「注意力分配」', time: '2 小时前' },
     { id: '2', text: 'AI 建议关联「涌现性」与「复杂系统」', time: '5 小时前' },
   ]
 
-  const mockReviews = [
-    { id: '1', text: '「符号与意义」— 首次复习', time: '今天' },
-    { id: '2', text: '「工作记忆模型」— 第二次复习', time: '明天' },
-  ]
+  // 提取 review ID 字符串
+  const getReviewId = (item: ReviewDueItem): string => {
+    if (typeof item.id === 'object' && item.id !== null) {
+      return JSON.stringify(item.id)
+    }
+    return String(item.id)
+  }
+
+  // 复习次数描述
+  const reviewLabel = (count: number): string => {
+    if (count === 0) return '首次复习'
+    return `第 ${count + 1} 次复习`
+  }
 
   return (
     <div className="notification-overlay" onClick={closeNotifications}>
@@ -67,6 +124,9 @@ export default function NotificationPanel() {
               {label}
               {id === 'expand' && unextracted.length > 0 && (
                 <span className="notif-badge">{unextracted.length}</span>
+              )}
+              {id === 'review' && dueReviews.length > 0 && (
+                <span className="notif-badge">{dueReviews.length}</span>
               )}
             </button>
           ))}
@@ -114,17 +174,43 @@ export default function NotificationPanel() {
           )}
 
           {activeTab === 'review' && (
-            <ul className="notif-list">
-              {mockReviews.map((item) => (
-                <li key={item.id} className="notif-item">
-                  <RotateCcw size={14} className="notif-item-icon" />
-                  <div className="notif-item-body">
-                    <p className="notif-item-text">{item.text}</p>
-                    <span className="notif-item-time">{item.time}</span>
-                  </div>
-                </li>
-              ))}
-            </ul>
+            reviewLoading ? (
+              <div className="notif-loading">加载中…</div>
+            ) : dueReviews.length === 0 ? (
+              <div className="notif-empty">没有待复习的内容</div>
+            ) : (
+              <ul className="notif-list">
+                {dueReviews.map((item) => {
+                  const rid = getReviewId(item)
+                  const isResponding = respondingId === rid
+                  return (
+                    <li key={rid} className="notif-item review-card">
+                      <RotateCcw size={14} className="notif-item-icon" />
+                      <div className="notif-item-body">
+                        <p className="notif-item-text">
+                          {item.moment_text || '(未知内容)'}
+                        </p>
+                        <span className="notif-item-time">
+                          {reviewLabel(item.review_count)} · 间隔 {Math.round(item.interval)} 天
+                        </span>
+                        <div className="review-actions">
+                          {reviewButtons.map(({ response, label, className }) => (
+                            <button
+                              key={response}
+                              className={`review-respond-btn ${className}`}
+                              disabled={isResponding}
+                              onClick={() => handleReviewRespond(rid, response)}
+                            >
+                              {isResponding ? <Loader2 size={12} className="spin" /> : label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </li>
+                  )
+                })}
+              </ul>
+            )
           )}
         </div>
       </div>

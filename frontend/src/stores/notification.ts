@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { listDueReviews } from '../lib/api'
 
 export interface Notification {
   id: string
@@ -12,6 +13,7 @@ export interface Notification {
 interface NotificationStore {
   notifications: Notification[]
   unreadCount: number
+  dueReviewCount: number
   isOpen: boolean
 
   toggle: () => void
@@ -19,11 +21,14 @@ interface NotificationStore {
   markRead: (id: string) => void
   markAllRead: () => void
   addNotification: (n: Omit<Notification, 'id' | 'read'>) => void
+  /** X6: 从后端加载待复习数量 */
+  loadDueReviewCount: () => Promise<void>
 }
 
 export const useNotificationStore = create<NotificationStore>((set, get) => ({
   notifications: [],
   unreadCount: 0,
+  dueReviewCount: 0,
   isOpen: false,
 
   toggle: () => set({ isOpen: !get().isOpen }),
@@ -55,5 +60,14 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
       notifications,
       unreadCount: notifications.filter((nn) => !nn.read).length,
     })
+  },
+
+  loadDueReviewCount: async () => {
+    try {
+      const dueItems = await listDueReviews()
+      set({ dueReviewCount: dueItems.length })
+    } catch {
+      // 后端不可达时静默失败
+    }
   },
 }))

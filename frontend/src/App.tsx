@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useThemeStore } from './stores/theme'
 import { useAppStore } from './stores/app'
 import { useGraphStore } from './stores/graph'
+import { useNotificationStore } from './stores/notification'
 import { useIsMobile } from './hooks/useIsMobile'
 import { applyTheme } from './lib/theme'
 import type { ViewType } from './lib/types'
@@ -27,6 +28,7 @@ export default function App() {
   const { theme, mode } = useThemeStore()
   const { view, setView, mobileTab, online } = useAppStore()
   const { selectedNodeId, loadTopNodes, loadStats, traverseNode, selectNode } = useGraphStore()
+  const { loadDueReviewCount } = useNotificationStore()
   const isMobile = useIsMobile()
   const [searchOpen, setSearchOpen] = useState(false)
   const [rightTab, setRightTab] = useState<'chat' | 'detail'>('chat')
@@ -36,13 +38,14 @@ export default function App() {
     applyTheme(theme, mode)
   }, [theme, mode])
 
-  // 加载图谱数据
+  // 加载图谱数据 + X6: 待复习数量
   useEffect(() => {
     if (online) {
       loadTopNodes()
       loadStats()
+      loadDueReviewCount()
     }
-  }, [online, loadTopNodes, loadStats])
+  }, [online, loadTopNodes, loadStats, loadDueReviewCount])
 
   // 节点选中时自动切换到详情 tab
   useEffect(() => {

@@ -6,7 +6,8 @@ import { useNotificationStore } from '../stores/notification'
 export default function TopBar() {
   const { mode, toggleMode } = useThemeStore()
   const { toggleSettings, online } = useAppStore()
-  const { unreadCount, toggle: toggleNotifications } = useNotificationStore()
+  const { unreadCount, dueReviewCount, toggle: toggleNotifications } = useNotificationStore()
+  const totalBadge = unreadCount + dueReviewCount
 
   return (
     <header className="topbar">
@@ -22,8 +23,8 @@ export default function TopBar() {
         </button>
         <button onClick={toggleNotifications} className="topbar-btn topbar-bell" title="通知">
           <Bell size={18} />
-          {unreadCount > 0 && (
-            <span className="topbar-badge">{unreadCount}</span>
+          {totalBadge > 0 && (
+            <span className="topbar-badge">{totalBadge}</span>
           )}
         </button>
         <button onClick={toggleSettings} className="topbar-btn" title="设置">
