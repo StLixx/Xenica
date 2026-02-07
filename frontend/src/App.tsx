@@ -29,6 +29,7 @@ export default function App() {
   const { selectedNodeId, loadTopNodes, loadStats, traverseNode, selectNode } = useGraphStore()
   const isMobile = useIsMobile()
   const [searchOpen, setSearchOpen] = useState(false)
+  const [rightTab, setRightTab] = useState<'chat' | 'detail'>('chat')
 
   // 同步主题到 DOM
   useEffect(() => {
@@ -42,6 +43,13 @@ export default function App() {
       loadStats()
     }
   }, [online, loadTopNodes, loadStats])
+
+  // 节点选中时自动切换到详情 tab
+  useEffect(() => {
+    if (selectedNodeId) {
+      setRightTab('detail')
+    }
+  }, [selectedNodeId])
 
   // Ctrl+K 全局快捷键
   useEffect(() => {
@@ -77,9 +85,6 @@ export default function App() {
         return (
           <div className="desktop-graph-area">
             <GraphView />
-            {selectedNodeId && (
-              <NodeDetail nodeId={selectedNodeId} onClose={() => selectNode(null)} />
-            )}
           </div>
         )
     }
@@ -150,9 +155,35 @@ export default function App() {
           {renderDesktopMain()}
         </main>
 
-        {/* 右侧：常驻对话 */}
+        {/* 右侧：对话 / 节点详情 Tab 切换 */}
         <aside className="app-desktop-chat">
-          <ChatPanel />
+          {selectedNodeId && (
+            <div className="right-panel-tabs">
+              <button
+                className={`right-panel-tab ${rightTab === 'chat' ? 'active' : ''}`}
+                onClick={() => setRightTab('chat')}
+              >
+                对话
+              </button>
+              <button
+                className={`right-panel-tab ${rightTab === 'detail' ? 'active' : ''}`}
+                onClick={() => setRightTab('detail')}
+              >
+                节点详情
+              </button>
+            </div>
+          )}
+          {rightTab === 'detail' && selectedNodeId ? (
+            <NodeDetail
+              nodeId={selectedNodeId}
+              onClose={() => {
+                selectNode(null)
+                setRightTab('chat')
+              }}
+            />
+          ) : (
+            <ChatPanel />
+          )}
         </aside>
       </div>
 

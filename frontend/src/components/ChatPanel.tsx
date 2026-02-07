@@ -207,12 +207,18 @@ export default function ChatPanel() {
         style={{ scrollBehavior: 'smooth' }}
       >
         {messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full gap-3">
-            <span className="font-serif text-xl font-semibold" style={{ color: 'var(--text-muted)' }}>
+          <div className="flex flex-col items-center justify-center h-full gap-2">
+            <span
+              className="font-serif text-2xl font-semibold tracking-wide"
+              style={{ color: 'var(--text-muted)', letterSpacing: '0.05em' }}
+            >
               织念
             </span>
-            <p className="text-sm text-center max-w-[240px]" style={{ color: 'var(--text-dim)' }}>
-              分享你的想法、观点或问题，AI 会帮你理清思路，并将认知存入图谱。
+            <p
+              className="font-serif text-sm text-center"
+              style={{ color: 'var(--text-dim)', fontWeight: 300, opacity: 0.7 }}
+            >
+              分享你的想法…
             </p>
           </div>
         ) : (
@@ -232,27 +238,22 @@ export default function ChatPanel() {
                 } : undefined}
               >
                 <div
-                  className="px-4 py-3 text-sm leading-relaxed"
+                  className={`chat-bubble-wrap ${msg.role === 'user' ? 'user-bubble' : 'ai-bubble'}`}
                   style={{
                     background: msg.role === 'user' ? 'var(--user-bubble)' : 'var(--ai-bubble)',
                     color: msg.role === 'user' ? 'var(--text)' : 'var(--text-secondary)',
-                    borderRadius:
-                      msg.role === 'user'
-                        ? '12px 12px 4px 12px'
-                        : '12px 12px 12px 4px',
-                    whiteSpace: 'pre-wrap',
                   }}
                 >
                   {msg.content}
-                </div>
-                <div
-                  className={`text-[10px] mt-1 px-1 ${msg.role === 'user' ? 'text-right' : ''}`}
-                  style={{ color: 'var(--text-dim)' }}
-                >
-                  {new Date(msg.timestamp).toLocaleTimeString('zh-CN', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
+                  <span
+                    className="chat-bubble-time"
+                    style={{ color: 'var(--text-dim)' }}
+                  >
+                    {new Date(msg.timestamp).toLocaleTimeString('zh-CN', {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                  </span>
                 </div>
               </div>
             ))}

@@ -15,12 +15,11 @@ function XenicaNode({ data, selected }: NodeProps) {
   const { label, weight, perspectives, nodeType, color } = data as unknown as XenicaNodeData
   const [hovered, setHovered] = useState(false)
 
-  // 缩放级别决定显示模式
-  // 简化：根据 weight 决定节点大小
+  // 根据 weight 决定节点大小
   const size = Math.max(36, Math.min(72, 36 + (weight || 0) * 3))
   const isSmall = size < 50
 
-  // 圆形气泡模式（缩小时）
+  // ─── 圆形气泡模式（缩小/低权重时） ───
   if (isSmall) {
     return (
       <motion.div
@@ -34,21 +33,40 @@ function XenicaNode({ data, selected }: NodeProps) {
           width: size,
           height: size,
           borderRadius: '50%',
-          background: `${color}33`,
-          border: selected ? `2px solid ${color}` : `1px solid ${color}66`,
+          background: `${color}26`,
+          border: selected ? `2px solid ${color}` : `1.5px solid ${color}88`,
           boxShadow: selected
-            ? `0 0 0 3px ${color}33, 0 4px 20px rgba(0,0,0,0.4)`
-            : `0 2px 12px rgba(0,0,0,0.3)`,
-          transform: hovered ? 'scale(1.15)' : 'scale(1)',
-          transition: 'transform 0.2s, box-shadow 0.2s',
-          zIndex: hovered ? 10 : 1,
+            ? `0 0 0 4px ${color}33, 0 0 16px ${color}22, 0 4px 20px rgba(0,0,0,0.4)`
+            : hovered
+              ? `0 4px 24px rgba(0,0,0,0.5)`
+              : `0 2px 12px rgba(0,0,0,0.3)`,
+          transform: hovered ? 'scale(1.15)' : selected ? 'scale(1.1)' : 'scale(1)',
+          transition: 'transform 0.25s cubic-bezier(0.25,0.46,0.45,0.94), box-shadow 0.25s ease',
+          zIndex: hovered || selected ? 10 : 1,
         }}
       >
+        {/* 选中态呼吸光晕 */}
+        {selected && (
+          <motion.div
+            initial={{ scale: 1, opacity: 0.25 }}
+            animate={{ scale: [1, 1.3, 1], opacity: [0.25, 0.08, 0.25] }}
+            transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+            style={{
+              position: 'absolute',
+              inset: -6,
+              borderRadius: '50%',
+              border: `1px solid ${color}`,
+              pointerEvents: 'none',
+            }}
+          />
+        )}
+
         <span
           className="text-center leading-tight"
           style={{
             fontSize: 10,
             fontWeight: 500,
+            fontFamily: "'Noto Serif SC', serif",
             color: 'rgba(255,255,255,0.9)',
             maxWidth: size - 8,
             overflow: 'hidden',
@@ -103,7 +121,7 @@ function XenicaNode({ data, selected }: NodeProps) {
     )
   }
 
-  // 方形卡片模式（放大时）
+  // ─── 方形卡片模式（放大/高权重时） ───
   return (
     <motion.div
       initial={{ scale: 0, opacity: 0 }}
@@ -119,10 +137,12 @@ function XenicaNode({ data, selected }: NodeProps) {
         minWidth: 120,
         boxShadow: selected
           ? `0 0 0 2px ${color}66, 0 6px 24px var(--shadow-heavy)`
-          : '0 2px 8px var(--shadow)',
-        transform: hovered ? 'translateY(-3px)' : 'translateY(0)',
-        transition: 'transform 0.2s, box-shadow 0.2s',
-        zIndex: hovered ? 10 : 1,
+          : hovered
+            ? '0 6px 24px var(--shadow-heavy)'
+            : '0 2px 8px var(--shadow)',
+        transform: hovered ? 'translateY(-3px)' : selected ? 'translateY(-2px)' : 'translateY(0)',
+        transition: 'transform 0.25s cubic-bezier(0.25,0.46,0.45,0.94), box-shadow 0.25s ease',
+        zIndex: hovered || selected ? 10 : 1,
       }}
     >
       <div

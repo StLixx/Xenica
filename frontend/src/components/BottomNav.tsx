@@ -33,8 +33,8 @@ export default function BottomNav({ currentView, onViewChange, onSearchOpen }: B
     >
       {/* 品牌 */}
       <span
-        className="font-serif text-base font-bold mr-6 tracking-wide"
-        style={{ color: 'var(--primary)' }}
+        className="font-serif font-bold mr-6"
+        style={{ color: 'var(--primary)', fontSize: '16px', letterSpacing: '0.03em' }}
       >
         Xenica
       </span>
