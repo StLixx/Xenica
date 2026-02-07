@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::api::routes::{Entity, Moment};
+use crate::api::routes::{Entity, Moment, RelateEdge};
 use crate::db::connection::Db;
 use crate::llm::client::{ChatMessage, LlmClient};
 
@@ -162,15 +162,18 @@ pub async fn extract_moment(
     let refined = extraction.refined.clone();
     let perspectives = extraction.perspectives.clone();
 
-    let _: Result<Vec<serde_json::Value>, _> = db
+    let update_result: Result<Vec<serde_json::Value>, _> = db
         .query(
-            "UPDATE <record>$id SET refined = $refined, perspectives = $perspectives, extracted = true",
+            "UPDATE type::thing('moment', $mid) SET refined = $refined, perspectives = $perspectives, extracted = true",
         )
-        .bind(("id", thing.clone()))
+        .bind(("mid", moment_id.to_string()))
         .bind(("refined", refined))
         .bind(("perspectives", perspectives))
         .await
         .and_then(|mut r| r.take(0));
+    if let Err(e) = &update_result {
+        tracing::error!("更新 moment {} extracted 状态失败: {}", moment_id, e);
+    }
 
     // 6. 创建或关联实体
     for entity in &extraction.entities {
@@ -217,14 +220,17 @@ pub async fn extract_moment(
 
         // 7. 创建 moment -> entity 关联边
         if !entity_thing.is_empty() {
-            let _: Result<Vec<serde_json::Value>, _> = db
+            let relate_result: Result<Vec<RelateEdge>, _> = db
                 .query(
-                    "RELATE <record>$from->relates_to-><record>$to SET relation_type = 'semantic', description = 'extracted entity'",
+                    "LET $f = <record>$from; LET $t = <record>$to; RELATE $f->relates_to->$t SET relation_type = 'semantic', description = 'extracted entity'",
                 )
                 .bind(("from", thing.clone()))
                 .bind(("to", entity_thing))
                 .await
-                .and_then(|mut r| r.take(0));
+                .and_then(|mut r| r.take(2));
+            if let Err(e) = relate_result {
+                tracing::error!("创建 moment->entity 关联边失败: {}", e);
+            }
         }
     }
 
@@ -245,16 +251,19 @@ pub async fn extract_moment(
                 .unwrap_or_default();
 
             if !target_thing.is_empty() {
-                let _: Result<Vec<serde_json::Value>, _> = db
+                let relate_result: Result<Vec<RelateEdge>, _> = db
                     .query(
-                        "RELATE <record>$from->relates_to-><record>$to SET relation_type = $rel_type, description = $desc",
+                        "LET $f = <record>$from; LET $t = <record>$to; RELATE $f->relates_to->$t SET relation_type = $rel_type, description = $desc",
                     )
                     .bind(("from", thing.clone()))
                     .bind(("to", target_thing))
                     .bind(("rel_type", relation.relation_type.clone()))
                     .bind(("desc", relation.description.clone()))
                     .await
-                    .and_then(|mut r| r.take(0));
+                    .and_then(|mut r| r.take(2));
+                if let Err(e) = relate_result {
+                    tracing::error!("创建 moment->entity 关联失败: {}", e);
+                }
             }
         }
     }

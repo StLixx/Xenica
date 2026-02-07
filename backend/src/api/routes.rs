@@ -103,6 +103,13 @@ pub struct Moment {
     pub weight: f64,
 }
 
+/// 视角投影（用于只查 perspectives 字段，避免完整 Moment 反序列化）
+#[derive(Debug, Deserialize)]
+struct PerspectiveProjection {
+    #[serde(default)]
+    perspectives: Vec<String>,
+}
+
 #[derive(Debug, Deserialize)]
 pub struct CreateMoment {
     pub raw_input: String,
@@ -133,6 +140,19 @@ pub struct CreateEntity {
 }
 
 // -- Relation --
+
+/// RELATE 边记录（用于反序列化 RELATE 返回值）
+#[derive(Debug, Serialize, Deserialize)]
+pub struct RelateEdge {
+    pub id: Option<Thing>,
+    #[serde(rename = "in")]
+    pub source: Option<Thing>,
+    #[serde(rename = "out")]
+    pub target: Option<Thing>,
+    pub relation_type: Option<String>,
+    pub description: Option<String>,
+    pub strength: Option<f64>,
+}
 
 #[derive(Debug, Deserialize)]
 pub struct CreateRelation {
@@ -411,19 +431,41 @@ pub async fn get_related(
 ) -> impl IntoResponse {
     let thing = format!("moment:{}", id);
 
-    // 查找一度关联节点（出边 + 入边）
-    let result: Result<Vec<serde_json::Value>, _> = state
+    // 分别查询中心节点和关联边，避免图遍历字段的序列化问题
+    let result = state
         .db
-        .query(
-            "SELECT *, ->relates_to->moment|entity AS outgoing, <-relates_to<-moment|entity AS incoming FROM <record>$id",
-        )
+        .query("SELECT * FROM <record>$id")
+        .query("SELECT *, in, out FROM relates_to WHERE in = <record>$id OR out = <record>$id")
         .bind(("id", thing))
-        .await
-        .and_then(|mut r| r.take(0));
+        .await;
 
     match result {
-        Ok(records) => ok_json(records).into_response(),
-        Err(e) => err_json(StatusCode::INTERNAL_SERVER_ERROR, e).into_response(),
+        Ok(mut response) => {
+            let center: Vec<serde_json::Value> = response.take(0).unwrap_or_default();
+            let edges: Vec<serde_json::Value> = response.take(1).unwrap_or_default();
+
+            // 收集所有关联节点的 ID
+            let mut related_ids: Vec<String> = Vec::new();
+            for edge in &edges {
+                if let Some(in_val) = edge.get("in") {
+                    related_ids.push(in_val.to_string());
+                }
+                if let Some(out_val) = edge.get("out") {
+                    related_ids.push(out_val.to_string());
+                }
+            }
+
+            ok_json(serde_json::json!({
+                "center": center.into_iter().next(),
+                "edges": edges,
+                "related_ids": related_ids,
+            }))
+            .into_response()
+        }
+        Err(e) => {
+            tracing::error!("related 查询失败: {}", e);
+            err_json(StatusCode::INTERNAL_SERVER_ERROR, e).into_response()
+        }
     }
 }
 
@@ -539,10 +581,10 @@ pub async fn create_relation(
     State(state): State<Arc<AppState>>,
     Json(input): Json<CreateRelation>,
 ) -> impl IntoResponse {
-    let result: Result<Vec<serde_json::Value>, _> = state
+    let result: Result<Vec<RelateEdge>, _> = state
         .db
         .query(
-            "RELATE <record>$from->relates_to-><record>$to SET relation_type = $relation_type, description = $description, strength = $strength",
+            "LET $f = <record>$from; LET $t = <record>$to; RELATE $f->relates_to->$t SET relation_type = $relation_type, description = $description, strength = $strength",
         )
         .bind(("from", input.from))
         .bind(("to", input.to))
@@ -550,7 +592,7 @@ pub async fn create_relation(
         .bind(("description", input.description))
         .bind(("strength", input.strength))
         .await
-        .and_then(|mut r| r.take(0));
+        .and_then(|mut r| r.take(2));
 
     match result {
         Ok(records) => (
@@ -558,7 +600,10 @@ pub async fn create_relation(
             ok_json(records.into_iter().next()),
         )
             .into_response(),
-        Err(e) => err_json(StatusCode::INTERNAL_SERVER_ERROR, e).into_response(),
+        Err(e) => {
+            tracing::error!("创建关联失败: {}", e);
+            err_json(StatusCode::INTERNAL_SERVER_ERROR, e).into_response()
+        }
     }
 }
 
@@ -981,20 +1026,20 @@ pub async fn list_perspectives(
     State(state): State<Arc<AppState>>,
 ) -> impl IntoResponse {
     // 获取所有 moment 的 perspectives 字段
-    let result: Result<Vec<Moment>, _> = state
+    let result: Result<Vec<PerspectiveProjection>, _> = state
         .db
         .query("SELECT perspectives FROM moment")
         .await
         .and_then(|mut r| r.take(0));
 
     match result {
-        Ok(moments) => {
+        Ok(projections) => {
             // 统计每个视角标签的使用次数
             let mut perspective_counts: std::collections::HashMap<String, u32> =
                 std::collections::HashMap::new();
 
-            for moment in &moments {
-                for p in &moment.perspectives {
+            for proj in &projections {
+                for p in &proj.perspectives {
                     *perspective_counts.entry(p.clone()).or_insert(0) += 1;
                 }
             }
@@ -1113,7 +1158,7 @@ pub async fn graph_stats(
             let entity_count: Vec<serde_json::Value> = response.take(1).unwrap_or_default();
             let edge_count: Vec<serde_json::Value> = response.take(2).unwrap_or_default();
             let conv_count: Vec<serde_json::Value> = response.take(3).unwrap_or_default();
-            let all_moments: Vec<Moment> = response.take(4).unwrap_or_default();
+            let all_perspectives: Vec<PerspectiveProjection> = response.take(4).unwrap_or_default();
             let top_entities: Vec<Entity> = response.take(5).unwrap_or_default();
 
             let total_moments = moment_count
@@ -1136,8 +1181,8 @@ pub async fn graph_stats(
             // 统计视角
             let mut perspective_counts: std::collections::HashMap<String, u32> =
                 std::collections::HashMap::new();
-            for moment in &all_moments {
-                for p in &moment.perspectives {
+            for proj in &all_perspectives {
+                for p in &proj.perspectives {
                     *perspective_counts.entry(p.clone()).or_insert(0) += 1;
                 }
             }

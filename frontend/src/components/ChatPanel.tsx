@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Plus, List, ChevronDown, Send, Loader2 } from 'lucide-react'
 import { useChatStore } from '../stores/chat'
+import { useIsMobile } from '../hooks/useIsMobile'
 
 const MODEL_OPTIONS = [
   { value: 'claude-sonnet', label: 'Claude Sonnet' },
@@ -30,6 +31,7 @@ export default function ChatPanel() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const messagesContainerRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+  const isMobile = useIsMobile()
 
   useEffect(() => {
     loadConversations()
@@ -69,7 +71,7 @@ export default function ChatPanel() {
       className="flex flex-col h-full relative"
       style={{
         background: 'var(--bg)',
-        borderLeft: '1px solid var(--border)',
+        borderLeft: isMobile ? 'none' : '1px solid var(--border)',
       }}
     >
       {/* 头部 */}
@@ -220,6 +222,14 @@ export default function ChatPanel() {
                 key={msg.id}
                 data-role={msg.role}
                 className={`max-w-[95%] ${msg.role === 'user' ? 'self-end' : 'self-start'}`}
+                style={msg.role === 'user' ? {
+                  position: 'sticky' as const,
+                  top: 0,
+                  zIndex: 10,
+                  background: 'var(--bg)',
+                  paddingTop: 4,
+                  paddingBottom: 4,
+                } : undefined}
               >
                 <div
                   className="px-4 py-3 text-sm leading-relaxed"
@@ -265,7 +275,7 @@ export default function ChatPanel() {
       </div>
 
       {/* 右侧锚点列 */}
-      {rounds.length > 1 && (
+      {!isMobile && rounds.length > 1 && (
         <div
           className="absolute right-1.5 top-16 bottom-20 flex flex-col justify-center gap-1.5 z-10"
           onMouseLeave={() => setHoveredAnchor(null)}
