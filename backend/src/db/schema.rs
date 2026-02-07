@@ -54,6 +54,19 @@ pub async fn init_schema(db: &Db) -> Result<(), surrealdb::Error> {
     )
     .await?;
 
+    // 消息（对话历史）
+    db.query(
+        "
+        DEFINE TABLE IF NOT EXISTS message SCHEMAFULL;
+        DEFINE FIELD IF NOT EXISTS conversation_id ON message TYPE record<conversation>;
+        DEFINE FIELD IF NOT EXISTS role ON message TYPE string;
+        DEFINE FIELD IF NOT EXISTS content ON message TYPE string;
+        DEFINE FIELD IF NOT EXISTS timestamp ON message TYPE datetime;
+        DEFINE FIELD IF NOT EXISTS moment_id ON message TYPE option<record<moment>>;
+        ",
+    )
+    .await?;
+
     // 演化边
     db.query(
         "

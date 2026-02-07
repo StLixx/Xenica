@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Xenica — 桌面端布局</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;600&family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', 'Noto Sans SC', sans-serif;
+    background: #111113;
+    color: #e8e4df;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 32px;
+  }
+
+  .demo-title {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    text-align: center;
+  }
+
+  .demo-subtitle {
+    font-size: 14px;
+    color: #8a8580;
+    margin-bottom: 24px;
+    text-align: center;
+  }
+
+  /* ====== 应用外壳 ====== */
+  .app-shell {
+    width: 1280px;
+    height: 800px;
+    background: #1a1a1e;
+    border-radius: 12px;
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    grid-template-rows: 1fr 52px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05);
+    position: relative;
+  }
+
+  /* ====== 左侧：图谱区域 ====== */
+  .graph-area {
+    grid-row: 1;
+    grid-column: 1;
+    background: #151517;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* 图谱工具栏 */
+  .graph-toolbar {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    display: flex;
+    gap: 6px;
+    z-index: 10;
+  }
+
+  .graph-tool-btn {
+    width: 36px;
+    height: 36px;
+    background: rgba(26,26,30,0.85);
+    border: 1px solid #2a2a2e;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #8a8580;
+    font-size: 14px;
+    backdrop-filter: blur(8px);
+    transition: all 0.2s;
+  }
+
+  .graph-tool-btn:hover {
+    background: rgba(34,34,38,0.95);
+    color: #d4a574;
+  }
+
+  /* 缩放控制 */
+  .zoom-controls {
+    position: absolute;
+    bottom: 16px;
+    left: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    z-index: 10;
+  }
+
+  .zoom-btn {
+    width: 32px;
+    height: 32px;
+    background: rgba(26,26,30,0.85);
+    border: 1px solid #2a2a2e;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #8a8580;
+    font-size: 16px;
+    font-weight: 300;
+    backdrop-filter: blur(8px);
+    transition: all 0.2s;
+  }
+
+  .zoom-btn:first-child { border-radius: 8px 8px 0 0; }
+  .zoom-btn:last-child { border-radius: 0 0 8px 8px; }
+  .zoom-btn:hover { color: #d4a574; }
+
+  /* 图谱中的分隔线 */
+  .graph-divider {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: #2a2a2e;
+  }
+
+  /* ====== 右侧：对话面板 ====== */
+  .chat-panel {
+    grid-row: 1;
+    grid-column: 2;
+    background: #1a1a1e;
+    display: flex;
+    flex-direction: column;
+    border-left: 1px solid #222226;
+  }
+
+  .chat-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid #222226;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+
+  .chat-title {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  .chat-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .chat-action-btn {
+    width: 28px;
+    height: 28px;
+    background: none;
+    border: 1px solid #2a2a2e;
+    border-radius: 6px;
+    color: #666;
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+
+  .chat-action-btn:hover { color: #d4a574; border-color: #d4a574; }
+
+  /* 对话消息区 */
+  .chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .msg {
+    max-width: 95%;
+  }
+
+  .msg-user {
+    align-self: flex-end;
+  }
+
+  .msg-ai {
+    align-self: flex-start;
+  }
+
+  .msg-bubble {
+    padding: 12px 16px;
+    border-radius: 12px;
+    font-size: 14px;
+    line-height: 1.7;
+  }
+
+  .msg-user .msg-bubble {
+    background: rgba(212,165,116,0.12);
+    color: #e8e4df;
+    border-bottom-right-radius: 4px;
+  }
+
+  .msg-ai .msg-bubble {
+    background: #222226;
+    color: #d0ccc6;
+    border-bottom-left-radius: 4px;
+  }
+
+  .msg-ai .msg-bubble strong {
+    color: #e8e4df;
+    font-weight: 600;
+  }
+
+  .msg-time {
+    font-size: 10px;
+    color: #555;
+    margin-top: 4px;
+    padding: 0 4px;
+  }
+
+  .msg-user .msg-time { text-align: right; }
+
+  /* 引用节点标签 */
+  .node-ref {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(212,165,116,0.1);
+    color: #d4a574;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    margin: 0 2px;
+    cursor: pointer;
+  }
+
+  .node-ref::before {
+    content: '◉';
+    font-size: 8px;
+  }
+
+  /* 输入区 */
+  .chat-input-area {
+    padding: 12px 16px;
+    border-top: 1px solid #222226;
+    flex-shrink: 0;
+  }
+
+  .chat-input-box {
+    display: flex;
+    align-items: center;
+    background: #222226;
+    border-radius: 10px;
+    padding: 10px 14px;
+    gap: 10px;
+    border: 1px solid #2a2a2e;
+    transition: border-color 0.2s;
+  }
+
+  .chat-input-box:focus-within {
+    border-color: rgba(212,165,116,0.3);
+  }
+
+  .chat-input {
+    flex: 1;
+    background: none;
+    border: none;
+    color: #e8e4df;
+    font-size: 14px;
+    font-family: 'Inter', 'Noto Sans SC', sans-serif;
+    outline: none;
+  }
+
+  .chat-input::placeholder { color: #555; }
+
+  .chat-send-btn {
+    width: 32px;
+    height: 32px;
+    background: #d4a574;
+    border: none;
+    border-radius: 8px;
+    color: #1a1a1e;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.2s;
+    flex-shrink: 0;
+  }
+
+  .chat-send-btn:hover { opacity: 0.85; }
+
+  /* ====== 底部导航栏 ====== */
+  .bottom-nav {
+    grid-row: 2;
+    grid-column: 1 / -1;
+    background: #1a1a1e;
+    border-top: 1px solid #222226;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 8px;
+  }
+
+  .nav-brand {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: #d4a574;
+    margin-right: 24px;
+    letter-spacing: 0.03em;
+  }
+
+  .nav-item {
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    color: #8a8580;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .nav-item:hover { color: #d4a574; background: rgba(212,165,116,0.06); }
+  .nav-item.active { color: #d4a574; background: rgba(212,165,116,0.1); font-weight: 500; }
+
+  .nav-icon {
+    font-size: 14px;
+    opacity: 0.7;
+  }
+
+  .nav-spacer { flex: 1; }
+
+  .nav-status {
+    font-size: 11px;
+    color: #555;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .nav-status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #8faa7b;
+  }
+
+  /* SVG 图谱节点和边 */
+  .graph-node-circle {
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+
+  .graph-node-circle:hover {
+    filter: brightness(1.2);
+  }
+
+</style>
+</head>
+<body>
+
+<h1 class="demo-title">桌面端布局</h1>
+<p class="demo-subtitle">1280 × 800 · 琥珀暖光深色模式 · 左图谱 + 右对话</p>
+
+<div class="app-shell">
+  <!-- 左侧：图谱 -->
+  <div class="graph-area">
+    <!-- 工具栏 -->
+    <div class="graph-toolbar">
+      <div class="graph-tool-btn" title="拖拽">✋</div>
+      <div class="graph-tool-btn" title="选择">◇</div>
+      <div class="graph-tool-btn" title="新建节点">＋</div>
+      <div class="graph-tool-btn" title="筛选">⬡</div>
+    </div>
+
+    <!-- 缩放 -->
+    <div class="zoom-controls">
+      <div class="zoom-btn">＋</div>
+      <div class="zoom-btn">－</div>
+    </div>
+
+    <!-- 图谱 SVG -->
+    <svg width="100%" height="100%" viewBox="0 0 880 748">
+      <!-- 背景网格 -->
+      <defs>
+        <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+          <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1e1e22" stroke-width="0.5"/>
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#grid)"/>
+
+      <!-- 边 -->
+      <!-- 语义边 -->
+      <line x1="300" y1="250" x2="500" y2="200" stroke="#d4a574" stroke-width="2" opacity="0.6"/>
+      <line x1="300" y1="250" x2="250" y2="420" stroke="#d4a574" stroke-width="1.5" opacity="0.45"/>
+      <line x1="500" y1="200" x2="680" y2="300" stroke="#d4a574" stroke-width="2" opacity="0.5"/>
+      <line x1="500" y1="200" x2="400" y2="380" stroke="#d4a574" stroke-width="1.5" opacity="0.4"/>
+
+      <!-- 时空边 -->
+      <line x1="300" y1="250" x2="400" y2="380" stroke="#8ba4b8" stroke-width="1.5" stroke-dasharray="8,5" opacity="0.5"/>
+      <line x1="680" y1="300" x2="600" y2="480" stroke="#8ba4b8" stroke-width="1.5" stroke-dasharray="8,5" opacity="0.45"/>
+
+      <!-- 感官边 -->
+      <path d="M250,420 Q300,400 350,420 Q400,440 450,420 Q480,408 500,415" stroke="#b88ba4" stroke-width="1.2" fill="none" opacity="0.45"/>
+
+      <!-- 演化边 -->
+      <line x1="400" y1="380" x2="600" y2="480" stroke="#8faa7b" stroke-width="1.5" stroke-dasharray="2,4" opacity="0.5"/>
+      <polygon points="597,473 607,480 597,487" fill="#8faa7b" opacity="0.5"/>
+
+      <!-- 弱连接 -->
+      <line x1="150" y1="350" x2="300" y2="250" stroke="#d4a574" stroke-width="1" opacity="0.2"/>
+      <line x1="150" y1="350" x2="250" y2="420" stroke="#d4a574" stroke-width="1" opacity="0.2"/>
+      <line x1="700" y1="500" x2="680" y2="300" stroke="#d4a574" stroke-width="1" opacity="0.15"/>
+      <line x1="700" y1="500" x2="600" y2="480" stroke="#d4a574" stroke-width="1" opacity="0.2"/>
+
+      <!-- 节点 -->
+      <!-- 认知负荷 -->
+      <circle class="graph-node-circle" cx="300" cy="250" r="28" fill="rgba(212,165,116,0.15)" stroke="#d4a574" stroke-width="1.5"/>
+      <text x="300" y="247" text-anchor="middle" font-size="11" fill="#e8e4df" font-family="Noto Serif SC, serif" font-weight="600">认知</text>
+      <text x="300" y="261" text-anchor="middle" font-size="9" fill="#8a8580" font-family="Inter, sans-serif">负荷</text>
+
+      <!-- 符号与意义 -->
+      <circle class="graph-node-circle" cx="500" cy="200" r="24" fill="rgba(139,164,184,0.15)" stroke="#8ba4b8" stroke-width="1.5"/>
+      <text x="500" y="197" text-anchor="middle" font-size="11" fill="#e8e4df" font-family="Noto Serif SC, serif" font-weight="600">符号</text>
+      <text x="500" y="211" text-anchor="middle" font-size="9" fill="#8a8580" font-family="Inter, sans-serif">意义</text>
+
+      <!-- 知识图谱 - 选中态 -->
+      <circle cx="680" cy="300" r="30" fill="none" stroke="#d4a574" stroke-width="1" opacity="0.2">
+        <animate attributeName="r" values="30;34;30" dur="2.5s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0.2;0.08;0.2" dur="2.5s" repeatCount="indefinite"/>
+      </circle>
+      <circle class="graph-node-circle" cx="680" cy="300" r="26" fill="rgba(143,170,123,0.15)" stroke="#8faa7b" stroke-width="2"/>
+      <text x="680" y="297" text-anchor="middle" font-size="11" fill="#e8e4df" font-family="Noto Serif SC, serif" font-weight="600">知识</text>
+      <text x="680" y="311" text-anchor="middle" font-size="9" fill="#8a8580" font-family="Inter, sans-serif">图谱</text>
+
+      <!-- 注意力 -->
+      <circle class="graph-node-circle" cx="250" cy="420" r="20" fill="rgba(212,165,116,0.12)" stroke="#d4a574" stroke-width="1.2"/>
+      <text x="250" y="424" text-anchor="middle" font-size="10" fill="#e8e4df" font-family="Noto Serif SC, serif">注意力</text>
+
+      <!-- 涌现 -->
+      <circle class="graph-node-circle" cx="400" cy="380" r="22" fill="rgba(165,150,123,0.12)" stroke="#a5967b" stroke-width="1.2"/>
+      <text x="400" y="384" text-anchor="middle" font-size="10" fill="#e8e4df" font-family="Noto Serif SC, serif">涌现</text>
+
+      <!-- 图神经网络 -->
+      <circle class="graph-node-circle" cx="600" cy="480" r="20" fill="rgba(143,170,123,0.12)" stroke="#8faa7b" stroke-width="1.2"/>
+      <text x="600" y="477" text-anchor="middle" font-size="10" fill="#e8e4df" font-family="Noto Serif SC, serif">图神经</text>
+      <text x="600" y="490" text-anchor="middle" font-size="9" fill="#8a8580" font-family="Inter, sans-serif">网络</text>
+
+      <!-- 美学 -->
+      <circle class="graph-node-circle" cx="500" cy="420" r="16" fill="rgba(184,139,164,0.12)" stroke="#b88ba4" stroke-width="1"/>
+      <text x="500" y="424" text-anchor="middle" font-size="10" fill="#e8e4df" font-family="Noto Serif SC, serif">美学</text>
+
+      <!-- 语言 -->
+      <circle class="graph-node-circle" cx="150" cy="350" r="16" fill="rgba(139,164,184,0.1)" stroke="#8ba4b8" stroke-width="1"/>
+      <text x="150" y="354" text-anchor="middle" font-size="10" fill="#e8e4df" font-family="Noto Serif SC, serif">语言</text>
+
+      <!-- LLM -->
+      <circle class="graph-node-circle" cx="700" cy="500" r="15" fill="rgba(143,170,123,0.1)" stroke="#8faa7b" stroke-width="1"/>
+      <text x="700" y="504" text-anchor="middle" font-size="10" fill="#e8e4df" font-family="Inter, sans-serif">LLM</text>
+    </svg>
+
+    <div class="graph-divider"></div>
+  </div>
+
+  <!-- 右侧：对话面板 -->
+  <div class="chat-panel">
+    <div class="chat-header">
+      <span class="chat-title">对话</span>
+      <div class="chat-actions">
+        <div class="chat-action-btn" title="新对话">＋</div>
+        <div class="chat-action-btn" title="历史">☰</div>
+      </div>
+    </div>
+
+    <div class="chat-messages">
+      <div class="msg msg-user">
+        <div class="msg-bubble">知识图谱和传统的文件夹式笔记管理有什么本质区别？</div>
+        <div class="msg-time">14:23</div>
+      </div>
+
+      <div class="msg msg-ai">
+        <div class="msg-bubble">
+          <strong>核心区别在于组织原则：</strong><br><br>
+          文件夹是<strong>层级式</strong>的——每个笔记只能属于一个位置，就像实体文件柜。这迫使你提前决定"这条想法属于哪个分类"。<br><br>
+          而<span class="node-ref">知识图谱</span>是<strong>网络式</strong>的——同一个节点可以通过不同的边连接到任意多个其他节点。这更接近你大脑中<span class="node-ref">认知负荷</span>理论所描述的联想记忆结构。<br><br>
+          关键优势是：你不需要提前决定分类，关联会在使用中自然<span class="node-ref">涌现</span>。
+        </div>
+        <div class="msg-time">14:23</div>
+      </div>
+
+      <div class="msg msg-user">
+        <div class="msg-bubble">那涌现性在这里具体怎么体现？</div>
+        <div class="msg-time">14:25</div>
+      </div>
+
+      <div class="msg msg-ai">
+        <div class="msg-bubble">
+          当你的图谱积累到一定规模后，你会发现一些意想不到的连接：<br><br>
+          比如你分别记录了"认知负荷理论"和"极简主义设计"，它们在文件夹里可能分属不同类目。但在图谱中，两者自然通过<strong>"减少信息冗余"</strong>这个语义连接到了一起。<br><br>
+          这种非预设的跨领域关联，就是<span class="node-ref">涌现</span>——整体大于部分之和。
+        </div>
+        <div class="msg-time">14:25</div>
+      </div>
+    </div>
+
+    <div class="chat-input-area">
+      <div class="chat-input-box">
+        <input class="chat-input" type="text" placeholder="输入你的想法或问题…">
+        <div class="chat-send-btn">↑</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 底部导航 -->
+  <div class="bottom-nav">
+    <span class="nav-brand">Xenica</span>
+    <div class="nav-item active">
+      <span class="nav-icon">◉</span> 图谱
+    </div>
+    <div class="nav-item">
+      <span class="nav-icon">◎</span> 对话
+    </div>
+    <div class="nav-item">
+      <span class="nav-icon">⊙</span> 搜索
+    </div>
+    <div class="nav-item">
+      <span class="nav-icon">◈</span> 时间线
+    </div>
+    <div class="nav-spacer"></div>
+    <div class="nav-status">
+      <div class="nav-status-dot"></div>
+      42 个节点 · 78 条边
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

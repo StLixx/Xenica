@@ -14,6 +14,7 @@ use tower_http::cors::{Any, CorsLayer};
 use api::routes::{self, AppState};
 use config::AppConfig;
 use db::{connection, schema};
+use llm::client::LlmClient;
 
 #[tokio::main]
 async fn main() {
@@ -36,8 +37,12 @@ async fn main() {
         .await
         .expect("Schema 初始化失败");
 
+    // 初始化 LLM 客户端
+    let llm = LlmClient::new(&config);
+    tracing::info!("LLM 客户端就绪: 默认模型 {}", llm.default_model());
+
     // 共享状态
-    let state = Arc::new(AppState { db });
+    let state = Arc::new(AppState { db, llm });
 
     // CORS 配置 — 允许 localhost:3000（前端开发）
     let cors = CorsLayer::new()
@@ -50,7 +55,9 @@ async fn main() {
     // 路由
     let app = Router::new()
         .route("/api/health", get(routes::health))
+        .route("/api/chat", post(routes::send_chat))
         .route("/api/conversations", post(routes::create_conversation).get(routes::list_conversations))
+        .route("/api/conversations/{id}/messages", get(routes::get_conversation_messages))
         .route("/api/moments", post(routes::create_moment).get(routes::list_moments))
         .route("/api/moments/{id}", get(routes::get_moment))
         .route("/api/moments/{id}/related", get(routes::get_related))

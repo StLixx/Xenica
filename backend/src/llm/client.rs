@@ -51,12 +51,23 @@ impl LlmClient {
         }
     }
 
+    /// 返回默认模型名
+    pub fn default_model(&self) -> &str {
+        &self.model
+    }
+
     /// 发送聊天请求，返回 AI 回复文本
+    /// model_override: 可选，覆盖默认模型
     pub async fn chat(
         &self,
         system_prompt: &str,
         messages: Vec<ChatMessage>,
+        model_override: Option<&str>,
     ) -> Result<String, reqwest::Error> {
+        let model = model_override
+            .unwrap_or(&self.model)
+            .to_string();
+
         let mut all_messages = vec![ChatMessage {
             role: "system".to_string(),
             content: system_prompt.to_string(),
@@ -64,7 +75,7 @@ impl LlmClient {
         all_messages.extend(messages);
 
         let request = ChatRequest {
-            model: self.model.clone(),
+            model,
             messages: all_messages,
         };
 
