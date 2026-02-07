@@ -10,6 +10,7 @@ use axum::{
     routing::{get, post},
     Router,
 };
+
 use tower_http::cors::{Any, CorsLayer};
 
 use api::routes::{self, AppState};
@@ -68,6 +69,12 @@ async fn main() {
         .route("/api/search", get(routes::search))
         .route("/api/relations", post(routes::create_relation))
         .route("/api/goals", post(routes::create_goal).get(routes::list_goals))
+        // X3 图谱查询路由
+        .route("/api/graph/traverse/{id}", get(routes::graph_traverse))
+        .route("/api/graph/top", get(routes::graph_top))
+        .route("/api/graph/stats", get(routes::graph_stats))
+        .route("/api/graph/recalculate", post(routes::recalculate_weights))
+        .route("/api/perspectives", get(routes::list_perspectives))
         .layer(cors)
         .with_state(state);
 

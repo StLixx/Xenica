@@ -28,6 +28,7 @@ pub async fn init_schema(db: &Db) -> Result<(), surrealdb::Error> {
         DEFINE FIELD IF NOT EXISTS embedding ON moment TYPE option<array<float>>;
         DEFINE FIELD IF NOT EXISTS conversation_id ON moment TYPE option<record<conversation>>;
         DEFINE FIELD IF NOT EXISTS extracted ON moment TYPE bool DEFAULT false;
+        DEFINE FIELD IF NOT EXISTS weight ON moment TYPE float DEFAULT 0;
         ",
     )
     .await?;
@@ -40,6 +41,7 @@ pub async fn init_schema(db: &Db) -> Result<(), surrealdb::Error> {
         DEFINE FIELD IF NOT EXISTS entity_type ON entity TYPE string;
         DEFINE FIELD IF NOT EXISTS description ON entity TYPE option<string>;
         DEFINE FIELD IF NOT EXISTS embedding ON entity TYPE option<array<float>>;
+        DEFINE FIELD IF NOT EXISTS weight ON entity TYPE float DEFAULT 0;
         ",
     )
     .await?;
@@ -51,6 +53,7 @@ pub async fn init_schema(db: &Db) -> Result<(), surrealdb::Error> {
         DEFINE FIELD IF NOT EXISTS relation_type ON relates_to TYPE string;
         DEFINE FIELD IF NOT EXISTS description ON relates_to TYPE option<string>;
         DEFINE FIELD IF NOT EXISTS strength ON relates_to TYPE option<float>;
+        DEFINE FIELD IF NOT EXISTS created_at ON relates_to TYPE option<datetime>;
         ",
     )
     .await?;

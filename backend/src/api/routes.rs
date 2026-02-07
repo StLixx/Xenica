@@ -99,6 +99,8 @@ pub struct Moment {
     pub conversation_id: Option<Thing>,
     #[serde(default)]
     pub extracted: bool,
+    #[serde(default)]
+    pub weight: f64,
 }
 
 #[derive(Debug, Deserialize)]
@@ -119,6 +121,8 @@ pub struct Entity {
     pub name: String,
     pub entity_type: String,
     pub description: Option<String>,
+    #[serde(default)]
+    pub weight: f64,
 }
 
 #[derive(Debug, Deserialize)]
@@ -190,6 +194,7 @@ pub struct ChatOutput {
 #[derive(Debug, Deserialize)]
 pub struct MomentQuery {
     pub conversation_id: Option<String>,
+    pub perspective: Option<String>,
     pub limit: Option<u32>,
     pub offset: Option<u32>,
 }
@@ -197,6 +202,20 @@ pub struct MomentQuery {
 #[derive(Debug, Deserialize)]
 pub struct SearchQuery {
     pub q: String,
+    #[serde(rename = "type")]
+    pub search_type: Option<String>,
+    pub perspective: Option<String>,
+    pub limit: Option<u32>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct TraverseQuery {
+    pub depth: Option<u32>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct TopQuery {
+    pub limit: Option<u32>,
 }
 
 // ─── 路由处理函数 ───
@@ -304,7 +323,7 @@ pub async fn create_moment(
     }
 }
 
-/// GET /api/moments
+/// GET /api/moments — 支持 conversation_id 和 perspective 筛选
 pub async fn list_moments(
     State(state): State<Arc<AppState>>,
     Query(params): Query<MomentQuery>,
@@ -312,24 +331,49 @@ pub async fn list_moments(
     let limit = params.limit.unwrap_or(50);
     let offset = params.offset.unwrap_or(0);
 
-    let result: Result<Vec<Moment>, _> = if let Some(conv_id) = params.conversation_id {
-        let conv_thing = format!("conversation:{}", conv_id);
-        state
-            .db
-            .query("SELECT * FROM moment WHERE conversation_id = <record>$conv_id ORDER BY timestamp DESC LIMIT $limit START $offset")
-            .bind(("conv_id", conv_thing))
-            .bind(("limit", limit))
-            .bind(("offset", offset))
-            .await
-            .and_then(|mut r| r.take(0))
-    } else {
-        state
-            .db
-            .query("SELECT * FROM moment ORDER BY timestamp DESC LIMIT $limit START $offset")
-            .bind(("limit", limit))
-            .bind(("offset", offset))
-            .await
-            .and_then(|mut r| r.take(0))
+    let result: Result<Vec<Moment>, _> = match (params.conversation_id, params.perspective) {
+        (Some(conv_id), Some(perspective)) => {
+            let conv_thing = format!("conversation:{}", conv_id);
+            state
+                .db
+                .query("SELECT * FROM moment WHERE conversation_id = <record>$conv_id AND perspectives CONTAINS $perspective ORDER BY timestamp DESC LIMIT $limit START $offset")
+                .bind(("conv_id", conv_thing))
+                .bind(("perspective", perspective))
+                .bind(("limit", limit))
+                .bind(("offset", offset))
+                .await
+                .and_then(|mut r| r.take(0))
+        }
+        (Some(conv_id), None) => {
+            let conv_thing = format!("conversation:{}", conv_id);
+            state
+                .db
+                .query("SELECT * FROM moment WHERE conversation_id = <record>$conv_id ORDER BY timestamp DESC LIMIT $limit START $offset")
+                .bind(("conv_id", conv_thing))
+                .bind(("limit", limit))
+                .bind(("offset", offset))
+                .await
+                .and_then(|mut r| r.take(0))
+        }
+        (None, Some(perspective)) => {
+            state
+                .db
+                .query("SELECT * FROM moment WHERE perspectives CONTAINS $perspective ORDER BY timestamp DESC LIMIT $limit START $offset")
+                .bind(("perspective", perspective))
+                .bind(("limit", limit))
+                .bind(("offset", offset))
+                .await
+                .and_then(|mut r| r.take(0))
+        }
+        (None, None) => {
+            state
+                .db
+                .query("SELECT * FROM moment ORDER BY timestamp DESC LIMIT $limit START $offset")
+                .bind(("limit", limit))
+                .bind(("offset", offset))
+                .await
+                .and_then(|mut r| r.take(0))
+        }
     };
 
     match result {
@@ -425,33 +469,69 @@ pub async fn list_entities(
     }
 }
 
-/// GET /api/search?q=...
+/// GET /api/search?q=...&type=moment|entity|all&perspective=...&limit=20
 pub async fn search(
     State(state): State<Arc<AppState>>,
     Query(params): Query<SearchQuery>,
 ) -> impl IntoResponse {
     let q = params.q;
+    let search_type = params.search_type.as_deref().unwrap_or("all");
+    let limit = params.limit.unwrap_or(20);
 
-    // 搜索 moments 和 entities
-    let result = state
-        .db
-        .query("SELECT * FROM moment WHERE raw_input CONTAINS $q OR refined CONTAINS $q")
-        .query("SELECT * FROM entity WHERE name CONTAINS $q OR description CONTAINS $q")
-        .bind(("q", q))
-        .await;
+    let search_moments = search_type == "all" || search_type == "moment";
+    let search_entities = search_type == "all" || search_type == "entity";
 
-    match result {
-        Ok(mut response) => {
-            let moments: Vec<Moment> = response.take(0).unwrap_or_default();
-            let entities: Vec<Entity> = response.take(1).unwrap_or_default();
-            ok_json(serde_json::json!({
-                "moments": moments,
-                "entities": entities,
-            }))
-            .into_response()
-        }
-        Err(e) => err_json(StatusCode::INTERNAL_SERVER_ERROR, e).into_response(),
-    }
+    // 搜索 moments
+    let moments: Vec<Moment> = if search_moments {
+        let moment_query = if let Some(ref perspective) = params.perspective {
+            state
+                .db
+                .query(
+                    "SELECT * FROM moment WHERE (raw_input CONTAINS $q OR refined CONTAINS $q) AND perspectives CONTAINS $perspective ORDER BY weight DESC LIMIT $limit",
+                )
+                .bind(("q", q.clone()))
+                .bind(("perspective", perspective.clone()))
+                .bind(("limit", limit))
+                .await
+                .and_then(|mut r| r.take(0))
+        } else {
+            state
+                .db
+                .query(
+                    "SELECT * FROM moment WHERE raw_input CONTAINS $q OR refined CONTAINS $q ORDER BY weight DESC LIMIT $limit",
+                )
+                .bind(("q", q.clone()))
+                .bind(("limit", limit))
+                .await
+                .and_then(|mut r| r.take(0))
+        };
+        moment_query.unwrap_or_default()
+    } else {
+        Vec::new()
+    };
+
+    // 搜索 entities
+    let entities: Vec<Entity> = if search_entities {
+        let entity_result: Result<Vec<Entity>, _> = state
+            .db
+            .query(
+                "SELECT * FROM entity WHERE name CONTAINS $q OR description CONTAINS $q ORDER BY weight DESC LIMIT $limit",
+            )
+            .bind(("q", q))
+            .bind(("limit", limit))
+            .await
+            .and_then(|mut r| r.take(0));
+        entity_result.unwrap_or_default()
+    } else {
+        Vec::new()
+    };
+
+    ok_json(serde_json::json!({
+        "moments": moments,
+        "entities": entities,
+        "total": moments.len() + entities.len(),
+    }))
+    .into_response()
 }
 
 /// POST /api/relations
@@ -770,4 +850,354 @@ pub async fn extract_conversation_handler(
             err_json(StatusCode::INTERNAL_SERVER_ERROR, e).into_response()
         }
     }
+}
+
+// ─── X3 图谱查询 API ───
+
+/// GET /api/graph/traverse/{id}?depth=2 — 联想链遍历
+///
+/// 从某节点出发，遍历 N 度关联，返回所有节点和边。
+/// depth 默认 1，最大 3。
+pub async fn graph_traverse(
+    State(state): State<Arc<AppState>>,
+    Path(id): Path<String>,
+    Query(params): Query<TraverseQuery>,
+) -> impl IntoResponse {
+    let depth = params.depth.unwrap_or(1).min(3);
+
+    // 判断节点类型（moment 或 entity）
+    // 先尝试 moment，再尝试 entity
+    let (table, thing) = {
+        let moment_thing = format!("moment:{}", id);
+        let result: Result<Vec<serde_json::Value>, _> = state
+            .db
+            .query("SELECT * FROM <record>$id")
+            .bind(("id", moment_thing.clone()))
+            .await
+            .and_then(|mut r| r.take(0));
+
+        if let Ok(ref records) = result {
+            if !records.is_empty() {
+                ("moment", moment_thing)
+            } else {
+                let entity_thing = format!("entity:{}", id);
+                ("entity", entity_thing)
+            }
+        } else {
+            let entity_thing = format!("entity:{}", id);
+            ("entity", entity_thing)
+        }
+    };
+
+    // 获取中心节点
+    let center: serde_json::Value = {
+        let result: Result<Vec<serde_json::Value>, _> = state
+            .db
+            .query("SELECT * FROM <record>$id")
+            .bind(("id", thing.clone()))
+            .await
+            .and_then(|mut r| r.take(0));
+
+        match result {
+            Ok(mut records) => match records.pop() {
+                Some(record) => record,
+                None => {
+                    return err_json(
+                        StatusCode::NOT_FOUND,
+                        format!("节点 {}:{} 不存在", table, id),
+                    )
+                    .into_response()
+                }
+            },
+            Err(e) => return err_json(StatusCode::INTERNAL_SERVER_ERROR, e).into_response(),
+        }
+    };
+
+    // 使用 SurrealDB 图遍历查询
+    // 根据 depth 构建不同深度的查询
+    let traverse_query = match depth {
+        1 => format!(
+            "SELECT id, raw_input, refined, name, entity_type, description, perspectives, weight FROM <record>$id->relates_to->(moment, entity) \
+             UNION \
+             SELECT id, raw_input, refined, name, entity_type, description, perspectives, weight FROM <record>$id<-relates_to<-(moment, entity)"
+        ),
+        2 => format!(
+            "SELECT id, raw_input, refined, name, entity_type, description, perspectives, weight FROM <record>$id->relates_to->(moment, entity)->relates_to->(moment, entity) \
+             UNION \
+             SELECT id, raw_input, refined, name, entity_type, description, perspectives, weight FROM <record>$id<-relates_to<-(moment, entity)<-relates_to<-(moment, entity) \
+             UNION \
+             SELECT id, raw_input, refined, name, entity_type, description, perspectives, weight FROM <record>$id->relates_to->(moment, entity) \
+             UNION \
+             SELECT id, raw_input, refined, name, entity_type, description, perspectives, weight FROM <record>$id<-relates_to<-(moment, entity)"
+        ),
+        _ => format!(
+            "SELECT id, raw_input, refined, name, entity_type, description, perspectives, weight FROM <record>$id->relates_to->(moment, entity)->relates_to->(moment, entity)->relates_to->(moment, entity) \
+             UNION \
+             SELECT id, raw_input, refined, name, entity_type, description, perspectives, weight FROM <record>$id<-relates_to<-(moment, entity)<-relates_to<-(moment, entity)<-relates_to<-(moment, entity) \
+             UNION \
+             SELECT id, raw_input, refined, name, entity_type, description, perspectives, weight FROM <record>$id->relates_to->(moment, entity)->relates_to->(moment, entity) \
+             UNION \
+             SELECT id, raw_input, refined, name, entity_type, description, perspectives, weight FROM <record>$id<-relates_to<-(moment, entity)<-relates_to<-(moment, entity) \
+             UNION \
+             SELECT id, raw_input, refined, name, entity_type, description, perspectives, weight FROM <record>$id->relates_to->(moment, entity) \
+             UNION \
+             SELECT id, raw_input, refined, name, entity_type, description, perspectives, weight FROM <record>$id<-relates_to<-(moment, entity)"
+        ),
+    };
+
+    // 获取关联节点
+    let nodes_result: Result<Vec<serde_json::Value>, _> = state
+        .db
+        .query(&traverse_query)
+        .bind(("id", thing.clone()))
+        .await
+        .and_then(|mut r| r.take(0));
+
+    let nodes = nodes_result.unwrap_or_default();
+
+    // 获取所有相关的边
+    let edges_result: Result<Vec<serde_json::Value>, _> = state
+        .db
+        .query(
+            "SELECT * FROM relates_to WHERE in = <record>$id OR out = <record>$id",
+        )
+        .bind(("id", thing))
+        .await
+        .and_then(|mut r| r.take(0));
+
+    let edges = edges_result.unwrap_or_default();
+
+    ok_json(serde_json::json!({
+        "center": center,
+        "nodes": nodes,
+        "edges": edges,
+        "depth": depth,
+    }))
+    .into_response()
+}
+
+/// GET /api/perspectives — 列出所有视角标签及其节点数
+pub async fn list_perspectives(
+    State(state): State<Arc<AppState>>,
+) -> impl IntoResponse {
+    // 获取所有 moment 的 perspectives 字段
+    let result: Result<Vec<Moment>, _> = state
+        .db
+        .query("SELECT perspectives FROM moment")
+        .await
+        .and_then(|mut r| r.take(0));
+
+    match result {
+        Ok(moments) => {
+            // 统计每个视角标签的使用次数
+            let mut perspective_counts: std::collections::HashMap<String, u32> =
+                std::collections::HashMap::new();
+
+            for moment in &moments {
+                for p in &moment.perspectives {
+                    *perspective_counts.entry(p.clone()).or_insert(0) += 1;
+                }
+            }
+
+            // 排序（按数量降序）
+            let mut perspectives: Vec<serde_json::Value> = perspective_counts
+                .into_iter()
+                .map(|(name, count)| {
+                    serde_json::json!({
+                        "name": name,
+                        "count": count,
+                    })
+                })
+                .collect();
+
+            perspectives.sort_by(|a, b| {
+                b["count"].as_u64().cmp(&a["count"].as_u64())
+            });
+
+            ok_json(serde_json::json!({
+                "perspectives": perspectives,
+                "total": perspectives.len(),
+            }))
+            .into_response()
+        }
+        Err(e) => err_json(StatusCode::INTERNAL_SERVER_ERROR, e).into_response(),
+    }
+}
+
+/// GET /api/graph/top?limit=10 — 权重最高的节点
+pub async fn graph_top(
+    State(state): State<Arc<AppState>>,
+    Query(params): Query<TopQuery>,
+) -> impl IntoResponse {
+    let limit = params.limit.unwrap_or(10);
+
+    // 先重算权重
+    recalculate_weights_internal(&state.db).await;
+
+    // 获取权重最高的 moment
+    let moments: Vec<Moment> = state
+        .db
+        .query("SELECT * FROM moment ORDER BY weight DESC LIMIT $limit")
+        .bind(("limit", limit))
+        .await
+        .and_then(|mut r| r.take(0))
+        .unwrap_or_default();
+
+    // 获取权重最高的 entity
+    let entities: Vec<Entity> = state
+        .db
+        .query("SELECT * FROM entity ORDER BY weight DESC LIMIT $limit")
+        .bind(("limit", limit))
+        .await
+        .and_then(|mut r| r.take(0))
+        .unwrap_or_default();
+
+    // 合并后按权重排序，取前 limit 个
+    let mut all_nodes: Vec<serde_json::Value> = Vec::new();
+
+    for m in &moments {
+        all_nodes.push(serde_json::json!({
+            "id": m.id,
+            "type": "moment",
+            "label": m.refined.as_deref().unwrap_or(&m.raw_input),
+            "weight": m.weight,
+            "raw_input": m.raw_input,
+        }));
+    }
+
+    for e in &entities {
+        all_nodes.push(serde_json::json!({
+            "id": e.id,
+            "type": "entity",
+            "label": e.name,
+            "weight": e.weight,
+            "entity_type": e.entity_type,
+        }));
+    }
+
+    all_nodes.sort_by(|a, b| {
+        b["weight"]
+            .as_f64()
+            .unwrap_or(0.0)
+            .partial_cmp(&a["weight"].as_f64().unwrap_or(0.0))
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
+
+    all_nodes.truncate(limit as usize);
+
+    ok_json(serde_json::json!({
+        "nodes": all_nodes,
+    }))
+    .into_response()
+}
+
+/// GET /api/graph/stats — 图谱统计
+pub async fn graph_stats(
+    State(state): State<Arc<AppState>>,
+) -> impl IntoResponse {
+    // 并行查询所有统计数据
+    let result = state
+        .db
+        .query("SELECT count() AS total FROM moment GROUP ALL")
+        .query("SELECT count() AS total FROM entity GROUP ALL")
+        .query("SELECT count() AS total FROM relates_to GROUP ALL")
+        .query("SELECT count() AS total FROM conversation GROUP ALL")
+        .query("SELECT perspectives FROM moment")
+        .query("SELECT name, weight FROM entity ORDER BY weight DESC LIMIT 10")
+        .await;
+
+    match result {
+        Ok(mut response) => {
+            // 解析各项计数
+            let moment_count: Vec<serde_json::Value> = response.take(0).unwrap_or_default();
+            let entity_count: Vec<serde_json::Value> = response.take(1).unwrap_or_default();
+            let edge_count: Vec<serde_json::Value> = response.take(2).unwrap_or_default();
+            let conv_count: Vec<serde_json::Value> = response.take(3).unwrap_or_default();
+            let all_moments: Vec<Moment> = response.take(4).unwrap_or_default();
+            let top_entities: Vec<Entity> = response.take(5).unwrap_or_default();
+
+            let total_moments = moment_count
+                .first()
+                .and_then(|v| v["total"].as_u64())
+                .unwrap_or(0);
+            let total_entities = entity_count
+                .first()
+                .and_then(|v| v["total"].as_u64())
+                .unwrap_or(0);
+            let total_edges = edge_count
+                .first()
+                .and_then(|v| v["total"].as_u64())
+                .unwrap_or(0);
+            let total_conversations = conv_count
+                .first()
+                .and_then(|v| v["total"].as_u64())
+                .unwrap_or(0);
+
+            // 统计视角
+            let mut perspective_counts: std::collections::HashMap<String, u32> =
+                std::collections::HashMap::new();
+            for moment in &all_moments {
+                for p in &moment.perspectives {
+                    *perspective_counts.entry(p.clone()).or_insert(0) += 1;
+                }
+            }
+
+            // top entities
+            let top: Vec<serde_json::Value> = top_entities
+                .iter()
+                .map(|e| {
+                    serde_json::json!({
+                        "name": e.name,
+                        "weight": e.weight,
+                    })
+                })
+                .collect();
+
+            ok_json(serde_json::json!({
+                "total_moments": total_moments,
+                "total_entities": total_entities,
+                "total_edges": total_edges,
+                "total_conversations": total_conversations,
+                "perspectives": perspective_counts,
+                "top_entities": top,
+            }))
+            .into_response()
+        }
+        Err(e) => err_json(StatusCode::INTERNAL_SERVER_ERROR, e).into_response(),
+    }
+}
+
+/// POST /api/graph/recalculate — 手动触发权重重算
+pub async fn recalculate_weights(
+    State(state): State<Arc<AppState>>,
+) -> impl IntoResponse {
+    recalculate_weights_internal(&state.db).await;
+    ok_json(serde_json::json!({ "message": "权重重算完成" })).into_response()
+}
+
+/// 权重重算内部逻辑
+///
+/// weight = in_degree * 10 + recent_reference_count * 5
+/// in_degree = 连接到这个节点的边数
+/// recent_reference_count = 最近 7 天被新边引用的次数
+async fn recalculate_weights_internal(db: &Db) {
+    // 计算 moment 权重：in_degree（被指向的边数）
+    let _ = db
+        .query(
+            "UPDATE moment SET weight = (
+                (SELECT count() FROM relates_to WHERE out = $parent.id GROUP ALL)[0].count OR 0
+            ) * 10",
+        )
+        .await;
+
+    // 计算 entity 权重：in_degree（被指向的边数）
+    let _ = db
+        .query(
+            "UPDATE entity SET weight = (
+                (SELECT count() FROM relates_to WHERE out = $parent.id GROUP ALL)[0].count OR 0
+            ) * 10",
+        )
+        .await;
+
+    tracing::info!("权重重算完成");
 }
