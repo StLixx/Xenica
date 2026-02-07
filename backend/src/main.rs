@@ -1,6 +1,7 @@
 mod api;
 mod config;
 mod db;
+mod extraction;
 mod llm;
 
 use std::sync::Arc;
@@ -61,6 +62,8 @@ async fn main() {
         .route("/api/moments", post(routes::create_moment).get(routes::list_moments))
         .route("/api/moments/{id}", get(routes::get_moment))
         .route("/api/moments/{id}/related", get(routes::get_related))
+        .route("/api/moments/{id}/extract", post(routes::extract_moment_handler))
+        .route("/api/conversations/{id}/extract", post(routes::extract_conversation_handler))
         .route("/api/entities", post(routes::create_entity).get(routes::list_entities))
         .route("/api/search", get(routes::search))
         .route("/api/relations", post(routes::create_relation))

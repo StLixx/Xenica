@@ -27,6 +27,7 @@ pub async fn init_schema(db: &Db) -> Result<(), surrealdb::Error> {
         DEFINE FIELD IF NOT EXISTS perspectives ON moment TYPE array<string>;
         DEFINE FIELD IF NOT EXISTS embedding ON moment TYPE option<array<float>>;
         DEFINE FIELD IF NOT EXISTS conversation_id ON moment TYPE option<record<conversation>>;
+        DEFINE FIELD IF NOT EXISTS extracted ON moment TYPE bool DEFAULT false;
         ",
     )
     .await?;

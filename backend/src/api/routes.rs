@@ -10,6 +10,7 @@ use serde::{Deserialize, Serialize};
 use surrealdb::sql::Thing;
 
 use crate::db::connection::Db;
+use crate::extraction::pipeline;
 use crate::llm::client::{ChatMessage, LlmClient};
 
 /// System Prompt
@@ -86,7 +87,7 @@ pub struct CreateConversation {
 
 // -- Moment --
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Moment {
     pub id: Option<Thing>,
     pub raw_input: String,
@@ -96,6 +97,8 @@ pub struct Moment {
     pub location: Option<String>,
     pub perspectives: Vec<String>,
     pub conversation_id: Option<Thing>,
+    #[serde(default)]
+    pub extracted: bool,
 }
 
 #[derive(Debug, Deserialize)]
@@ -655,7 +658,31 @@ pub async fn send_chat(
         .await
         .and_then(|mut r| r.take(0));
 
-    // 8. 返回
+    // 8. 异步提取（不阻塞对话返回）
+    {
+        let db = state.db.clone();
+        let llm = state.llm.clone();
+        let mid = moment_id_str.clone();
+        tokio::spawn(async move {
+            // 短暂延迟，让对话响应先返回
+            tokio::time::sleep(std::time::Duration::from_millis(500)).await;
+            match pipeline::extract_moment(&db, &llm, &mid).await {
+                Ok(result) => {
+                    tracing::info!(
+                        "自动提取 moment {} 完成: {} 实体, {} 视角",
+                        mid,
+                        result.entities.len(),
+                        result.perspectives.len(),
+                    );
+                }
+                Err(e) => {
+                    tracing::error!("自动提取 moment {} 失败: {}", mid, e);
+                }
+            }
+        });
+    }
+
+    // 9. 返回
     ok_json(ChatOutput {
         reply,
         conversation_id: conv_id,
@@ -699,5 +726,48 @@ pub async fn list_goals(
     match result {
         Ok(records) => ok_json(records).into_response(),
         Err(e) => err_json(StatusCode::INTERNAL_SERVER_ERROR, e).into_response(),
+    }
+}
+
+// ─── X2 提取 API ───
+
+/// POST /api/moments/{id}/extract — 对单个 moment 执行提取
+pub async fn extract_moment_handler(
+    State(state): State<Arc<AppState>>,
+    Path(id): Path<String>,
+) -> impl IntoResponse {
+    match pipeline::extract_moment(&state.db, &state.llm, &id).await {
+        Ok(result) => ok_json(serde_json::json!({
+            "moment_id": id,
+            "refined": result.refined,
+            "entities_count": result.entities.len(),
+            "perspectives": result.perspectives,
+            "relations_count": result.relations.len(),
+            "entities": result.entities,
+            "relations": result.relations,
+        }))
+        .into_response(),
+        Err(e) => {
+            tracing::error!("moment {} 提取失败: {}", id, e);
+            err_json(StatusCode::INTERNAL_SERVER_ERROR, e).into_response()
+        }
+    }
+}
+
+/// POST /api/conversations/{id}/extract — 对整个对话执行批量提取
+pub async fn extract_conversation_handler(
+    State(state): State<Arc<AppState>>,
+    Path(id): Path<String>,
+) -> impl IntoResponse {
+    match pipeline::extract_conversation(&state.db, &state.llm, &id).await {
+        Ok(results) => ok_json(serde_json::json!({
+            "conversation_id": id,
+            "results": results,
+        }))
+        .into_response(),
+        Err(e) => {
+            tracing::error!("对话 {} 提取失败: {}", id, e);
+            err_json(StatusCode::INTERNAL_SERVER_ERROR, e).into_response()
+        }
     }
 }
