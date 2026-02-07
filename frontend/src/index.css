@@ -6,6 +6,7 @@
 
 /* --- 方案 A：琥珀暖光（默认）--- */
 [data-theme="amber"][data-mode="dark"] {
+  --primary-rgb: 212, 165, 116;
   --bg: #1a1a1e;
   --bg-secondary: #151517;
   --card: #222226;
@@ -35,6 +36,7 @@
 }
 
 [data-theme="amber"][data-mode="light"] {
+  --primary-rgb: 184, 134, 74;
   --bg: #faf8f5;
   --bg-secondary: #f5f2ee;
   --card: #ffffff;
@@ -65,6 +67,7 @@
 
 /* --- 方案 B：靛蓝墨水 --- */
 [data-theme="indigo"][data-mode="dark"] {
+  --primary-rgb: 139, 164, 184;
   --bg: #1a1d23;
   --bg-secondary: #161920;
   --card: #21252d;
@@ -94,6 +97,7 @@
 }
 
 [data-theme="indigo"][data-mode="light"] {
+  --primary-rgb: 74, 107, 138;
   --bg: #f5f7fa;
   --bg-secondary: #eef1f6;
   --card: #ffffff;
@@ -124,6 +128,7 @@
 
 /* --- 方案 C：橄榄森林 --- */
 [data-theme="olive"][data-mode="dark"] {
+  --primary-rgb: 143, 170, 123;
   --bg: #1a1e1a;
   --bg-secondary: #161a16;
   --card: #222826;
@@ -153,6 +158,7 @@
 }
 
 [data-theme="olive"][data-mode="light"] {
+  --primary-rgb: 90, 122, 74;
   --bg: #f5f8f3;
   --bg-secondary: #eef2ec;
   --card: #ffffff;
@@ -580,6 +586,61 @@ body {
 .qr-save:hover { opacity: 0.9; }
 .qr-save:disabled { opacity: 0.4; cursor: default; }
 
+/* --- OCR 拍照/上传 --- */
+.qr-ocr-area { margin-bottom: 12px; }
+.qr-ocr-buttons { display: flex; align-items: center; gap: 8px; }
+.qr-ocr-btn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 16px; border-radius: 10px; font-size: 13px;
+  border: 1px dashed var(--border); color: var(--text-secondary);
+  background: transparent; cursor: pointer; font-family: inherit;
+  transition: all 0.2s;
+}
+.qr-ocr-btn:hover { border-color: var(--primary); color: var(--primary); }
+.qr-ocr-options {
+  display: flex; gap: 4px; animation: fadeIn 0.15s ease;
+}
+.qr-ocr-option {
+  display: flex; align-items: center; gap: 4px;
+  padding: 6px 12px; border-radius: 8px; font-size: 12px;
+  border: 1px solid var(--border); color: var(--text-secondary);
+  background: var(--card); cursor: pointer; font-family: inherit;
+  transition: all 0.2s;
+}
+.qr-ocr-option:hover { border-color: var(--primary); color: var(--primary); }
+.qr-ocr-preview {
+  display: flex; align-items: flex-start; gap: 10px; flex-wrap: wrap;
+}
+.qr-ocr-preview-img-wrap {
+  position: relative; display: inline-block;
+}
+.qr-ocr-preview-img {
+  max-height: 120px; border-radius: 8px; object-fit: cover;
+  border: 1px solid var(--border);
+}
+.qr-ocr-preview-remove {
+  position: absolute; top: -6px; right: -6px;
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--card); border: 1px solid var(--border);
+  color: var(--text-dim); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+}
+.qr-ocr-preview-remove:hover { color: var(--accent-rose); border-color: var(--accent-rose); }
+.qr-ocr-recognize-btn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 16px; border-radius: 8px; font-size: 13px;
+  border: none; color: var(--bg); background: var(--primary);
+  cursor: pointer; font-family: inherit; font-weight: 500;
+  transition: opacity 0.2s; align-self: flex-start;
+}
+.qr-ocr-recognize-btn:hover { opacity: 0.9; }
+.qr-ocr-recognize-btn:disabled { opacity: 0.5; cursor: wait; }
+.qr-ocr-error {
+  font-size: 12px; color: var(--accent-rose);
+  display: block; width: 100%; margin-top: 4px;
+}
+
 /* ============================================
    Notification Panel
    ============================================ */
@@ -737,7 +798,7 @@ body {
 /* 气泡内嵌时间戳 */
 .chat-bubble-wrap {
   position: relative;
-  padding: 10px 14px 22px;
+  padding: 12px 16px 24px;
   border-radius: 12px;
   font-size: 14px;
   line-height: 1.7;
@@ -746,8 +807,8 @@ body {
 }
 .chat-bubble-time {
   position: absolute;
-  bottom: 5px;
-  right: 10px;
+  bottom: 6px;
+  right: 12px;
   font-size: 10px;
   font-weight: 300;
   opacity: 0.5;
@@ -758,6 +819,11 @@ body {
 }
 .chat-bubble-wrap.ai-bubble {
   border-bottom-left-radius: 4px;
+}
+
+/* 输入框 focus 高亮 */
+.chat-input-wrapper:focus-within {
+  border-color: rgba(var(--primary-rgb, 212,165,116), 0.3) !important;
 }
 
 /* ============================================

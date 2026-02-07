@@ -3,6 +3,12 @@ use serde::{Deserialize, Serialize};
 
 use crate::config::AppConfig;
 
+/// OCR 使用的视觉模型
+const VISION_MODEL: &str = "gemini-2.5-flash";
+
+/// OCR system prompt
+const OCR_SYSTEM_PROMPT: &str = "请识别图片中的所有文字，直接输出文字内容，不要加任何解释";
+
 /// LLM 客户端
 #[derive(Clone)]
 pub struct LlmClient {
@@ -89,6 +95,67 @@ impl LlmClient {
             .await?;
 
         Ok(response
+            .choices
+            .first()
+            .map(|c| c.message.content.clone())
+            .unwrap_or_default())
+    }
+
+    /// 视觉 OCR：发送图片给 Gemini Flash 视觉模型，返回识别出的文字
+    ///
+    /// image_base64: 图片的 base64 编码
+    /// mime_type: 图片 MIME 类型（如 "image/jpeg"）
+    pub async fn vision_ocr(
+        &self,
+        image_base64: &str,
+        mime_type: &str,
+    ) -> Result<String, String> {
+        let data_url = format!("data:{};base64,{}", mime_type, image_base64);
+
+        let request_body = serde_json::json!({
+            "model": VISION_MODEL,
+            "messages": [
+                {
+                    "role": "system",
+                    "content": OCR_SYSTEM_PROMPT
+                },
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": data_url
+                            }
+                        }
+                    ]
+                }
+            ]
+        });
+
+        let response = self
+            .client
+            .post(&self.endpoint)
+            .json(&request_body)
+            .send()
+            .await
+            .map_err(|e| format!("请求发送失败: {}", e))?;
+
+        let status = response.status();
+        if !status.is_success() {
+            let body = response
+                .text()
+                .await
+                .unwrap_or_else(|_| "无法读取响应体".to_string());
+            return Err(format!("LLM 返回 {}: {}", status, body));
+        }
+
+        let chat_resp: ChatResponse = response
+            .json()
+            .await
+            .map_err(|e| format!("响应解析失败: {}", e))?;
+
+        Ok(chat_resp
             .choices
             .first()
             .map(|c| c.message.content.clone())

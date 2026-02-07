@@ -11,6 +11,7 @@ import type {
   GraphStats,
   SearchResult,
   Perspective,
+  OcrResult,
 } from './types'
 
 const BASE = '/api'
@@ -164,6 +165,28 @@ export async function createGoal(title: string, description?: string, priority?:
     method: 'POST',
     body: JSON.stringify({ title, description, priority }),
   })
+}
+
+// ─── OCR ───
+
+/** 上传图片进行 OCR 识别（multipart/form-data） */
+export async function ocrImage(file: File): Promise<OcrResult> {
+  const formData = new FormData()
+  formData.append('image', file)
+
+  const res = await fetch(`${BASE}/ocr`, {
+    method: 'POST',
+    body: formData,
+    // 不手动设置 Content-Type — 浏览器会自动添加 boundary
+  })
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: res.statusText }))
+    throw new Error(err.error || `HTTP ${res.status}`)
+  }
+
+  const json: ApiResponse<OcrResult> = await res.json()
+  return json.data
 }
 
 // ─── Extract ───

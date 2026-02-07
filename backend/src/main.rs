@@ -7,6 +7,7 @@ mod llm;
 use std::sync::Arc;
 
 use axum::{
+    extract::DefaultBodyLimit,
     routing::{get, post},
     Router,
 };
@@ -75,6 +76,10 @@ async fn main() {
         .route("/api/graph/stats", get(routes::graph_stats))
         .route("/api/graph/recalculate", post(routes::recalculate_weights))
         .route("/api/perspectives", get(routes::list_perspectives))
+        // X5B: OCR 端点
+        .route("/api/ocr", post(routes::ocr_image))
+        // 请求体大小限制 10MB（OCR 图片需要）
+        .layer(DefaultBodyLimit::max(10 * 1024 * 1024))
         .layer(cors)
         .with_state(state);
 

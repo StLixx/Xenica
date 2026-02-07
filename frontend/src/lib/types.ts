@@ -131,6 +131,13 @@ export interface Perspective {
   count: number
 }
 
+// ─── OCR ───
+
+export interface OcrResult {
+  text: string
+  confidence: number
+}
+
 // ─── Theme ───
 
 export type ThemeName = 'amber' | 'indigo' | 'olive'

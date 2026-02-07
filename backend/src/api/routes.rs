@@ -1,11 +1,12 @@
 use std::sync::Arc;
 
 use axum::{
-    extract::{Path, Query, State},
+    extract::{Multipart, Path, Query, State},
     http::StatusCode,
     response::IntoResponse,
     Json,
 };
+use base64::Engine;
 use serde::{Deserialize, Serialize};
 use surrealdb::sql::Thing;
 
@@ -1245,4 +1246,96 @@ async fn recalculate_weights_internal(db: &Db) {
         .await;
 
     tracing::info!("权重重算完成");
+}
+
+// ─── X5B OCR API ───
+
+/// OCR 响应
+#[derive(Debug, Serialize)]
+pub struct OcrOutput {
+    pub text: String,
+    pub confidence: f64,
+}
+
+/// POST /api/ocr — 拍照/上传图片 → OCR 文字识别
+///
+/// 接收 multipart/form-data，字段名 "image"。
+/// 将图片 base64 编码后发给 Gemini Flash 视觉模型进行文字识别。
+pub async fn ocr_image(
+    State(state): State<Arc<AppState>>,
+    mut multipart: Multipart,
+) -> impl IntoResponse {
+    // 1. 从 multipart 读取图片字段
+    let mut image_data: Option<(Vec<u8>, String)> = None;
+
+    while let Ok(Some(field)) = multipart.next_field().await {
+        let name = field.name().unwrap_or("").to_string();
+        if name == "image" {
+            let content_type = field
+                .content_type()
+                .map(|ct| ct.to_string())
+                .unwrap_or_else(|| "image/jpeg".to_string());
+
+            match field.bytes().await {
+                Ok(data) => {
+                    image_data = Some((data.to_vec(), content_type));
+                    break;
+                }
+                Err(e) => {
+                    return err_json(
+                        StatusCode::BAD_REQUEST,
+                        format!("读取图片失败: {}", e),
+                    )
+                    .into_response();
+                }
+            }
+        }
+    }
+
+    let (data, mime_type) = match image_data {
+        Some(d) => d,
+        None => {
+            return err_json(
+                StatusCode::BAD_REQUEST,
+                "未找到 image 字段，请使用 multipart/form-data 上传图片",
+            )
+            .into_response();
+        }
+    };
+
+    // 2. 检查图片大小（最大 10MB）
+    if data.len() > 10 * 1024 * 1024 {
+        return err_json(StatusCode::BAD_REQUEST, "图片过大，最大支持 10MB")
+            .into_response();
+    }
+
+    tracing::info!(
+        "OCR 请求: 大小 {:.1}KB, 类型 {}",
+        data.len() as f64 / 1024.0,
+        mime_type
+    );
+
+    // 3. Base64 编码
+    let base64_data = base64::engine::general_purpose::STANDARD.encode(&data);
+
+    // 4. 调用视觉模型 OCR
+    match state.llm.vision_ocr(&base64_data, &mime_type).await {
+        Ok(text) => {
+            let text = text.trim().to_string();
+            tracing::info!("OCR 识别成功: {} 字", text.chars().count());
+            ok_json(OcrOutput {
+                text,
+                confidence: 0.95,
+            })
+            .into_response()
+        }
+        Err(e) => {
+            tracing::error!("OCR 识别失败: {}", e);
+            err_json(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                format!("OCR 识别失败: {}", e),
+            )
+            .into_response()
+        }
+    }
 }

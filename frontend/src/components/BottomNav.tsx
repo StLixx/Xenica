@@ -44,11 +44,12 @@ export default function BottomNav({ currentView, onViewChange, onSearchOpen }: B
         <button
           key={view}
           onClick={() => onViewChange(view)}
-          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-md text-sm transition-all"
+          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-md transition-all"
           style={{
             color: currentView === view ? 'var(--primary)' : 'var(--text-muted)',
             background: currentView === view ? 'var(--primary-muted)' : 'transparent',
             fontWeight: currentView === view ? 500 : 400,
+            fontSize: '13px',
           }}
         >
           <Icon size={14} style={{ opacity: 0.7 }} />
@@ -59,8 +60,8 @@ export default function BottomNav({ currentView, onViewChange, onSearchOpen }: B
       {/* 搜索按钮 */}
       <button
         onClick={onSearchOpen}
-        className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-md text-sm transition-all"
-        style={{ color: 'var(--text-muted)' }}
+        className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-md transition-all"
+        style={{ color: 'var(--text-muted)', fontSize: '13px' }}
       >
         <Search size={14} style={{ opacity: 0.7 }} />
         搜索
