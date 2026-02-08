@@ -13,7 +13,8 @@ interface BottomNavProps {
 
 export default function BottomNav({ currentView, onViewChange, onSearchOpen }: BottomNavProps) {
   const { theme, mode, toggleMode, cycleTheme } = useThemeStore()
-  const { unreadCount, toggle: toggleNotifications } = useNotificationStore()
+  const { unreadCount, dueReviewCount, toggle: toggleNotifications } = useNotificationStore()
+  const totalBadge = unreadCount + dueReviewCount
   const stats = useGraphStore((s) => s.stats)
 
   const navItems: { view: ViewType; icon: typeof Network; label: string }[] = [
@@ -107,12 +108,12 @@ export default function BottomNav({ currentView, onViewChange, onSearchOpen }: B
         style={{ color: 'var(--text-muted)' }}
       >
         <Bell size={14} />
-        {unreadCount > 0 && (
+        {totalBadge > 0 && (
           <span
             className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full text-xs flex items-center justify-center"
             style={{ background: 'var(--primary)', color: 'var(--bg)', fontSize: 9 }}
           >
-            {unreadCount}
+            {totalBadge}
           </span>
         )}
       </button>

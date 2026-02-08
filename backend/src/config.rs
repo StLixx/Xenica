@@ -18,7 +18,7 @@ impl AppConfig {
             port: std::env::var("XENICA_PORT")
                 .ok()
                 .and_then(|v| v.parse().ok())
-                .unwrap_or(3001),
+                .unwrap_or(3002),
             llm_endpoint: std::env::var("XENICA_LLM_ENDPOINT")
                 .unwrap_or_else(|_| "http://127.0.0.1:8045/v1/chat/completions".to_string()),
             llm_model: std::env::var("XENICA_LLM_MODEL")

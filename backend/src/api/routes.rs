@@ -1518,7 +1518,7 @@ pub async fn review_respond(
     let update_result: Result<Vec<ReviewSchedule>, _> = state
         .db
         .query(
-            "UPDATE <record>$id SET interval = $interval, ease_factor = $ease, next_review = <datetime>$next_review, review_count = $count",
+            "LET $rec = <record>$id; UPDATE $rec SET interval = $interval, ease_factor = $ease, next_review = <datetime>$next_review, review_count = $count",
         )
         .bind(("id", thing))
         .bind(("interval", new_interval))
@@ -1526,7 +1526,7 @@ pub async fn review_respond(
         .bind(("next_review", next_review))
         .bind(("count", schedule.review_count + 1))
         .await
-        .and_then(|mut r| r.take(0));
+        .and_then(|mut r| r.take(1));
 
     match update_result {
         Ok(records) => ok_json(records.into_iter().next()).into_response(),
