@@ -129,10 +129,11 @@ AI 自动建立关联 + 分析合并建议。语义/时空/感官三种边。
 
 ### 输入适配
 - 文字（直接对话）
-- 拍照 OCR（错题/手写笔记）
-- 语音转文字
-- 视频链接（通义听悟/Gemini 转文稿）
-- 导入已有数据（Obsidian/Cursor 对话记录）
+- 拍照 OCR（错题/手写笔记）→ Gemini Flash 视觉识别
+- 语音转文字 → Web Speech API
+- 视频链接（B站/YouTube/抖音）→ Gemini Flash 提取摘要
+- Markdown 批量导入（Obsidian/Cursor/Notion 导出，支持 `[[双链]]` 自动转边）
+- PDF 导入（文字模式用 MinerU 转 Markdown，图片模式用 Gemini Flash 视觉识别）
 
 ### 主动服务
 - 间隔重复提醒
