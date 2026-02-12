@@ -1,6 +1,6 @@
 # Xenica 开发状态
 
-**最后更新**: 2026-02-13 02:09
+**最后更新**: 2026-02-13 02:12
 
 ---
 
@@ -102,6 +102,8 @@
 | ChatPanel 对话历史 SurrealDB ID 崩溃（conv.id.slice is not a function） | **P0** | ✅ 已修复并提交 |
 | 3 套主题 × 2 模式切换验证 | P1 | ✅ 琥珀/靛蓝/橄榄 + 深色/浅色 全部正常 |
 | 手机端 375px 响应式 | P2 | ✅ 布局正确，底部 Tab + 快速记录按钮 |
+| 后端: /api/graph/traverse 500 Serialization error | P1 | 🟡 SurrealDB `<record>$id` 绑定格式问题，需 Rust 修复 |
+| 后端: /api/graph/top 只返回节点不返回边 | P2 | 🟡 图谱无连线显示，需后端增加边查询 |
 
 ---
 
