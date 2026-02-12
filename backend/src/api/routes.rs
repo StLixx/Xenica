@@ -1584,8 +1584,54 @@ pub async fn graph_top(
 
     all_nodes.truncate(limit as usize);
 
+    // 收集所有节点 ID（"table:raw_id" 格式），查询它们之间的边
+    let mut node_ids: Vec<String> = Vec::new();
+    for n in &all_nodes {
+        if let Some(id_val) = n.get("id") {
+            // id 可能是 {tb: "moment", id: {String: "xxx"}} 或字符串
+            if let Some(obj) = id_val.as_object() {
+                let tb = obj.get("tb").and_then(|v| v.as_str()).unwrap_or("");
+                let raw = obj.get("id")
+                    .map(|v| match v {
+                        serde_json::Value::String(s) => s.clone(),
+                        serde_json::Value::Object(inner) => {
+                            inner.get("String").and_then(|v| v.as_str()).unwrap_or("").to_string()
+                        }
+                        _ => v.to_string(),
+                    })
+                    .unwrap_or_default();
+                if !tb.is_empty() && !raw.is_empty() {
+                    node_ids.push(format!("{}:{}", tb, raw));
+                }
+            } else if let Some(s) = id_val.as_str() {
+                node_ids.push(s.to_string());
+            }
+        }
+    }
+
+    // 查询这些节点之间的所有边
+    let mut edges: Vec<serde_json::Value> = Vec::new();
+    if !node_ids.is_empty() {
+        // 构建 IN 子句：[moment:xxx, entity:yyy, ...]
+        let id_list = node_ids.join(", ");
+        let edge_q = format!(
+            "SELECT \
+                string::concat(meta::tb(in), ':', meta::id(in)) AS source, \
+                string::concat(meta::tb(out), ':', meta::id(out)) AS target, \
+                relation_type, description, strength \
+                FROM relates_to WHERE in IN [{id_list}] AND out IN [{id_list}]"
+        );
+        let edge_result: Result<Vec<serde_json::Value>, _> = state
+            .db
+            .query(&edge_q)
+            .await
+            .and_then(|mut r| r.take(0));
+        edges = edge_result.unwrap_or_default();
+    }
+
     ok_json(serde_json::json!({
         "nodes": all_nodes,
+        "edges": edges,
     }))
     .into_response()
 }

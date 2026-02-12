@@ -145,7 +145,7 @@ export async function graphStats() {
 
 export async function graphTop(limit?: number) {
   const qs = limit ? `?limit=${limit}` : ''
-  return request<{ nodes: Array<Record<string, unknown>> }>(`/graph/top${qs}`)
+  return request<{ nodes: Array<Record<string, unknown>>; edges?: Array<Record<string, unknown>> }>(`/graph/top${qs}`)
 }
 
 // ─── Perspectives ───

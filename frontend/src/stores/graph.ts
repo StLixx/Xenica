@@ -138,7 +138,37 @@ export const useGraphStore = create<GraphStore>((set, get) => ({
         }
       })
 
-      set({ nodes: rfNodes, isLoading: false })
+      // 处理初始边（如果 API 返回了 edges）
+      const rfEdges: Edge[] = (result.edges || []).map((e: Record<string, unknown>, i: number) => {
+        const rawFrom = String(e.source || e.in || '')
+        const rawTo = String(e.target || e.out || '')
+        const fromId = rawFrom.includes(':') ? rawFrom.split(':').slice(1).join(':') : rawFrom
+        const toId = rawTo.includes(':') ? rawTo.split(':').slice(1).join(':') : rawTo
+        const rt = String(e.relation_type || 'semantic')
+        const style = edgeTypeMap[rt] || edgeTypeMap.semantic
+        const strength = Number(e.strength || 0.5)
+
+        return {
+          id: `edge-${fromId}-${toId}-${i}`,
+          source: fromId,
+          target: toId,
+          type: 'xenicaEdge',
+          animated: style.animated || false,
+          style: {
+            stroke: style.stroke,
+            strokeWidth: 1 + strength * 2,
+            strokeDasharray: style.strokeDasharray,
+            opacity: 0.3 + strength * 0.5,
+          },
+          data: {
+            relationType: rt,
+            description: e.description,
+            strength,
+          },
+        }
+      })
+
+      set({ nodes: rfNodes, edges: rfEdges, isLoading: false })
     } catch (e) {
       console.error('加载图谱节点失败:', e)
       set({ isLoading: false })
