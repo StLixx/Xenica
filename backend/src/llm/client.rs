@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use crate::config::AppConfig;
 
 /// OCR 使用的视觉模型
-const VISION_MODEL: &str = "gemini-2.5-flash";
+const VISION_MODEL: &str = "gpt-4.1";
 
 /// OCR system prompt
 const OCR_SYSTEM_PROMPT: &str = "请识别图片中的所有文字，直接输出文字内容，不要加任何解释";

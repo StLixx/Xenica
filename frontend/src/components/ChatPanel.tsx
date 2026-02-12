@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, List, ChevronDown, Send, Loader2, Paperclip, Video, Image, Link, X } from 'lucide-react'
+import { Plus, List, ChevronDown, Send, Loader2, Paperclip, Video, Image, Link, X, Copy, Check, Download } from 'lucide-react'
 import { useChatStore } from '../stores/chat'
+import type { ChatMessage } from '../stores/chat'
+import type { GeneratedArticle } from '../lib/types'
 import { useIsMobile } from '../hooks/useIsMobile'
 import { ocrImage, importVideo } from '../lib/api'
 import VoiceMicButton from './VoiceMicButton'
@@ -11,6 +13,95 @@ const MODEL_OPTIONS = [
   { value: 'claude-opus', label: 'Claude Opus' },
   { value: 'gemini-flash', label: 'Gemini Flash' },
 ]
+
+/** X7: 文章卡片组件 */
+function ArticleCard({ article }: { article: GeneratedArticle }) {
+  const [copied, setCopied] = useState(false)
+
+  const handleCopy = useCallback(async () => {
+    const md = `# ${article.title}\n\n${article.content}`
+    await navigator.clipboard.writeText(md)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }, [article])
+
+  const handleDownload = useCallback(() => {
+    const md = `# ${article.title}\n\n${article.content}`
+    const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${article.title.replace(/[/\\?%*:|"<>]/g, '_')}.md`
+    a.click()
+    URL.revokeObjectURL(url)
+  }, [article])
+
+  return (
+    <div
+      className="rounded-xl p-5 mt-2"
+      style={{
+        background: 'var(--card)',
+        border: '1px solid var(--border)',
+        boxShadow: '0 2px 12px var(--shadow-light)',
+      }}
+    >
+      {/* 标题 */}
+      <h3
+        className="font-serif font-bold mb-3"
+        style={{ color: 'var(--text)', fontSize: '18px', lineHeight: 1.4 }}
+      >
+        {article.title}
+      </h3>
+
+      {/* 正文 */}
+      <div
+        className="text-sm leading-relaxed mb-4 whitespace-pre-wrap"
+        style={{
+          color: 'var(--text-secondary)',
+          fontFamily: "'Inter', 'Noto Sans SC', sans-serif",
+          lineHeight: 1.8,
+        }}
+      >
+        {article.content}
+      </div>
+
+      {/* 来源节点 */}
+      {article.source_nodes.length > 0 && (
+        <p className="text-xs mb-3" style={{ color: 'var(--text-dim)' }}>
+          来源节点：{article.source_nodes.length} 个
+        </p>
+      )}
+
+      {/* 操作按钮 */}
+      <div className="flex items-center gap-2">
+        <button
+          onClick={handleCopy}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs transition-all"
+          style={{
+            background: 'var(--primary-subtle)',
+            color: copied ? 'var(--accent-green)' : 'var(--text-secondary)',
+            border: '1px solid var(--border)',
+          }}
+        >
+          {copied ? <Check size={13} /> : <Copy size={13} />}
+          {copied ? '已复制' : '复制'}
+        </button>
+        <button
+          onClick={handleDownload}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs transition-all"
+          style={{
+            background: 'var(--primary-subtle)',
+            color: 'var(--text-secondary)',
+            border: '1px solid var(--border)',
+          }}
+        >
+          <Download size={13} />
+          下载 Markdown
+        </button>
+      </div>
+    </div>
+  )
+}
 
 export default function ChatPanel() {
   const {
@@ -160,35 +251,35 @@ export default function ChatPanel() {
       <div
         className="flex items-center justify-between shrink-0"
         style={{
-          padding: isMobile ? '8px 20px 12px' : '16px 20px',
+          padding: isMobile ? '8px 16px' : '16px 20px',
           borderBottom: '1px solid var(--border)',
         }}
       >
         <span
-          className="font-serif font-semibold"
+          className="font-serif"
           style={{
-            color: isMobile ? 'var(--primary)' : 'var(--text)',
-            fontSize: isMobile ? '18px' : '16px',
-            fontWeight: isMobile ? 700 : 600,
+            color: 'var(--text)',
+            fontSize: '16px',
+            fontWeight: 600,
           }}
         >
-          {isMobile ? 'Xenica' : '对话'}
+          对话
         </span>
 
         <div className="flex items-center gap-2">
-          {/* 模型选择 — 移到右侧 */}
+          {/* 模型选择 — 更淡更克制 */}
           <div className="relative">
             <button
               onClick={() => setShowModels(!showModels)}
               className="flex items-center gap-1 px-2 py-1 rounded text-xs transition-all"
               style={{
                 color: 'var(--text-dim)',
-                background: 'var(--primary-subtle)',
+                background: 'transparent',
                 fontSize: '11px',
               }}
             >
               {MODEL_OPTIONS.find((m) => m.value === model)?.label}
-              <ChevronDown size={10} />
+              <ChevronDown size={8} style={{ opacity: 0.5 }} />
             </button>
 
             {showModels && (
@@ -211,6 +302,13 @@ export default function ChatPanel() {
                     style={{
                       color: model === opt.value ? 'var(--primary)' : 'var(--text-secondary)',
                       background: model === opt.value ? 'var(--primary-subtle)' : 'transparent',
+                      borderRadius: '6px',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (model !== opt.value) e.currentTarget.style.background = 'var(--primary-subtle)'
+                    }}
+                    onMouseLeave={(e) => {
+                      if (model !== opt.value) e.currentTarget.style.background = 'transparent'
                     }}
                   >
                     {opt.label}
@@ -222,22 +320,14 @@ export default function ChatPanel() {
 
           <button
             onClick={newConversation}
-            className="w-7 h-7 rounded-md flex items-center justify-center transition-all"
-            style={{
-              border: '1px solid var(--border)',
-              color: 'var(--text-dim)',
-            }}
+            className="chat-action-btn"
             title="新对话"
           >
             <Plus size={14} />
           </button>
           <button
             onClick={() => setShowHistory(!showHistory)}
-            className="w-7 h-7 rounded-md flex items-center justify-center transition-all"
-            style={{
-              border: '1px solid var(--border)',
-              color: 'var(--text-dim)',
-            }}
+            className="chat-action-btn"
             title="对话历史"
           >
             <List size={14} />
@@ -261,27 +351,36 @@ export default function ChatPanel() {
                   暂无对话
                 </p>
               ) : (
-                conversations.map((conv) => (
-                  <button
-                    key={conv.id}
-                    onClick={() => {
-                      selectConversation(conv.id)
-                      setShowHistory(false)
-                    }}
-                    className="w-full text-left px-3 py-2 rounded-md text-sm transition-all"
-                    style={{
-                      color:
-                        conversationId === conv.id ? 'var(--primary)' : 'var(--text-secondary)',
-                      background:
-                        conversationId === conv.id ? 'var(--primary-subtle)' : 'transparent',
-                    }}
-                  >
-                    {conv.title || `对话 ${conv.id.slice(0, 8)}`}
-                    <span className="block text-xs mt-0.5" style={{ color: 'var(--text-dim)' }}>
-                      {new Date(conv.created_at).toLocaleDateString('zh-CN')}
-                    </span>
-                  </button>
-                ))
+                conversations.map((conv) => {
+                  const isActive = conversationId === conv.id
+                  return (
+                    <button
+                      key={conv.id}
+                      onClick={() => {
+                        selectConversation(conv.id)
+                        setShowHistory(false)
+                      }}
+                      className="w-full text-left px-3 py-2.5 rounded-lg text-sm transition-all"
+                      style={{
+                        color: isActive ? 'var(--primary)' : 'var(--text-secondary)',
+                        background: isActive ? 'var(--primary-subtle)' : 'transparent',
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!isActive) e.currentTarget.style.background = 'var(--primary-subtle)'
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isActive) e.currentTarget.style.background = 'transparent'
+                      }}
+                    >
+                      <span className="font-serif" style={{ fontWeight: 500 }}>
+                        {conv.title || `对话 ${conv.id.slice(0, 8)}`}
+                      </span>
+                      <span className="block text-xs mt-0.5" style={{ color: 'var(--text-dim)' }}>
+                        {new Date(conv.created_at).toLocaleDateString('zh-CN')}
+                      </span>
+                    </button>
+                  )
+                })
               )}
             </div>
           </motion.div>
@@ -367,6 +466,10 @@ export default function ChatPanel() {
                     })}
                   </span>
                 </div>
+                {/* X7: 文章卡片 */}
+                {(msg as ChatMessage).generated_article && (
+                  <ArticleCard article={(msg as ChatMessage).generated_article!} />
+                )}
               </div>
             ))}
 
@@ -535,38 +638,31 @@ export default function ChatPanel() {
       <div
         className="shrink-0"
         style={{
-          padding: isMobile ? '8px 12px 8px' : '12px 16px',
+          padding: isMobile ? '8px 16px' : '12px 16px',
           borderTop: '1px solid var(--border)',
         }}
       >
-        <div
-          className="chat-input-wrapper flex items-end gap-2.5 px-3.5 py-2.5 transition-all"
-          style={{
-            background: 'var(--card)',
-            border: '1px solid var(--border)',
-            borderRadius: isMobile ? '24px' : '10px',
-          }}
-        >
-          {/* 附件菜单按钮（图片 + 视频） */}
-          <div className="relative">
+        <div className="flex items-center gap-2">
+          {/* 附件按钮 — 输入框外左侧 */}
+          <div className="relative shrink-0">
             <button
               onClick={() => setShowAttachMenu(!showAttachMenu)}
               disabled={(ocrLoading || videoLoading) && !showAttachMenu}
-              className="w-8 h-8 flex items-center justify-center shrink-0 transition-all"
+              className="w-8 h-8 flex items-center justify-center transition-all"
               style={{
                 background: 'transparent',
                 color: (ocrLoading || videoLoading) ? 'var(--primary)' : 'var(--text-dim)',
                 border: 'none',
                 cursor: (ocrLoading || videoLoading) ? 'wait' : 'pointer',
-                borderRadius: isMobile ? '50%' : '8px',
+                borderRadius: '50%',
                 opacity: (ocrLoading || videoLoading) && !showAttachMenu ? 0.5 : 1,
               }}
               title="附件"
             >
               {(ocrLoading || videoLoading) ? (
-                <Loader2 size={16} className="animate-spin" />
+                <Loader2 size={18} className="animate-spin" />
               ) : (
-                <Paperclip size={16} />
+                <Paperclip size={18} />
               )}
             </button>
 
@@ -606,7 +702,6 @@ export default function ChatPanel() {
                     onClick={() => {
                       setShowAttachMenu(false)
                       setShowVideoInput(true)
-                      // 下一帧聚焦输入框
                       setTimeout(() => videoInputRef.current?.focus(), 100)
                     }}
                     disabled={videoLoading || isLoading}
@@ -633,38 +728,59 @@ export default function ChatPanel() {
             onChange={handleImageUpload}
             style={{ display: 'none' }}
           />
-          <textarea
-            ref={inputRef}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="输入你的想法或问题…   Enter 发送 · Shift+Enter 换行"
-            rows={1}
-            className="flex-1 bg-transparent border-none outline-none text-sm resize-none"
+
+          {/* 输入框 */}
+          <div
+            className="chat-input-wrapper flex items-center flex-1 transition-all"
             style={{
-              color: 'var(--text)',
-              fontFamily: "'Inter', 'Noto Sans SC', sans-serif",
-              maxHeight: 120,
-            }}
-          />
-          <VoiceMicButton
-            onTranscript={(text) => setInput((prev) => prev + text)}
-            size={32}
-            rounded={isMobile}
-          />
-          <button
-            onClick={handleSend}
-            disabled={!input.trim() || isLoading}
-            className="w-8 h-8 flex items-center justify-center shrink-0 transition-opacity"
-            style={{
-              background: input.trim() ? 'var(--primary)' : 'var(--border)',
-              color: 'var(--bg)',
-              opacity: input.trim() ? 1 : 0.5,
-              borderRadius: isMobile ? '50%' : '8px',
+              background: 'var(--card)',
+              border: '1px solid var(--border)',
+              borderRadius: isMobile ? '24px' : '10px',
+              padding: '10px 14px',
+              gap: '10px',
             }}
           >
-            <Send size={14} />
-          </button>
+            <textarea
+              ref={inputRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="输入你的想法…"
+              rows={1}
+              className="flex-1 bg-transparent border-none outline-none resize-none"
+              style={{
+                color: 'var(--text)',
+                fontFamily: "'Inter', 'Noto Sans SC', sans-serif",
+                fontSize: '14px',
+                lineHeight: 1.5,
+                maxHeight: 120,
+                padding: 0,
+              }}
+            />
+            {/* 麦克风：输入为空时显示，有文字时隐藏让位给发送按钮 */}
+            {!input.trim() && (
+              <VoiceMicButton
+                onTranscript={(text) => setInput((prev) => prev + text)}
+                size={32}
+                rounded={isMobile}
+              />
+            )}
+            {input.trim() && (
+              <button
+                onClick={handleSend}
+                disabled={isLoading}
+                className="w-8 h-8 flex items-center justify-center shrink-0 transition-opacity"
+                style={{
+                  background: 'var(--primary)',
+                  color: 'var(--bg)',
+                  opacity: isLoading ? 0.5 : 1,
+                  borderRadius: isMobile ? '50%' : '8px',
+                }}
+              >
+                <Send size={14} />
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>

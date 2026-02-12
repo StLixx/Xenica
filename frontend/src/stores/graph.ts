@@ -16,6 +16,29 @@ const perspectiveColors: Record<string, string> = {
   '素材': '#8faa7b',
 }
 
+/**
+ * 从 SurrealDB 的 ID 格式中提取字符串 ID
+ * 支持格式：
+ *   - "string-id"
+ *   - { tb: "entity", id: { String: "xxx" } }
+ *   - { tb: "entity", id: "xxx" }
+ */
+function extractId(raw: unknown): string {
+  if (typeof raw === 'string') return raw
+  if (typeof raw === 'object' && raw !== null) {
+    const obj = raw as Record<string, unknown>
+    const inner = obj.id
+    if (typeof inner === 'string') return inner
+    if (typeof inner === 'object' && inner !== null) {
+      const str = (inner as Record<string, unknown>).String
+      if (typeof str === 'string') return str
+    }
+    // fallback: "tb:id" 格式
+    if (obj.tb && inner) return `${obj.tb}:${extractId(inner)}`
+  }
+  return String(raw)
+}
+
 function getNodeColor(perspectives?: string[]): string {
   if (!perspectives || perspectives.length === 0) return '#8a8580'
   for (const p of perspectives) {
@@ -37,6 +60,8 @@ interface GraphStore {
   edges: Edge[]
   stats: GraphStats | null
   selectedNodeId: string | null
+  /** X7: 多选节点 ID 集合 */
+  selectedNodeIds: Set<string>
   isLoading: boolean
 
   loadTopNodes: () => Promise<void>
@@ -45,6 +70,10 @@ interface GraphStore {
   selectNode: (id: string | null) => void
   setNodes: (nodes: Node[]) => void
   setEdges: (edges: Edge[]) => void
+  /** X7: 切换多选 */
+  toggleMultiSelect: (id: string) => void
+  /** X7: 清空多选 */
+  clearMultiSelect: () => void
 }
 
 export const useGraphStore = create<GraphStore>((set, get) => ({
@@ -52,6 +81,7 @@ export const useGraphStore = create<GraphStore>((set, get) => ({
   edges: [],
   stats: null,
   selectedNodeId: null,
+  selectedNodeIds: new Set<string>(),
   isLoading: false,
 
   loadTopNodes: async () => {
@@ -61,18 +91,37 @@ export const useGraphStore = create<GraphStore>((set, get) => ({
       const topNodes = result.nodes
 
       // 转换为 react-flow 节点
+      // 随机散布布局（互相不重叠）
+      const placedPositions: { x: number; y: number; r: number }[] = []
       const rfNodes: Node[] = topNodes.map((n: Record<string, unknown>, i: number) => {
-        const id = String((n.id as Record<string, unknown>)?.id || n.id || `node-${i}`)
+        const id = extractId(n.id) || `node-${i}`
         const label = String(n.label || n.name || n.raw_input || '?')
         const weight = Number(n.weight || 1)
         const perspectives = n.perspectives as string[] | undefined
         const nodeType = n.type as string | undefined
 
-        // 力导向风格的初始位置 — 环形排列
-        const angle = (i / topNodes.length) * Math.PI * 2
-        const radius = 200 + Math.random() * 150
-        const x = 400 + Math.cos(angle) * radius
-        const y = 300 + Math.sin(angle) * radius
+        // 节点半径（与 XenicaNode 的 size 计算一致）
+        const nodeSize = Math.max(36, Math.min(64, 36 + weight * 3))
+        const nodeRadius = nodeSize / 2 + 20 // 加 padding 防止重叠
+
+        // 随机散布 + 碰撞检测
+        let x = 0, y = 0
+        let attempts = 0
+        const maxAttempts = 50
+        const spreadRadius = 120 + topNodes.length * 12
+        do {
+          const angle = Math.random() * Math.PI * 2
+          const dist = 60 + Math.random() * spreadRadius
+          x = 400 + Math.cos(angle) * dist
+          y = 300 + Math.sin(angle) * dist
+          attempts++
+        } while (
+          attempts < maxAttempts &&
+          placedPositions.some(
+            (p) => Math.hypot(p.x - x, p.y - y) < (p.r + nodeRadius)
+          )
+        )
+        placedPositions.push({ x, y, r: nodeRadius })
 
         return {
           id,
@@ -120,11 +169,11 @@ export const useGraphStore = create<GraphStore>((set, get) => ({
       // 添加新节点
       const newNodes: Node[] = result.nodes
         .filter((n) => {
-          const nid = String((n.id as unknown as Record<string, unknown>)?.id || n.id)
+          const nid = extractId(n.id)
           return !existingIds.has(nid)
         })
         .map((n, i) => {
-          const nid = String((n.id as unknown as Record<string, unknown>)?.id || n.id)
+          const nid = extractId(n.id)
           const label = n.refined || n.raw_input || n.name || '?'
           const angle = (i / result.nodes.length) * Math.PI * 2
           const dist = 120 + Math.random() * 80
@@ -149,8 +198,8 @@ export const useGraphStore = create<GraphStore>((set, get) => ({
 
       // 添加新边
       const newEdges: Edge[] = result.edges.map((e, i) => {
-        const fromId = String((e.in as unknown as Record<string, unknown>)?.id || e.in)
-        const toId = String((e.out as unknown as Record<string, unknown>)?.id || e.out)
+        const fromId = extractId(e.in)
+        const toId = extractId(e.out)
         const rt = e.relation_type || 'semantic'
         const style = edgeTypeMap[rt] || edgeTypeMap.semantic
         const strength = e.strength || 0.5
@@ -189,4 +238,16 @@ export const useGraphStore = create<GraphStore>((set, get) => ({
   selectNode: (id) => set({ selectedNodeId: id }),
   setNodes: (nodes) => set({ nodes }),
   setEdges: (edges) => set({ edges }),
+
+  // X7: 多选
+  toggleMultiSelect: (id) => {
+    const current = new Set(get().selectedNodeIds)
+    if (current.has(id)) {
+      current.delete(id)
+    } else {
+      current.add(id)
+    }
+    set({ selectedNodeIds: current })
+  },
+  clearMultiSelect: () => set({ selectedNodeIds: new Set() }),
 }))

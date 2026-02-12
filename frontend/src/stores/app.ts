@@ -25,9 +25,17 @@ interface AppStore {
   settingsOpen: boolean
   toggleSettings: () => void
 
+  // 导入面板
+  importOpen: boolean
+  toggleImport: () => void
+
   // 快速记录弹窗
   quickRecordOpen: boolean
   setQuickRecordOpen: (v: boolean) => void
+
+  // X6M3: 独立刷题卡片
+  reviewCardsOpen: boolean
+  setReviewCardsOpen: (v: boolean) => void
 
   // "在做什么"预设标签
   activityTags: string[]
@@ -60,16 +68,22 @@ export const useAppStore = create<AppStore>()(
       settingsOpen: false,
       toggleSettings: () => set((s) => ({ settingsOpen: !s.settingsOpen })),
 
+      importOpen: false,
+      toggleImport: () => set((s) => ({ importOpen: !s.importOpen })),
+
       quickRecordOpen: false,
       setQuickRecordOpen: (quickRecordOpen) => set({ quickRecordOpen }),
+
+      reviewCardsOpen: false,
+      setReviewCardsOpen: (reviewCardsOpen) => set({ reviewCardsOpen }),
 
       activityTags: ['骑车', '看视频', '上课', '散步', '吃饭', '和人聊天'],
       setActivityTags: (activityTags) => set({ activityTags }),
       addActivityTag: (tag) => set((s) => ({ activityTags: [...s.activityTags, tag] })),
       removeActivityTag: (tag) => set((s) => ({ activityTags: s.activityTags.filter((t) => t !== tag) })),
 
-      llmEndpoint: 'http://localhost:8045',
-      llmModel: 'claude-sonnet-4-20250514',
+      llmEndpoint: 'http://localhost:8092',
+      llmModel: 'gpt-4.1',
       setLlmEndpoint: (llmEndpoint) => set({ llmEndpoint }),
       setLlmModel: (llmModel) => set({ llmModel }),
     }),

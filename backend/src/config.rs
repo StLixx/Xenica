@@ -20,9 +20,9 @@ impl AppConfig {
                 .and_then(|v| v.parse().ok())
                 .unwrap_or(3002),
             llm_endpoint: std::env::var("XENICA_LLM_ENDPOINT")
-                .unwrap_or_else(|_| "http://127.0.0.1:8045/v1/chat/completions".to_string()),
+                .unwrap_or_else(|_| "http://127.0.0.1:8092/v1/chat/completions".to_string()),
             llm_model: std::env::var("XENICA_LLM_MODEL")
-                .unwrap_or_else(|_| "gemini-3-flash".to_string()),
+                .unwrap_or_else(|_| "gpt-4.1".to_string()),
             db_path: std::env::var("XENICA_DB_PATH")
                 .unwrap_or_else(|_| "data".to_string()),
         }

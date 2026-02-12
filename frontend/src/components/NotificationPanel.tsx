@@ -1,17 +1,18 @@
 import { useState, useEffect, useCallback } from 'react'
-import { X, FileText, Link2, RotateCcw, Loader2 } from 'lucide-react'
+import { X, FileText, Link2, RotateCcw, Loader2, Code, Layers } from 'lucide-react'
 import { useNotificationStore } from '../stores/notification'
 import { useAppStore } from '../stores/app'
-import { listMoments, listDueReviews, respondReview } from '../lib/api'
+import { listMoments, listDueReviews, respondReview, listCommanderLogs } from '../lib/api'
 import { timeAgo } from '../lib/timeago'
 import type { Moment, ReviewDueItem, ReviewResponse } from '../lib/types'
 
-type Tab = 'expand' | 'confirm' | 'review'
+type Tab = 'expand' | 'confirm' | 'review' | 'commander'
 
 const tabs: Array<{ id: Tab; label: string; icon: typeof FileText }> = [
   { id: 'expand', label: '待展开', icon: FileText },
   { id: 'confirm', label: '待确认', icon: Link2 },
   { id: 'review', label: '待复习', icon: RotateCcw },
+  { id: 'commander', label: 'Commander', icon: Code },
 ]
 
 const reviewButtons: Array<{ response: ReviewResponse; label: string; className: string }> = [
@@ -32,6 +33,10 @@ export default function NotificationPanel() {
   const [dueReviews, setDueReviews] = useState<ReviewDueItem[]>([])
   const [reviewLoading, setReviewLoading] = useState(false)
   const [respondingId, setRespondingId] = useState<string | null>(null)
+
+  // X8: Commander 日志
+  const [commanderLogs, setCommanderLogs] = useState<Moment[]>([])
+  const [commanderLoading, setCommanderLoading] = useState(false)
 
   // 加载待展开
   useEffect(() => {
@@ -61,6 +66,22 @@ export default function NotificationPanel() {
       loadReviews()
     }
   }, [isOpen, activeTab, online, loadReviews])
+
+  // X8: 加载 Commander 日志
+  const loadCommanderLogs = useCallback(() => {
+    if (!online) return
+    setCommanderLoading(true)
+    listCommanderLogs(30)
+      .then(setCommanderLogs)
+      .catch(() => setCommanderLogs([]))
+      .finally(() => setCommanderLoading(false))
+  }, [online])
+
+  useEffect(() => {
+    if (isOpen && online && activeTab === 'commander') {
+      loadCommanderLogs()
+    }
+  }, [isOpen, activeTab, online, loadCommanderLogs])
 
   // X6: 用户反馈
   const handleReviewRespond = async (reviewId: string, response: ReviewResponse) => {
@@ -103,6 +124,19 @@ export default function NotificationPanel() {
     return `第 ${count + 1} 次复习`
   }
 
+  // X8: 按日期分组 Commander 日志
+  const groupLogsByDate = (logs: Moment[]): Map<string, Moment[]> => {
+    const groups = new Map<string, Moment[]>()
+    for (const log of logs) {
+      const date = log.trigger?.replace('Commander 日志 ', '') ||
+        new Date(log.timestamp).toISOString().slice(0, 10)
+      const existing = groups.get(date) || []
+      existing.push(log)
+      groups.set(date, existing)
+    }
+    return groups
+  }
+
   return (
     <div className="notification-overlay" onClick={closeNotifications}>
       <div className="notification-panel" onClick={(e) => e.stopPropagation()}>
@@ -127,6 +161,9 @@ export default function NotificationPanel() {
               )}
               {id === 'review' && dueReviews.length > 0 && (
                 <span className="notif-badge">{dueReviews.length}</span>
+              )}
+              {id === 'commander' && commanderLogs.length > 0 && (
+                <span className="notif-badge commander-badge">{commanderLogs.length}</span>
               )}
             </button>
           ))}
@@ -179,6 +216,18 @@ export default function NotificationPanel() {
             ) : dueReviews.length === 0 ? (
               <div className="notif-empty">没有待复习的内容</div>
             ) : (
+              <>
+              {/* X6M3: 开始刷题入口 */}
+              <button
+                className="notif-review-start"
+                onClick={() => {
+                  closeNotifications()
+                  useAppStore.getState().setReviewCardsOpen(true)
+                }}
+              >
+                <Layers size={16} />
+                开始刷题（{dueReviews.length} 张卡片）
+              </button>
               <ul className="notif-list">
                 {dueReviews.map((item) => {
                   const rid = getReviewId(item)
@@ -210,6 +259,40 @@ export default function NotificationPanel() {
                   )
                 })}
               </ul>
+              </>
+            )
+          )}
+
+          {/* X8: Commander 汇报 */}
+          {activeTab === 'commander' && (
+            commanderLoading ? (
+              <div className="notif-loading">加载中…</div>
+            ) : commanderLogs.length === 0 ? (
+              <div className="notif-empty">没有 Commander 开发日志</div>
+            ) : (
+              <div className="commander-log-groups">
+                {Array.from(groupLogsByDate(commanderLogs)).map(([date, logs]) => (
+                  <div key={date} className="commander-log-group">
+                    <div className="commander-log-date">
+                      <Code size={12} />
+                      <span>{date}</span>
+                    </div>
+                    <ul className="notif-list">
+                      {logs.map((log) => (
+                        <li key={log.id} className="notif-item commander-item">
+                          <div className="commander-dot" />
+                          <div className="notif-item-body">
+                            <p className="notif-item-text commander-text">
+                              {log.raw_input.slice(0, 120)}{log.raw_input.length > 120 ? '…' : ''}
+                            </p>
+                            <span className="notif-item-time">{timeAgo(log.timestamp)}</span>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
             )
           )}
         </div>

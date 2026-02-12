@@ -103,6 +103,28 @@ export interface ChatOutput {
   reply: string
   conversation_id: string
   moment_id: string
+  /** X7: 生成的文章（仅当用户要求生成时有值） */
+  generated_article?: GeneratedArticle
+}
+
+/** X7: 生成的结构化文章 */
+export interface GeneratedArticle {
+  title: string
+  content: string // Markdown
+  source_nodes: string[]
+}
+
+/** X7: 从选中节点生成的请求 */
+export interface GenerateFromNodesInput {
+  node_ids: string[]
+  format: 'article' | 'outline' | 'summary'
+}
+
+/** X7: 从选中节点生成的响应 */
+export interface GenerateFromNodesOutput {
+  title: string
+  content: string
+  source_nodes: string[]
 }
 
 // ─── Graph ───
@@ -169,6 +191,42 @@ export interface VideoImportResult {
   title: string
   transcript: string
   source_url: string
+}
+
+// ─── Markdown Import (X5D) ───
+
+export interface MarkdownImportResult {
+  moment_id: string
+  entities_extracted: number
+  edges_created: number
+  dangling_links: string[]
+}
+
+// ─── Commander Log Import (X8) ───
+
+export interface CommanderLogEntry {
+  date: string
+  entries: string[]
+}
+
+export interface CommanderLogResult {
+  date: string
+  moments_created: number
+}
+
+// ─── Goal Setup Check (X8) ───
+
+export interface GoalSetupStatus {
+  setup_completed: boolean
+}
+
+// ─── PDF Import (X5E) ───
+
+export interface PdfImportResult {
+  pages_processed: number
+  moments_created: number
+  entities_extracted: number
+  mode_used: string
 }
 
 // ─── Theme ───

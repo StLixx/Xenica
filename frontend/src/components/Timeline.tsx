@@ -85,7 +85,7 @@ export default function Timeline() {
   return (
     <div className="timeline-view">
       <div className="timeline-list">
-        {moments.map((m) => <MomentCard key={m.id} moment={m} />)}
+        {moments.map((m, i) => <MomentCard key={`${m.id}-${i}`} moment={m} />)}
       </div>
     </div>
   )

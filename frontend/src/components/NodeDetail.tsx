@@ -48,32 +48,32 @@ export default function NodeDetail({ nodeId, onClose }: NodeDetailProps) {
         </span>
         <button
           onClick={onClose}
-          className="w-7 h-7 rounded-md flex items-center justify-center transition-all"
-          style={{
-            border: '1px solid var(--border)',
-            color: 'var(--text-dim)',
-          }}
+          className="chat-action-btn"
         >
           <X size={14} />
         </button>
       </div>
 
       {/* 内容 */}
-      <div className="flex-1 overflow-y-auto px-5 py-5">
+      <div className="flex-1 overflow-y-auto" style={{ padding: '20px' }}>
         {/* 标题 */}
         <h2
-          className="font-serif text-lg font-semibold mb-2"
           style={{
+            fontFamily: "'Noto Serif SC', serif",
+            fontSize: '18px',
+            fontWeight: 600,
             color: 'var(--text)',
             borderLeft: `3px solid ${data.color}`,
-            paddingLeft: 12,
+            paddingLeft: '12px',
+            marginBottom: '10px',
+            lineHeight: 1.4,
           }}
         >
           {data.label}
         </h2>
 
         {/* 类型 & 权重 */}
-        <div className="flex items-center gap-3 mb-4">
+        <div className="flex items-center gap-3" style={{ marginBottom: '16px' }}>
           <span
             className="px-2.5 py-1 rounded-full text-xs font-medium"
             style={{
@@ -90,8 +90,8 @@ export default function NodeDetail({ nodeId, onClose }: NodeDetailProps) {
 
         {/* 视角标签 */}
         {data.perspectives && data.perspectives.length > 0 && (
-          <div className="mb-4">
-            <label className="text-xs mb-1.5 block" style={{ color: 'var(--text-muted)' }}>
+          <div style={{ marginBottom: '16px' }}>
+            <label style={{ fontSize: '11px', color: 'var(--text-dim)', display: 'block', marginBottom: '8px', fontWeight: 400, letterSpacing: '0.03em' }}>
               视角标签
             </label>
             <div className="flex gap-1.5 flex-wrap">
@@ -113,11 +113,11 @@ export default function NodeDetail({ nodeId, onClose }: NodeDetailProps) {
 
         {/* 精炼表述 */}
         {refined && (
-          <div className="mb-4">
-            <label className="text-xs mb-1.5 block" style={{ color: 'var(--text-muted)' }}>
+          <div style={{ marginBottom: '16px' }}>
+            <label style={{ fontSize: '11px', color: 'var(--text-dim)', display: 'block', marginBottom: '8px', fontWeight: 400, letterSpacing: '0.03em' }}>
               精炼表述
             </label>
-            <p className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+            <p style={{ fontSize: '14px', lineHeight: 1.7, color: 'var(--text-secondary)', fontFamily: "'Inter', 'Noto Sans SC', sans-serif" }}>
               {refined}
             </p>
           </div>
@@ -125,15 +125,19 @@ export default function NodeDetail({ nodeId, onClose }: NodeDetailProps) {
 
         {/* 原始输入 */}
         {rawInput && (
-          <div className="mb-4">
-            <label className="text-xs mb-1.5 block" style={{ color: 'var(--text-muted)' }}>
+          <div style={{ marginBottom: '16px' }}>
+            <label style={{ fontSize: '11px', color: 'var(--text-dim)', display: 'block', marginBottom: '8px', fontWeight: 400, letterSpacing: '0.03em' }}>
               原始输入
             </label>
             <div
-              className="rounded-lg px-3.5 py-2.5 text-sm leading-relaxed"
               style={{
+                borderRadius: '10px',
+                padding: '12px 14px',
+                fontSize: '14px',
+                lineHeight: 1.7,
                 background: 'var(--card)',
                 color: 'var(--text-secondary)',
+                fontFamily: "'Inter', 'Noto Sans SC', sans-serif",
               }}
             >
               {rawInput}
@@ -143,11 +147,11 @@ export default function NodeDetail({ nodeId, onClose }: NodeDetailProps) {
 
         {/* 描述（实体） */}
         {description && (
-          <div className="mb-4">
-            <label className="text-xs mb-1.5 block" style={{ color: 'var(--text-muted)' }}>
+          <div style={{ marginBottom: '16px' }}>
+            <label style={{ fontSize: '11px', color: 'var(--text-dim)', display: 'block', marginBottom: '8px', fontWeight: 400, letterSpacing: '0.03em' }}>
               描述
             </label>
-            <p className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+            <p style={{ fontSize: '14px', lineHeight: 1.7, color: 'var(--text-secondary)', fontFamily: "'Inter', 'Noto Sans SC', sans-serif" }}>
               {description}
             </p>
           </div>
@@ -155,11 +159,11 @@ export default function NodeDetail({ nodeId, onClose }: NodeDetailProps) {
 
         {/* 实体类型 */}
         {entityType && (
-          <div className="mb-4">
-            <label className="text-xs mb-1.5 block" style={{ color: 'var(--text-muted)' }}>
+          <div style={{ marginBottom: '16px' }}>
+            <label style={{ fontSize: '11px', color: 'var(--text-dim)', display: 'block', marginBottom: '8px', fontWeight: 400, letterSpacing: '0.03em' }}>
               实体类型
             </label>
-            <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+            <span style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>
               {entityType}
             </span>
           </div>

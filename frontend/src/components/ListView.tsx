@@ -71,8 +71,8 @@ export default function ListView() {
           <p className="list-content-empty">该标签下暂无内容</p>
         ) : (
           <div className="list-moment-cards">
-            {moments.map((m) => (
-              <div key={m.id} className="list-moment-card">
+            {moments.map((m, i) => (
+              <div key={`${m.id}-${i}`} className="list-moment-card">
                 <p className="list-moment-text">{m.refined || m.raw_input}</p>
                 <div className="list-moment-meta">
                   <span>{timeAgo(m.timestamp)}</span>

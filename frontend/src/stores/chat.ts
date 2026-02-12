@@ -1,17 +1,25 @@
 import { create } from 'zustand'
-import type { Message, Conversation } from '../lib/types'
+import type { Message, Conversation, GeneratedArticle } from '../lib/types'
 import * as api from '../lib/api'
+
+/** 扩展 Message，支持 generated_article 字段 */
+export interface ChatMessage extends Message {
+  generated_article?: GeneratedArticle
+}
 
 interface ChatStore {
   // 当前对话
   conversationId: string | null
   conversations: Conversation[]
-  messages: Message[]
+  messages: ChatMessage[]
   isLoading: boolean
   model: string
+  /** X7: 草稿模式 */
+  draftMode: boolean
 
   // 操作
   setModel: (model: string) => void
+  setDraftMode: (on: boolean) => void
   loadConversations: () => Promise<void>
   selectConversation: (id: string) => Promise<void>
   newConversation: () => void
@@ -24,8 +32,10 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   messages: [],
   isLoading: false,
   model: 'claude-sonnet',
+  draftMode: false,
 
   setModel: (model) => set({ model }),
+  setDraftMode: (on) => set({ draftMode: on }),
 
   loadConversations: async () => {
     try {
@@ -72,12 +82,13 @@ export const useChatStore = create<ChatStore>((set, get) => ({
       })
 
       // AI 回复
-      const aiMsg: Message = {
+      const aiMsg: ChatMessage = {
         id: `ai-${Date.now()}`,
         role: 'assistant',
         content: result.reply,
         timestamp: new Date().toISOString(),
         conversation_id: result.conversation_id,
+        generated_article: result.generated_article,
       }
 
       const updatedMessages = [...get().messages, aiMsg]

@@ -1,8 +1,8 @@
-import { Network, MessageCircle, Search, Clock, Bell, Sun, Moon, Palette } from 'lucide-react'
-import { useThemeStore } from '../stores/theme'
+import { useState } from 'react'
+import { Network, MessageCircle, Search, Clock, Layers, Settings, Bell } from 'lucide-react'
+import { useAppStore } from '../stores/app'
 import { useNotificationStore } from '../stores/notification'
 import { useGraphStore } from '../stores/graph'
-import { themeLabels } from '../lib/theme'
 import type { ViewType } from '../lib/types'
 
 interface BottomNavProps {
@@ -12,10 +12,11 @@ interface BottomNavProps {
 }
 
 export default function BottomNav({ currentView, onViewChange, onSearchOpen }: BottomNavProps) {
-  const { theme, mode, toggleMode, cycleTheme } = useThemeStore()
+  const { toggleSettings, setReviewCardsOpen } = useAppStore()
   const { unreadCount, dueReviewCount, toggle: toggleNotifications } = useNotificationStore()
   const totalBadge = unreadCount + dueReviewCount
   const stats = useGraphStore((s) => s.stats)
+  const [showStats, setShowStats] = useState(false)
 
   const navItems: { view: ViewType; icon: typeof Network; label: string }[] = [
     { view: 'graph', icon: Network, label: '图谱' },
@@ -24,107 +25,102 @@ export default function BottomNav({ currentView, onViewChange, onSearchOpen }: B
   ]
 
   return (
-    <div
-      className="flex items-center px-5 gap-2 shrink-0"
-      style={{
-        height: 52,
-        background: 'var(--bg)',
-        borderTop: '1px solid var(--border)',
-      }}
-    >
+    <nav className="bottom-nav">
       {/* 品牌 */}
-      <span
-        className="font-serif font-bold mr-6"
-        style={{ color: 'var(--primary)', fontSize: '16px', letterSpacing: '0.03em' }}
-      >
-        Xenica
-      </span>
+      <span className="bottom-nav-brand">Xenica</span>
 
       {/* 视图切换 */}
       {navItems.map(({ view, icon: Icon, label }) => (
         <button
           key={view}
           onClick={() => onViewChange(view)}
-          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-md transition-all"
-          style={{
-            color: currentView === view ? 'var(--primary)' : 'var(--text-muted)',
-            background: currentView === view ? 'var(--primary-muted)' : 'transparent',
-            fontWeight: currentView === view ? 500 : 400,
-            fontSize: '13px',
-          }}
+          className={`bottom-nav-item ${currentView === view ? 'active' : ''}`}
         >
-          <Icon size={14} style={{ opacity: 0.7 }} />
+          <Icon size={14} className="bottom-nav-icon" />
           {label}
         </button>
       ))}
 
       {/* 搜索按钮 */}
-      <button
-        onClick={onSearchOpen}
-        className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-md transition-all"
-        style={{ color: 'var(--text-muted)', fontSize: '13px' }}
-      >
-        <Search size={14} style={{ opacity: 0.7 }} />
+      <button onClick={onSearchOpen} className="bottom-nav-item">
+        <Search size={14} className="bottom-nav-icon" />
         搜索
-        <kbd
-          className="ml-1 px-1.5 py-0.5 text-xs rounded"
-          style={{
-            background: 'var(--card)',
-            border: '1px solid var(--border)',
-            color: 'var(--text-dim)',
-            fontSize: 10,
-          }}
+      </button>
+
+      <div className="bottom-nav-spacer" />
+
+      {/* X6M3: 刷题入口 */}
+      {dueReviewCount > 0 && (
+        <button
+          onClick={() => setReviewCardsOpen(true)}
+          className="bottom-nav-review"
+          title={`${dueReviewCount} 条待复习`}
         >
-          Ctrl+K
-        </kbd>
-      </button>
-
-      <div className="flex-1" />
-
-      {/* 主题切换 */}
-      <button
-        onClick={cycleTheme}
-        className="flex items-center gap-1 px-2 py-1.5 rounded-md text-xs transition-all"
-        style={{ color: 'var(--text-muted)' }}
-        title={`当前：${themeLabels[theme]}`}
-      >
-        <Palette size={13} />
-        <span style={{ opacity: 0.6 }}>{themeLabels[theme]}</span>
-      </button>
-
-      <button
-        onClick={toggleMode}
-        className="flex items-center px-2 py-1.5 rounded-md transition-all"
-        style={{ color: 'var(--text-muted)' }}
-        title={mode === 'dark' ? '切换到浅色' : '切换到深色'}
-      >
-        {mode === 'dark' ? <Sun size={14} /> : <Moon size={14} />}
-      </button>
+          <Layers size={13} />
+          复习 {dueReviewCount}
+        </button>
+      )}
 
       {/* 通知 */}
       <button
         onClick={toggleNotifications}
-        className="relative flex items-center px-2 py-1.5 rounded-md transition-all"
-        style={{ color: 'var(--text-muted)' }}
+        className="bottom-nav-action"
+        title="通知"
       >
         <Bell size={14} />
         {totalBadge > 0 && (
           <span
-            className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full text-xs flex items-center justify-center"
-            style={{ background: 'var(--primary)', color: 'var(--bg)', fontSize: 9 }}
+            style={{
+              position: 'absolute',
+              top: '-2px',
+              right: '-2px',
+              width: '14px',
+              height: '14px',
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: 'var(--primary)',
+              color: 'var(--bg)',
+              fontSize: '8px',
+            }}
           >
             {totalBadge}
           </span>
         )}
       </button>
 
-      {/* 状态 */}
-      {stats && (
-        <div className="flex items-center gap-1.5 ml-2 text-xs" style={{ color: 'var(--text-dim)' }}>
-          <div className="w-1.5 h-1.5 rounded-full" style={{ background: 'var(--accent-green)' }} />
-          {stats.total_moments + stats.total_entities} 个节点 · {stats.total_edges} 条边
-        </div>
-      )}
-    </div>
+      {/* 设置 */}
+      <button
+        onClick={toggleSettings}
+        className="bottom-nav-action"
+        title="设置"
+      >
+        <Settings size={14} />
+      </button>
+
+      {/* 状态指示点 */}
+      <div
+        className="relative flex items-center"
+        style={{ marginLeft: '4px' }}
+        onMouseEnter={() => setShowStats(true)}
+        onMouseLeave={() => setShowStats(false)}
+      >
+        <div className="bottom-nav-status-dot" />
+        {showStats && stats && (
+          <div
+            className="absolute bottom-full right-0 mb-2 px-3 py-1.5 rounded-lg text-xs whitespace-nowrap"
+            style={{
+              background: 'var(--card)',
+              border: '1px solid var(--border)',
+              boxShadow: '0 4px 16px var(--shadow-heavy)',
+              color: 'var(--text-dim)',
+            }}
+          >
+            {stats.total_moments + stats.total_entities} 个节点 · {stats.total_edges} 条边
+          </div>
+        )}
+      </div>
+    </nav>
   )
 }

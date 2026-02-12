@@ -174,7 +174,7 @@ AI 自动建立关联 + 分析合并建议。语义/时空/感官三种边。
 | 数据库 | SurrealDB（嵌入式，RocksDB） |
 | 前端 | React + TypeScript + TailwindCSS + react-flow |
 | LLM | Claude Opus（对话）/ Sonnet（提取）/ Gemini Flash（廉价） |
-| LLM 接口 | Antigravity API（8045）+ Notion Bridge 微服务（8090） |
+| LLM 接口 | Windsurf Bridge（8092）— Raw 路径，默认 gpt-4.1 |
 | 部署 | 台式机常开（32GB + 1TB SSD + 4TB HDD + UPS） |
 | 远程 | Cloudflare Tunnel |
 

@@ -13,9 +13,14 @@ import type {
   Perspective,
   OcrResult,
   VideoImportResult,
+  MarkdownImportResult,
+  PdfImportResult,
   ReviewDueItem,
   ReviewSchedule,
   ReviewResponse,
+  GenerateFromNodesOutput,
+  GoalSetupStatus,
+  CommanderLogResult,
 } from './types'
 
 const BASE = '/api'
@@ -203,6 +208,52 @@ export async function importVideo(url: string) {
   })
 }
 
+// ─── Markdown Import (X5D) ───
+
+/** 单个 Markdown 文件导入 */
+export async function importMarkdown(filename: string, content: string, source: string = 'other') {
+  return request<MarkdownImportResult>('/import/markdown', {
+    method: 'POST',
+    body: JSON.stringify({ filename, content, source }),
+  })
+}
+
+// ─── PDF Import (X5E) ───
+
+/** PDF 文件导入（multipart/form-data） */
+export async function importPdf(file: File, mode: 'text' | 'vision' = 'text'): Promise<PdfImportResult> {
+  const formData = new FormData()
+  formData.append('file', file)
+  formData.append('mode', mode)
+
+  const res = await fetch(`${BASE}/import/pdf`, {
+    method: 'POST',
+    body: formData,
+    // 不手动设置 Content-Type — 浏览器会自动添加 boundary
+  })
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: res.statusText }))
+    throw new Error(err.error || `HTTP ${res.status}`)
+  }
+
+  const json: ApiResponse<PdfImportResult> = await res.json()
+  return json.data
+}
+
+// ─── Generate (X7) ───
+
+/** X7: 从选中节点生成文章/大纲/摘要 */
+export async function generateFromNodes(
+  nodeIds: string[],
+  format: 'article' | 'outline' | 'summary' = 'article',
+) {
+  return request<GenerateFromNodesOutput>('/generate/from-nodes', {
+    method: 'POST',
+    body: JSON.stringify({ node_ids: nodeIds, format }),
+  })
+}
+
 // ─── Extract ───
 
 export async function extractMoment(id: string) {
@@ -234,4 +285,41 @@ export async function respondReview(reviewId: string, response: ReviewResponse) 
     method: 'POST',
     body: JSON.stringify({ response }),
   })
+}
+
+// ─── Goals (X8) ───
+
+/** 更新目标 */
+export async function updateGoal(id: string, data: { title?: string; description?: string; priority?: number }) {
+  return request<Goal>(`/goals/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  })
+}
+
+/** 删除目标 */
+export async function deleteGoal(id: string) {
+  return request<Goal>(`/goals/${id}`, {
+    method: 'DELETE',
+  })
+}
+
+/** 检查是否已完成首次目标设置 */
+export async function checkGoalSetup() {
+  return request<GoalSetupStatus>('/goals/check-setup')
+}
+
+// ─── Commander Log (X8) ───
+
+/** Commander 开发日志汇入 */
+export async function importCommanderLog(date: string, entries: string[]) {
+  return request<CommanderLogResult>('/import/commander-log', {
+    method: 'POST',
+    body: JSON.stringify({ date, entries }),
+  })
+}
+
+/** 获取开发日志 moments（perspective = 开发日志） */
+export async function listCommanderLogs(limit: number = 20) {
+  return listMoments({ perspective: '开发日志', limit })
 }

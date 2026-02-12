@@ -8,13 +8,15 @@ interface SearchPaletteProps {
   isOpen: boolean
   onClose: () => void
   onSelectNode?: (id: string) => void
+  /** 嵌入模式（手机端搜索 Tab）：不渲染固定遮罩 */
+  embedded?: boolean
 }
 
 type SearchResultItem =
   | { type: 'moment'; data: Moment }
   | { type: 'entity'; data: Entity }
 
-export default function SearchPalette({ isOpen, onClose, onSelectNode }: SearchPaletteProps) {
+export default function SearchPalette({ isOpen, onClose, onSelectNode, embedded }: SearchPaletteProps) {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<SearchResultItem[]>([])
   const [isSearching, setIsSearching] = useState(false)
@@ -117,15 +119,17 @@ export default function SearchPalette({ isOpen, onClose, onSelectNode }: SearchP
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* 遮罩 */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-40"
-            style={{ background: 'rgba(0,0,0,0.4)' }}
-            onClick={onClose}
-          />
+          {/* 遮罩（嵌入模式下不渲染） */}
+          {!embedded && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-40"
+              style={{ background: 'rgba(0,0,0,0.4)' }}
+              onClick={onClose}
+            />
+          )}
 
           {/* 搜索框 */}
           <motion.div
@@ -133,11 +137,14 @@ export default function SearchPalette({ isOpen, onClose, onSelectNode }: SearchP
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -20, scale: 0.95 }}
             transition={{ duration: 0.15 }}
-            className="fixed top-[15%] left-1/2 -translate-x-1/2 w-[560px] max-w-[90vw] z-50 rounded-xl overflow-hidden"
+            className={embedded
+              ? "w-full rounded-xl overflow-hidden"
+              : "fixed top-[15%] left-1/2 -translate-x-1/2 w-[560px] max-w-[90vw] z-50 rounded-xl overflow-hidden"
+            }
             style={{
               background: 'var(--card)',
-              border: '1px solid var(--border)',
-              boxShadow: '0 20px 60px var(--shadow-heavy)',
+              border: embedded ? undefined : '1px solid var(--border)',
+              boxShadow: embedded ? undefined : '0 20px 60px var(--shadow-heavy)',
             }}
           >
             {/* 输入行 */}
@@ -211,10 +218,11 @@ export default function SearchPalette({ isOpen, onClose, onSelectNode }: SearchP
                         onSelectNode?.(id)
                         onClose()
                       }}
-                      className="w-full text-left px-4 py-2.5 flex items-center gap-3 transition-all"
+                      className="w-full text-left px-4 py-3 flex items-center gap-3 transition-all"
                       style={{
                         background: isSelected ? 'var(--primary-subtle)' : 'transparent',
                         color: 'var(--text)',
+                        borderRadius: '8px',
                       }}
                       onMouseEnter={() => setSelectedIndex(i)}
                     >
@@ -224,7 +232,7 @@ export default function SearchPalette({ isOpen, onClose, onSelectNode }: SearchP
                         <Box size={14} style={{ color: 'var(--accent-green)', flexShrink: 0 }} />
                       )}
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm truncate">{label}</div>
+                        <div className="font-serif truncate" style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text)' }}>{label}</div>
                         <div className="text-xs mt-0.5" style={{ color: 'var(--text-dim)' }}>
                           {isMoment
                             ? (item.data as Moment).perspectives?.join(' · ') || '认知瞬间'

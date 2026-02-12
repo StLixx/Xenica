@@ -47,10 +47,11 @@ async fn main() {
     // 共享状态
     let state = Arc::new(AppState { db, llm });
 
-    // CORS 配置 — 允许 localhost:3000（前端开发）
+    // CORS 配置 — 允许前端开发端口
     let cors = CorsLayer::new()
         .allow_origin([
             "http://localhost:3000".parse().unwrap(),
+            "http://localhost:5173".parse().unwrap(),
         ])
         .allow_methods(Any)
         .allow_headers(Any);
@@ -70,6 +71,8 @@ async fn main() {
         .route("/api/search", get(routes::search))
         .route("/api/relations", post(routes::create_relation))
         .route("/api/goals", post(routes::create_goal).get(routes::list_goals))
+        .route("/api/goals/check-setup", get(routes::check_goal_setup))
+        .route("/api/goals/{id}", axum::routing::put(routes::update_goal).delete(routes::delete_goal))
         // X3 图谱查询路由
         .route("/api/graph/traverse/{id}", get(routes::graph_traverse))
         .route("/api/graph/top", get(routes::graph_top))
@@ -84,8 +87,16 @@ async fn main() {
         .route("/api/ocr", post(routes::ocr_image))
         // X5C: 视频导入
         .route("/api/import/video", post(routes::import_video))
-        // 请求体大小限制 10MB（OCR 图片需要）
-        .layer(DefaultBodyLimit::max(10 * 1024 * 1024))
+        // X5D: Markdown 导入
+        .route("/api/import/markdown", post(routes::import_markdown))
+        // X8: Commander 日志汇入
+        .route("/api/import/commander-log", post(routes::import_commander_log))
+        // X5E: PDF 导入
+        .route("/api/import/pdf", post(routes::import_pdf))
+        // X7: 输出生成
+        .route("/api/generate/from-nodes", post(routes::generate_from_nodes))
+        // 请求体大小限制 100MB（PDF 文件可能很大）
+        .layer(DefaultBodyLimit::max(100 * 1024 * 1024))
         .layer(cors)
         .with_state(state);
 

@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
   ReactFlow,
   Controls,
@@ -11,9 +12,12 @@ import {
   type Node,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
+import { FileText, List, AlignLeft, Loader2, X } from 'lucide-react'
 import XenicaNode from './XenicaNode'
 import XenicaEdge from './XenicaEdge'
 import { useGraphStore } from '../../stores/graph'
+import * as api from '../../lib/api'
+import type { GenerateFromNodesOutput } from '../../lib/types'
 
 const nodeTypes: NodeTypes = {
   xenicaNode: XenicaNode,
@@ -25,21 +29,45 @@ const edgeTypes: EdgeTypes = {
 
 interface GraphViewProps {
   onNodeSelect?: (nodeId: string | null) => void
+  /** X7: 生成结果回调 */
+  onGenerationResult?: (result: GenerateFromNodesOutput) => void
 }
 
-export default function GraphView({ onNodeSelect }: GraphViewProps) {
+export default function GraphView({ onNodeSelect, onGenerationResult }: GraphViewProps) {
   const graphNodes = useGraphStore((s) => s.nodes)
   const graphEdges = useGraphStore((s) => s.edges)
   const isLoading = useGraphStore((s) => s.isLoading)
-  const { loadTopNodes, loadStats, traverseNode, selectNode } = useGraphStore()
+  const selectedNodeIds = useGraphStore((s) => s.selectedNodeIds)
+  const { loadTopNodes, loadStats, traverseNode, selectNode, toggleMultiSelect, clearMultiSelect } = useGraphStore()
+  const [generating, setGenerating] = useState(false)
+  /** 防止 store↔local 双向同步死循环 */
+  const syncFromStoreRef = useRef(false)
 
   const [nodes, setNodes, onNodesChange] = useNodesState(graphNodes)
   const [edges, setEdges, onEdgesChange] = useEdgesState(graphEdges)
 
-  // 同步 store → local state
+  // 同步 store → local state，并标记多选节点
   useEffect(() => {
-    setNodes(graphNodes)
-  }, [graphNodes, setNodes])
+    syncFromStoreRef.current = true
+    const updatedNodes = graphNodes.map((n) => ({
+      ...n,
+      data: {
+        ...n.data,
+        multiSelected: selectedNodeIds.has(n.id),
+      },
+      style: selectedNodeIds.has(n.id)
+        ? {
+            ...n.style,
+            outline: '2px dashed var(--primary)',
+            outlineOffset: '3px',
+            borderRadius: '12px',
+          }
+        : { ...n.style, outline: undefined, outlineOffset: undefined },
+    }))
+    setNodes(updatedNodes)
+    // 下一个 tick 解锁，让 local→store 同步跳过这次
+    requestAnimationFrame(() => { syncFromStoreRef.current = false })
+  }, [graphNodes, selectedNodeIds, setNodes])
 
   useEffect(() => {
     setEdges(graphEdges)
@@ -51,19 +79,44 @@ export default function GraphView({ onNodeSelect }: GraphViewProps) {
     loadStats()
   }, [loadTopNodes, loadStats])
 
-  // 同步 local → store（拖拽后）
+  // 同步 local → store（拖拽后）— 跳过来自 store 的同步
   useEffect(() => {
+    if (syncFromStoreRef.current) return
     useGraphStore.getState().setNodes(nodes)
   }, [nodes])
 
   const onNodeClick = useCallback(
-    (_event: React.MouseEvent, node: Node) => {
+    (event: React.MouseEvent, node: Node) => {
+      // X7: Shift+点击 → 多选
+      if (event.shiftKey) {
+        toggleMultiSelect(node.id)
+        return
+      }
       selectNode(node.id)
       onNodeSelect?.(node.id)
       // 展开关联
       traverseNode(node.id, 1)
     },
-    [selectNode, onNodeSelect, traverseNode],
+    [selectNode, onNodeSelect, traverseNode, toggleMultiSelect],
+  )
+
+  // X7: 从选中节点生成
+  const handleGenerate = useCallback(
+    async (format: 'article' | 'outline' | 'summary') => {
+      const ids = Array.from(selectedNodeIds)
+      if (ids.length < 1 || generating) return
+      setGenerating(true)
+      try {
+        const result = await api.generateFromNodes(ids, format)
+        onGenerationResult?.(result)
+        clearMultiSelect()
+      } catch (e) {
+        console.error('生成失败:', e)
+      } finally {
+        setGenerating(false)
+      }
+    },
+    [selectedNodeIds, generating, onGenerationResult, clearMultiSelect],
   )
 
   const onPaneClick = useCallback(() => {
@@ -126,6 +179,80 @@ export default function GraphView({ onNodeSelect }: GraphViewProps) {
           加载中…
         </div>
       )}
+
+      {/* X7: 多选生成工具栏 */}
+      <AnimatePresence>
+        {selectedNodeIds.size >= 2 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            className="absolute bottom-16 left-1/2 -translate-x-1/2 z-20 flex items-center gap-3 px-5 py-3 rounded-2xl"
+            style={{
+              background: 'rgba(var(--bg-rgb, 30 30 34), 0.85)',
+              backdropFilter: 'blur(16px)',
+              border: '1px solid var(--border)',
+              boxShadow: '0 8px 32px var(--shadow-heavy)',
+            }}
+          >
+            <span className="text-xs shrink-0" style={{ color: 'var(--text-dim)' }}>
+              已选 {selectedNodeIds.size} 个节点
+            </span>
+            <div className="w-px h-5" style={{ background: 'var(--border)' }} />
+            <button
+              onClick={() => handleGenerate('article')}
+              disabled={generating}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
+              style={{
+                background: 'var(--primary-subtle)',
+                color: 'var(--primary)',
+                border: '1px solid var(--border)',
+                opacity: generating ? 0.5 : 1,
+              }}
+            >
+              {generating ? <Loader2 size={13} className="animate-spin" /> : <FileText size={13} />}
+              文章
+            </button>
+            <button
+              onClick={() => handleGenerate('outline')}
+              disabled={generating}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
+              style={{
+                background: 'var(--primary-subtle)',
+                color: 'var(--text-secondary)',
+                border: '1px solid var(--border)',
+                opacity: generating ? 0.5 : 1,
+              }}
+            >
+              <List size={13} />
+              大纲
+            </button>
+            <button
+              onClick={() => handleGenerate('summary')}
+              disabled={generating}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
+              style={{
+                background: 'var(--primary-subtle)',
+                color: 'var(--text-secondary)',
+                border: '1px solid var(--border)',
+                opacity: generating ? 0.5 : 1,
+              }}
+            >
+              <AlignLeft size={13} />
+              摘要
+            </button>
+            <div className="w-px h-5" style={{ background: 'var(--border)' }} />
+            <button
+              onClick={clearMultiSelect}
+              className="w-7 h-7 flex items-center justify-center rounded-lg transition-all"
+              style={{ color: 'var(--text-dim)' }}
+              title="取消选择"
+            >
+              <X size={14} />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* 空状态 */}
       {!isLoading && nodes.length === 0 && (
