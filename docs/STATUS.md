@@ -1,6 +1,6 @@
 # Xenica 开发状态
 
-**最后更新**: 2026-02-13 02:48
+**最后更新**: 2026-02-13 02:52
 
 ---
 
@@ -104,7 +104,7 @@
 | 手机端 375px 响应式 | P2 | ✅ 布局正确，底部 Tab + 快速记录按钮 |
 | 后端: /api/graph/traverse 500 Serialization error | **P0** | ✅ **已修复** — 根因：SurrealDB v2 SDK Thing 枚举无法反序列化为 serde_json::Value，改用 typed struct 反序列化 |
 | 图谱边连接渲染 | **P0** | ✅ **已实现** — 点击节点后显示琥珀色连线，边端点 ID 去除 table 前缀匹配 react-flow 节点 |
-| 后端: /api/graph/top 只返回节点不返回边 | P2 | 🟡 初始加载无连线，需后端增加边查询 |
+| 后端: /api/graph/top 返回边 | P1 | ✅ **已实现** — 初始加载 30 节点 + 33 条边，知识网络完整呈现 |
 | 全局 ErrorBoundary | P1 | ✅ 已添加，防止白屏崩溃 |
 | 前端 console 0 error 0 warning | P1 | ✅ 修复 deprecated meta tag + 全视图验证 |
 | .gitignore 完善 | P2 | ✅ 补充 node_modules/IDE/OS/Agent临时产物 |
@@ -119,5 +119,5 @@
 4. ~~**端到端测试**~~ ✅ Playwright 逐页截图验证通过
 5. ~~**手机端验证**~~ ✅ 375px 响应式已验证
 6. **配置 Bridge** — 启动 LLM Bridge（8092）实现完整对话链路
-7. **graph_top 返回边** — 初始加载图谱时也显示连线
-7. **验证 X5/X6/X7/X8 模块** — 语音/OCR/视频/复习/生成/主动服务
+7. ~~**graph_top 返回边**~~ ✅ 初始加载 30 节点 + 33 条边
+8. **验证 X5/X6/X7/X8 模块** — 语音/OCR/视频/复习/生成/主动服务
