@@ -9,7 +9,7 @@
 - **后端**：Rust + Axum
 - **数据库**：SurrealDB（嵌入式，RocksDB 存储引擎）
 - **前端**：React + TypeScript + TailwindCSS + react-flow（开发中）
-- **LLM**：Antigravity API（本地代理）
+- **LLM**：OpenAI 兼容 API（通过 Windsurf Bridge 或其他代理）
 
 ## 构建
 
@@ -27,7 +27,7 @@ cd backend
 
 一个文件启动全部：Axum HTTP 服务 + SurrealDB 嵌入式数据库。
 
-默认端口：`3001`
+默认端口：`3002`
 
 ## API 列表
 
@@ -55,9 +55,9 @@ cd backend
 
 | 配置项 | 默认值 | 说明 |
 |--------|--------|------|
-| `XENICA_PORT` | `3001` | HTTP 服务端口 |
-| `XENICA_LLM_ENDPOINT` | `http://127.0.0.1:8045/v1/chat/completions` | LLM API 地址 |
-| `XENICA_LLM_MODEL` | `gemini-3-flash` | 默认模型 |
+| `XENICA_PORT` | `3002` | HTTP 服务端口 |
+| `XENICA_LLM_ENDPOINT` | `http://127.0.0.1:8092/v1/chat/completions` | LLM API 地址 |
+| `XENICA_LLM_MODEL` | `gpt-4.1` | 默认模型 |
 | `XENICA_DB_PATH` | `data` | SurrealDB 数据目录 |
 
 ## 数据
