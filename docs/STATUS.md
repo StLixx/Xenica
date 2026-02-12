@@ -1,6 +1,6 @@
 # Xenica 开发状态
 
-**最后更新**: 2026-02-13 03:13
+**最后更新**: 2026-02-13 03:43
 
 ---
 
@@ -110,6 +110,9 @@
 | 边去重（后端+前端） | P2 | ✅ 后端 SQL GROUP BY + 前端 Set 双重去重（33→21） |
 | 全局 ErrorBoundary | P1 | ✅ 已添加，防止白屏崩溃 |
 | 前端 console 0 error 0 warning | P1 | ✅ 修复 deprecated meta tag + 全视图验证 |
+| ChatPanel 模型选择器显示空白 | P1 | ✅ MODEL_OPTIONS 改为 Bridge 实际模型名 |
+| 对话发送 500 error decoding response body | **P0** | ✅ 根因：前端默认 model "claude-sonnet" Bridge 不认识 + 后端不检查 HTTP 状态码就反序列化 |
+| LLM client chat() 返回 reqwest::Error 无描述 | P1 | ✅ 改为 Result<String, String> 返回清晰错误信息 |
 | .gitignore 完善 | P2 | ✅ 补充 node_modules/IDE/OS/Agent临时产物 |
 | README.md 配置同步 | P2 | ✅ 端口 3002、端点 8092、模型 gpt-4.1 |
 | cargo check 0 warnings | P2 | ✅ 移除未使用的 Record struct |
@@ -123,6 +126,6 @@
 3. ~~**精调图谱节点/边**~~ ✅ font-weight 对齐 design_samples
 4. ~~**端到端测试**~~ ✅ Playwright 逐页截图验证通过
 5. ~~**手机端验证**~~ ✅ 375px 响应式已验证
-6. **配置 Bridge** — 启动 LLM Bridge（8092）实现完整对话链路
+6. ~~**配置 Bridge**~~ ✅ LLM Bridge（8092）对话链路已通——修复默认模型名(gpt-4.1)、LLM client HTTP 状态码检查、模型选择器显示
 7. ~~**graph_top 返回边**~~ ✅ 初始加载 30 节点 + 33 条边
 8. **验证 X5/X6/X7/X8 模块** — 语音/OCR/视频/复习/生成/主动服务
