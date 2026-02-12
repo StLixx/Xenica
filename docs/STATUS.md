@@ -1,6 +1,6 @@
 # Xenica 开发状态
 
-**最后更新**: 2026-02-13 02:52
+**最后更新**: 2026-02-13 03:13
 
 ---
 
@@ -104,10 +104,15 @@
 | 手机端 375px 响应式 | P2 | ✅ 布局正确，底部 Tab + 快速记录按钮 |
 | 后端: /api/graph/traverse 500 Serialization error | **P0** | ✅ **已修复** — 根因：SurrealDB v2 SDK Thing 枚举无法反序列化为 serde_json::Value，改用 typed struct 反序列化 |
 | 图谱边连接渲染 | **P0** | ✅ **已实现** — 点击节点后显示琥珀色连线，边端点 ID 去除 table 前缀匹配 react-flow 节点 |
-| 后端: /api/graph/top 返回边 | P1 | ✅ **已实现** — 初始加载 30 节点 + 33 条边，知识网络完整呈现 |
+| 后端: /api/graph/top 返回边 | P1 | ✅ **已实现** — 初始加载 30 节点 + 21 条去重边，SQL GROUP BY 去重 |
+| NodeDetail 关联列表 | P1 | ✅ **已实现** — 点击节点显示 13 条关联（节点名+描述+类型标签） |
+| 边 hover 提示 | P2 | ✅ 已实现 — 悬停显示关系描述 |
+| 边去重（后端+前端） | P2 | ✅ 后端 SQL GROUP BY + 前端 Set 双重去重（33→21） |
 | 全局 ErrorBoundary | P1 | ✅ 已添加，防止白屏崩溃 |
 | 前端 console 0 error 0 warning | P1 | ✅ 修复 deprecated meta tag + 全视图验证 |
 | .gitignore 完善 | P2 | ✅ 补充 node_modules/IDE/OS/Agent临时产物 |
+| README.md 配置同步 | P2 | ✅ 端口 3002、端点 8092、模型 gpt-4.1 |
+| cargo check 0 warnings | P2 | ✅ 移除未使用的 Record struct |
 
 ---
 
