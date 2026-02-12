@@ -64,12 +64,6 @@ fn err_json(status: StatusCode, msg: impl ToString) -> impl IntoResponse {
 
 // ─── 数据模型 ───
 
-/// SurrealDB 返回的记录（带 id）
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Record {
-    pub id: Thing,
-}
-
 // -- Conversation --
 
 #[derive(Debug, Serialize, Deserialize)]
