@@ -446,7 +446,7 @@ export default function ChatPanel() {
           <div className="flex flex-col gap-5">
             {messages.map((msg, i) => (
               <div
-                key={msg.id}
+                key={`${msg.id}-${i}`}
                 data-role={msg.role}
                 className={`max-w-[95%] ${msg.role === 'user' ? 'self-end' : 'self-start'}`}
                 style={msg.role === 'user' ? {
