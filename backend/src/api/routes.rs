@@ -1404,8 +1404,10 @@ pub async fn graph_traverse(
         "SELECT \
             string::concat(meta::tb(in), ':', meta::id(in)) AS source, \
             string::concat(meta::tb(out), ':', meta::id(out)) AS target, \
-            relation_type, description, strength \
-            FROM relates_to WHERE in = {node_ref} OR out = {node_ref}"
+            relation_type, math::max(strength) AS strength, \
+            array::first(description) AS description \
+            FROM relates_to WHERE in = {node_ref} OR out = {node_ref} \
+            GROUP BY source, target, relation_type"
     );
     let edges_result: Result<Vec<serde_json::Value>, _> = state
         .db
@@ -1612,8 +1614,10 @@ pub async fn graph_top(
             "SELECT \
                 string::concat(meta::tb(in), ':', meta::id(in)) AS source, \
                 string::concat(meta::tb(out), ':', meta::id(out)) AS target, \
-                relation_type, description, strength \
-                FROM relates_to WHERE in IN [{id_list}] AND out IN [{id_list}]"
+                relation_type, math::max(strength) AS strength, \
+                array::first(description) AS description \
+                FROM relates_to WHERE in IN [{id_list}] AND out IN [{id_list}] \
+                GROUP BY source, target, relation_type"
         );
         let edge_result: Result<Vec<serde_json::Value>, _> = state
             .db
