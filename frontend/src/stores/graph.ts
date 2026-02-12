@@ -138,35 +138,43 @@ export const useGraphStore = create<GraphStore>((set, get) => ({
         }
       })
 
-      // 处理初始边（如果 API 返回了 edges）
-      const rfEdges: Edge[] = (result.edges || []).map((e: Record<string, unknown>, i: number) => {
-        const rawFrom = String(e.source || e.in || '')
-        const rawTo = String(e.target || e.out || '')
-        const fromId = rawFrom.includes(':') ? rawFrom.split(':').slice(1).join(':') : rawFrom
-        const toId = rawTo.includes(':') ? rawTo.split(':').slice(1).join(':') : rawTo
-        const rt = String(e.relation_type || 'semantic')
-        const style = edgeTypeMap[rt] || edgeTypeMap.semantic
-        const strength = Number(e.strength || 0.5)
-
-        return {
-          id: `edge-${fromId}-${toId}-${i}`,
-          source: fromId,
-          target: toId,
-          type: 'xenicaEdge',
-          animated: style.animated || false,
-          style: {
-            stroke: style.stroke,
-            strokeWidth: 1 + strength * 2,
-            strokeDasharray: style.strokeDasharray,
-            opacity: 0.3 + strength * 0.5,
-          },
-          data: {
-            relationType: rt,
-            description: e.description,
-            strength,
-          },
-        }
-      })
+      // 处理初始边（去重同一 source-target 对）
+      const seenEdges = new Set<string>()
+      const rfEdges: Edge[] = (result.edges || [])
+        .map((e: Record<string, unknown>) => {
+          const rawFrom = String(e.source || e.in || '')
+          const rawTo = String(e.target || e.out || '')
+          const fromId = rawFrom.includes(':') ? rawFrom.split(':').slice(1).join(':') : rawFrom
+          const toId = rawTo.includes(':') ? rawTo.split(':').slice(1).join(':') : rawTo
+          return { fromId, toId, rt: String(e.relation_type || 'semantic'), strength: Number(e.strength || 0.5), desc: e.description }
+        })
+        .filter((e) => {
+          const key = `${e.fromId}-${e.toId}-${e.rt}`
+          if (seenEdges.has(key)) return false
+          seenEdges.add(key)
+          return true
+        })
+        .map((e, i) => {
+          const style = edgeTypeMap[e.rt] || edgeTypeMap.semantic
+          return {
+            id: `edge-${e.fromId}-${e.toId}-${i}`,
+            source: e.fromId,
+            target: e.toId,
+            type: 'xenicaEdge',
+            animated: style.animated || false,
+            style: {
+              stroke: style.stroke,
+              strokeWidth: 1 + e.strength * 2,
+              strokeDasharray: style.strokeDasharray,
+              opacity: 0.3 + e.strength * 0.5,
+            },
+            data: {
+              relationType: e.rt,
+              description: e.desc,
+              strength: e.strength,
+            },
+          }
+        })
 
       set({ nodes: rfNodes, edges: rfEdges, isLoading: false })
     } catch (e) {
@@ -226,36 +234,45 @@ export const useGraphStore = create<GraphStore>((set, get) => ({
           }
         })
 
-      // 添加新边
-      const newEdges: Edge[] = result.edges.map((e, i) => {
-        const rawFrom = extractId(e.source || e.in)
-        const rawTo = extractId(e.target || e.out)
-        // 边端点可能是 "table:id" 字符串，需要去掉前缀匹配节点 ID
-        const fromId = rawFrom.includes(':') ? rawFrom.split(':').slice(1).join(':') : rawFrom
-        const toId = rawTo.includes(':') ? rawTo.split(':').slice(1).join(':') : rawTo
-        const rt = e.relation_type || 'semantic'
-        const style = edgeTypeMap[rt] || edgeTypeMap.semantic
-        const strength = e.strength || 0.5
-
-        return {
-          id: `edge-${fromId}-${toId}-${i}`,
-          source: fromId,
-          target: toId,
-          type: 'xenicaEdge',
-          animated: style.animated || false,
-          style: {
-            stroke: style.stroke,
-            strokeWidth: 1 + strength * 2,
-            strokeDasharray: style.strokeDasharray,
-            opacity: 0.3 + strength * 0.5,
-          },
-          data: {
-            relationType: rt,
-            description: e.description,
-            strength,
-          },
-        }
-      })
+      // 添加新边（去重 + 排除已存在的边）
+      const existingEdgeIds = new Set(get().edges.map((e) => e.id))
+      const seenTraverse = new Set<string>()
+      const newEdges: Edge[] = result.edges
+        .map((e) => {
+          const rawFrom = extractId(e.source || e.in)
+          const rawTo = extractId(e.target || e.out)
+          const fromId = rawFrom.includes(':') ? rawFrom.split(':').slice(1).join(':') : rawFrom
+          const toId = rawTo.includes(':') ? rawTo.split(':').slice(1).join(':') : rawTo
+          return { fromId, toId, rt: e.relation_type || 'semantic', strength: e.strength || 0.5, desc: e.description }
+        })
+        .filter((e) => {
+          const key = `${e.fromId}-${e.toId}-${e.rt}`
+          if (seenTraverse.has(key)) return false
+          seenTraverse.add(key)
+          return true
+        })
+        .map((e, i) => {
+          const style = edgeTypeMap[e.rt] || edgeTypeMap.semantic
+          return {
+            id: `edge-${e.fromId}-${e.toId}-${i}`,
+            source: e.fromId,
+            target: e.toId,
+            type: 'xenicaEdge',
+            animated: style.animated || false,
+            style: {
+              stroke: style.stroke,
+              strokeWidth: 1 + e.strength * 2,
+              strokeDasharray: style.strokeDasharray,
+              opacity: 0.3 + e.strength * 0.5,
+            },
+            data: {
+              relationType: e.rt,
+              description: e.desc,
+              strength: e.strength,
+            },
+          }
+        })
+        .filter((e) => !existingEdgeIds.has(e.id))
 
       set({
         nodes: [...existing, ...newNodes],
