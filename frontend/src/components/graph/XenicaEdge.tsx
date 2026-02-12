@@ -100,7 +100,9 @@ function XenicaEdge({
         strokeWidth={20}
         stroke="transparent"
         className="react-flow__edge-interaction"
-      />
+      >
+        <title>{String((data as Record<string, unknown>)?.description || relationType)}</title>
+      </path>
     </>
   )
 }
