@@ -234,8 +234,11 @@ export const useGraphStore = create<GraphStore>((set, get) => ({
           }
         })
 
-      // 添加新边（去重 + 排除已存在的边）
-      const existingEdgeIds = new Set(get().edges.map((e) => e.id))
+      // 添加新边（去重：按 source-target-rt 键排除已存在的边）
+      const existingEdgeKeys = new Set(get().edges.map((e) => {
+        const d = e.data as Record<string, unknown> | undefined
+        return `${e.source}-${e.target}-${d?.relationType || 'semantic'}`
+      }))
       const seenTraverse = new Set<string>()
       const newEdges: Edge[] = result.edges
         .map((e) => {
@@ -247,14 +250,14 @@ export const useGraphStore = create<GraphStore>((set, get) => ({
         })
         .filter((e) => {
           const key = `${e.fromId}-${e.toId}-${e.rt}`
-          if (seenTraverse.has(key)) return false
+          if (seenTraverse.has(key) || existingEdgeKeys.has(key)) return false
           seenTraverse.add(key)
           return true
         })
         .map((e, i) => {
           const style = edgeTypeMap[e.rt] || edgeTypeMap.semantic
           return {
-            id: `edge-${e.fromId}-${e.toId}-${i}`,
+            id: `edge-t-${e.fromId}-${e.toId}-${i}`,
             source: e.fromId,
             target: e.toId,
             type: 'xenicaEdge',
@@ -272,7 +275,6 @@ export const useGraphStore = create<GraphStore>((set, get) => ({
             },
           }
         })
-        .filter((e) => !existingEdgeIds.has(e.id))
 
       set({
         nodes: [...existing, ...newNodes],
