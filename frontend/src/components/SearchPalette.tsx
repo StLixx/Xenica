@@ -212,7 +212,7 @@ export default function SearchPalette({ isOpen, onClose, onSelectNode, embedded 
 
                   return (
                     <button
-                      key={`${item.type}-${item.data.id}`}
+                      key={`${item.type}-${item.data.id}-${i}`}
                       onClick={() => {
                         const id = String(item.data.id)
                         onSelectNode?.(id)
