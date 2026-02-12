@@ -1,6 +1,6 @@
 # Xenica 开发状态
 
-**最后更新**: 2026-02-13 03:43
+**最后更新**: 2026-02-13 03:52
 
 ---
 
@@ -66,7 +66,7 @@
 
 | 组件 | 对应模块 | 重做优先级 |
 |------|---------|-----------|
-| ChatPanel.tsx | X1 对话 | ✅ 789 行，锚点圆点+毛玻璃已实现 |
+| ChatPanel.tsx | X1 对话 | ✅ 805 行，锚点圆点+毛玻璃+Markdown渲染已实现 |
 | GraphView.tsx | X4 图谱 | ✅ react-flow 集成，需后端数据验证 |
 | XenicaNode.tsx | X4 图谱 | ⚠️ 需对照 graph_nodes.html 精调 |
 | XenicaEdge.tsx | X4 图谱 | ⚠️ 需对照 graph_edges.html 精调 |
@@ -113,6 +113,8 @@
 | ChatPanel 模型选择器显示空白 | P1 | ✅ MODEL_OPTIONS 改为 Bridge 实际模型名 |
 | 对话发送 500 error decoding response body | **P0** | ✅ 根因：前端默认 model "claude-sonnet" Bridge 不认识 + 后端不检查 HTTP 状态码就反序列化 |
 | LLM client chat() 返回 reqwest::Error 无描述 | P1 | ✅ 改为 Result<String, String> 返回清晰错误信息 |
+| AI 回复纯文本显示（无 Markdown 渲染） | P1 | ✅ 添加 react-markdown + prose-chat CSS 样式（标题/列表/代码块/引用） |
+| 多轮对话上下文保持 | P1 | ✅ 已验证——2轮追问上下文正确 |
 | .gitignore 完善 | P2 | ✅ 补充 node_modules/IDE/OS/Agent临时产物 |
 | README.md 配置同步 | P2 | ✅ 端口 3002、端点 8092、模型 gpt-4.1 |
 | cargo check 0 warnings | P2 | ✅ 移除未使用的 Record struct |
