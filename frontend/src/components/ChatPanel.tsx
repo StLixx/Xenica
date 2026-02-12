@@ -9,9 +9,9 @@ import { ocrImage, importVideo } from '../lib/api'
 import VoiceMicButton from './VoiceMicButton'
 
 const MODEL_OPTIONS = [
-  { value: 'claude-sonnet', label: 'Claude Sonnet' },
-  { value: 'claude-opus', label: 'Claude Opus' },
-  { value: 'gemini-flash', label: 'Gemini Flash' },
+  { value: 'gpt-4.1', label: 'GPT-4.1' },
+  { value: 'claude-opus-4-6-thinking-fast', label: 'Claude Opus' },
+  { value: 'gemini-2.5-flash', label: 'Gemini Flash' },
 ]
 
 /** X7: 文章卡片组件 */
