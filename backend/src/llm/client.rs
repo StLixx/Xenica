@@ -69,7 +69,7 @@ impl LlmClient {
         system_prompt: &str,
         messages: Vec<ChatMessage>,
         model_override: Option<&str>,
-    ) -> Result<String, reqwest::Error> {
+    ) -> Result<String, String> {
         let model = model_override
             .unwrap_or(&self.model)
             .to_string();
@@ -90,11 +90,21 @@ impl LlmClient {
             .post(&self.endpoint)
             .json(&request)
             .send()
-            .await?
-            .json::<ChatResponse>()
-            .await?;
+            .await
+            .map_err(|e| format!("请求发送失败: {}", e))?;
 
-        Ok(response
+        let status = response.status();
+        if !status.is_success() {
+            let body = response.text().await.unwrap_or_default();
+            return Err(format!("LLM 返回 {}: {}", status, body));
+        }
+
+        let chat_resp: ChatResponse = response
+            .json()
+            .await
+            .map_err(|e| format!("响应解析失败: {}", e))?;
+
+        Ok(chat_resp
             .choices
             .first()
             .map(|c| c.message.content.clone())

@@ -31,7 +31,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   conversations: [],
   messages: [],
   isLoading: false,
-  model: 'claude-sonnet',
+  model: 'gpt-4.1',
   draftMode: false,
 
   setModel: (model) => set({ model }),
