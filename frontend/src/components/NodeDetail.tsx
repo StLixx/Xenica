@@ -1,4 +1,5 @@
-import { X } from 'lucide-react'
+import { useMemo } from 'react'
+import { X, Link2 } from 'lucide-react'
 import { useGraphStore } from '../stores/graph'
 
 interface NodeData {
@@ -16,7 +17,10 @@ interface NodeDetailProps {
 }
 
 export default function NodeDetail({ nodeId, onClose }: NodeDetailProps) {
-  const node = useGraphStore((s) => s.nodes.find((n) => n.id === nodeId))
+  const nodes = useGraphStore((s) => s.nodes)
+  const edges = useGraphStore((s) => s.edges)
+  const node = useMemo(() => nodes.find((n) => n.id === nodeId), [nodes, nodeId])
+  const connectedEdges = useMemo(() => edges.filter((e) => e.source === nodeId || e.target === nodeId), [edges, nodeId])
 
   if (!node) return null
 
@@ -166,6 +170,58 @@ export default function NodeDetail({ nodeId, onClose }: NodeDetailProps) {
             <span style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>
               {entityType}
             </span>
+          </div>
+        )}
+
+        {/* 关联 */}
+        {connectedEdges.length > 0 && (
+          <div style={{ marginBottom: '16px' }}>
+            <label style={{ fontSize: '11px', color: 'var(--text-dim)', display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '8px', fontWeight: 400, letterSpacing: '0.03em' }}>
+              <Link2 size={11} />
+              {connectedEdges.length} 条关联
+            </label>
+            <div className="flex flex-col gap-1.5">
+              {connectedEdges.slice(0, 10).map((edge, i) => {
+                const otherId = edge.source === nodeId ? edge.target : edge.source
+                const otherNode = nodes.find((n) => n.id === otherId)
+                const otherLabel = otherNode ? String((otherNode.data as unknown as NodeData)?.label || otherId) : otherId
+                const edgeData = edge.data as Record<string, unknown> | undefined
+                const desc = edgeData?.description ? String(edgeData.description) : ''
+                const rt = edgeData?.relationType ? String(edgeData.relationType) : 'semantic'
+                return (
+                  <div
+                    key={`${edge.id}-${i}`}
+                    style={{
+                      padding: '8px 10px',
+                      borderRadius: '8px',
+                      background: 'var(--card)',
+                      fontSize: '12px',
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    <div style={{ color: 'var(--text)', fontWeight: 500, marginBottom: desc ? '2px' : 0 }}>
+                      {otherLabel.length > 30 ? otherLabel.slice(0, 30) + '…' : otherLabel}
+                    </div>
+                    {desc && (
+                      <div style={{ color: 'var(--text-dim)', fontSize: '11px' }}>
+                        {desc.length > 50 ? desc.slice(0, 50) + '…' : desc}
+                      </div>
+                    )}
+                    <span
+                      className="px-1.5 py-0.5 rounded text-[10px] mt-1 inline-block"
+                      style={{ background: 'var(--primary-muted)', color: 'var(--primary)' }}
+                    >
+                      {rt}
+                    </span>
+                  </div>
+                )
+              })}
+              {connectedEdges.length > 10 && (
+                <div style={{ fontSize: '11px', color: 'var(--text-dim)', textAlign: 'center', padding: '4px' }}>
+                  还有 {connectedEdges.length - 10} 条关联…
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
