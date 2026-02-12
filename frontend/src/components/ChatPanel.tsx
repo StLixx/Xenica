@@ -7,6 +7,7 @@ import type { GeneratedArticle } from '../lib/types'
 import { useIsMobile } from '../hooks/useIsMobile'
 import { ocrImage, importVideo } from '../lib/api'
 import VoiceMicButton from './VoiceMicButton'
+import ReactMarkdown from 'react-markdown'
 
 const MODEL_OPTIONS = [
   { value: 'gpt-4.1', label: 'GPT-4.1' },
@@ -465,7 +466,13 @@ export default function ChatPanel() {
                     color: msg.role === 'user' ? 'var(--text)' : 'var(--text-secondary)',
                   }}
                 >
-                  {msg.content}
+                  {msg.role === 'user' ? (
+                    msg.content
+                  ) : (
+                    <div className="prose-chat">
+                      <ReactMarkdown>{msg.content}</ReactMarkdown>
+                    </div>
+                  )}
                   <span
                     className="chat-bubble-time"
                     style={{ color: 'var(--text-dim)' }}
