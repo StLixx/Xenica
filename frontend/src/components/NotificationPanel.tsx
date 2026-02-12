@@ -177,8 +177,8 @@ export default function NotificationPanel() {
               <div className="notif-empty">没有待展开的碎片</div>
             ) : (
               <ul className="notif-list">
-                {unextracted.map((m) => (
-                  <li key={m.id} className="notif-item">
+                {unextracted.map((m, i) => (
+                  <li key={`${m.id}-${i}`} className="notif-item">
                     <FileText size={14} className="notif-item-icon" />
                     <div className="notif-item-body">
                       <p className="notif-item-text">
@@ -278,8 +278,8 @@ export default function NotificationPanel() {
                       <span>{date}</span>
                     </div>
                     <ul className="notif-list">
-                      {logs.map((log) => (
-                        <li key={log.id} className="notif-item commander-item">
+                      {logs.map((log, i) => (
+                        <li key={`${log.id}-${i}`} className="notif-item commander-item">
                           <div className="commander-dot" />
                           <div className="notif-item-body">
                             <p className="notif-item-text commander-text">
