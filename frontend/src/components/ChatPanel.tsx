@@ -351,13 +351,23 @@ export default function ChatPanel() {
                   暂无对话
                 </p>
               ) : (
-                conversations.map((conv) => {
-                  const isActive = conversationId === conv.id
+                conversations.map((conv, idx) => {
+                  // SurrealDB may return ID as object {tb, id: {String: "xxx"}} or string "conversation:xxx"
+                  const cid = typeof conv.id === 'string'
+                    ? conv.id
+                    : typeof conv.id === 'object' && conv.id !== null
+                      ? `${(conv.id as Record<string, unknown>).tb}:${
+                          typeof (conv.id as Record<string, unknown>).id === 'object'
+                            ? Object.values((conv.id as Record<string, unknown>).id as Record<string, unknown>)[0]
+                            : (conv.id as Record<string, unknown>).id
+                        }`
+                      : String(conv.id)
+                  const isActive = conversationId === cid
                   return (
                     <button
-                      key={conv.id}
+                      key={`${cid}-${idx}`}
                       onClick={() => {
-                        selectConversation(conv.id)
+                        selectConversation(cid)
                         setShowHistory(false)
                       }}
                       className="w-full text-left px-3 py-2.5 rounded-lg text-sm transition-all"
@@ -373,7 +383,7 @@ export default function ChatPanel() {
                       }}
                     >
                       <span className="font-serif" style={{ fontWeight: 500 }}>
-                        {conv.title || `对话 ${conv.id.slice(0, 8)}`}
+                        {conv.title || `对话 ${(cid.includes(':') ? cid.split(':')[1] : cid).slice(0, 8)}`}
                       </span>
                       <span className="block text-xs mt-0.5" style={{ color: 'var(--text-dim)' }}>
                         {new Date(conv.created_at).toLocaleDateString('zh-CN')}
