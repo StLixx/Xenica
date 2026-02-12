@@ -150,9 +150,11 @@ export interface GraphNode {
 }
 
 export interface GraphEdge {
-  id: string
-  in: string
-  out: string
+  id?: string
+  in?: string
+  out?: string
+  source?: string
+  target?: string
   relation_type?: string
   description?: string
   strength?: number

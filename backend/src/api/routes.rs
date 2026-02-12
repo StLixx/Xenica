@@ -1343,107 +1343,128 @@ pub async fn graph_traverse(
 ) -> impl IntoResponse {
     let depth = params.depth.unwrap_or(1).min(3);
 
-    // 判断节点类型（moment 或 entity）
-    // 先尝试 moment，再尝试 entity
-    let (table, thing) = {
-        let moment_thing = format!("moment:{}", id);
-        let result: Result<Vec<serde_json::Value>, _> = state
-            .db
-            .query("SELECT * FROM <record>$id")
-            .bind(("id", moment_thing.clone()))
-            .await
-            .and_then(|mut r| r.take(0));
-
-        if let Ok(ref records) = result {
-            if !records.is_empty() {
-                ("moment", moment_thing)
-            } else {
-                let entity_thing = format!("entity:{}", id);
-                ("entity", entity_thing)
-            }
-        } else {
-            let entity_thing = format!("entity:{}", id);
-            ("entity", entity_thing)
-        }
-    };
-
-    // 获取中心节点
-    let center: serde_json::Value = {
-        let result: Result<Vec<serde_json::Value>, _> = state
-            .db
-            .query("SELECT * FROM <record>$id")
-            .bind(("id", thing.clone()))
-            .await
-            .and_then(|mut r| r.take(0));
-
-        match result {
-            Ok(mut records) => match records.pop() {
-                Some(record) => record,
-                None => {
-                    return err_json(
-                        StatusCode::NOT_FOUND,
-                        format!("节点 {}:{} 不存在", table, id),
-                    )
-                    .into_response()
-                }
-            },
-            Err(e) => return err_json(StatusCode::INTERNAL_SERVER_ERROR, e).into_response(),
-        }
-    };
-
-    // 使用 SurrealDB 图遍历查询
-    // 根据 depth 构建不同深度的查询
-    let traverse_query = match depth {
-        1 => format!(
-            "SELECT id, raw_input, refined, name, entity_type, description, perspectives, weight FROM <record>$id->relates_to->(moment, entity) \
-             UNION \
-             SELECT id, raw_input, refined, name, entity_type, description, perspectives, weight FROM <record>$id<-relates_to<-(moment, entity)"
-        ),
-        2 => format!(
-            "SELECT id, raw_input, refined, name, entity_type, description, perspectives, weight FROM <record>$id->relates_to->(moment, entity)->relates_to->(moment, entity) \
-             UNION \
-             SELECT id, raw_input, refined, name, entity_type, description, perspectives, weight FROM <record>$id<-relates_to<-(moment, entity)<-relates_to<-(moment, entity) \
-             UNION \
-             SELECT id, raw_input, refined, name, entity_type, description, perspectives, weight FROM <record>$id->relates_to->(moment, entity) \
-             UNION \
-             SELECT id, raw_input, refined, name, entity_type, description, perspectives, weight FROM <record>$id<-relates_to<-(moment, entity)"
-        ),
-        _ => format!(
-            "SELECT id, raw_input, refined, name, entity_type, description, perspectives, weight FROM <record>$id->relates_to->(moment, entity)->relates_to->(moment, entity)->relates_to->(moment, entity) \
-             UNION \
-             SELECT id, raw_input, refined, name, entity_type, description, perspectives, weight FROM <record>$id<-relates_to<-(moment, entity)<-relates_to<-(moment, entity)<-relates_to<-(moment, entity) \
-             UNION \
-             SELECT id, raw_input, refined, name, entity_type, description, perspectives, weight FROM <record>$id->relates_to->(moment, entity)->relates_to->(moment, entity) \
-             UNION \
-             SELECT id, raw_input, refined, name, entity_type, description, perspectives, weight FROM <record>$id<-relates_to<-(moment, entity)<-relates_to<-(moment, entity) \
-             UNION \
-             SELECT id, raw_input, refined, name, entity_type, description, perspectives, weight FROM <record>$id->relates_to->(moment, entity) \
-             UNION \
-             SELECT id, raw_input, refined, name, entity_type, description, perspectives, weight FROM <record>$id<-relates_to<-(moment, entity)"
-        ),
-    };
-
-    // 获取关联节点
-    let nodes_result: Result<Vec<serde_json::Value>, _> = state
+    // 判断节点类型并获取中心节点
+    // 必须反序列化到 typed struct（Moment/Entity），不能用 serde_json::Value
+    // 因为 SurrealDB v2 SDK 的 Thing 枚举只支持 typed struct 反序列化
+    let moment_q = format!("SELECT * FROM moment:{}", id);
+    let moment_result: Result<Vec<Moment>, _> = state
         .db
-        .query(&traverse_query)
-        .bind(("id", thing.clone()))
+        .query(&moment_q)
         .await
         .and_then(|mut r| r.take(0));
 
-    let nodes = nodes_result.unwrap_or_default();
+    let (table, center) = if let Ok(ref records) = moment_result {
+        if let Some(record) = records.first() {
+            ("moment", serde_json::to_value(record).unwrap_or_default())
+        } else {
+            // 尝试 entity
+            let entity_q = format!("SELECT * FROM entity:{}", id);
+            let entity_result: Result<Vec<Entity>, _> = state
+                .db
+                .query(&entity_q)
+                .await
+                .and_then(|mut r| r.take(0));
 
-    // 获取所有相关的边
+            match entity_result {
+                Ok(ref records) if !records.is_empty() => {
+                    ("entity", serde_json::to_value(&records[0]).unwrap_or_default())
+                }
+                _ => {
+                    return err_json(
+                        StatusCode::NOT_FOUND,
+                        format!("节点 moment/entity:{} 不存在", id),
+                    )
+                    .into_response()
+                }
+            }
+        }
+    } else {
+        // moment 查询失败，尝试 entity
+        let entity_q = format!("SELECT * FROM entity:{}", id);
+        let entity_result: Result<Vec<Entity>, _> = state
+            .db
+            .query(&entity_q)
+            .await
+            .and_then(|mut r| r.take(0));
+
+        match entity_result {
+            Ok(ref records) if !records.is_empty() => {
+                ("entity", serde_json::to_value(&records[0]).unwrap_or_default())
+            }
+            _ => {
+                return err_json(
+                    StatusCode::NOT_FOUND,
+                    format!("节点 moment/entity:{} 不存在", id),
+                )
+                .into_response()
+            }
+        }
+    };
+
+    // 两步查询策略（SurrealDB v2 Rust SDK 的 Thing 类型无法反序列化为 serde_json::Value）
+    // 所有查询避免 <record>$id 绑定，改用直接字符串插值（table 已硬编码，id 已通过 center 查询验证）
+    let node_ref = format!("{}:{}", table, id);
+
+    // Step 1: 获取连接到该节点的所有边（用 string::concat 把 Thing 转为纯字符串）
+    let edge_query = format!(
+        "SELECT \
+            string::concat(meta::tb(in), ':', meta::id(in)) AS source, \
+            string::concat(meta::tb(out), ':', meta::id(out)) AS target, \
+            relation_type, description, strength \
+            FROM relates_to WHERE in = {node_ref} OR out = {node_ref}"
+    );
     let edges_result: Result<Vec<serde_json::Value>, _> = state
         .db
-        .query(
-            "SELECT * FROM relates_to WHERE in = <record>$id OR out = <record>$id",
-        )
-        .bind(("id", thing))
+        .query(&edge_query)
         .await
         .and_then(|mut r| r.take(0));
 
     let edges = edges_result.unwrap_or_default();
+
+    // Step 2: 从边中提取邻居节点 ID
+    let mut neighbor_ids: std::collections::HashSet<String> = std::collections::HashSet::new();
+    for edge in &edges {
+        for field in ["source", "target"] {
+            if let Some(serde_json::Value::String(s)) = edge.get(field) {
+                if s != &node_ref {
+                    neighbor_ids.insert(s.clone());
+                }
+            }
+        }
+    }
+
+    // Step 3: 查询所有邻居节点详情（用 typed struct 反序列化后转 JSON）
+    let mut nodes: Vec<serde_json::Value> = Vec::new();
+    for nid in &neighbor_ids {
+        let nid_query = format!("SELECT * FROM {}", nid);
+        if nid.starts_with("moment:") {
+            let result: Result<Vec<Moment>, _> = state
+                .db
+                .query(&nid_query)
+                .await
+                .and_then(|mut r| r.take(0));
+            if let Ok(records) = result {
+                for r in &records {
+                    if let Ok(v) = serde_json::to_value(r) {
+                        nodes.push(v);
+                    }
+                }
+            }
+        } else {
+            let result: Result<Vec<Entity>, _> = state
+                .db
+                .query(&nid_query)
+                .await
+                .and_then(|mut r| r.take(0));
+            if let Ok(records) = result {
+                for r in &records {
+                    if let Ok(v) = serde_json::to_value(r) {
+                        nodes.push(v);
+                    }
+                }
+            }
+        }
+    }
 
     ok_json(serde_json::json!({
         "center": center,

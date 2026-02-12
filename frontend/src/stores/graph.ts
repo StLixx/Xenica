@@ -198,8 +198,11 @@ export const useGraphStore = create<GraphStore>((set, get) => ({
 
       // 添加新边
       const newEdges: Edge[] = result.edges.map((e, i) => {
-        const fromId = extractId(e.in)
-        const toId = extractId(e.out)
+        const rawFrom = extractId(e.source || e.in)
+        const rawTo = extractId(e.target || e.out)
+        // 边端点可能是 "table:id" 字符串，需要去掉前缀匹配节点 ID
+        const fromId = rawFrom.includes(':') ? rawFrom.split(':').slice(1).join(':') : rawFrom
+        const toId = rawTo.includes(':') ? rawTo.split(':').slice(1).join(':') : rawTo
         const rt = e.relation_type || 'semantic'
         const style = edgeTypeMap[rt] || edgeTypeMap.semantic
         const strength = e.strength || 0.5
