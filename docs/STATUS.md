@@ -1,6 +1,6 @@
 # Xenica 开发状态
 
-**最后更新**: 2026-02-13 02:03
+**最后更新**: 2026-02-13 02:09
 
 ---
 
@@ -99,7 +99,9 @@
 | 核心链路（对话→提取→图谱显示） | **P0** | ✅ 图谱+时间线+列表均显示真实数据 |
 | XenicaNode/XenicaEdge 已对照 design_samples 精调 | P1 | ✅ font-weight 已对齐 |
 | React key 冲突（Timeline/ListView/NotificationPanel） | P1 | ✅ 已修复并提交 |
-| 手机端适配未验证 | P2 | 🟡 |
+| ChatPanel 对话历史 SurrealDB ID 崩溃（conv.id.slice is not a function） | **P0** | ✅ 已修复并提交 |
+| 3 套主题 × 2 模式切换验证 | P1 | ✅ 琥珀/靛蓝/橄榄 + 深色/浅色 全部正常 |
+| 手机端 375px 响应式 | P2 | ✅ 布局正确，底部 Tab + 快速记录按钮 |
 
 ---
 
