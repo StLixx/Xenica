@@ -171,10 +171,10 @@ AI 自动建立关联 + 分析合并建议。语义/时空/感官三种边。
 | 组件 | 选型 |
 |------|------|
 | 后端 | Rust + Axum |
-| 数据库 | SurrealDB（嵌入式，RocksDB） |
+| 数据库 | SQLite + sqlx（编译期 SQL 验证）+ sqlite-vec（向量搜索）。图遍历用递归 CTE，封装为 5 个函数。~~SurrealDB 已弃用~~（运行时字符串查询无编译期检查、SDK Thing 序列化 bug、vibe coding 下不稳定） |
 | 前端 | React + TypeScript + TailwindCSS + react-flow |
 | LLM | Claude Opus（对话）/ Sonnet（提取）/ Gemini Flash（廉价） |
-| LLM 接口 | Windsurf Bridge（8092）— Raw 路径，默认 gpt-4.1 |
+| LLM 接口 | ~~Windsurf Bridge（8092）已封存~~。需替换为 Antigravity（8045）或 Notion Bridge（8090） |
 | 部署 | 台式机常开（32GB + 1TB SSD + 4TB HDD + UPS） |
 | 远程 | Cloudflare Tunnel |
 
@@ -191,7 +191,7 @@ AI 自动建立关联 + 分析合并建议。语义/时空/感官三种边。
     ↓ 每轮实时存入
 局部图谱（本次对话的节点和边）
     ↓ 自动合并
-总图谱（SurrealDB）
+总图谱（SQLite + sqlite-vec）
     ↓
 图谱引擎
     ├── 联想链（沿边遍历）
@@ -243,12 +243,19 @@ AI 自动建立关联 + 分析合并建议。语义/时空/感官三种边。
 
 ```
 C:\dev\Xenica\
-├── backend\     # Rust + Axum + SurrealDB
+├── backend\     # Rust + Axum + SQLite (sqlx)
 ├── frontend\    # React + react-flow
-└── docs\        # 本文档
+├── docs\        # 架构文档、设计说明
+└── corpus\      # 初始语料（探索性讨论记录）
 
 数据：backend/data/（gitignore，不上传）
 ```
+
+**关于 `corpus/` 文件夹：**
+- 存放探索性讨论的话题摘要，是图谱的初始语料
+- 内容虽涉及项目技术选型，但本质是无边界的思维漫游
+- 与 `docs/` 的区别：`docs/` 是正式规格，`corpus/` 是对话痕迹
+- 详见 `corpus/README.md`
 
 ---
 
@@ -276,12 +283,13 @@ AI 每回复完一轮，后台提取新节点，延迟 2-3 秒以动画出现在
 简单固定密码（配置文件，不进 git）。Session 24 小时。
 
 ### 自动备份
-每日凌晨：打包 SurrealDB 数据 → 复制到 OneDrive 同步目录。
+每日凌晨：导出 JSON/Markdown 到 OneDrive 同步目录。
 保留 30 天每日备份 + 每月永久备份。
+Markdown 是灾难恢复和技术迁移用的逃生舱，不是数据源。
 
 ---
 
 ## 十四、Commander 集成
 
-单向流入：Commander 开发日志 → 自动存入 Xenica 图谱。
+单向流入：Commander 开发日志 → 自动存入 Xenica 图谱（SQLite）。
 Xenica 任务 → 不自动发给 Commander（手动确认后才发）。

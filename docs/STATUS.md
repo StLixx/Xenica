@@ -1,6 +1,10 @@
 # Xenica 开发状态
 
-**最后更新**: 2026-02-13 03:52
+**最后更新**: 2026-02-15
+
+> ⚠️ **数据库选型变更（2026-02-15 决策）**：SurrealDB → SQLite + sqlx + sqlite-vec。
+> 核心理由：sqlx 提供编译期 SQL 验证，vibe coding 下比 SurrealDB 运行时字符串查询稳定得多。
+> 当前后端代码仍为 SurrealDB，需要重构。详见 `corpus/exploratory/2026-02-15_知识管理工具演化与技术选型.md`。
 
 ---
 
@@ -9,9 +13,9 @@
 | 组件 | 选型 | 端口 |
 |------|------|------|
 | 后端 | Rust + Axum | 3002 |
-| 数据库 | SurrealDB（嵌入式，RocksDB） | — |
+| 数据库 | SQLite + sqlx（编译期验证）+ sqlite-vec（向量） | — |
 | 前端 | React + TypeScript + TailwindCSS + react-flow | 5173/5174 |
-| LLM | Windsurf Bridge Raw（8092）→ gpt-4.1 | — |
+| LLM | ~~Windsurf Bridge Raw（8092）~~ ❌ 已封存 → 需切换为 Antigravity（8045）或 Notion Bridge（8090） | — |
 | 提取 | Notion Bridge（8090）→ claude-sonnet-4 | — |
 
 启动后端需要：`$env:LIBCLANG_PATH = "C:\Program Files\LLVM\bin"`
@@ -22,8 +26,8 @@
 
 | 模块 | 后端 | 前端 | 真实可用度 | 说明 |
 |------|------|------|-----------|------|
-| X0 骨架 | ✅ | ✅ | 可用 | 项目初始化 + SurrealDB + 基础 API |
-| X1 对话引擎 | ✅ | ✅ | 可用（需 Bridge） | 多对话 + AI 记忆策略，LLM 需 Bridge 8092 |
+| X0 骨架 | ✅ | ✅ | 需重构 | 项目初始化 + 基础 API。**数据库决策已变更：SurrealDB → SQLite + sqlx**，后端需重构 |
+| X1 对话引擎 | ✅ | ✅ | ⚠️ 需重配 LLM | 多对话 + AI 记忆策略，~~Bridge 8092 已封存~~，需切换 Provider |
 | X2 提取流水线 | ✅ | — | 待验证 | 对话 → 节点/边自动提取 |
 | X3 图谱查询 | ✅ | ✅ | **可用** | 联想链/语义搜索/PageRank，图谱显示真实数据 |
 | X4 前端 | — | ✅ | **可用** | 19 组件已实现，CSS 1749 行完整主题系统，TSC 零错误 |
