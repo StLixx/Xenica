@@ -21,6 +21,18 @@ Thumbs.db
 # Logs
 *.log
 
+# Obsidian
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+.obsidian/plugins/
+.obsidian/themes/
+.obsidian/community-plugins.json
+.obsidian/core-plugins*.json
+
+# Trash
+.trash/
+.cowork-temp/
+
 # Agent 临时产物
 frontend/test-*.mjs
 frontend/audit*.mjs
