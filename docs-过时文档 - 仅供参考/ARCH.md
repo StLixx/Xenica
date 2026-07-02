@@ -1,3 +1,5 @@
+> ⚠️ **过时文档** — 此文档为历史版本，仅作参考。请勿基于此文档进行开发。
+
 # Xenica 架构文档
 
 **本文档为 Xenica 项目的唯一可信来源**
@@ -131,7 +133,7 @@ AI 自动建立关联 + 分析合并建议。语义/时空/感官三种边。
 - 文字（直接对话）
 - 拍照 OCR（错题/手写笔记）→ Gemini Flash 视觉识别
 - 语音转文字 → Web Speech API
-- 视频链接（B站/YouTube/抖音）→ Gemini Flash 提取摘要
+- 视频链接（B 站/YouTube/抖音）→ Gemini Flash 提取摘要
 - Markdown 批量导入（Obsidian/Cursor/Notion 导出，支持 `[[双链]]` 自动转边）
 - PDF 导入（文字模式用 MinerU 转 Markdown，图片模式用 Gemini Flash 视觉识别）
 
