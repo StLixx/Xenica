@@ -1,13 +1,18 @@
 # 数据
 backend/data/
-# Rust
+
+# Rust 编译产物
 backend/target/
-# 备份
-backups/
+
+# 环境变量
+backend/.env
 
 # Node
 frontend/node_modules/
 frontend/dist/
+
+# 备份
+backups/
 
 # IDE
 .vscode/
@@ -21,7 +26,7 @@ Thumbs.db
 # Logs
 *.log
 
-# Obsidian
+# Obsidian（工具配置，部分保留）
 .obsidian/workspace.json
 .obsidian/workspace-mobile.json
 .obsidian/plugins/
@@ -29,12 +34,9 @@ Thumbs.db
 .obsidian/community-plugins.json
 .obsidian/core-plugins*.json
 
-# Trash
+# 参考材料（本地保留，不进 git）
+参考/
+
+# 临时
 .trash/
 .cowork-temp/
-
-# Agent 临时产物
-frontend/test-*.mjs
-frontend/audit*.mjs
-frontend/qa*.mjs
-.reports/pm-a/screenshots/
