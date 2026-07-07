@@ -87,8 +87,14 @@ Worker 拿到 task 后：查 MIME type → 找到 handler → 调 `process()` �
 - **核心不可变**：`ImportHandler trait` 是稳定的抽象。换处理器 = 换一个 trait 的实现对象，核心一行不改。
 - **多格式兼容**：加一种格式 = 新增一个 handler + 在注册表里加一行。不需要 `if pdf { ... } else if video { ... }`。
 - **API 不区分格式**：POST /import 收到文件，读 MIME type，路由 handler。前端不需要知道后端用了哪个处理器。
-- **独立子项目可自由选择语言**：ffmpeg 视频处理用 Python 写最方便——通过 CLI 适配器包装，Rust 核心只跟 stdout 交互，不需要在 Rust 生态里找视频库。
+- **独立子项目可自由选择语言**：视频处理和 PDF 管道用 Python 写最方便——通过 CLI 适配器包装，Rust 核心只跟 stdout 交互，不需要在 Rust 生态里找视频库或 PDF 库。
 - **批量和零星导入共用同一个接口**：`batch_id` 不为空时表示属于某次批量操作，创建节点时自动连到批次节点上。用户导入后可以暂不连边，将来在图形界面上逐个整理。
+
+### 独立子项目的可实现性调研
+
+**MinerU PDF 处理**：可直接使用 [opendatalab/MinerU](https://github.com/opendatalab/MinerU)（5,000+ commits，7.9k stars，上海 AI 实验室维护，2026 年 7 月仍在活跃开发）。提供官方 Python CLI（`pip install mineru` → `mineru -p input.pdf -o output/`）和 HTTP API 两种调用方式。免费 API 额度 1000 页/天优先解析。独立子项目只需写一个薄 CLI 包装器：接收文件路径 → 检测是否超限（200MB/200 页）→ 超限则拆分并发处理 → 调 MinerU CLI/API → 拿 Markdown 输出 → 按原顺序重组。PDF 解析核心完全不需要自己写。
+
+**视频 PPT+字幕提取**：GitHub 上不存在一个"接收视频、输出 PPT 截图 + 字幕文本"的成熟 CLI 工具。需要自己写一个轻量 Python CLI（~80 行），组合三个已有工具：ffmpeg（提取关键帧+场景检测）→ imagehash（感知哈希去重，找出唯一 PPT 页）→ whisper（语音转录，本地或硅基流动 API）。处理器复杂度低，核心逻辑是管道组合而非原创算法。
 
 ### What was avoided
 
