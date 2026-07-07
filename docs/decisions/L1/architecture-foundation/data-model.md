@@ -74,3 +74,8 @@ CREATE INDEX idx_edges_target ON edges(target_id);
 - ✅ 属性即节点保留了"完成事项产生回响"的可能性——S9 的后门
 - ⚠️ 属性全量取要多次 JOIN——Phase 1 数据量小不影响，规模变大后需要缓存或物化视图（Phase 2 处理）
 - ⚠️ 没有类型列意味着 S6 的全量展示是"一片节点没有分类"——但这也是 Phase 1 的真实状态：先用，类型从使用中涌现
+
+## 跨 thread 关联
+
+- **搜索扩展**：Phase 2 的全文搜索索引新增了独立表 `search_index`，不修改 nodes 和 edges 的 schema。详见 [core-capabilities 的 search-index ADR](../core-capabilities/search-index.md)。
+- **数据模型不变承诺**：本 ADR 承诺的两张表结构在 core-capabilities 中保持不变，所有扩展（向量列、搜索索引）均通过新增独立表或加列到 existing 表完成。
