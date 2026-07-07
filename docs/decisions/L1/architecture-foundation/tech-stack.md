@@ -1,6 +1,6 @@
 ## ADR / L1 / architecture-foundation / 技术栈：Rust + Axum + sqlx + PostgreSQL 17
 
-**状态**: proposed
+**状态**: accepted
 **日期**: 2026-07-06
 **来源 thread**: architecture-foundation
 

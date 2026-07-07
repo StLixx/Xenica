@@ -1,6 +1,6 @@
 ## ADR / L1 / architecture-foundation / API 设计：REST/Action + Phase 1 全同步
 
-**状态**: proposed
+**状态**: accepted
 **日期**: 2026-07-06
 **来源 thread**: architecture-foundation
 

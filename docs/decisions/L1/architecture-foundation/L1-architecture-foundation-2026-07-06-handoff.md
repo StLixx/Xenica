@@ -63,4 +63,6 @@ MCP（Model Context Protocol）是 AI Agent 与外部系统之间的标准连接
 
 ## Immediate Next Steps
 
-L2 thread `backend-core` 直接开始实现 Phase 1，完成后回到 L1 审核。
+- Phase 1 后端已实现并端到端验证通过（L3 commit: Phase 1 后端实现，2026-07-06）
+- 3 条 ADR（data-model / api-design / tech-stack）已从 proposed → accepted
+- 下一阶段：L1 thread `core-capabilities`（从 Phase 1 架构扩展到搜索、异步、导入管道）
