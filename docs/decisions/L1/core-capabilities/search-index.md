@@ -43,6 +43,16 @@ CREATE INDEX idx_nodes_embedding ON nodes USING hnsw (embedding vector_cosine_op
 - **索引重建不影响主表**：GIN 索引在独立表上重建不会锁 nodes 表。
 - **向量列留在了 nodes 表**：embedding 是节点的固有属性，1:1 映射，没必要拆到独立表。
 
+### Embedding 模型
+
+默认使用 BGE-M3（BAAI/bge-m3，1024 维，MIT 协议，100+ 语言），通过硅基流动免费 API 生成向量。API 密钥通过环境变量注入，不在代码中硬编码。模型可替换——换上 OpenAI text-embedding-3-large 或本地 BGE-M3 自部署，只需实现同一个 `EmbeddingProvider` trait，不改 schema。
+
+```rust
+pub trait EmbeddingProvider: Send + Sync {
+    fn embed(&self, texts: Vec<String>) -> Result<Vec<Vec<f32>>, EmbeddingError>;
+}
+```
+
 ### What was avoided
 
 - **在 nodes 表加 `tsvector` 生成列**：每加一种语言就多一列，4 种以上 languages 后表臃肿。放弃。

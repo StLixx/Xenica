@@ -74,7 +74,7 @@ Worker 拿到 task 后：查 MIME type → 找到 handler → 调 `process()` �
 
 | 格式 | 默认实现 | 路径 |
 |------|------|------|
-| PDF（论文、教科书、含图文档） | MinerU API（外部 HTTP 服务），独立子项目——需要处理超限文件的自动拆分与重组（MinerU 免费层有 300MB 和页数限制，超过阈值的 PDF 自动拆成多个子任务、并发处理、按原顺序重组输出） | 独立子项目 |
+| PDF（论文、教科书、含图文档） | MinerU API。独立 CLI 子应用，自带内部任务队列——接收一个大 PDF 后自动检测是否超限（300MB / 页数），超过阈值则拆分为多个子文件，并发调用 MinerU 免费 API，不超出频率和大小限额，全部完成后按原文顺序重组 Markdown 输出。此 CLI 子应用可独立开发、独立运行，通过 `ExternalCliHandler` 适配器接入 Xenica 的 ImportHandler trait | 独立子项目 |
 | PDF（简单文本提取） | pdf-extract（本地 crate） | 库内直调 |
 | 视频（讲师类：PPT + 字幕） | ffmpeg 提取关键帧 + eg 字幕提取（ass/srt → text） | 独立子项目 |
 | 图片（批量导入） | 无需处理，图片文件直存 → 创建节点引用文件路径 | 库内直调 |
