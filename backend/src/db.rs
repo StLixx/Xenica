@@ -15,10 +15,20 @@ struct NeighborRow {
     pub direction: String,
 }
 
+#[derive(Debug, FromRow)]
+pub struct ScoredNode {
+    pub id: Uuid,
+    pub content: String,
+    pub created_at: chrono::DateTime<chrono::Utc>,
+    pub updated_at: chrono::DateTime<chrono::Utc>,
+    pub score: Option<f64>,
+}
+
 pub async fn run_migrations(pool: &PgPool) -> Result<()> {
     let migrations = [
         include_str!("../migrations/0001_init.sql"),
         include_str!("../migrations/0002_infrastructure.sql"),
+        include_str!("../migrations/0003_tasks.sql"),
     ];
     for sql in migrations {
         for statement in sql.split(';') {
@@ -52,15 +62,35 @@ pub async fn create_node(pool: &PgPool, req: &CreateNodeRequest) -> Result<Node>
         .await?;
     }
 
+    sqlx::query(
+        "INSERT INTO search_index (node_id, language, fts_vector) VALUES ($1, 'zh', to_tsvector('zh_cn', $2)), ($1, 'en', to_tsvector('english', $2))",
+    )
+    .bind(node.id)
+    .bind(&req.content)
+    .execute(&mut *tx)
+    .await?;
+
     tx.commit().await?;
     Ok(node)
 }
 
+pub async fn enqueue_embedding_task(pool: &PgPool, node_id: Uuid) -> Result<()> {
+    sqlx::query(
+        "INSERT INTO tasks (task_type, payload) VALUES ('generate_embedding', $1)",
+    )
+    .bind(serde_json::json!({ "node_id": node_id }))
+    .execute(pool)
+    .await?;
+    Ok(())
+}
+
 pub async fn get_node(pool: &PgPool, id: Uuid) -> Result<Option<Node>> {
-    let node = sqlx::query_as::<_, Node>("SELECT id, content, created_at, updated_at FROM nodes WHERE id = $1")
-        .bind(id)
-        .fetch_optional(pool)
-        .await?;
+    let node = sqlx::query_as::<_, Node>(
+        "SELECT id, content, created_at, updated_at FROM nodes WHERE id = $1",
+    )
+    .bind(id)
+    .fetch_optional(pool)
+    .await?;
     Ok(node)
 }
 
@@ -122,4 +152,130 @@ pub async fn list_edges(pool: &PgPool) -> Result<Vec<Edge>> {
     .fetch_all(pool)
     .await?;
     Ok(edges)
+}
+
+pub async fn search_fulltext(pool: &PgPool, query: &str, language: &str) -> Result<Vec<Node>> {
+    let ts_config = if language == "en" { "english" } else { "zh_cn" };
+
+    let sql = format!(
+        "SELECT n.id, n.content, n.created_at, n.updated_at
+         FROM nodes n
+         JOIN search_index si ON si.node_id = n.id
+         WHERE si.language = $1 AND si.fts_vector @@ plainto_tsquery('{}', $2)
+         ORDER BY ts_rank(si.fts_vector, plainto_tsquery('{}', $2)) DESC
+         LIMIT 20",
+        ts_config, ts_config
+    );
+
+    let nodes = sqlx::query_as::<_, Node>(&sql)
+        .bind(language)
+        .bind(query)
+        .fetch_all(pool)
+        .await?;
+
+    Ok(nodes)
+}
+
+pub async fn search_semantic(pool: &PgPool, query_embedding: &[f32]) -> Result<Vec<ScoredNode>> {
+    let embedding_str = format!(
+        "[{}]",
+        query_embedding
+            .iter()
+            .map(|v| v.to_string())
+            .collect::<Vec<_>>()
+            .join(",")
+    );
+
+    let nodes = sqlx::query_as::<_, ScoredNode>(
+        "SELECT id, content, created_at, updated_at,
+                1.0 - (embedding <=> $1::vector) AS score
+         FROM nodes
+         WHERE embedding IS NOT NULL
+         ORDER BY embedding <=> $1::vector
+         LIMIT 20",
+    )
+    .bind(&embedding_str)
+    .fetch_all(pool)
+    .await?;
+
+    Ok(nodes)
+}
+
+pub async fn fetch_pending_tasks(pool: &PgPool) -> Result<Vec<Task>> {
+    let tasks = sqlx::query_as::<_, Task>(
+        "SELECT id, task_type, payload, status, attempts, max_attempts,
+                next_execution_at, error_details, created_at, updated_at
+         FROM tasks
+         WHERE status = 'pending' AND next_execution_at <= now()
+         ORDER BY created_at
+         LIMIT 5
+         FOR UPDATE SKIP LOCKED",
+    )
+    .fetch_all(pool)
+    .await?;
+
+    Ok(tasks)
+}
+
+pub async fn claim_task(pool: &PgPool, task_id: Uuid) -> Result<()> {
+    sqlx::query(
+        "UPDATE tasks SET status = 'running', attempts = attempts + 1, updated_at = now() WHERE id = $1",
+    )
+    .bind(task_id)
+    .execute(pool)
+    .await?;
+    Ok(())
+}
+
+pub async fn complete_task(pool: &PgPool, task_id: Uuid) -> Result<()> {
+    sqlx::query(
+        "UPDATE tasks SET status = 'done', updated_at = now() WHERE id = $1",
+    )
+    .bind(task_id)
+    .execute(pool)
+    .await?;
+    Ok(())
+}
+
+pub async fn retry_task(pool: &PgPool, task_id: Uuid, error: &str) -> Result<()> {
+    sqlx::query(
+        "UPDATE tasks SET status = 'pending', error_details = $2,
+                next_execution_at = now() + interval '1 second' * power(2, attempts),
+                updated_at = now()
+         WHERE id = $1",
+    )
+    .bind(task_id)
+    .bind(error)
+    .execute(pool)
+    .await?;
+    Ok(())
+}
+
+pub async fn dead_letter_task(pool: &PgPool, task_id: Uuid, error: &str) -> Result<()> {
+    sqlx::query(
+        "UPDATE tasks SET status = 'dead_lettered', error_details = $2, updated_at = now() WHERE id = $1",
+    )
+    .bind(task_id)
+    .bind(error)
+    .execute(pool)
+    .await?;
+    Ok(())
+}
+
+pub async fn update_node_embedding(pool: &PgPool, node_id: Uuid, embedding: &[f32]) -> Result<()> {
+    let embedding_str = format!(
+        "[{}]",
+        embedding
+            .iter()
+            .map(|v| v.to_string())
+            .collect::<Vec<_>>()
+            .join(",")
+    );
+
+    sqlx::query("UPDATE nodes SET embedding = $1::vector, updated_at = now() WHERE id = $2")
+        .bind(&embedding_str)
+        .bind(node_id)
+        .execute(pool)
+        .await?;
+    Ok(())
 }

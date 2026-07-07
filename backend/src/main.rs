@@ -1,12 +1,15 @@
 mod db;
+mod embedding;
 mod handlers;
 mod models;
+mod worker;
 
 use anyhow::Result;
 use clap::{Parser, Subcommand};
 use handlers::AppState;
 use sqlx::postgres::PgPoolOptions;
 use std::net::SocketAddr;
+use std::sync::Arc;
 use uuid::Uuid;
 
 #[derive(Parser)]
@@ -31,6 +34,13 @@ enum Command {
         id: Uuid,
     },
     List,
+    Search {
+        query: String,
+        #[arg(short, long, default_value = "hybrid")]
+        mode: String,
+        #[arg(short, long, default_value = "zh")]
+        language: String,
+    },
 }
 
 fn parse_connection(s: &str) -> Result<(Uuid, String), String> {
@@ -42,14 +52,17 @@ fn parse_connection(s: &str) -> Result<(Uuid, String), String> {
     Ok((id, parts[1].to_string()))
 }
 
-async fn run_server(pool: sqlx::PgPool, port: u16) -> Result<()> {
+async fn run_server(pool: sqlx::PgPool, port: u16, embedder: Arc<embedding::SiliconFlowEmbedder>) -> Result<()> {
     use axum::{Router, routing::get};
     use tower_http::cors::{CorsLayer, Any};
 
-    let state = AppState { pool };
+    worker::start_worker(pool.clone(), embedder.clone());
+
+    let state = AppState { pool, embedder };
 
     let app = Router::new()
         .route("/nodes", get(handlers::list_nodes).post(handlers::create_node))
+        .route("/nodes/search", get(handlers::search_nodes))
         .route("/nodes/{id}", get(handlers::get_node))
         .route("/nodes/{id}/neighbors", get(handlers::get_neighbors))
         .route("/edges", get(handlers::list_edges))
@@ -135,6 +148,24 @@ async fn cli_list() -> Result<()> {
     Ok(())
 }
 
+async fn cli_search(query: String, mode: String, language: String) -> Result<()> {
+    let client = reqwest::Client::new();
+    let resp = client
+        .get(format!(
+            "{}/nodes/search?q={}&mode={}&language={}",
+            api_url().await,
+            query,
+            mode,
+            language,
+        ))
+        .send()
+        .await?;
+
+    let json: serde_json::Value = resp.json().await?;
+    println!("{}", serde_json::to_string_pretty(&json)?);
+    Ok(())
+}
+
 #[tokio::main]
 async fn main() -> Result<()> {
     dotenvy::dotenv().ok();
@@ -158,7 +189,16 @@ async fn main() -> Result<()> {
             db::run_migrations(&pool).await?;
             println!("Database migrations applied.");
 
-            run_server(pool, port).await?;
+            let siliconflow_key = std::env::var("SILICONFLOW_API_KEY")
+                .unwrap_or_default();
+            let siliconflow_model = std::env::var("SILICONFLOW_EMBEDDING_MODEL")
+                .unwrap_or_else(|_| "BAAI/bge-m3".into());
+            let embedder = Arc::new(embedding::SiliconFlowEmbedder::new(
+                siliconflow_key,
+                siliconflow_model,
+            ));
+
+            run_server(pool, port, embedder).await?;
         }
         Some(Command::Create { content, connections }) => {
             cli_create(content, connections).await?;
@@ -171,6 +211,9 @@ async fn main() -> Result<()> {
         }
         Some(Command::List) => {
             cli_list().await?;
+        }
+        Some(Command::Search { query, mode, language }) => {
+            cli_search(query, mode, language).await?;
         }
     }
 
