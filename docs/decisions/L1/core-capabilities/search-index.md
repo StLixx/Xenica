@@ -1,6 +1,6 @@
 ## ADR / L1 / core-capabilities / 搜索索引表：独立于 nodes 的多语言全文检索
 
-**状态**: proposed
+**状态**: accepted
 **日期**: 2026-07-07
 **来源 thread**: core-capabilities
 

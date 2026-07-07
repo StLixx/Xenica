@@ -1,6 +1,6 @@
 ## ADR / L1 / core-capabilities / 导入管道：抽象接口与多格式处理
 
-**状态**: proposed
+**状态**: accepted
 **日期**: 2026-07-07
 **来源 thread**: core-capabilities
 
@@ -63,10 +63,10 @@ Worker 拿到 task 后：查 MIME type → 找到 handler → 调 `process()` �
 
 | 路径 | 通信方式 | 适合 |
 |------|------|------|
-| **库内直调**（同进程） | `Box<dyn ImportHandler>` 直接调用 | MinerU API、图片压缩、文本提取 |
-| **独立子项目**（跨进程） | CLI 子进程，stdout/stderr 交互 | ffmpeg 视频处理、内存大的 OCR、第三方二进制 |
+| **库内直调**（同进程） | `Box<dyn ImportHandler>` 直接调用 | 简单文本提取、图片存储 |
+| **独立子项目**（跨进程） | CLI 子进程，stdout/stderr 交互 | 需要外部依赖的复杂处理、需要解耦异步拆分的场景 |
 
-同核心只认同一个 trait 签名——独立子项目通过一层薄适配器（`ExternalCliHandler`）也实现 `ImportHandler trait`，进程内部调 CLI。
+两种路径共用同一个 trait 签名——独立子项目通过一层薄适配器（`ExternalCliHandler`）也实现 `ImportHandler trait`，核心只认接口不认进程边界。
 
 ### Phase 2 默认实现
 
@@ -74,7 +74,7 @@ Worker 拿到 task 后：查 MIME type → 找到 handler → 调 `process()` �
 
 | 格式 | 默认实现 | 路径 |
 |------|------|------|
-| PDF（论文、教科书、含图文档） | MinerU API（外部 HTTP 服务） | 库内直调 |
+| PDF（论文、教科书、含图文档） | MinerU API（外部 HTTP 服务），独立子项目——需要处理超限文件的自动拆分与重组（MinerU 免费层有 300MB 和页数限制，超过阈值的 PDF 自动拆成多个子任务、并发处理、按原顺序重组输出） | 独立子项目 |
 | PDF（简单文本提取） | pdf-extract（本地 crate） | 库内直调 |
 | 视频（讲师类：PPT + 字幕） | ffmpeg 提取关键帧 + eg 字幕提取（ass/srt → text） | 独立子项目 |
 | 图片（批量导入） | 无需处理，图片文件直存 → 创建节点引用文件路径 | 库内直调 |
