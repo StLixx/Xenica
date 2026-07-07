@@ -16,11 +16,16 @@ struct NeighborRow {
 }
 
 pub async fn run_migrations(pool: &PgPool) -> Result<()> {
-    let sql = include_str!("../migrations/0001_init.sql");
-    for statement in sql.split(';') {
-        let trimmed = statement.trim();
-        if !trimmed.is_empty() {
-            sqlx::query(trimmed).execute(pool).await?;
+    let migrations = [
+        include_str!("../migrations/0001_init.sql"),
+        include_str!("../migrations/0002_infrastructure.sql"),
+    ];
+    for sql in migrations {
+        for statement in sql.split(';') {
+            let trimmed = statement.trim();
+            if !trimmed.is_empty() {
+                sqlx::query(trimmed).execute(pool).await?;
+            }
         }
     }
     Ok(())
