@@ -16,7 +16,7 @@
 
 ## Decisions Made
 
-本 thread 产出了 3 个 ADR（均在 `decisions/L1/architecture-foundation/`）：
+本 thread 产出了 3 个 ADR（均在 `decisions/L1/v2.0.0-architecture-foundation/`）：
 
 1. **data-model** — nodes + edges 两张表，属性即节点，边 label 自由文本，Phase 1 不做类型约束和软删除
 2. **api-design** — 5 个 REST/Action 端点，Phase 1 全同步，不用 GraphQL / 消息队列 / WebSocket

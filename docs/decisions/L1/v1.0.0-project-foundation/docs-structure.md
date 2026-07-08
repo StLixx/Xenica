@@ -43,7 +43,7 @@ docs/
 
 ### decisions/ 按 L 层级 → thread 名组织
 
-不再用扁平编号。每个 thread 一个子文件夹，例 `decisions/L1/project-foundation/`。
+不再用扁平编号。每个 thread 一个子文件夹，例 `decisions/L1/v1.0.0-project-foundation/`。
 文件夹内含：`scope.md`（thread 目标/范围/终止条件）、handoff、所有 ADR。打开一个文件夹，这个 thread 的全部内容一览无余。
 
 ### 历史

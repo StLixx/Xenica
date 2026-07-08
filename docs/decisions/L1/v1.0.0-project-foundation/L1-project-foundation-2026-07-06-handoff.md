@@ -11,12 +11,12 @@
 - 21 条通用工程原则已落盘，覆盖设计、代码、节奏、思维、AI 协作五个领域，原则可演进
 - ADR 标准已定：三段式（what + why + avoided），区分用户思考与 AI 贡献，元数据放 `##` 行
 - AGENTS.md 和 README.md 已定稿
-- 旧探索 thread（2026-07-06）的 handoff 已归档在 `decisions/L1/project-foundation/` 下
+- 旧探索 thread（2026-07-06）的 handoff 已归档在 `decisions/L1/v1.0.0-project-foundation/` 下
 - backend/ 和 frontend/ 仍为空
 
 ## Decisions Made
 
-本 thread 产出了 6 个 ADR（均在 `decisions/L1/project-foundation/`）：
+本 thread 产出了 6 个 ADR（均在 `decisions/L1/v1.0.0-project-foundation/`）：
 
 1. **thread-layers** — L1-L3 分层体系，同层单 thread，跨层由上级读 handoff 后开 scope
 2. **session-handoff** — handoff 四个字段 + 命名 `[层级]-[主题]-[日期].md` + 同目录与 ADR 共存
