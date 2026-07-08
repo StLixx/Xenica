@@ -1,6 +1,7 @@
 mod db;
 mod embedding;
 mod handlers;
+mod import;
 mod models;
 mod worker;
 
@@ -63,6 +64,7 @@ async fn run_server(pool: sqlx::PgPool, port: u16, embedder: Arc<embedding::Sili
     let app = Router::new()
         .route("/nodes", get(handlers::list_nodes).post(handlers::create_node))
         .route("/nodes/search", get(handlers::search_nodes))
+        .route("/nodes/import", axum::routing::post(handlers::import_file))
         .route("/nodes/{id}", get(handlers::get_node))
         .route("/nodes/{id}/neighbors", get(handlers::get_neighbors))
         .route("/edges", get(handlers::list_edges))

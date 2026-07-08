@@ -77,3 +77,10 @@ fn default_mode() -> String {
 fn default_language() -> String {
     "zh".into()
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NewEdgeForImport {
+    pub source_index: usize,
+    pub target_index: usize,
+    pub label: String,
+}

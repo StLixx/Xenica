@@ -79,7 +79,7 @@ Worker 拿到 task 后：查 MIME type → 找到 handler → 调 `process()` �
 | 视频（讲师类：PPT + 字幕） | ffmpeg 提取关键帧 + eg 字幕提取（ass/srt → text） | 独立子项目 |
 | 图片（批量导入） | 无需处理，图片文件直存 → 创建节点引用文件路径 | 库内直调 |
 | 图片（OCR 识别） | 暂不实现——本地 OCR 依赖 tesseract 安装，调用链长。留接口。 | 独立子项目（未来） |
-| 音频（语音标注转录） | 语音标注由 AI API 转文本（如硅基流动 whisper 或未来其他模型）→ 文本存为节点的 user_notes，稍后组织 | 库内直调 |
+| 音频（语音标注转录） | 语音标注由 AI API 转文本（硅基流动 `TeleAI/TeleSpeechASR`，60 种方言自由混说能力）→ 文本存为节点的 user_notes，稍后组织 | 库内直调 |
 | 纯文本（Markdown、代码文件、便签） | 直接读文本内容 → 创建节点 | 库内直调 |
 
 ### Why

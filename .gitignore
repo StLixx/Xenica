@@ -1,6 +1,11 @@
 # 数据
 backend/data/
 
+# 临时上传和测试文件
+backend/uploads/
+test-image.png
+test-note.md
+
 # Rust 编译产物
 backend/target/
 

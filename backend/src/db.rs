@@ -279,3 +279,37 @@ pub async fn update_node_embedding(pool: &PgPool, node_id: Uuid, embedding: &[f3
         .await?;
     Ok(())
 }
+
+pub async fn insert_node_raw(pool: &PgPool, content: &str) -> Result<Uuid> {
+    let mut tx = pool.begin().await?;
+
+    let id: (Uuid,) = sqlx::query_as(
+        "INSERT INTO nodes (content) VALUES ($1) RETURNING id",
+    )
+    .bind(content)
+    .fetch_one(&mut *tx)
+    .await?;
+
+    sqlx::query(
+        "INSERT INTO search_index (node_id, language, fts_vector) VALUES ($1, 'zh', to_tsvector('zh_cn', $2)), ($1, 'en', to_tsvector('english', $2))",
+    )
+    .bind(id.0)
+    .bind(content)
+    .execute(&mut *tx)
+    .await?;
+
+    tx.commit().await?;
+    Ok(id.0)
+}
+
+pub async fn insert_edge_raw(pool: &PgPool, source_id: Uuid, target_id: Uuid, label: &str) -> Result<()> {
+    sqlx::query(
+        "INSERT INTO edges (source_id, target_id, label) VALUES ($1, $2, $3)",
+    )
+    .bind(source_id)
+    .bind(target_id)
+    .bind(label)
+    .execute(pool)
+    .await?;
+    Ok(())
+}
