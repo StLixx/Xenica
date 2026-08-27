@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "noEmitOnError": true,
+    "noImplicitAny": true,
+    "outDir": "dist",
+    "sourceMap": true,
+    "strict": true,
+    "removeComments": true,
+    "target": "es2017",
+  },
+  "include": [
+    "./**/*.ts"
+  ],
+  "compileOnSave": true,
+}

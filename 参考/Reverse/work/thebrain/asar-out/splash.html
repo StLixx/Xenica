@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<!-- Startup splash screen. Shown by ElectronNET.Core's main.js (splashscreen.imageFile in the
+     generated package.json) as a transparent, frameless, click-through window on app ready —
+     i.e. before the .NET backend is even spawned — and destroyed automatically when the first
+     real BrowserWindow is created. Must stay self-contained (no external fonts/scripts) so it
+     paints in one shot; the logo SVGs are copied next to this file in .electron/ by the
+     CopyElectronAssets target in Dekutron.csproj.
+
+     The animated waves behind the logo are a self-contained port of the "backimator" used on
+     the About dialog (Vulcan.Shared/.../backimator.ts, Default preset). The real backimator is a
+     Blazor ES module loaded from /_content/...; that path doesn't exist at splash time (no .NET
+     backend yet), so the horizontal-wave math is inlined here with raw Canvas 2D. Keep the
+     tunables below in sync with BrainSettings.BackimatorSettings's Default values if they change. -->
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<style>
+		:root {
+			color-scheme: light dark;
+		}
+		body {
+			margin: 0;
+			height: 100vh;
+			overflow: hidden;
+			background: transparent;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
+		.card {
+			position: relative;
+			overflow: hidden;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			width: 420px;
+			/* Fixed height (vs. content-driven padding) so the logo is reliably centered and the
+			   canvas — sized from clientHeight — is full-height even before the logo image loads. */
+			height: 140px;
+			border-radius: 16px;
+			background: #ffffff;
+			border: 1px solid rgba(0, 0, 0, 0.08);
+			box-shadow: 0 8px 40px rgba(0, 0, 0, 0.25);
+		}
+		/* Animated waves fill the card, behind the logo. Blur matches the Default preset (TrailBlur 4). */
+		.backimator {
+			position: absolute;
+			inset: 0;
+			z-index: 0;
+			filter: blur(4px);
+			pointer-events: none;
+			/* Fade in over 500ms (the splash uses a shorter fade than the About dialog's 2s). A CSS
+			   animation — not a JS opacity transition — is used so the fade reliably runs on a
+			   freshly loaded document, where there's no painted baseline to transition from. */
+			animation: backimator-fade-in 500ms ease-in;
+		}
+		@keyframes backimator-fade-in {
+			from { opacity: 0; }
+			to { opacity: 1; }
+		}
+		.card picture {
+			position: relative;
+			z-index: 1;
+			transform: translateY(-8px);
+		}
+		.card img {
+			width: 320px;
+			display: block;
+		}
+		@media (prefers-color-scheme: dark) {
+			.card {
+				background: #050505;
+				border: 1px solid rgba(255, 255, 255, 0.10);
+			}
+		}
+	</style>
+</head>
+<body>
+	<div class="card">
+		<canvas class="backimator"></canvas>
+		<picture>
+			<source srcset="TheBrain-Logo-Wide-Dark.svg" media="(prefers-color-scheme: dark)">
+			<img src="TheBrain-Logo-Wide.svg" alt="TheBrain">
+		</picture>
+	</div>
+	<script>
+		// Self-contained horizontal-wave backimator (Default preset). See file header for why this
+		// is inlined rather than importing the real Vulcan backimator module.
+		(function() {
+			// --- Default preset tunables (BrainSettings.BackimatorSettings) ---
+			const WAVE_COUNT = 3;
+			const PACE = 0.00015;
+			const MAX_VEL = 2.5;
+			const CHANGE_TIME = 100;
+			const FRICTION = 0.99;
+			const MAX_HISTORY = 500;
+			const HISTORY_INTERVAL = 3;
+			const TRAIL_ALPHA = 0.04;
+			const X_DRIFT = 2;
+			const Y_DRIFT = -0.25;
+			const TRAIL_WIDTH = 10;
+			// Splash-only: exaggerate how far the control points swing vertically (1.5x the About
+			// dialog). The card clips the overflow, so the waves sweep more dramatically through it.
+			const Y_VARIATION = 1.5;
+			// Splash-only: push the waves' vertical center down to 75% from the top (vs. centered).
+			const Y_CENTER = 0.75;
+			const FPS = 24;
+			const COLORS = [0x79bdf3, 0x3e72b6, 0x5555ff]; // TrailColor1..3
+			// Fade-in is handled by the .backimator CSS animation (see <style>), not here.
+
+			function colorToString(color, alpha) {
+				const r = (color >> 16) & 0xFF;
+				const g = (color >> 8) & 0xFF;
+				const b = color & 0xFF;
+				return "rgba(" + r + "," + g + "," + b + "," + alpha + ")";
+			}
+
+			// A single animated control point that wanders toward random destinations within its
+			// bounds, keeping a ring buffer of past positions so the draw loop can render a trail.
+			class AniPoint {
+				constructor(minX, minY, maxX, maxY) {
+					this.vX = 0;
+					this.vY = 0;
+					this.historyX = [];
+					this.historyY = [];
+					this.historyIndex = 0;
+					this.historyCount = 0;
+					this.setBounds(minX, minY, maxX, maxY);
+					this.x = (minX + maxX) / 2;
+					this.y = (minY + maxY) / 2;
+				}
+				setBounds(minX, minY, maxX, maxY) {
+					this.minX = minX;
+					this.minY = minY;
+					this.maxX = maxX;
+					this.maxY = maxY;
+					this.setDestination();
+				}
+				setCurrent(x, y) {
+					this.x = x;
+					this.y = y;
+				}
+				setDestination() {
+					this.dX = (this.maxX - this.minX) * Math.random() + this.minX;
+					this.dY = (this.maxY - this.minY) * Math.random() + this.minY;
+				}
+				tick() {
+					this.historyX[this.historyIndex] = this.x;
+					this.historyY[this.historyIndex] = this.y;
+					this.historyIndex = (this.historyIndex + 1) % MAX_HISTORY;
+					if(this.historyCount < MAX_HISTORY) {
+						this.historyCount++;
+					}
+					this.x += this.vX;
+					this.y += this.vY;
+					this.vX *= FRICTION;
+					this.vY *= FRICTION;
+					this.vX += (this.dX - this.x) * PACE;
+					this.vY += (this.dY - this.y) * PACE;
+					this.vX = Math.max(Math.min(MAX_VEL, this.vX), -MAX_VEL);
+					this.vY = Math.max(Math.min(MAX_VEL, this.vY), -MAX_VEL);
+				}
+				getX(priorCount) {
+					if(priorCount == 0) { return this.x; }
+					if(priorCount >= this.historyCount) { return null; }
+					return this.historyX[(this.historyIndex - priorCount + MAX_HISTORY) % MAX_HISTORY];
+				}
+				getY(priorCount) {
+					if(priorCount == 0) { return this.y; }
+					if(priorCount >= this.historyCount) { return null; }
+					return this.historyY[(this.historyIndex - priorCount + MAX_HISTORY) % MAX_HISTORY];
+				}
+			}
+
+			// One horizontal wave: a bezier across the card defined by four wandering points.
+			class WavePath {
+				constructor(color) {
+					this.color = color;
+					this.resetTime = 0;
+					this.p1 = new AniPoint(0, 0, 0, 0);
+					this.p2 = new AniPoint(0, 0, 0, 0);
+					this.p3 = new AniPoint(0, 0, 0, 0);
+					this.p4 = new AniPoint(0, 0, 0, 0);
+				}
+				resizeTo(width, height) {
+					const edgeAdjust = width * 0.1;
+					// Expand each point's vertical range around its center by Y_VARIATION.
+					const yRange = (centerFrac, halfFrac) => {
+						const center = height * centerFrac;
+						const half = height * halfFrac * Y_VARIATION;
+						return [center - half, center + half];
+					};
+					const [p14Min, p14Max] = yRange(Y_CENTER, 0.165); // base spread 0.33h
+					const [p23Min, p23Max] = yRange(Y_CENTER, 0.5);   // base spread h
+					this.p1.setBounds(-edgeAdjust, p14Min, -edgeAdjust, p14Max);
+					this.p2.setBounds(width * 0.33, p23Min, width * 0.33, p23Max);
+					this.p3.setBounds(width * 0.66, p23Min, width * 0.66, p23Max);
+					this.p4.setBounds(width + edgeAdjust, p14Min, width + edgeAdjust, p14Max);
+					const cx = width * 0.5;
+					const cy = height * 0.5;
+					this.p1.setCurrent(cx, cy);
+					this.p2.setCurrent(cx, cy);
+					this.p3.setCurrent(cx, cy);
+					this.p4.setCurrent(cx, cy);
+				}
+				getPoints(priorCount) {
+					if(this.p1.getX(priorCount) == null) { return null; }
+					return [
+						{ x: this.p1.getX(priorCount) + Math.min(0, priorCount * X_DRIFT), y: this.p1.getY(priorCount) + priorCount * Y_DRIFT },
+						{ x: this.p2.getX(priorCount) + priorCount * X_DRIFT, y: this.p2.getY(priorCount) + priorCount * Y_DRIFT },
+						{ x: this.p3.getX(priorCount) + priorCount * X_DRIFT, y: this.p3.getY(priorCount) + priorCount * Y_DRIFT },
+						{ x: this.p4.getX(priorCount) + Math.max(0, priorCount * X_DRIFT), y: this.p4.getY(priorCount) + priorCount * Y_DRIFT }
+					];
+				}
+				tick(delta) {
+					this.p1.tick();
+					this.p2.tick();
+					this.p3.tick();
+					this.p4.tick();
+					this.resetTime += delta;
+					if(this.resetTime > CHANGE_TIME) {
+						this.resetTime = 0;
+						this.p1.setDestination();
+						this.p2.setDestination();
+						this.p3.setDestination();
+						this.p4.setDestination();
+					}
+				}
+			}
+
+			const canvas = document.querySelector(".backimator");
+			const card = canvas.parentElement;
+			const ctx = canvas.getContext("2d");
+
+			const paths = [];
+			for(let n = 0; n < WAVE_COUNT; n++) {
+				paths.push(new WavePath(COLORS[n % COLORS.length]));
+			}
+
+			let width = 0;
+			let height = 0;
+			function sizeCanvas() {
+				const dpr = window.devicePixelRatio || 1;
+				width = card.clientWidth;
+				height = card.clientHeight;
+				canvas.width = width * dpr;
+				canvas.height = height * dpr;
+				canvas.style.width = width + "px";
+				canvas.style.height = height + "px";
+				ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+				paths.forEach(p => p.resizeTo(width, height));
+			}
+			sizeCanvas();
+
+			// Pre-fill history so the trails look established the instant the splash paints.
+			for(let i = 0; i < MAX_HISTORY; i++) {
+				paths.forEach(p => p.tick(1));
+			}
+
+			let lastTime = performance.now();
+			const minFrameTime = 1000 / FPS;
+			function frame(now) {
+				requestAnimationFrame(frame);
+				const elapsed = now - lastTime;
+				if(elapsed < minFrameTime) { return; }
+				const delta = elapsed / (1000 / 60); // PIXI-style: 1 == 1/60s
+				lastTime = now;
+
+				ctx.clearRect(0, 0, width, height);
+				ctx.globalCompositeOperation = "lighter"; // overlapping curves brighten
+				ctx.lineWidth = TRAIL_WIDTH;
+
+				for(let i = 0; i < MAX_HISTORY; i += HISTORY_INTERVAL) {
+					const alpha = (1 - (i / MAX_HISTORY)) * TRAIL_ALPHA;
+					for(let p = 0; p < paths.length; p++) {
+						const points = paths[p].getPoints(i);
+						if(!points) { continue; }
+						ctx.strokeStyle = colorToString(paths[p].color, alpha);
+						ctx.beginPath();
+						ctx.moveTo(points[0].x, points[0].y);
+						ctx.bezierCurveTo(points[1].x, points[1].y, points[2].x, points[2].y, points[3].x, points[3].y);
+						ctx.stroke();
+					}
+				}
+
+				paths.forEach(p => p.tick(delta));
+			}
+			requestAnimationFrame(frame);
+
+			// Allow dismissing with Escape when shown as a standalone preview window
+			// (Dekutron's InternalTestCommand). The real startup splash is click-through and
+			// non-closable, so this is inert there.
+			window.addEventListener("keydown", e => { if(e.key === "Escape") { window.close(); } });
+		})();
+	</script>
+</body>
+</html>

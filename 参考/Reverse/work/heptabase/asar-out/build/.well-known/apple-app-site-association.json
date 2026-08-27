@@ -1,0 +1,11 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "JG328YS98W.app.projectmeta.projectmeta",
+        "paths": ["NOT /w/*", "NOT /p/*", "*"]
+      }
+    ]
+  }
+}

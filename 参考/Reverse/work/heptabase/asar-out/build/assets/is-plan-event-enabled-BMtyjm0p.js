@@ -1,0 +1,2 @@
+(function(){try{var e=typeof window<"u"?window:typeof global<"u"?global:typeof self<"u"?self:{},d=new Error().stack;d&&(e._sentryDebugIds=e._sentryDebugIds||{},e._sentryDebugIds[d]="0aa97029-3b1c-4f6d-a1f6-182b7e188548",e._sentryDebugIdIdentifier="sentry-dbid-0aa97029-3b1c-4f6d-a1f6-182b7e188548")}catch{}})();function i(e,d){var n,o;return typeof(d==null?void 0:d.enabled)=="boolean"?d.enabled:(o=(n=e==null?void 0:e.__default)===null||n===void 0?void 0:n.enabled)!==null&&o!==void 0?o:!0}export{i};
+//# sourceMappingURL=is-plan-event-enabled-BMtyjm0p.js.map

@@ -1,0 +1,17 @@
+﻿{
+  "name": "TheBrain Web Client",
+  "short_name": "TheBrain",
+  "theme_color": "#26292e",
+  "background_color": "#1f2125",
+  "start_url": "/",
+  "id": "vulcan",
+  "display": "minimal-ui",
+  "scope": "/",
+  "icons": [
+     {
+        "src": "images/tb14-icon-windows.png",
+        "type": "image/png",
+        "sizes": "1024x1024"
+     }
+   ]
+}

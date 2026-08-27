@@ -1,0 +1,141 @@
+directories:
+  output: .
+  buildResources: .
+$schema: https://raw.githubusercontent.com/electron-userland/electron-builder/master/packages/app-builder-lib/scheme.json
+appId: com.thebrain.dekutron
+productName: TheBrain 15
+copyright: Copyright © 2026 TheBrain Technologies LP
+files:
+  - filter:
+      - '**/*'
+      - '!bin/**'
+      - '!win-unpacked/**'
+      - '!mac-unpacked/**'
+      - '!mac/**'
+      - '!mac-arm64/**'
+      - '!mac-x64/**'
+      - '!mac-universal/**'
+      - '!linux-unpacked/**'
+      - '!linux-arm64-unpacked/**'
+      - '!.icon-icns/**'
+      - '!.icon-set/**'
+      - '!.cache/**'
+      - '!*.exe'
+      - '!*.msi'
+      - '!*.zip'
+      - '!*.dmg'
+      - '!*.AppImage'
+      - '!*.deb'
+      - '!*.rpm'
+      - '!*.blockmap'
+      - '!*.yml'
+extraResources:
+  - from: bin
+    to: bin
+    filter:
+      - '**/*'
+      - '!**/*.app'
+      - '!**/*.app/**'
+      - '!**/publish/**'
+      - '!**/Release/**'
+mac:
+  artifactName: TheBrain-${version}-${os}-${arch}.${ext}
+  icon: icon.png
+  category: public.app-category.productivity
+  target:
+    - dmg
+    - zip
+  hardenedRuntime: true
+  gatekeeperAssess: false
+  entitlements: bin/entitlements.mac.plist
+  notarize: true
+dmg:
+  artifactName: TheBrain-${version}-${arch}.${ext}
+  background: background.png
+  window:
+    width: 540
+    height: 380
+  contents:
+    - x: 130
+      'y': 220
+    - x: 410
+      'y': 220
+      type: link
+      path: /Applications
+win:
+  artifactName: TheBrain-${version}-${os}-${arch}.${ext}
+  icon: icon-win.ico
+  azureSignOptions:
+    endpoint: https://wus2.codesigning.azure.net
+    certificateProfileName: thebrain-public-trust
+    codeSigningAccountName: thebrain-signing
+    publisherName: TheBrain Technologies LP
+    timestampRfc3161: http://timestamp.acs.microsoft.com
+    timestampDigest: SHA256
+  target:
+    - target: nsis
+      arch:
+        - x64
+    - target: msi
+      arch:
+        - x64
+    - target: zip
+      arch:
+        - x64
+msi:
+  artifactName: TheBrain-${version}-${arch}.${ext}
+  oneClick: false
+  perMachine: false
+  runAfterFinish: true
+nsis:
+  artifactName: TheBrain-${version}-${arch}-Setup.${ext}
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  include: build/installer.nsh
+  installerSidebar: build/installerSidebar.bmp
+linux:
+  artifactName: TheBrain-${env.TARGET_CHANNEL}-${version}-${arch}.${ext}
+  icon: build/icons
+  category: Office
+  synopsis: TheBrain visual knowledge management
+  description: TheBrain 15 — visual knowledge and information management
+  executableName: thebrain
+  maintainer: TheBrain Technologies <support@thebrain.com>
+  desktop:
+    entry:
+      StartupWMClass: thebrain
+  target:
+    - target: AppImage
+      arch:
+        - x64
+        - arm64
+    - target: deb
+      arch:
+        - x64
+        - arm64
+    - target: rpm
+      arch:
+        - x64
+        - arm64
+appImage:
+  artifactName: TheBrain-${env.TARGET_CHANNEL}-${version}-${arch}.${ext}
+toolsets:
+  appimage: 1.0.3
+deb:
+  artifactName: TheBrain-${env.TARGET_CHANNEL}-${version}-${arch}.${ext}
+  packageName: thebrain
+  afterInstall: build/linux/after-install-deb.sh
+  afterRemove: build/linux/after-remove-deb.sh
+rpm:
+  artifactName: TheBrain-${env.TARGET_CHANNEL}-${version}-${arch}.${ext}
+  packageName: thebrain
+  fpm:
+    - '--rpm-rpmbuild-define'
+    - _build_id_links none
+  afterInstall: build/linux/after-install-rpm.sh
+  afterRemove: build/linux/after-remove-rpm.sh
+publish:
+  provider: generic
+  url: https://updater.thebrain.com/dekutron
+electronVersion: 30.4.0
+buildVersion: 15.0.571

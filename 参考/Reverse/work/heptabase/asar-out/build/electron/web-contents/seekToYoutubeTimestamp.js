@@ -1,0 +1,1 @@
+"use strict";Object.defineProperty(exports,"__esModule",{value:!0}),exports.seekToYoutubeTimestamp=seekToYoutubeTimestamp;function seekToYoutubeTimestamp(a){const b=document.getElementById("movie_player");return!!(b&&"function"==typeof b.seekTo)&&(b.seekTo(a,!0),!0)}

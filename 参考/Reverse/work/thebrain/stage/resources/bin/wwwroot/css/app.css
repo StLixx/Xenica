@@ -1,0 +1,206 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background-color: #1e1e1e;
+    color: #e0e0e0;
+    height: 100%;
+}
+
+/* ========== Custom Title Bar (Frameless Window) ========== */
+
+/* Make the toolbar area and all its children draggable for window movement */
+.brain-tab-bar,
+.brain-tab-bar * {
+    -webkit-app-region: drag !important;
+}
+
+/* Exclude interactive elements from drag region (title-bar-widget is the standard class used in Deku) */
+.title-bar-widget,
+.title-bar-widget * {
+    -webkit-app-region: no-drag !important;
+}
+
+/* Disable drag region when overlay is showing (allows clicks to pass through to overlay) */
+.drag-disabled,
+.drag-disabled * {
+    -webkit-app-region: no-drag !important;
+}
+
+/* ========== Linux custom window controls (min/max/close) ==========
+   Linux has no titleBarOverlay equivalent on Electron, so we render our own buttons
+   in WindowControlsRightPlaceholder.razor when running on Linux. Sizing matches the
+   31px Windows titleBarOverlay height; the close button gets a red hover to match the
+   GNOME convention. */
+.linux-window-control {
+    width: 45px;
+    height: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    color: #727f98;
+    cursor: pointer;
+    transition: background-color 80ms ease-in-out, color 80ms ease-in-out;
+}
+.linux-window-control:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+    color: #e6e6e6;
+}
+.linux-window-control:active {
+    background-color: rgba(255, 255, 255, 0.14);
+}
+.linux-window-control-close:hover {
+    background-color: #c42b1c;
+    color: #ffffff;
+}
+.linux-window-control-close:active {
+    background-color: #b1271a;
+}
+
+.main-layout {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.header {
+    background-color: #2d2d2d;
+    padding: 1rem 2rem;
+    border-bottom: 1px solid #3d3d3d;
+}
+
+.header h1 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: #ffffff;
+}
+
+.content {
+    flex: 1;
+    padding: 0;
+}
+
+.welcome-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.welcome-container h2 {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    color: #4fc3f7;
+}
+
+.welcome-container p {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: #b0b0b0;
+}
+
+.info-section, .next-steps {
+    background-color: #2d2d2d;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-top: 2rem;
+}
+
+.info-section h3, .next-steps h3 {
+    margin-top: 0;
+    color: #81c784;
+}
+
+.info-section ul {
+    padding-left: 1.5rem;
+}
+
+.info-section li {
+    margin-bottom: 0.5rem;
+    color: #b0b0b0;
+}
+
+#blazor-error-ui {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    color: white;
+    font-size: 1.1rem;
+}
+
+#blazor-error-ui[style*="block"] {
+    display: flex !important;
+}
+
+/* Hide error UI during reconnection — the reconnector handles recovery */
+.components-reconnect-show ~ #blazor-error-ui,
+.components-reconnect-failed ~ #blazor-error-ui,
+.components-reconnect-rejected ~ #blazor-error-ui {
+    display: none !important;
+}
+
+#blazor-error-buttons {
+    display: flex;
+    gap: 0.75rem;
+}
+
+#dekutron-reload-btn, #dekutron-show-error-btn {
+    color: white;
+    padding: 0.6rem 1.2rem;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 1rem;
+    transition: background 0.15s;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+#dekutron-reload-btn {
+    background: #dc2626;
+}
+
+@media (hover: hover) {
+    #dekutron-reload-btn:hover {
+        background: #b91c1c;
+    }
+}
+
+#dekutron-show-error-btn {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+@media (hover: hover) {
+    #dekutron-show-error-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+    }
+}
+
+#dekutron-reload-btn i, #dekutron-show-error-btn i {
+    margin-right: 0.4rem;
+}
+
+#blazor-error-details {
+    display: none;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 1rem;
+    border-radius: 6px;
+    max-width: 80%;
+    max-height: 40vh;
+    overflow: auto;
+    text-align: left;
+    font-size: 0.7rem;
+    font-family: monospace;
+    white-space: pre-wrap;
+    word-break: break-word;
+}

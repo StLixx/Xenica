@@ -1,0 +1,2 @@
+(function(){try{var e=typeof window<"u"?window:typeof global<"u"?global:typeof self<"u"?self:{},n=new Error().stack;n&&(e._sentryDebugIds=e._sentryDebugIds||{},e._sentryDebugIds[n]="092855b2-bf70-4943-b3f0-b820427e72a9",e._sentryDebugIdIdentifier="sentry-dbid-092855b2-bf70-4943-b3f0-b820427e72a9")}catch{}})();function r(e,n){switch(arguments.length){case 0:break;case 1:this.range(e);break;default:this.range(n).domain(e);break}return this}export{r as i};
+//# sourceMappingURL=init-UKB2U-5-.js.map

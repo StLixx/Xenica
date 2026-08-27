@@ -1,0 +1,635 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Orion.Shared</name>
+    </assembly>
+    <members>
+        <member name="M:Orion.Shared.Controllers.AttachmentsController.GetAttachmentAsync(System.Guid,System.Guid)">
+            <summary>
+            Returns details about the attachment
+            </summary>
+            <param name="brainId">The ID of the brain</param>
+            <param name="attachmentId">The ID of the attachment</param>
+        </member>
+        <member name="M:Orion.Shared.Controllers.AttachmentsController.FindAttachmentsByLocationAsync(System.Guid,System.String,TheBrain.Core.Model.AttachmentType)">
+             <summary>
+             Finds attachments in the brain whose location matches the provided value.
+             Works for external URLs, external files, and external directories.
+            
+             For URL attachments (type 3, the default), matching is case-insensitive
+             and ignores the http/https scheme and any trailing slash (so
+             `https://x.com/p`, `http://X.com/p`, and `x.com/p/` all find each other).
+             For file and directory attachments, the location is the file-system path.
+            
+             Useful for de-duplicating web-capture tools or finding every thought
+             that references a given file.
+             </summary>
+             <param name="brainId">The ID of the brain</param>
+             <param name="location">The URL or file path to look up</param>
+             <param name="type">
+             The attachment type: 2 = ExternalFile, 3 = ExternalUrl (default),
+             8 = ExternalDirectory.
+             </param>
+        </member>
+        <member name="M:Orion.Shared.Controllers.AttachmentsController.GetAttachmentContentAsync(System.Guid,System.Guid)">
+            <summary>
+            Returns the binary data for the attachment
+            </summary>
+            <param name="brainId">The ID of the brain</param>
+            <param name="attachmentId">The ID of the attachment</param>
+        </member>
+        <member name="M:Orion.Shared.Controllers.AttachmentsController.DeleteAttachmentAsync(System.Guid,System.Guid)">
+            <summary>
+            Deletes an attachment
+            </summary>
+            <param name="brainId">The ID of the brain</param>
+            <param name="attachmentId">The ID of the attachment</param>
+        </member>
+        <member name="M:Orion.Shared.Controllers.AttachmentsController.AddAttachmentAsync(System.Guid,System.Guid,Microsoft.AspNetCore.Http.IFormFile)">
+            <summary>
+            Adds a new file attachment to a thought
+            </summary>
+            <param name="brainId">The ID of the brain</param>
+            <param name="thoughtId">The ID of the thought to add the attachment to</param>
+            <param name="file">The file to upload</param>
+        </member>
+        <member name="M:Orion.Shared.Controllers.AttachmentsController.AddUrlAsync(System.Guid,System.Guid,System.String,System.String)">
+            <summary>
+            Adds a new URL attachment to a thought
+            </summary>
+            <remarks>
+            Leave `name` empty to automatically set it from the page's title element
+            </remarks>
+            <param name="brainId">The ID of the brain</param>
+            <param name="thoughtId">The ID of the thought to add the attachment to</param>
+            <param name="name">The desired name of the URL attachment</param>
+            <param name="url">The URL for the attachment</param>
+        </member>
+        <member name="M:Orion.Shared.Controllers.BrainAccessController.GetBrainAccessors(System.Guid)">
+            <summary>
+            Returns details about the brain accessors for the specified brain
+            </summary>
+            <param name="brainId">The ID of the brain</param>
+        </member>
+        <member name="M:Orion.Shared.Controllers.BrainAccessController.SetUserAccess(System.Guid,System.String,System.Nullable{System.Guid},System.Int32)">
+            <summary>
+            Sets the brain access level for the specified user
+            </summary>
+            <param name="brainId">The ID of the brain</param>
+            <param name="emailAddress">The email address of the user</param>
+            <param name="userId">The ID of the user</param>
+            <param name="accessType">The access level to give to the user</param>
+        </member>
+        <member name="M:Orion.Shared.Controllers.BrainAccessController.RemoveUserAccess(System.Guid,System.String,System.Nullable{System.Guid})">
+            <summary>
+            Removes a user's access to the specified brain
+            </summary>
+            <param name="brainId">The ID of the brain</param>
+            <param name="emailAddress">The email address of the user</param>
+            <param name="userId">The ID of the user</param>
+        </member>
+        <member name="M:Orion.Shared.Controllers.BrainsController.GetBrainAsync(System.Guid)">
+            <summary>
+            Returns details about one of the active user's brains
+            </summary>
+            <param name="id">The ID of the brain</param>
+        </member>
+        <member name="M:Orion.Shared.Controllers.BrainsController.GetBrainsAsync">
+            <summary>
+            Returns a list of brains for the active user
+            </summary>
+        </member>
+        <member name="M:Orion.Shared.Controllers.BrainsController.CreateBrain(System.String)">
+            <summary>
+            Creates a brain
+            </summary>
+            <param name="brainName">The name of the brain to create</param>
+        </member>
+        <member name="M:Orion.Shared.Controllers.BrainsController.DeleteBrain(System.Guid)">
+            <summary>
+            Deletes a brain
+            </summary>
+            <param name="id">The ID of the brain</param>
+        </member>
+        <member name="M:Orion.Shared.Controllers.BrainsController.GetBrainStatistics(System.Guid)">
+            <summary>
+            Gets statistics about the specified brain
+            </summary>
+            <remarks>
+            `internalFilesSize` and `iconsFilesSize` values are in bytes.
+            </remarks>
+            <param name="id">The ID of the brain</param>
+        </member>
+        <member name="M:Orion.Shared.Controllers.BrainsController.GetBrainModifications(System.Guid,System.Int32,System.Nullable{System.DateTime},System.Nullable{System.DateTime})">
+             <summary>
+             Gets a list of modification logs for the specified brain within a specified date and time range
+             </summary>
+             <remarks>
+             Omit `startTime` and `endTime` values to retrieve **all** modification logs for the specified brain.
+            
+             Provide `startTime` and `endTime` values to return modification logs only within a specific time range.
+            
+             <hr/>
+            
+             Parameters `startTime` and `endTime` accept values formatted as either `date` or `date-time` strings, conforming to [RFC 3339, section 5.6](https://tools.ietf.org/html/rfc3339#section-5.6).
+            
+             **Examples:**
+             - `2017-07-03` (Date only)
+             - `2017-07-03T01:42:28Z` (Date and Time in UTC)
+            
+             <hr/>
+            
+             `modType` values and their corresponding actions:
+            
+             - **Generic Actions:**
+               - 101: Created
+               - 102: Deleted
+               - 103: Changed Name
+               - 104: Created By Paste
+               - 105: Modified By Paste
+            
+             - **Thoughts and Links:**
+               - 201: Changed Color
+               - 202: Changed Label
+               - 203: Set Type
+               - 204: Changed Color2
+               - 205: Created Icon
+               - 206: Deleted Icon
+               - 207: Changed Icon
+               - 208: Changed Field Instance
+               - 209: Created Field Instance
+               - 210: Deleted Field Instance
+            
+             - **Thought Specific:**
+               - 301: Forgot
+               - 302: Remembered
+               - 303: Changed Thought Access Type
+               - 304: Changed Kind
+            
+             - **Link Specific:**
+               - 401: Changed Thickness
+               - 402: Moved Link
+               - 403: Changed Direction
+               - 404: Changed Meaning
+               - 405: Changed Relation
+            
+             - **Attachment Specific:**
+               - 501: Changed Content
+               - 502: Changed Location
+               - 503: Changed Position
+            
+             - **Brain and Brain Setting Specific:**
+               - 601: Changed Setting
+               - 602: Reordered Pins
+            
+             - **Brain Access Specific:**
+               - 701: Changed Brain Access Entry
+            
+             - **Note Specific:**
+               - 801: Created Note
+               - 802: Deleted Note
+               - 803: Changed Note
+               - 804: Deleted Note Asset
+               - 805: Created Note Asset
+               - 806: Changed Note Asset
+               - 807: Deleted Markdown Image
+               - 808: Created Markdown Image
+               - 809: Changed Markdown Image
+               - 810: Deleted Dynamic Wallpaper Image
+               - 811: Created Dynamic Wallpaper Image
+               - 812: Changed Dynamic Wallpaper Image
+            
+             - **Calendar Event Specific:**
+               - 900: Created Calendar Event
+               - 901: Modified Calendar Event
+               - 902: Deleted Calendar Event
+               - 903: Deleted Calendar Event Recurring Instance
+            
+             - **Field Definition Specific:**
+               - 1001: Changed Field Definition
+               - 1002: Created Field Definition
+               - 1003: Deleted Field Definition
+            
+             <hr/>
+            
+             `entityType` values (used by `sourceType`, `extraAType` and `extraBType`)
+            
+               - -1: Unknown
+               - 1: Brain
+               - 2: Thought
+               - 3: Link
+               - 4: Attachment
+               - 5: Brain Setting
+               - 6: Brain Access Entry
+               - 7: Calendar Event
+               - 8: Field Instance
+               - 9: Field Definition
+            
+             </remarks>
+             <param name="brainId">The ID of the brain</param>
+             <param name="startTime">The start of the datetime range, inclusive. Only modification logs that occurred at or after this datetime will be returned.</param>
+             <param name="endTime">The end of the datetime range, inclusive. Only modification logs that occurred at or before this datetime will be returned.</param>
+             <param name="maxLogs">The maximum number of modifications to return in the list, beginning from the `startTime`</param>
+        </member>
+        <member name="M:Orion.Shared.Controllers.LinksController.GetLinkAsync(System.Guid,System.Guid)">
+            <summary>
+            Returns details about the link
+            </summary>
+            <param name="brainId">The ID of the brain</param>
+            <param name="linkId">The ID of the link</param>
+        </member>
+        <member name="M:Orion.Shared.Controllers.LinksController.GetLinkBetweenAsync(System.Guid,System.Guid,System.Guid)">
+            <summary>
+            Gets the link between two thoughts
+            </summary>
+            <param name="brainId">The ID of the brain</param>
+            <param name="thoughtIdA">The ID of the Thought A</param>
+            <param name="thoughtIdB">The ID of the Thought B</param>
+        </member>
+        <member name="M:Orion.Shared.Controllers.LinksController.GetLinkAttachmentsAsync(System.Guid,System.Guid)">
+            <summary>
+            Returns a list of attachments for the link
+            </summary>
+            <param name="brainId">The ID of the brain</param>
+            <param name="linkId">The ID of the link</param>
+        </member>
+        <member name="M:Orion.Shared.Controllers.LinksController.DeleteLinkAsync(System.Guid,System.Guid)">
+            <summary>
+            Deletes a link
+            </summary>
+            <param name="brainId">The ID of the brain</param>
+            <param name="linkId">The ID of the link</param>
+        </member>
+        <member name="M:Orion.Shared.Controllers.LinksController.CreateLinkAsync(System.Guid,Orion.Shared.Model.LinkCreateModel)">
+            <summary>
+            Creates a link
+            </summary>
+            <param name="brainId">The ID of the brain</param>
+            <param name="model">Details of the link to create</param>
+        </member>
+        <member name="M:Orion.Shared.Controllers.LinksController.UpdateLinkAsync(System.Guid,System.Guid,Microsoft.AspNetCore.JsonPatch.JsonPatchDocument{VulcanShared.Model.Orion.LinkDto})">
+            <summary>
+            Updates a link using JSON Patch
+            </summary>
+            <param name="brainId">The ID of the brain</param>
+            <param name="linkId">The ID of the linkId to be updated</param>
+            <param name="patchDocument">The JSON Patch document representing the changes to apply</param>
+        </member>
+        <member name="M:Orion.Shared.Controllers.NotesController.GetNotesAsync(System.Guid,System.Guid)">
+            <summary>
+            Returns the contents of a thought's note as Markdown
+            </summary>
+            <param name="brainId">The ID of the brain</param>
+            <param name="thoughtId">The ID of the thought</param>
+        </member>
+        <member name="M:Orion.Shared.Controllers.NotesController.GetNotesHtmlAsync(System.Guid,System.Guid)">
+            <summary>
+            Returns the contents of a thought's note as HTML
+            </summary>
+            <param name="brainId">The ID of the brain</param>
+            <param name="thoughtId">The ID of the thought</param>
+        </member>
+        <member name="M:Orion.Shared.Controllers.NotesController.GetNotesTextAsync(System.Guid,System.Guid)">
+            <summary>
+            Returns the contents of a thought's note as raw text
+            </summary>
+            <param name="brainId">The ID of the brain</param>
+            <param name="thoughtId">The ID of the thought</param>
+        </member>
+        <member name="M:Orion.Shared.Controllers.NotesController.CreateOrUpdateNoteAsync(System.Guid,System.Guid,Orion.Shared.Model.NotesUpdateModel)">
+            <summary>
+            Create or update a thought's note
+            </summary>
+            <param name="brainId">The ID of the brain</param>
+            <param name="thoughtId">The ID of the thought</param>
+            <param name="notesModel">The new Markdown text to update the note with</param>
+        </member>
+        <member name="M:Orion.Shared.Controllers.NotesController.AppendToNoteAsync(System.Guid,System.Guid,Orion.Shared.Model.NotesUpdateModel)">
+            <summary>
+            Append to a thought's note
+            </summary>
+            <param name="brainId">The ID of the brain</param>
+            <param name="thoughtId">The ID of the thought</param>
+            <param name="notesModel">The new Markdown text to append to the note</param>
+        </member>
+        <member name="M:Orion.Shared.Controllers.NotesImagesController.GetAttachmentContentAsync(System.Guid,System.String,System.String)">
+            <summary>
+            This method does not require authorization and instead uses a token that expires to validate that this is a valid request.
+            </summary>
+        </member>
+        <member name="M:Orion.Shared.Controllers.OrionControllerBase.UseBrainContextAsync(System.Guid,System.Func{TheBrain.Client.BrainContext,System.Threading.Tasks.Task{Microsoft.AspNetCore.Mvc.IActionResult}},System.Boolean,System.String)">
+            <summary>
+            Get a BrainContext for the requested brain. BrainContext is automatically released. Uses the current authenticated user by default.
+            </summary>
+        </member>
+        <member name="M:Orion.Shared.Controllers.SearchController.PerformSearchAsync(System.Guid,System.String,System.Int32,System.Boolean)">
+            <summary>
+            Returns search results from a brain
+            </summary>
+            <remarks>
+            Newly added content may take up to 15 seconds to be indexed.
+            </remarks>
+            <param name="brainId">The ID of the brain</param>
+            <param name="queryText">The string to search for</param>
+            <param name="maxResults">The maximum amount of search results to return</param>
+            <param name="onlySearchThoughtNames">Whether to only search in thought names</param>
+        </member>
+        <member name="M:Orion.Shared.Controllers.SearchController.PerformSearchInPublicBrainsAsync(System.String,System.Int32,System.Boolean,System.Collections.Generic.List{System.Guid})">
+            <summary>
+            Returns search results from all public brains
+            </summary>
+            <remarks>
+            Newly added content may take up to 15 seconds to be indexed.
+            </remarks>
+            <param name="queryText">The string to search for</param>
+            <param name="maxResults">The maximum amount of search results to return</param>
+            <param name="onlySearchThoughtNames">Whether to only search in thought names</param>
+            <param name="excludeBrainIds">Brain IDs to exclude from the search results</param>
+        </member>
+        <member name="M:Orion.Shared.Controllers.SearchController.PerformSearchInAccessibleBrainsAsync(System.String,System.Int32,System.Boolean)">
+            <summary>
+            Returns search results from all brains with user access
+            </summary>
+            <remarks>
+            Newly added content may take up to 15 seconds to be indexed.
+            </remarks>
+            <param name="queryText">The string to search for</param>
+            <param name="maxResults">The maximum amount of search results to return</param>
+            <param name="onlySearchThoughtNames">Whether to only search in thought names</param>
+        </member>
+        <member name="M:Orion.Shared.Controllers.ThoughtsController.GetThoughtAsync(System.Guid,System.Guid)">
+             <summary>
+             Returns details about the thought
+             </summary>
+             <remarks>
+             Thought properties and values:
+            
+                 Guid 'id' - The ID of the thought
+                 Guid 'brainId' - The ID of the brain containing the thought
+                 Guid 'typeId' - The ID of the thought type
+            
+                 DateTime 'creationDateTime' - The DateTime that the thought was created at
+                 DateTime 'modificationDateTime' - The DateTime that the thought was last modified at
+                 DateTime 'forgottenDateTime' - The DateTime that the thought was forgotten at
+                 DateTime 'linksModificationDateTime' - The DateTime that the thought's links were last modified at
+            
+                 string 'name' - The Name of the thought
+                 string 'label' - The Label of the thought
+                 string 'foregroundColor' - The RGB hexadecimal color of the thought's foreground color (Ex: '#ff7145')
+                 string 'backgroundColor' - The RGB hexadecimal color of the thought's background color (Ex: '#ff7145')
+            
+                 int 'acType' - The access type of the thought
+                      Public = 0
+                      Private = 1
+            
+                 int 'kind' - The kind of thought
+                      Normal = 1
+                      Type = 2
+                      Event = 3
+                      Tag = 4
+                      System = 5
+            
+            
+             </remarks>
+             <param name="brainId">The ID of the brain</param>
+             <param name="thoughtId">The ID of the thought</param>
+        </member>
+        <member name="M:Orion.Shared.Controllers.ThoughtsController.GetThoughtGraphAsync(System.Guid,System.Guid,System.Boolean)">
+            <summary>
+            Returns the thought and its attachments, links, and related thoughts
+            </summary>
+            <param name="brainId">The ID of the brain</param>
+            <param name="thoughtId">The ID of the thought</param>
+            <param name="includeSiblings">Whether sibling thoughts are included</param>
+        </member>
+        <member name="M:Orion.Shared.Controllers.ThoughtsController.GetThoughtAttachmentsAsync(System.Guid,System.Guid)">
+            <summary>
+            Returns a list of attachments for the thought
+            </summary>
+            <param name="brainId">The ID of the brain</param>
+            <param name="thoughtId">The ID of the thought</param>
+        </member>
+        <member name="M:Orion.Shared.Controllers.ThoughtsController.SearchAsync(System.Guid,System.String)">
+            <summary>
+            Returns the first thought matching the name exactly
+            </summary>
+            <param name="brainId">The ID of the brain</param>
+            <param name="nameExact">The exact name of the thought</param>
+        </member>
+        <member name="M:Orion.Shared.Controllers.ThoughtsController.UpdateThoughtAsync(System.Guid,System.Guid,Microsoft.AspNetCore.JsonPatch.JsonPatchDocument{VulcanShared.Model.Orion.ThoughtDto})">
+             <summary>
+             Updates a thought using JSON Patch
+             </summary>
+             <remarks>
+             Thought properties and expected values:
+            
+                 Guid 'typeId' (Optional) - The ID of the thought type
+            
+                 string 'name' - The Name of the thought
+                 string 'label' (Optional)  - The Label of the thought
+                 string 'foregroundColor' (Optional)  - The RGB hexadecimal color of the thought's foreground color (Ex: '#ff7145')
+                 string 'backgroundColor' (Optional)  - The RGB hexadecimal color of the thought's background color (Ex: '#ff7145')
+            
+                 int 'acType' - The access type of the thought
+                      Public = 0
+                      Private = 1
+            
+                 int 'kind' - The kind of thought
+                      Normal = 1
+                      Type = 2
+                      Event = 3
+                      Tag = 4
+                      System = 5
+            
+             </remarks>
+             <param name="brainId">The ID of the brain</param>
+             <param name="thoughtId">The ID of the thought to be updated</param>
+             <param name="patchDocument">The JSON Patch document representing the changes to apply</param>
+        </member>
+        <member name="M:Orion.Shared.Controllers.ThoughtsController.DeleteThoughtAsync(System.Guid,System.Guid)">
+            <summary>
+            Deletes the specified thought
+            </summary>
+            <param name="brainId">The ID of the brain</param>
+            <param name="thoughtId">The ID of the thought</param>
+        </member>
+        <member name="M:Orion.Shared.Controllers.ThoughtsController.CreateThoughtAsync(System.Guid,Orion.Shared.Model.ThoughtCreateModel)">
+             <summary>
+             Creates a thought
+             </summary>
+             <remarks>
+             Thought properties and expected values:
+            
+                 string 'name' - The Name of the thought
+                 string 'label' (Optional) - The Label of the thought
+            
+                 Guid 'sourceThoughtId' (Optional)  - The ID of source thought. Exclude to create an Orphan thought
+                 Guid 'typeId' (Optional)  - The ID of the thought type
+            
+                 int 'acType' - The access type of the thought
+                      Public = 0
+                      Private = 1
+            
+                 int 'kind' - The kind of thought
+                      Normal = 1
+                      Type = 2
+                      Event = 3
+                      Tag = 4
+                      System = 5
+            
+                 int 'relation' - The relationship of the created thought to the source thought
+                      Child = 1
+                      Parent = 2
+                      Jump = 3
+                      Sibling = 4
+            
+             </remarks>
+             <param name="brainId">The ID of the brain</param>
+             <param name="model">Details of the thought to create</param>
+        </member>
+        <member name="M:Orion.Shared.Controllers.ThoughtsController.PinThoughtAsync(System.Guid,System.Guid)">
+            <summary>
+            Pins the specified thought
+            </summary>
+            <param name="brainId">The ID of the brain</param>
+            <param name="thoughtId">The ID of the thought</param>
+        </member>
+        <member name="M:Orion.Shared.Controllers.ThoughtsController.RemovePinnedThoughtAsync(System.Guid,System.Guid)">
+            <summary>
+             Un-pins the specified thought
+            </summary>
+            <param name="brainId">The ID of the brain</param>
+            <param name="thoughtId">The ID of the thought</param>
+        </member>
+        <member name="M:Orion.Shared.Controllers.ThoughtsController.GetPinnedThoughtsAsync(System.Guid)">
+            <summary>
+             Gets a list of all pinned thoughts in a brain
+            </summary>
+            <param name="brainId">The ID of the brain</param>
+        </member>
+        <member name="M:Orion.Shared.Controllers.ThoughtsController.GetBrainModificationsAsync(System.Guid,System.Guid,System.Int32,System.Boolean)">
+             <summary>
+             Gets a list of modification logs for the specified thought
+             </summary>
+             <remarks>
+             `modType` values and their corresponding actions:
+            
+             - **Generic Actions:**
+               - 101: Created
+               - 102: Deleted
+               - 103: Changed Name
+               - 104: Created By Paste
+               - 105: Modified By Paste
+            
+             - **Thoughts and Links:**
+               - 201: Changed Color
+               - 202: Changed Label
+               - 203: Set Type
+               - 204: Changed Color2
+               - 205: Created Icon
+               - 206: Deleted Icon
+               - 207: Changed Icon
+               - 208: Changed Field Instance
+               - 209: Created Field Instance
+               - 210: Deleted Field Instance
+            
+             - **Thought Specific:**
+               - 301: Forgot
+               - 302: Remembered
+               - 303: Changed Thought Access Type
+               - 304: Changed Kind
+            
+             - **Link Specific:**
+               - 401: Changed Thickness
+               - 402: Moved Link
+               - 403: Changed Direction
+               - 404: Changed Meaning
+               - 405: Changed Relation
+            
+             - **Attachment Specific:**
+               - 501: Changed Content
+               - 502: Changed Location
+               - 503: Changed Position
+            
+             - **Brain and Brain Setting Specific:**
+               - 601: Changed Setting
+               - 602: Reordered Pins
+            
+             - **Brain Access Specific:**
+               - 701: Changed Brain Access Entry
+            
+             - **Note Specific:**
+               - 801: Created Note
+               - 802: Deleted Note
+               - 803: Changed Note
+               - 804: Deleted Note Asset
+               - 805: Created Note Asset
+               - 806: Changed Note Asset
+               - 807: Deleted Markdown Image
+               - 808: Created Markdown Image
+               - 809: Changed Markdown Image
+               - 810: Deleted Dynamic Wallpaper Image
+               - 811: Created Dynamic Wallpaper Image
+               - 812: Changed Dynamic Wallpaper Image
+            
+             - **Calendar Event Specific:**
+               - 900: Created Calendar Event
+               - 901: Modified Calendar Event
+               - 902: Deleted Calendar Event
+               - 903: Deleted Calendar Event Recurring Instance
+            
+             - **Field Definition Specific:**
+               - 1001: Changed Field Definition
+               - 1002: Created Field Definition
+               - 1003: Deleted Field Definition
+            
+             <hr/>
+            
+             `entityType` values (used by `sourceType`, `extraAType` and `extraBType`)
+            
+               - -1: Unknown
+               - 1: Brain
+               - 2: Thought
+               - 3: Link
+               - 4: Attachment
+               - 5: Brain Setting
+               - 6: Brain Access Entry
+               - 7: Calendar Event
+               - 8: Field Instance
+               - 9: Field Definition
+            
+             </remarks>
+             <param name="brainId">The ID of the brain</param>
+             <param name="thoughtId">The ID of the thought</param>
+             <param name="maxLogs">The maximum number of modifications to return in the list, beginning from the `startTime`</param>
+             <param name="includeRelatedLogs">Whether to include modifications to links that were a result of modifying a thought</param>
+        </member>
+        <member name="M:Orion.Shared.Controllers.ThoughtsController.GetTypesInBrainAsync(System.Guid)">
+            <summary>
+            Gets a list of all Types in a specified brain
+            </summary>
+            <param name="brainId">The ID of the brain</param>
+        </member>
+        <member name="M:Orion.Shared.Controllers.ThoughtsController.GetTypeTreeAsync(System.Guid)">
+            <summary>
+            Gets a list of all Tags in a specified brain
+            </summary>
+            <param name="brainId">The ID of the brain</param>
+        </member>
+        <member name="M:Orion.Shared.Controllers.UsersController.GetOrganizationMembers">
+            <summary>
+            Returns details about the active user's TeamBrain Organization members
+            </summary>
+        </member>
+        <member name="M:Orion.Shared.OrionSwaggerConfiguration.AddOrionSecurity(Swashbuckle.AspNetCore.SwaggerGen.SwaggerGenOptions)">
+            <summary>
+            Configures the common Swagger security definition and requirements for Bearer token auth.
+            </summary>
+        </member>
+        <member name="M:Orion.Shared.OrionSwaggerConfiguration.AddOrionXmlComments(Swashbuckle.AspNetCore.SwaggerGen.SwaggerGenOptions)">
+            <summary>
+            Includes XML comments from the Orion.Shared assembly if the file exists.
+            </summary>
+        </member>
+    </members>
+</doc>

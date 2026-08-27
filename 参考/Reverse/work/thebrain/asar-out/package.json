@@ -1,0 +1,25 @@
+{
+  "name": "com.thebrain.dekutron",
+  "productName": "TheBrain",
+  "description": "TheBrain Desktop Application",
+  "version": "15.0.571",
+  "main": "main.js",
+  "author": {
+    "name": "TheBrain Technologies"
+  },
+  "license": "Proprietary",
+  "executable": "Dekutron",
+  "singleInstance": true,
+  "homepage": "",
+  "splashscreen": {
+    "imageFile": "splash.html"
+  },
+  "dependencies": {
+    "dasherize": "^2.0.0",
+    "electron-host-hook": "file:./ElectronHostHook",
+    "electron-updater": "^6.6.2",
+    "image-size": "^1.2.1",
+    "portscanner": "^2.2.0",
+    "socket.io": "^4.8.1"
+  }
+}

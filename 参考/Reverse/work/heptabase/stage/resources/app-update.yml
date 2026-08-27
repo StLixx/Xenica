@@ -1,0 +1,6 @@
+owner: heptameta
+repo: project-meta
+provider: github
+updaterCacheDirName: project-meta-updater
+publisherName:
+  - Hepta Platforms, Inc

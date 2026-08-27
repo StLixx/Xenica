@@ -1,0 +1,1 @@
+"use strict";var _BaseError=require("../utils/BaseError");Object.defineProperty(exports,"__esModule",{value:!0}),exports.CliHandlerError=void 0;class CliHandlerError extends _BaseError.BaseError{constructor(a,b){super(a,b),this.name="CliHandlerError",this.statusCode=b.statusCode}}exports.CliHandlerError=CliHandlerError;

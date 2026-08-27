@@ -1,0 +1,1543 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    :root {
+        /*
+         * LIGHT MODE - Generated from seed colors:
+         *   Background: #f9fbff (249, 251, 255)
+         *   Foreground: #171b24 (23, 27, 36)
+         *   Accent:     #1D4ED8 (29, 78, 216)
+         * See docs/RegeneratingCssDefaults.md to regenerate these values.
+         */
+        /* ===== vapp Surfaces ===== */
+        --vapp-bg-app             : 223 225 229;
+        --vapp-surface-translucent: 223 225 229 / 50%;
+        --vapp-surface-1          : 229 231 235;
+        --vapp-surface-2          : 236 238 242;
+        --vapp-surface-3          : 243 245 249;
+        --vapp-elevated-1         : 243 247 254;
+        --vapp-elevated-2         : 246 251 255;
+        --vapp-elevated-3         : 246 253 255;
+        --vapp-elevated-4         : 247 255 255;
+
+        /* ===== vapp Borders ===== */
+        --vapp-border-translucent : 215 218 225 / 70%;
+        --vapp-border-default     : 215 218 225;
+        --vapp-border-strong      : 201 205 215;
+        --vapp-border-subtle      : 236 238 243;
+        --vapp-border-focus       : 29 78 216;
+
+        /* ===== vapp Text ===== */
+        --vapp-text-primary       : 23 27 36;
+        --vapp-text-secondary     : 58 64 77;
+        --vapp-text-muted         : 98 106 123;
+        --vapp-text-dim           : 106 112 127;
+        --vapp-text-on-accent     : 255 255 255;
+
+        /* ===== vapp Icons ===== */
+        --vapp-icon-default       : 98 106 123;
+        --vapp-icon-hover         : 23 27 36;
+        --vapp-icon-active        : 29 78 216;
+        --vapp-icon-dim           : 106 112 127;
+
+        /* ===== vapp Buttons ===== */
+        --vapp-btn-bg-hover       : 229 231 235;
+        --vapp-btn-bg-selected    : 239 241 245;
+        --vapp-btn-bg-active      : 29 78 216 / 12%;
+
+        /* ===== vapp Scrollbar ===== */
+        --vapp-scrollbar-thumb       : 182 186 195;
+        --vapp-scrollbar-thumb-hover : 58 64 77;
+
+        /* ===== vapp Effects ===== */
+        --vapp-glow-accent        : 29 78 216 / 20%;
+        --vapp-glow-secondary     : 0 125 153 / 12%;
+        --vapp-shadow-elevated    : 0 0 0 / 12%;
+
+        /* ===== vapp Accent ===== */
+        --vapp-accent-primary     : 29 78 216;
+        --vapp-accent-secondary   : 0 125 153;
+        --vapp-accent-decorative  : 114 0 170;
+
+        /* ===== vapp Fixed Accents ===== */
+        --vapp-accent-success     : 0 139 91;
+        --vapp-accent-notice      : 176 150 0;
+        --vapp-accent-warning     : 202 123 0;
+        --vapp-accent-danger      : 194 23 37;
+
+        /* ===== vusr Surfaces ===== */
+        --vusr-bg-app             : 223 225 229;
+        --vusr-surface-1          : 229 231 235;
+        --vusr-surface-2          : 236 238 242;
+        --vusr-surface-3          : 243 245 249;
+        --vusr-elevated-1         : 243 247 254;
+        --vusr-elevated-2         : 246 251 255;
+        --vusr-elevated-3         : 246 253 255;
+        --vusr-elevated-4         : 247 255 255;
+
+        /* ===== vusr Borders ===== */
+        --vusr-border-default     : 215 218 225;
+        --vusr-border-strong      : 201 205 215;
+        --vusr-border-subtle      : 236 238 243;
+        --vusr-border-focus       : 29 78 216;
+
+        /* ===== vusr Text ===== */
+        --vusr-text-primary       : 23 27 36;
+        --vusr-text-secondary     : 58 64 77;
+        --vusr-text-muted         : 98 106 123;
+        --vusr-text-dim           : 106 112 127;
+        --vusr-text-on-accent     : 255 255 255;
+
+        /* ===== vusr Icons ===== */
+        --vusr-icon-default       : 98 106 123;
+        --vusr-icon-hover         : 23 27 36;
+        --vusr-icon-active        : 29 78 216;
+        --vusr-icon-dim           : 106 112 127;
+
+        /* ===== vusr Buttons ===== */
+        --vusr-btn-bg-hover       : 229 231 235;
+        --vusr-btn-bg-selected    : 239 241 245;
+        --vusr-btn-bg-active      : 29 78 216 / 12%;
+
+        /* ===== vusr Scrollbar ===== */
+        --vusr-scrollbar-thumb       : 182 186 195;
+        --vusr-scrollbar-thumb-hover : 58 64 77;
+
+        /* ===== vusr Effects ===== */
+        --vusr-glow-accent        : 29 78 216 / 20%;
+        --vusr-glow-secondary     : 0 125 153 / 12%;
+        --vusr-shadow-elevated    : 0 0 0 / 12%;
+
+        /* ===== vusr Accent ===== */
+        --vusr-accent-primary     : 29 78 216;
+        --vusr-accent-secondary   : 0 125 153;
+        --vusr-accent-decorative  : 114 0 170;
+
+        /* ===== vusr Fixed Accents ===== */
+        --vusr-accent-success     : 0 139 91;
+        --vusr-accent-notice      : 176 150 0;
+        --vusr-accent-warning     : 202 123 0;
+        --vusr-accent-danger      : 194 23 37;
+    }
+
+    .dark {
+        /*
+         * DARK MODE - Generated from seed colors:
+         *   Background: #11151C (17, 21, 28)
+         *   Foreground: #E1EBFF (225, 235, 255)
+         *   Accent:     #5789FF (87, 137, 255)
+         * See docs/RegeneratingCssDefaults.md to regenerate these values.
+         */
+        /* ===== vapp Surfaces ===== */
+        --vapp-bg-app             : 2 4 8;
+        --vapp-surface-translucent: 2 4 8 / 50%;
+        --vapp-surface-1          : 5 8 14;
+        --vapp-surface-2          : 11 14 21;
+        --vapp-surface-3          : 17 21 28;
+        --vapp-elevated-1         : 25 30 40;
+        --vapp-elevated-2         : 33 40 52;
+        --vapp-elevated-3         : 39 50 68;
+        --vapp-elevated-4         : 43 60 89;
+
+        /* ===== vapp Borders ===== */
+        --vapp-border-translucent : 37 45 58 / 70%;
+        --vapp-border-default     : 37 45 58;
+        --vapp-border-strong      : 48 57 73;
+        --vapp-border-subtle      : 27 33 42;
+        --vapp-border-focus       : 87 137 255;
+
+        /* ===== vapp Text ===== */
+        --vapp-text-primary       : 225 235 255;
+        --vapp-text-secondary     : 159 171 194;
+        --vapp-text-muted         : 114 127 152;
+        --vapp-text-dim           : 113 127 155;
+        --vapp-text-on-accent     : 255 255 255;
+
+        /* ===== vapp Icons ===== */
+        --vapp-icon-default       : 114 127 152;
+        --vapp-icon-hover         : 225 235 255;
+        --vapp-icon-active        : 87 137 255;
+        --vapp-icon-dim           : 113 127 155;
+
+        /* ===== vapp Buttons ===== */
+        --vapp-btn-bg-hover       : 33 40 52;
+        --vapp-btn-bg-selected    : 25 30 40;
+        --vapp-btn-bg-active      : 87 137 255 / 25%;
+
+        /* ===== vapp Scrollbar ===== */
+        --vapp-scrollbar-thumb       : 61 71 87;
+        --vapp-scrollbar-thumb-hover : 156 171 200;
+
+        /* ===== vapp Effects ===== */
+        --vapp-glow-accent        : 87 137 255 / 25%;
+        --vapp-glow-secondary     : 0 199 225 / 15%;
+        --vapp-shadow-elevated    : 0 0 0 / 40%;
+
+        /* ===== vapp Accent ===== */
+        --vapp-accent-primary     : 87 137 255;
+        --vapp-accent-secondary   : 0 199 225;
+        --vapp-accent-decorative  : 141 58 192;
+
+        /* ===== vapp Fixed Accents ===== */
+        --vapp-accent-success     : 0 180 129;
+        --vapp-accent-notice      : 232 198 40;
+        --vapp-accent-warning     : 245 164 0;
+        --vapp-accent-danger      : 233 70 70;
+
+        /* ===== vusr Surfaces ===== */
+        --vusr-bg-app             : 2 4 8;
+        --vusr-surface-1          : 5 8 14;
+        --vusr-surface-2          : 11 14 21;
+        --vusr-surface-3          : 17 21 28;
+        --vusr-elevated-1         : 25 30 40;
+        --vusr-elevated-2         : 33 40 52;
+        --vusr-elevated-3         : 39 50 68;
+        --vusr-elevated-4         : 43 60 89;
+
+        /* ===== vusr Borders ===== */
+        --vusr-border-default     : 37 45 58;
+        --vusr-border-strong      : 48 57 73;
+        --vusr-border-subtle      : 27 33 42;
+        --vusr-border-focus       : 87 137 255;
+
+        /* ===== vusr Text ===== */
+        --vusr-text-primary       : 225 235 255;
+        --vusr-text-secondary     : 159 171 194;
+        --vusr-text-muted         : 114 127 152;
+        --vusr-text-dim           : 113 127 155;
+        --vusr-text-on-accent     : 255 255 255;
+
+        /* ===== vusr Icons ===== */
+        --vusr-icon-default       : 114 127 152;
+        --vusr-icon-hover         : 225 235 255;
+        --vusr-icon-active        : 87 137 255;
+        --vusr-icon-dim           : 113 127 155;
+
+        /* ===== vusr Buttons ===== */
+        --vusr-btn-bg-hover       : 33 40 52;
+        --vusr-btn-bg-selected    : 25 30 40;
+        --vusr-btn-bg-active      : 87 137 255 / 9%;
+
+        /* ===== vusr Scrollbar ===== */
+        --vusr-scrollbar-thumb       : 61 71 87;
+        --vusr-scrollbar-thumb-hover : 156 171 200;
+
+        /* ===== vusr Effects ===== */
+        --vusr-glow-accent        : 87 137 255 / 25%;
+        --vusr-glow-secondary     : 0 199 225 / 15%;
+        --vusr-shadow-elevated    : 0 0 0 / 40%;
+
+        /* ===== vusr Accent ===== */
+        --vusr-accent-primary     : 87 137 255;
+        --vusr-accent-secondary   : 0 199 225;
+        --vusr-accent-decorative  : 141 58 192;
+
+        /* ===== vusr Fixed Accents ===== */
+        --vusr-accent-success     : 0 180 129;
+        --vusr-accent-notice      : 232 198 40;
+        --vusr-accent-warning     : 245 164 0;
+        --vusr-accent-danger      : 233 70 70;
+    }
+
+	/*
+	 * Remove focus outline from elements with tabindex="-1".
+	 * These elements are only focusable programmatically (not via keyboard navigation),
+	 * so they shouldn't display a focus ring. This prevents the browser's default
+	 * :focus-visible outline from appearing on containers that receive focus via JS
+	 * (e.g., dialog content areas when no input element is available to focus).
+	 */
+	[tabindex="-1"]:focus,
+	[tabindex="-1"]:focus-visible {
+		outline: none;
+	}
+}
+
+@layer components {
+	
+	::selection {
+		background: rgb(var(--vapp-accent-primary) / 40%);
+	}
+	
+    /* classes applies to the body tag and thus affecting everything - add things here that should be the defaults so they don't have to repeated */
+    .body {
+        @apply bg-vapp-bg-app text-vapp-text-primary transition-colors ease-out duration-300;
+        /* Prevent unwanted text selection globally (especially on macOS) */
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+        /* Prevent touch callout menu on mobile */
+        -webkit-touch-callout: none;
+    }
+	
+	/* Render all solid icons in the outline (regular) style.
+	   html prefix beats FA's own .fas rule, since venus.css loads before all.min.css */
+	html .fas,
+	html .fa-solid {
+	  --fa-style: 400;
+	}
+	
+    /* Buttons */
+    .btn {
+        @apply flex items-center justify-center w-full cursor-pointer rounded-md border border-vapp-border-strong px-3 py-1 text-vapp-text-secondary hover:text-vapp-text-primary bg-vapp-elevated-3 hover:bg-vapp-btn-active shadow focus:outline-none focus:ring-2 focus:ring-vapp-border-focus focus:ring-offset-2 sm:px-6 text-center transition-colors ease-out;
+        -webkit-user-select: none !important;
+        -moz-user-select: none !important;
+        -ms-user-select: none !important;
+        user-select: none !important;
+        /* Prevent touch callout menu on mobile */
+        -webkit-touch-callout: none !important;
+    }
+    
+    /* Fontawesome sets line height to 1 which makes buttons without any text in them shorter. This override makes all buttons the same height. */
+    .btn i {
+        line-height: 1.5;
+    }
+
+    .btn-default {
+        @apply btn bg-vapp-accent-primary hover:bg-vapp-accent-primary/80 text-vapp-text-on-accent hover:text-vapp-text-on-accent;
+    }
+    
+    .btn-quiet {
+        @apply btn bg-transparent border-vapp-border-subtle text-vapp-text-primary;
+    }
+    
+    .btn-danger {
+        @apply btn bg-vapp-accent-danger hover:bg-vapp-accent-danger/80 text-vapp-text-on-accent hover:text-vapp-text-on-accent;
+    }
+
+    .btn-warning {
+        @apply btn bg-vapp-accent-warning hover:bg-vapp-accent-warning/80 text-vapp-text-on-accent hover:text-vapp-text-on-accent;
+    }
+
+    .btn-success {
+        @apply btn bg-vapp-accent-success hover:bg-vapp-accent-success/80 text-vapp-text-on-accent hover:text-vapp-text-on-accent;
+    }
+
+    .btn-featured {
+        @apply btn bg-vapp-accent-primary text-vapp-text-on-accent hover:bg-vapp-accent-primary/80 hover:text-vapp-text-on-accent transition-colors duration-75 ease-out
+    }
+
+    .btn-toolbar {
+        @apply btn w-auto py-0;
+    }
+
+    .btn-default-toolbar {
+        @apply btn-default w-auto py-0;
+    }
+    
+    /* for a set of buttons, one of which can be selected at a time */
+    .btn-set {
+        @apply cursor-pointer bg-vapp-btn-selected hover:bg-vapp-btn-hover hover:text-vapp-text-on-accent
+    }
+    .btn-set-selected {
+        @apply bg-vapp-btn-active text-vapp-text-on-accent
+    }
+
+    .text-link {
+        @apply cursor-pointer text-vapp-accent-primary
+    }
+
+    /* Other small controls */
+
+    .control-row-label {
+        @apply mb-1 block text-xs font-light text-vapp-text-muted
+    }
+
+    .select {
+        @apply block w-full pl-3 pr-10 py-2 text-base border border-vapp-border-strong focus:outline-none focus:ring-vapp-border-focus focus:border-vapp-border-focus sm:text-sm rounded-md;
+    }
+
+    .text-input {
+        /* Note: text-base ensures that the text size is 1 rem. On iOS if text is any smaller, a zoom is performed when focussing on the text input box. */
+        @apply py-1 shadow-sm bg-vapp-elevated-3 focus:ring-vapp-border-focus focus:border-vapp-border-focus block w-full text-base border-vapp-border-strong rounded-md transition-colors ease-out duration-300 placeholder:text-vapp-text-dim;
+        transition: width ease-out 200ms, margin ease-out 200ms, margin-left ease-out 200ms, margin-right ease-out 200ms, box-shadow ease-out 200ms, color ease-out 200ms, background-color ease-out 200ms, border-color ease-out 200ms;
+    }
+
+    .text-input-invalid {
+        @apply text-input text-vapp-accent-danger;
+    }
+
+    .inline-code {
+        @apply text-[85%] font-mono bg-vapp-surface-3 px-0.5 py-0.5 border border-vapp-border rounded
+    }
+
+    .inline-code-quiet {
+        @apply text-[85%] font-mono px-0.5 py-0.5 border border-vapp-border rounded
+    }
+
+    .block-code {
+        @apply text-[85%] font-mono bg-vapp-surface-3 px-2 py-2 border border-vapp-border rounded
+    }
+    
+    .shadowed-box {
+        @apply bg-vapp-elevated-1 border border-vapp-border-subtle hover:border-vapp-border-focus ring-2 ring-transparent hover:ring-vapp-border-focus shadow-[0_10px_15px_-3px_rgb(var(--vapp-shadow-elevated)),_0_4px_6px_-4px_rgb(var(--vapp-shadow-elevated))]
+    }
+
+    .shadowed-box-highlighted {
+        @apply bg-vapp-elevated-1 border border-vapp-border-focus ring-2 ring-vapp-border-focus shadow-[0_10px_15px_-3px_rgb(var(--vapp-shadow-elevated)),_0_4px_6px_-4px_rgb(var(--vapp-shadow-elevated))]
+    }
+
+    .past-thoughts-list, .pinned-thoughts-list {
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+    .past-thoughts-list, .pinned-thoughts-list::-webkit-scrollbar {
+        display: none;
+    }
+    .past-thoughts-list > *, .pinned-thoughts-list > * {
+        flex-shrink: 0;
+    }
+    
+    /* glow and shadow depending on light or dark mode, respectively */
+    .outer-glow {
+        text-shadow: 0 0 4px white, 0 0 4px white, 1px 1px 2px white, -1px -1px 2px white;
+    }
+    
+    .dark .outer-glow {
+        text-shadow: 0 0 4px black, 0 0 4px black, 1px 1px 2px black, -1px -1px 2px black;
+    }
+
+    [type='checkbox'] {
+        border-radius: 0.25rem;
+        @apply bg-vapp-surface-1 border-vapp-border-strong transition ease-out duration-300;
+    }
+
+    [type='checkbox']:checked {
+        @apply bg-vapp-accent-primary ;
+    }
+
+    [type='checkbox']:checked:hover, [type='checkbox']:checked:focus {
+        @apply bg-vapp-accent-primary border-vapp-border;
+    }
+
+    [type='checkbox']:focus {
+        box-shadow: none;
+    }
+    
+    /*Invert the "eyeball" icon in password fields for dark mode*/
+    input[type="password"]::-ms-reveal {
+       @apply dark:invert; 
+    }
+
+    /********** Range Input Styles **********/
+    /*Range Reset*/
+    input[type="range"] {
+        -webkit-appearance: none;
+        appearance: none;
+        background: transparent;
+        cursor: pointer;
+    }
+
+    /* Removes default focus */
+    input[type="range"]:focus {
+        outline: none;
+    }
+
+    /***** Chrome, Safari, Opera and Edge Chromium styles *****/
+    /* slider track */
+    input[type="range"]::-webkit-slider-runnable-track {
+        @apply bg-vapp-border-strong rounded-lg h-1;
+    }
+
+    /* slider thumb */
+    input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none; /* Override default look */
+        appearance: none;
+        margin-top: -5px; /* Centers thumb on the track */
+
+        /*custom styles*/
+        @apply h-3.5 w-3.5 bg-vapp-surface-3 outline outline-1 outline-vapp-border-strong rounded-full;
+    }
+
+    /******** Firefox styles ********/
+    /* slider track */
+    input[type="range"]::-moz-range-track {
+        @apply bg-vapp-border-strong rounded-lg h-1;
+    }
+
+    /* slider thumb */
+    input[type="range"]::-moz-range-thumb {
+        border: none; /*Removes extra border that FF applies*/
+        border-radius: 0; /*Removes default border-radius that FF applies*/
+
+        /*custom styles*/
+        @apply h-3 w-3 bg-vapp-surface-3 outline outline-1 outline-vapp-border-strong rounded-full;
+    }
+    
+    input[type="radio"] {
+       @apply bg-vapp-surface-1 border-vapp-border-strong transition ease-out duration-150
+    }
+
+    input[type="radio"]:focus,
+    input[type="radio"]:checked,
+    input[type="radio"]:checked:hover,
+    input[type="radio"]:checked:focus {
+        box-shadow: none;
+        outline: none;
+        @apply bg-vapp-accent-primary;
+    }
+
+    .keyboard-selected {
+        @apply flex items-center relative bg-vapp-btn-selected rounded shadow-[inset_4px_0_0_rgb(var(--vapp-accent-primary))];
+    }
+
+    .keyboard-selected > .btn-quiet, .keyboard-selected > .btn, .keyboard-selected > .btn-default {
+        @apply bg-vapp-accent-primary text-vapp-text-on-accent;
+    }
+
+    /* In horizontal button rows (e.g. alert dialogs) the wrapper hugs a rounded button, so the
+       list-row background and inset accent stripe would peek out around the button's corners */
+    [keyboard-selectable-button-row] .keyboard-selected {
+        @apply bg-transparent shadow-none;
+    }
+
+    /* Focused buttons in a button row (e.g. dialog cancel/submit reached via Tab or arrow keys)
+       use the same accent highlight as keyboard-selected alert buttons instead of a focus ring */
+    [keyboard-selectable-button-row] .btn:focus, [keyboard-selectable-button-row] .btn-default:focus {
+        @apply bg-vapp-accent-primary text-vapp-text-on-accent ring-0 ring-offset-0;
+    }
+
+    /* While keyboard focus is in a button row, the accent highlight identifies the active button,
+       so a default (accent-colored) button reverts to plain button styling unless it is the
+       highlighted one - otherwise it would be indistinguishable from the highlight. Direct-child
+       only: alert buttons sit inside keyboard-selectable wrappers and keep their own highlight. */
+    [keyboard-selectable-button-row]:focus-within > .btn-default:not(:focus) {
+        @apply bg-vapp-elevated-3 text-vapp-text-secondary;
+    }
+
+    [role="menuitem"].menu-keyboard-focused {
+        @apply bg-vapp-btn-hover;
+    }
+
+    code {
+        @apply bg-vapp-surface-3 p-[2px] border border-solid border-vapp-border rounded transition-colors ease-out duration-300;
+    }
+
+    hr {
+        @apply border-vapp-border my-4;
+    }
+
+    .animate-slide-and-fade-in {
+        animation: slideAndFadeIn 500ms forwards;
+    }
+
+    @keyframes slideAndFadeIn {
+        0% {max-height: 0; opacity: 0;}
+        100% {max-height: 500px; opacity: 1;} /* setting max-height to a very large number of using 100% causes animation to not work */
+    }
+
+    .animate-slide-and-fade-out {
+        animation: slideAndFadeOut 500ms forwards;
+    }
+
+    @keyframes slideAndFadeOut {
+        0% {max-height: 500px; opacity: 1;} /* setting max-height to a very large number of using 100% causes animation to not work */
+        100% {max-height: 0; opacity: 0;}
+    }
+    
+    .animate-pulse-deep {
+        animation: pulse-deep 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+
+    @keyframes pulse-deep {
+        0%, 100% {
+            opacity: .8;
+        }
+        50% {
+            opacity: .2;
+        }
+    }
+
+    @layer components {
+        .thought-history-row:nth-child(odd) {
+            @apply bg-[#f0f0f0] dark:bg-[#1f2126];
+        }
+
+        .thought-history-row:nth-child(even) {
+            @apply bg-[#e6e6e6] dark:bg-[#1b1d21];
+        }
+    }
+
+    .pulse-bounce {
+        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite, bounce 1s infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% {
+            opacity: 1;
+        }
+        50% {
+            opacity: .5;
+        }
+    }
+
+    @keyframes bounce {
+        0%, 100% {
+            transform: translateY(-25%);
+            animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+        }
+        50% {
+            transform: translateY(0);
+            animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+        }
+    }
+    
+    .spin-pulse {
+        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite, spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+        from {
+            transform: rotate(0deg);
+        }
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    .toggle-button {
+        cursor: pointer;
+        border: none;
+        background: none;
+        font-size: 1.2em;
+        margin-right: 5px;
+        transform-origin: center;
+        transition: transform 0.3s ease;
+    }
+
+    .toggle-button.rotated {
+        transform: rotate(-90deg);
+    }
+
+    .radio-check-label {
+        @apply flex place-items-center gap-2 ml-2 mr-4;
+    }
+    /* Controls layout */
+
+    .fields {
+        @apply flex flex-col gap-4;
+    }
+
+    .fields-narrow {
+        @apply grid grid-cols-1 sm:grid-cols-2 gap-4;
+    }
+
+    .fields-medium {
+        @apply grid grid-cols-1 lg:grid-cols-2 gap-4;
+    }
+
+    .field {
+    }
+
+    .control-row {
+        @apply flex place-items-center gap-8;
+    }
+
+    .content-area-outer {
+        @apply flex flex-col place-items-start w-full flex-nowrap transition-colors ease-out duration-300;
+    }
+    
+    .content-area-inner {
+        @apply flex flex-col w-full overflow-y-auto overflow-x-hidden transition-colors ease-out duration-300;
+    }
+
+    /* Container for app content (below nav bar) */
+
+    .section {
+        @apply p-2 sm:p-8 md:p-12 max-w-7xl mx-auto;
+        /* Additional left padding for side toolbar (above values plus width of side toolbar) */
+        @apply sm:pl-28 md:pl-32;
+    }
+
+    .section-no-padding {
+        @apply max-w-7xl mx-auto;
+        /* Left padding for side toolbar */
+        @apply sm:pl-20;
+    }
+
+    .section-maximized {
+        /* full height less the size of the toolbar (which is set at h-12, tailwind units are .25 rem and 12 * .25 = 3rem */
+        height: calc(100vh - 3rem);
+        /* Left padding for side toolbar */
+        @apply sm:pl-20;
+    }
+    /* Make a div that resizes to a maximum width while maintaining a 1.5rem space from the size at smaller widths */
+
+    .dialog-window {
+        @apply bg-vapp-elevated-2 rounded-md border border-vapp-border-strong shadow p-2 sm:p-8 mx-6 sm:mx-auto sm:max-w-xl;
+    }
+
+    .popup-window {
+        @apply rounded-md shadow-lg bg-vapp-elevated-1 text-vapp-text-primary ring-1 ring-vapp-border-strong;
+    }
+
+    /* Text */
+
+    .note {
+        @apply custom-prose;
+        @apply font-serif;
+    }
+
+    #note-display [tabindex="-1"]:focus,
+    #note-display [tabindex="-1"]:focus-visible {
+        outline: none;
+        scroll-margin: 0;
+    }
+    
+    .custom-prose {
+        @apply prose text-sm max-w-7xl mx-auto text-vusr-text-primary;
+    }
+
+        .custom-prose a {
+            @apply text-vusr-accent-primary;
+        }
+
+        .custom-prose strong {
+            @apply text-vusr-text-primary;
+        }
+
+        .custom-prose p {
+            @apply my-3;
+        }
+
+        .custom-prose li {
+            @apply my-1;
+        }
+
+        .custom-prose ul > li::before {
+            @apply bg-vapp-text-primary;
+            left: 0.75em;
+        }
+
+        .custom-prose h1 {
+            @apply text-vapp-text-primary;
+        }
+
+        .custom-prose h2 {
+            @apply text-vapp-text-primary;
+        }
+
+        .custom-prose h3 {
+            @apply text-vapp-text-primary;
+        }
+
+        .custom-prose h4 {
+            @apply text-vapp-text-primary;
+        }
+
+
+    .h1 {
+        @apply text-vapp-text-primary text-2xl font-bold;
+    }
+
+    .h2 {
+        @apply h1 text-xl;
+    }
+
+    .h3 {
+        @apply h1 text-lg;
+    }
+
+    .h4 {
+        @apply h1 text-base;
+    }
+
+    .text-2xs {
+        font-size: .65rem;
+    }
+
+    .text-3xs {
+        font-size: .52rem;
+    }
+
+    .bottom-icon-text {
+        font-size: .65rem;
+        position: relative;
+        top: -.1rem;
+    }
+
+    .message {
+    }
+    /* Topic related styles */
+
+    .topic {
+        @apply text-vusr-accent-primary bg-vusr-accent-primary/10 rounded-md;
+        padding-left: 0.15em;
+        padding-right: 0.15em;
+    }
+
+    .private-topic {
+        @apply topic text-vapp-accent-danger bg-vapp-accent-danger/10;
+    }
+
+    .connection {
+        @apply text-vapp-text-on-accent bg-vusr-accent-secondary/80 rounded-md text-sm mx-2;
+    }
+
+    .private-connection {
+        @apply text-vapp-text-on-accent bg-vapp-accent-danger/80 rounded-md text-sm mx-2;
+    }
+
+    .disabled {
+        @apply opacity-20 cursor-default pointer-events-none;
+    }
+
+    .not-bookmarked-topic {
+        @apply opacity-40;
+    }
+
+    .topic-fade {
+        @apply opacity-40;
+    }
+
+    .invalid-topic {
+        @apply topic text-vusr-text-muted bg-vusr-surface-2;
+    }
+
+    .topic-image {
+        @apply object-cover w-full h-full ring-1 ring-vapp-border rounded-sm;
+    }
+    
+    /* See the answer here on SO: https://stackoverflow.com/a/43960991 <-- for how to generate new color filters.
+       Some JavaScript code in the answer there can spit out a CSS filter to convert black SVG to any color,
+       which can be pasted here as a new class */
+    .svg-black-to-white {
+        filter: invert(100%) sepia(0%) saturate(7500%) hue-rotate(209deg) brightness(133%) contrast(114%);
+    }
+
+    .no-text-select {
+        -webkit-touch-callout:none; /* iOS Safari */
+        -webkit-user-select:none;   /* Chrome/Safari/Opera */
+        -khtml-user-select:none;    /* Konqueror */
+        -moz-user-select:none;      /* Firefox */
+        -ms-user-select:none;       /* Internet Explorer/Edge */
+        user-select:none;           /* Non-prefixed version */
+        -webkit-tap-highlight-color:rgba(0,0,0,0);
+    }
+
+    /* Blazor classes (for form validation) */
+
+    .validation-errors {
+        @apply pb-6;
+    }
+
+    .validation-message {
+        @apply text-vapp-accent-danger;
+    }
+    /* iOS insets */
+
+    .pb-ios-safe-inset {
+        padding-bottom: calc(env(safe-area-inset-bottom) / 2);
+    }
+    /* additional padding on iOS for when toolbar is shown at the bottom
+	   should be equal to pb-ios-safe-inset
+	*/
+    .mt-bottom-toolbar-extra-inset {
+        margin-top: calc(env(safe-area-inset-bottom) / 2);
+    }
+
+    /* iOS safe area spacer for bottom-sheet dialogs */
+    .dialog-stuck-to-bottom .overflow-y-auto > :last-child {
+        padding-bottom: calc(var(--safe-area-inset-bottom, 0px) / 2);
+    }
+
+    /* Reserve space at the bottom of dialog/drawer scroll containers when iOS keyboard is showing,
+       so all content can be scrolled into view above the keyboard. */
+    .dialog-base .overflow-y-auto,
+    .dialog-base .overflow-auto {
+        padding-bottom: var(--keyboard-height, 0px);
+    }
+    /* When menus appear inside of divs that have unexpected styles they do not render properly
+	   Add attributes to reset to this list
+	*/
+    .reset-for-menu {
+        text-indent: 0px;
+    }
+
+    /* Phone editor toolbar: smooth keyboard-follow and larger icons */
+    .phone-editor-toolbar {
+        transition: bottom 300ms ease;
+    }
+    .phone-editor-toolbar .text-xs {
+        font-size: 1rem !important;
+    }
+
+    .table-grid {
+        @apply border-collapse;
+    }
+
+    .table-grid tr, .table-grid td {
+        @apply border border-vapp-border-subtle;
+    }
+    
+    .table-grid td {
+        @apply px-1;
+    }
+
+    .ql-toolbar.ql-snow {
+        @apply bg-vapp-surface-2 border border-vapp-border rounded-t-xl;
+    }
+
+    .ql-snow.ql-toolbar button:hover, .ql-snow .ql-toolbar button:hover, .ql-snow.ql-toolbar button:focus, .ql-snow .ql-toolbar button:focus, .ql-snow.ql-toolbar button.ql-active, .ql-snow .ql-toolbar button.ql-active, .ql-snow.ql-toolbar .ql-picker-label:hover, .ql-snow .ql-toolbar .ql-picker-label:hover, .ql-snow.ql-toolbar .ql-picker-label.ql-active, .ql-snow .ql-toolbar .ql-picker-label.ql-active, .ql-snow.ql-toolbar .ql-picker-item:hover, .ql-snow .ql-toolbar .ql-picker-item:hover, .ql-snow.ql-toolbar .ql-picker-item.ql-selected, .ql-snow .ql-toolbar .ql-picker-item.ql-selected {
+        @apply text-vapp-text-primary bg-vapp-btn-hover;
+    }
+
+    .ql-snow.ql-toolbar button:hover .ql-fill, .ql-snow .ql-toolbar button:hover .ql-fill, .ql-snow.ql-toolbar button:focus .ql-fill, .ql-snow .ql-toolbar button:focus .ql-fill, .ql-snow.ql-toolbar button.ql-active .ql-fill, .ql-snow .ql-toolbar button.ql-active .ql-fill, .ql-snow.ql-toolbar .ql-picker-label:hover .ql-fill, .ql-snow .ql-toolbar .ql-picker-label:hover .ql-fill, .ql-snow.ql-toolbar .ql-picker-label.ql-active .ql-fill, .ql-snow .ql-toolbar .ql-picker-label.ql-active .ql-fill, .ql-snow.ql-toolbar .ql-picker-item:hover .ql-fill, .ql-snow .ql-toolbar .ql-picker-item:hover .ql-fill, .ql-snow.ql-toolbar .ql-picker-item.ql-selected .ql-fill, .ql-snow .ql-toolbar .ql-picker-item.ql-selected .ql-fill, .ql-snow.ql-toolbar button:hover .ql-stroke.ql-fill, .ql-snow .ql-toolbar button:hover .ql-stroke.ql-fill, .ql-snow.ql-toolbar button:focus .ql-stroke.ql-fill, .ql-snow .ql-toolbar button:focus .ql-stroke.ql-fill, .ql-snow.ql-toolbar button.ql-active .ql-stroke.ql-fill, .ql-snow .ql-toolbar button.ql-active .ql-stroke.ql-fill, .ql-snow.ql-toolbar .ql-picker-label:hover .ql-stroke.ql-fill, .ql-snow .ql-toolbar .ql-picker-label:hover .ql-stroke.ql-fill, .ql-snow.ql-toolbar .ql-picker-label.ql-active .ql-stroke.ql-fill, .ql-snow .ql-toolbar .ql-picker-label.ql-active .ql-stroke.ql-fill, .ql-snow.ql-toolbar .ql-picker-item:hover .ql-stroke.ql-fill, .ql-snow .ql-toolbar .ql-picker-item:hover .ql-stroke.ql-fill, .ql-snow.ql-toolbar .ql-picker-item.ql-selected .ql-stroke.ql-fill, .ql-snow .ql-toolbar .ql-picker-item.ql-selected .ql-stroke.ql-fill {
+        @apply fill-vapp-text-primary bg-vapp-btn-hover;
+    }
+
+    .ql-snow.ql-toolbar button:hover .ql-stroke, .ql-snow .ql-toolbar button:hover .ql-stroke, .ql-snow.ql-toolbar button:focus .ql-stroke, .ql-snow .ql-toolbar button:focus .ql-stroke, .ql-snow.ql-toolbar button.ql-active .ql-stroke, .ql-snow .ql-toolbar button.ql-active .ql-stroke, .ql-snow.ql-toolbar .ql-picker-label:hover .ql-stroke, .ql-snow .ql-toolbar .ql-picker-label:hover .ql-stroke, .ql-snow.ql-toolbar .ql-picker-label.ql-active .ql-stroke, .ql-snow .ql-toolbar .ql-picker-label.ql-active .ql-stroke, .ql-snow.ql-toolbar .ql-picker-item:hover .ql-stroke, .ql-snow .ql-toolbar .ql-picker-item:hover .ql-stroke, .ql-snow.ql-toolbar .ql-picker-item.ql-selected .ql-stroke, .ql-snow .ql-toolbar .ql-picker-item.ql-selected .ql-stroke, .ql-snow.ql-toolbar button:hover .ql-stroke-miter, .ql-snow .ql-toolbar button:hover .ql-stroke-miter, .ql-snow.ql-toolbar button:focus .ql-stroke-miter, .ql-snow .ql-toolbar button:focus .ql-stroke-miter, .ql-snow.ql-toolbar button.ql-active .ql-stroke-miter, .ql-snow .ql-toolbar button.ql-active .ql-stroke-miter, .ql-snow.ql-toolbar .ql-picker-label:hover .ql-stroke-miter, .ql-snow .ql-toolbar .ql-picker-label:hover .ql-stroke-miter, .ql-snow.ql-toolbar .ql-picker-label.ql-active .ql-stroke-miter, .ql-snow .ql-toolbar .ql-picker-label.ql-active .ql-stroke-miter, .ql-snow.ql-toolbar .ql-picker-item:hover .ql-stroke-miter, .ql-snow .ql-toolbar .ql-picker-item:hover .ql-stroke-miter, .ql-snow.ql-toolbar .ql-picker-item.ql-selected .ql-stroke-miter, .ql-snow .ql-toolbar .ql-picker-item.ql-selected .ql-stroke-miter {
+        @apply stroke-vapp-text-primary bg-vapp-btn-hover;
+    }
+
+    .ql-snow .ql-picker {
+        @apply text-vapp-text-primary;
+    }
+
+    .ql-toolbar.ql-snow .ql-picker.ql-expanded .ql-picker-label {
+        @apply border-vapp-border rounded;
+    }
+
+    .ql-toolbar.ql-snow .ql-picker.ql-expanded .ql-picker-options {
+        @apply border-vapp-border rounded;
+    }
+
+    .ql-snow .ql-picker-options {
+        @apply bg-vapp-elevated-1;
+    }
+
+    .ql-toolbar.ql-snow .ql-picker.ql-expanded .ql-picker-options {
+        @apply rounded-xl border-vapp-border;
+    }
+    
+    .ql-editor {
+        /* pl-7 is added to make space for collapse/expand controls */
+        @apply transition-colors ease-out duration-300 pl-7;
+    }
+
+    /* Cell editors get their color/background set inline immediately on activation
+       to match the themed cell. The transition on the base .ql-editor rule would
+       otherwise animate from the inherited color, producing a visible flash. */
+    .ql-editor[data-table-cell-id] {
+        transition: none;
+    }
+
+    .ql-editor.venus-collapse-hidden-phone {
+        @apply pl-2;
+    }
+    
+    .ql-snow .ql-editor .ql-code-block-container {
+        @apply rounded-xl;
+        /* 85% matches the inline code style set in quill.snow.css */
+        font-size: 85%;
+        background-color: rgb(var(--vusr-border-default) / 16%);
+        border: 1px solid rgb(var(--vusr-border-default));
+        color: rgb(var(--vusr-text-primary));
+    }
+    
+    .ql-editor img {
+        display: inline;
+        vertical-align: baseline;
+    }
+
+.ql-editor.transparent-selection::selection {
+        background-color: transparent;
+    }
+
+    /* Hide selection highlight completely while dragging image resize handles */
+    .ql-editor.dragging-image-resize::selection,
+    .ql-editor.dragging-image-resize *::selection {
+        background-color: transparent !important;
+        color: inherit !important;
+    }
+
+    .ql-editor.dragging-image-resize::-moz-selection,
+    .ql-editor.dragging-image-resize *::-moz-selection {
+        background-color: transparent !important;
+        color: inherit !important;
+    }
+
+    /* Inline-block so the span's box wraps the full height of MathJax's output - otherwise
+       the selection background below only paints the surrounding text line height and the
+       typeset math pokes above/below. vertical-align:middle keeps tall multi-line math
+       visually centered against adjacent text. */
+    .ql-math {
+        display: inline-block;
+        vertical-align: middle;
+    }
+
+    /* Math blot in the select-and-hold state (arrow-into-math). Browser's native ::selection
+       does not render reliably on contenteditable=false embeds, so we paint the selection
+       highlight ourselves using the same colour as the editor's text selection. Removed as
+       soon as the cursor leaves the blot. */
+    .ql-math.ql-math-selected {
+        background-color: rgb(var(--vapp-accent-primary) / 40%);
+        border-radius: 2px;
+    }
+
+    /* While a math blot is held, hide the native caret on the hosting editor so the
+       selection highlight is the only visual indicator. The caret would otherwise render
+       at whatever position Quill last left the range (e.g. adjacent to the embed) and
+       compete with the highlight. */
+    .ql-editor.ql-math-holding {
+        caret-color: transparent;
+    }
+
+    /* Quill TableBlot */
+    .ql-table-blot {
+        width: unset !important;
+        display: table;
+        border: 1px solid black;
+        border-collapse: collapse;
+    }
+    .ql-table-blot.ql-align-center {
+        margin: 0 auto;
+    }
+    .ql-table-blot.ql-align-right {
+        margin: 0 0 0 auto;
+    }
+    .ql-editor td, .ql-editor th {
+        padding-top: 0;
+        padding-bottom: 0;
+        padding-left: 4px;
+        padding-right: 4px;
+        border: 1px solid black;
+    }
+    td > .ql-editor, th > .ql-editor {
+        padding: 0;
+        overflow-y: visible;
+    }
+    /* Keep empty cells from collapsing to zero height when the fallback <br> in
+       <p><br></p> is stripped by post-edit DOM normalization (seen on the last
+       row after theme/justify/column-resize). */
+    .ql-table-blot td > p,
+    .ql-table-blot td > .ql-editor > p {
+        min-height: 1em;
+    }
+    /* Reduce list indentation inside table cells to save space */
+    .ql-editor .ql-table-blot td ol,
+    .ql-editor .ql-table-blot td ul,
+    .ql-table-blot td > .ql-editor ol,
+    .ql-table-blot td > .ql-editor ul {
+        padding-left: 1.5em !important;
+    }
+    .ql-editor .ql-table-blot td li > .ql-ui:before,
+    .ql-table-blot td > .ql-editor li > .ql-ui:before {
+        margin-left: -1.5em;
+        width: 1.2em;
+    }
+    tr > .ql-container.ql-snow {
+        border: inherit;
+    }
+    .ql-column-resizer {
+        position: absolute;
+        top: 0;
+        right: -5px;  /* Center the resizer on the border */
+        width: 9px;   /* Increased width for better touch target */
+        height: 100%;
+        cursor: ew-resize; /* col-resize is not supported in MAUI Blazor */
+        touch-action: none;  /* Prevent scrolling while resizing */
+        z-index: 1;    /* Ensure resizer is above other elements */
+        background-color: white; /* This is dynamically set via style based on the page color */
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    .ql-column-resizer:hover {
+        opacity: 1;
+    }
+
+    /* Quill TableOfContentsBlot */
+    .ql-toc {
+        background-color: rgb(var(--vusr-text-primary) / 4%);
+        border: 1px solid rgb(var(--vusr-text-primary) / 20%);
+        border-radius: 8px;
+        padding: 12px 16px;
+        margin: 8px 0;
+        user-select: none;
+        cursor: default;
+    }
+
+    .ql-toc-container {
+        font-family: inherit;
+    }
+
+    .ql-toc-items {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .ql-toc-item {
+        color: rgb(var(--vusr-text-primary));
+        line-height: 1.4;
+        padding: 2px 0;
+    }
+
+    .ql-toc-item-level-0 {
+        font-size: 1.2rem;
+    }
+
+    .ql-toc-item-level-1 {
+        font-size: 1.1rem;
+    }
+
+    .ql-toc-item-level-2,
+    .ql-toc-item-level-3,
+    .ql-toc-item-level-4,
+    .ql-toc-item-level-5,
+    .ql-toc-item-level-6 {
+        font-size: 1.0rem;
+    }
+
+    .ql-toc-item-bold {
+        font-weight: 600;
+        color: rgb(var(--vusr-text-primary));
+    }
+
+    /* Quill overrides */
+    .ql-editor ol:not(.ql-direction-rtl.ql-align-right),
+    .ql-editor ul:not(.ql-direction-rtl.ql-align-right) {
+        padding-left: calc(var(--keza-theme-base-font-size, 1rem) * 2) !important;
+    }
+    .ql-editor li:not(.ql-direction-rtl.ql-align-right) {
+        padding-left: 0 !important;
+    }
+
+    /* Override indent to 2rem increments - uses calc() for text scale support */
+    .ql-snow .ql-editor .ql-indent-1:not(.ql-direction-rtl.ql-align-right) {
+        padding-left: calc(var(--keza-theme-base-font-size, 1rem) * 2) !important;
+    }
+    .ql-snow .ql-editor .ql-indent-2:not(.ql-direction-rtl.ql-align-right) {
+        padding-left: calc(var(--keza-theme-base-font-size, 1rem) * 4) !important;
+    }
+    .ql-snow .ql-editor .ql-indent-3:not(.ql-direction-rtl.ql-align-right) {
+        padding-left: calc(var(--keza-theme-base-font-size, 1rem) * 6) !important;
+    }
+    .ql-snow .ql-editor .ql-indent-4:not(.ql-direction-rtl.ql-align-right) {
+        padding-left: calc(var(--keza-theme-base-font-size, 1rem) * 8) !important;
+    }
+    .ql-snow .ql-editor .ql-indent-5:not(.ql-direction-rtl.ql-align-right) {
+        padding-left: calc(var(--keza-theme-base-font-size, 1rem) * 10) !important;
+    }
+    .ql-snow .ql-editor .ql-indent-6:not(.ql-direction-rtl.ql-align-right) {
+        padding-left: calc(var(--keza-theme-base-font-size, 1rem) * 12) !important;
+    }
+    .ql-snow .ql-editor .ql-indent-7:not(.ql-direction-rtl.ql-align-right) {
+        padding-left: calc(var(--keza-theme-base-font-size, 1rem) * 14) !important;
+    }
+    .ql-snow .ql-editor .ql-indent-8:not(.ql-direction-rtl.ql-align-right) {
+        padding-left: calc(var(--keza-theme-base-font-size, 1rem) * 16) !important;
+    }
+    .ql-snow .ql-editor .ql-indent-9:not(.ql-direction-rtl.ql-align-right) {
+        padding-left: calc(var(--keza-theme-base-font-size, 1rem) * 18) !important;
+    }
+
+    .ql-snow .ql-editor .ql-indent-1.ql-direction-rtl.ql-align-right {
+        padding-right: calc(var(--keza-theme-base-font-size, 1rem) * 2) !important;
+    }
+    .ql-snow .ql-editor .ql-indent-2.ql-direction-rtl.ql-align-right {
+        padding-right: calc(var(--keza-theme-base-font-size, 1rem) * 4) !important;
+    }
+    .ql-snow .ql-editor .ql-indent-3.ql-direction-rtl.ql-align-right {
+        padding-right: calc(var(--keza-theme-base-font-size, 1rem) * 6) !important;
+    }
+    .ql-snow .ql-editor .ql-indent-4.ql-direction-rtl.ql-align-right {
+        padding-right: calc(var(--keza-theme-base-font-size, 1rem) * 8) !important;
+    }
+    .ql-snow .ql-editor .ql-indent-5.ql-direction-rtl.ql-align-right {
+        padding-right: calc(var(--keza-theme-base-font-size, 1rem) * 10) !important;
+    }
+    .ql-snow .ql-editor .ql-indent-6.ql-direction-rtl.ql-align-right {
+        padding-right: calc(var(--keza-theme-base-font-size, 1rem) * 12) !important;
+    }
+    .ql-snow .ql-editor .ql-indent-7.ql-direction-rtl.ql-align-right {
+        padding-right: calc(var(--keza-theme-base-font-size, 1rem) * 14) !important;
+    }
+    .ql-snow .ql-editor .ql-indent-8.ql-direction-rtl.ql-align-right {
+        padding-right: calc(var(--keza-theme-base-font-size, 1rem) * 16) !important;
+    }
+    .ql-snow .ql-editor .ql-indent-9.ql-direction-rtl.ql-align-right {
+        padding-right: calc(var(--keza-theme-base-font-size, 1rem) * 18) !important;
+    }
+    
+    .mentioned-thought {
+        text-decoration-line: underline; text-decoration-style: dotted; text-underline-offset: 3px;
+    }
+
+    .ql-read-only .mentioned-thought {
+        cursor: pointer;
+    }
+
+    .misspelled-word {
+        text-decoration-line: underline; text-decoration-style: wavy; text-decoration-color: #ff000088; text-underline-offset: 2px; text-decoration-thickness: 1px;
+    }
+
+    .toolbar-button {
+        @apply text-vapp-icon/80 hover:text-vapp-icon-hover hover:bg-vapp-btn-hover px-1 transition ease-in duration-75;
+    }
+
+    .toolbar-button.active {
+        @apply bg-vapp-btn-active text-vapp-icon-active;
+    }
+
+    .toolbar-button-mobile {
+        @apply text-vapp-icon px-1 transition ease-in duration-75;
+    }
+
+    .toolbar-button-mobile.active {
+        @apply bg-vapp-btn-active text-vapp-icon-active;
+    }
+
+    .toolbar-menu {
+        @apply toolbar-button flex items-center justify-center h-6 gap-1 border border-vapp-border rounded cursor-pointer bg-none;
+    }
+
+    .toolbar-separator {
+        @apply p-0 w-0 h-6 border-l-2 border-vapp-border transition ease-out duration-300;
+    }
+
+    .notesEditorLinkTooltip {
+        position: fixed;
+        display: none;
+        max-width: 92vw;
+        /* Ensure the tooltip can receive pointer events */
+        pointer-events: auto;
+        /* Disable default scrolling gestures on touch devices, so we can do our own drag */
+        touch-action: none;
+        /* Smooth animation for swiping or returning */
+        transition: transform 0.2s ease-out, opacity 0.2s ease-out;
+        --arrow-left: 50%;
+		z-index: 5;
+        @apply bg-vusr-elevated-1 border border-vusr-border px-1 py-1 rounded-lg shadow-lg select-none;
+    }
+
+    /* The "shadow" arrow, to give the arrow a border (slightly larger, partially transparent) */
+    .notesEditorLinkTooltip::before {
+        content: "";
+        position: absolute;
+        bottom: 100%; /* start at the top edge of the tooltip */
+        left: var(--arrow-left, 50%);
+        transform: translateX(-50%);
+        border-width: 5px 5px 27px; /* slightly bigger than the main arrow below */
+        border-style: solid;
+        z-index: 0; /* put it behind the tooltip element */
+        @apply border-transparent border-b-vusr-border;
+    }
+
+    /* The “arrow” at the bottom center */
+    .notesEditorLinkTooltip::after {
+        content: "";
+        position: absolute;
+        bottom: 100%; /* position it just below the top edge of the tooltip */
+        left: var(--arrow-left, 50%);
+        transform: translateX(-50%);
+        border-width: 4px 4px 23px;
+        border-style: solid;
+        @apply border-transparent border-b-vusr-elevated-1;
+    }
+    
+    .tab-item.is-drag-source {
+        opacity: 0 !important;
+    }
+
+    .tab-drag-ghost {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        border-radius: 6px;
+        background: var(--vusr-elevated-1);
+    }
+
+    /* Disable dragging by default */
+    * {
+        -webkit-user-drag: none;
+        user-drag: none;
+    }
+
+    /* Re-enable for elements that should be draggable */
+    [draggable="true"] {
+        -webkit-user-drag: element;
+        user-drag: element;
+    }
+
+    /* Search highlighting styles */
+    .settings-search-highlight {
+        background-color: rgb(255 255 0 / 0.4); /* Yellow background with transparency */
+        color: rgb(0 0 0); /* Black text for contrast */
+        padding: 0 1px; /* Minimal padding */
+        border-radius: 2px; /* Slight rounding */
+    }
+
+    /* Dark theme variant for search highlights */
+    .dark .settings-search-highlight {
+        background-color: rgb(255 255 0 / 0.3); /* Slightly more transparent for dark theme */
+        color: rgb(0 0 0); /* Keep black text for readability */
+    }
+
+    /* Speech bubble styles for HintDecorator hints */
+    /* These must be in the global CSS so hints work even on pages without HintDecorator components */
+    .speech-bubble {
+        position: relative;
+    }
+
+    .speech-bubble-svg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+    }
+
+    .speech-bubble-path {
+        fill: rgb(var(--vapp-elevated-1));
+        stroke: rgb(var(--vapp-border-default));
+        stroke-width: 1.5;
+        vector-effect: non-scaling-stroke;
+    }
+
+    .speech-bubble-content {
+        position: absolute;
+        z-index: 2;
+        left: 8px;
+        right: 8px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: rgb(var(--vapp-text-primary));
+        line-height: 1.2;
+        padding: 0;
+        margin: 0;
+        top: 12px;
+    }
+
+    /* Positioning for "down" direction (tail at bottom, content at top) */
+    .speech-bubble.show-above .speech-bubble-content {
+        top: 3px; /* Account for stroke padding */
+    }
+}
+
+/* Splitter bump stop tension pulse animation */
+@keyframes splitter-tension-pulse {
+    0%, 100% {
+        filter: brightness(1);
+    }
+    50% {
+        filter: brightness(1.25);
+    }
+}
+
+/* Splitter collapse overlay for visual feedback */
+.splitter-collapse-overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 15;
+    transition: opacity 60ms ease-out, background 60ms ease-out;
+}
+
+.venus-collapse-overlay {
+    pointer-events: none;
+}
+
+.venus-collapse-toggle {
+    pointer-events: auto;
+    width: 1.25rem;
+    height: 1.25rem;
+    line-height: 1.25rem;
+    border-radius: 9999px;
+    border: none;
+    background: transparent;
+    color: rgb(var(--vusr-text-primary));
+    font-size: 0.875rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 120ms ease-out, color 120ms ease-out, opacity 120ms ease-out;
+}
+
+.venus-collapse-toggle:hover,
+.venus-collapse-toggle:focus {
+    outline: none;
+}
+
+/* MathJax context menu theming. MathJax injects its own stylesheet at runtime -
+   some rules use !important and/or higher specificity, so we match with !important
+   here. Colors come from the app's theme vars so light/dark switch automatically. */
+.CtxtMenu_Menu {
+    background-color: rgb(var(--vapp-elevated-2)) !important;
+    color: rgb(var(--vapp-text-primary)) !important;
+    border: 1px solid rgb(var(--vapp-border)) !important;
+    box-shadow: 0 4px 12px rgb(0 0 0 / 20%) !important;
+}
+.CtxtMenu_MenuItem {
+    color: rgb(var(--vapp-text-primary)) !important;
+}
+.CtxtMenu_MenuActive {
+    background-color: rgb(var(--vapp-btn-bg-selected)) !important;
+    color: rgb(var(--vapp-text-primary)) !important;
+}
+.CtxtMenu_MenuDisabled {
+    color: rgb(var(--vapp-text-dim) / 60%) !important;
+}
+/* Don't paint the selection highlight on disabled items. MathJax actually focuses
+   disabled items (.CtxtMenu_MenuDisabled:focus) and paints #E8E8E8 on them, so the
+   highlight is a :focus rule, not MenuActive. Force the menu's base background for
+   both states so the "highlight" visually disappears. */
+.CtxtMenu_MenuDisabled:focus,
+.CtxtMenu_MenuDisabled.CtxtMenu_MenuActive {
+    background-color: rgb(var(--vapp-elevated-2)) !important;
+}
+.CtxtMenu_MenuArrow {
+    color: rgb(var(--vapp-text-muted)) !important;
+}
+.CtxtMenu_MenuActive .CtxtMenu_MenuArrow {
+    color: rgb(var(--vapp-text-primary)) !important;
+}
+.CtxtMenu_MenuRule {
+    border-top: 1px solid rgb(var(--vapp-border)) !important;
+}
+.CtxtMenu_MenuCheck,
+.CtxtMenu_MenuRadioCheck {
+    color: rgb(var(--vapp-accent-primary)) !important;
+}
+.CtxtMenu_MenuLabel {
+    color: rgb(var(--vapp-text-muted)) !important;
+}
+.CtxtMenu_Info {
+    background-color: rgb(var(--vapp-elevated-2)) !important;
+    color: rgb(var(--vapp-text-primary)) !important;
+    border: 1px solid rgb(var(--vapp-border)) !important;
+}
+.CtxtMenu_InfoTitle {
+    background-color: rgb(var(--vapp-elevated-3)) !important;
+    color: rgb(var(--vapp-text-primary)) !important;
+    border-bottom: 1px solid rgb(var(--vapp-border)) !important;
+}
+.CtxtMenu_InfoContent {
+    background-color: rgb(var(--vapp-elevated-2)) !important;
+    color: rgb(var(--vapp-text-primary)) !important;
+}
+.CtxtMenu_InfoSignature {
+    background-color: rgb(var(--vapp-elevated-3)) !important;
+    color: rgb(var(--vapp-text-muted)) !important;
+    border-top: 1px solid rgb(var(--vapp-border)) !important;
+}
+.CtxtMenu_InfoClose,
+.CtxtMenu_MenuClose {
+    color: rgb(var(--vapp-text-muted)) !important;
+}
+.CtxtMenu_InfoClose:hover,
+.CtxtMenu_MenuClose:hover {
+    color: rgb(var(--vapp-text-primary)) !important;
+}
+.CtxtMenu_Selection {
+    background-color: rgb(var(--vapp-elevated-2)) !important;
+    color: rgb(var(--vapp-text-primary)) !important;
+    border: 1px solid rgb(var(--vapp-border)) !important;
+}
+.CtxtMenu_SelectionBox {
+    background-color: rgb(var(--vapp-elevated-3)) !important;
+    color: rgb(var(--vapp-text-primary)) !important;
+    border: 1px solid rgb(var(--vapp-border)) !important;
+}
+.CtxtMenu_SelectionItem {
+    color: rgb(var(--vapp-text-primary)) !important;
+}
+.CtxtMenu_SelectionItem:hover {
+    background-color: rgb(var(--vapp-btn-bg-selected)) !important;
+}
+.CtxtMenu_SelectionDivider {
+    border-top: 1px solid rgb(var(--vapp-border)) !important;
+}
+
+@layer utilities {
+    /* Classes to re-enable text selection for specific elements */
+    .select-text {
+        -webkit-user-select: text;
+        -moz-user-select: text;
+        -ms-user-select: text;
+        user-select: text;
+        -webkit-touch-callout: default;
+    }
+    
+    .select-all {
+        -webkit-user-select: all;
+        -moz-user-select: all;
+        -ms-user-select: all;
+        user-select: all;
+        -webkit-touch-callout: default;
+    }
+    
+    .select-auto {
+        -webkit-user-select: auto;
+        -moz-user-select: auto;
+        -ms-user-select: auto;
+        user-select: auto;
+        -webkit-touch-callout: default;
+    }
+    
+    /* Apply text selection to common input elements automatically */
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="search"],
+    input[type="tel"],
+    input[type="url"],
+    input[type="number"],
+    textarea,
+    [contenteditable="true"],
+    .quill-editor,
+    .ql-editor,
+    .note-content,
+    .prose,
+    .custom-prose,
+    pre,
+    label,
+    code,
+    /* Divs that contain only text (no child elements) - requires :has() support */
+    /* Exclude elements that have user-select: none or are descendants of such elements */
+    div:not(:has(*)):not(:empty):not(.no-text-select):not(.no-text-select *):not(.select-none):not(.select-none *):not([style*="user-select: none"]):not([style*="user-select:none"]) {
+        -webkit-user-select: text;
+        -moz-user-select: text;
+        -ms-user-select: text;
+        user-select: text;
+        -webkit-touch-callout: default;
+    }
+
+    /* Ensure button children stay non-selectable */
+    .btn *,
+    .btn-default *,
+    .btn-quiet *,
+    .btn-danger *,
+    .btn-warning *,
+    .btn-success *,
+    .btn-featured *,
+    .btn-toolbar *,
+    .btn-default-toolbar *,
+    [class*="btn-"] *,
+    button * {
+        -webkit-user-select: none !important;
+        -moz-user-select: none !important;
+        -ms-user-select: none !important;
+        user-select: none !important;
+        -webkit-touch-callout: none !important;
+    }
+}
+
+/* AnimatedCaret: solid 1px bar that flies from the previous caret position to the
+   new one on navigation moves. Native caret hides via .ql-caret-hide-native while
+   the bar is animating, then takes back over. */
+.ql-animated-caret {
+    position: absolute;
+    width: 1px;
+    background-color: currentColor;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.ql-editor.ql-caret-hide-native {
+    caret-color: transparent;
+}

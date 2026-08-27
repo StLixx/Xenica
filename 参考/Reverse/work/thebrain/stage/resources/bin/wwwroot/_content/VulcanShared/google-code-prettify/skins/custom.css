@@ -1,0 +1,264 @@
+pre .atn, pre .kwd, pre .tag {
+    font-weight: 700
+}
+
+pre.prettyprinted  {
+    cursor: default;
+}
+
+pre .nocode {
+    background-color: none;
+    color: #000
+}
+
+/*Light Mode*/
+
+/* string content */
+pre .code-block.light .str {
+    color: #718c00
+}
+/* keyword */
+pre .code-block.light .kwd {
+    color: #8959a8
+}
+/* comment */
+pre .code-block.light .com {
+    color: #8e908c
+}
+/* type name */
+pre .code-block.light .typ {
+    color: #4271ae
+}
+/* literal value */
+pre .code-block.light .lit {
+    color: #f5871f
+}
+/* punctuation */
+pre .code-block.light .pun {
+    color: #4d4d4c
+}
+/* plain text */
+pre .code-block.light .pln {
+    color: #4d4d4c
+}
+/* lisp open bracket */
+pre .code-block.light .opn {
+    color: #4d4d4c;
+}
+/* lisp close bracket */
+pre .code-block.light .clo {
+    color: #4d4d4c;
+}
+/* markup tag name */
+pre .code-block.light .tag {
+    color: #c82829
+}
+/* markup attribute name */
+pre .code-block.light .atn {
+    color: #f5871f
+}
+/* markup attribute value */
+pre .code-block.light .atv {
+    color: #f5871f
+}
+/* declaration */
+pre .code-block.light .dec {
+    color: #f5871f
+}
+/* variable name */
+pre .code-block.light .var {
+    color: #c82829;
+}
+/* function name */
+pre .code-block.light .fun {
+    color: #4271ae;
+}
+
+
+/*Dark Mode*/
+
+/* string content */
+pre .code-block.dark .str {
+    color: #98c379
+}
+
+/* keyword */
+pre .code-block.dark .kwd {
+    color: #C678DD
+}
+/* comment */
+pre .code-block.dark .com {
+    color: #7b8496
+}
+/* type name */
+pre .code-block.dark .typ {
+    color: #61afef
+}
+/* literal value */
+pre .code-block.dark .lit {
+    color: #cf9965
+}
+/* punctuation */
+pre .code-block.dark .pun {
+    color: #ABB2BF
+}
+/* lisp open bracket */
+pre .code-block.dark .opn {
+    color: #4d4d4c;
+}
+/* lisp close bracket */
+pre .code-block.dark .clo {
+    color: #4d4d4c;
+}
+/* plain text */
+pre .code-block.dark .pln {
+    color: #ABB2BF
+}
+/* markup tag name */
+pre .code-block.dark .tag {
+    color: #DF6B72
+}
+/* markup attribute name */
+pre .code-block.dark .atn {
+    color: #56B6C2
+}
+/* markup attribute value */
+pre .code-block.dark .atv {
+    color: #D7B051
+}
+/* declaration */
+pre .code-block.dark .dec {
+    color: #f5871f
+}
+/* variable name */
+pre .code-block.dark .var {
+    color: #c82829;
+}
+/* function name */
+pre .code-block.dark .fun {
+    color: #4271ae;
+}
+
+/* Unknown mode - use light mode theme as fallback */
+
+/* string content */
+pre .code-block .str {
+    color: #718c00
+}
+/* keyword */
+pre .code-block .kwd {
+    color: #8959a8
+}
+/* comment */
+pre .code-block .com {
+    color: #8e908c
+}
+/* type name */
+pre .code-block .typ {
+    color: #4271ae
+}
+/* literal value */
+pre .code-block .lit {
+    color: #f5871f
+}
+/* punctuation */
+pre .code-block .pun {
+    color: #4d4d4c
+}
+/* plain text */
+pre .code-block .pln {
+    color: #4d4d4c
+}
+/* lisp open bracket */
+pre .code-block .opn {
+    color: #4d4d4c;
+}
+/* lisp close bracket */
+pre .code-block .clo {
+    color: #4d4d4c;
+}
+/* markup tag name */
+pre .code-block .tag {
+    color: #c82829
+}
+/* markup attribute name */
+pre .code-block .atn {
+    color: #f5871f
+}
+/* markup attribute value */
+pre .code-block .atv {
+    color: #f5871f
+}
+/* declaration */
+pre .code-block .dec {
+    color: #f5871f
+}
+/* variable name */
+pre .code-block .var {
+    color: #c82829;
+}
+/* function name */
+pre .code-block .fun {
+    color: #4271ae;
+}
+
+
+ol.linenums {
+    margin-top: 0;
+    margin-bottom: 0;
+    color: #AEAEAE
+}
+
+li.L0, li.L1, li.L2, li.L3, li.L5, li.L6, li.L7, li.L8 {
+    list-style-type: none
+}
+
+@media print {
+    pre.prettyprint {
+        background-color: none
+    }
+
+    code .str, pre .str {
+        color: #060
+    }
+
+    code .kwd, pre .kwd {
+        color: #006;
+        font-weight: 700
+    }
+
+    code .com, pre .com {
+        color: #600;
+        font-style: italic
+    }
+
+    code .typ, pre .typ {
+        color: #404;
+        font-weight: 700
+    }
+
+    code .lit, pre .lit {
+        color: #044
+    }
+
+    code .pun, pre .pun {
+        color: #440
+    }
+
+    code .pln, pre .pln {
+        color: #000
+    }
+
+    code .tag, pre .tag {
+        color: #006;
+        font-weight: 700
+    }
+
+    code .atn, pre .atn {
+        color: #404
+    }
+
+    code .atv, pre .atv {
+        color: #060
+    }
+}

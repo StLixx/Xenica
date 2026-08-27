@@ -1,0 +1,1 @@
+"use strict";Object.defineProperty(exports,"__esModule",{value:!0}),exports.getUrlOrNull=getUrlOrNull;function getUrlOrNull(a){try{return new URL(a)}catch{return null}}

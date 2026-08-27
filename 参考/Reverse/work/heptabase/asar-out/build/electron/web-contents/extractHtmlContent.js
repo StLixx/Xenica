@@ -1,0 +1,1 @@
+"use strict";Object.defineProperty(exports,"__esModule",{value:!0}),exports.extractHtmlContent=void 0;const extractHtmlContent=()=>document.documentElement.outerHTML;exports.extractHtmlContent=extractHtmlContent;

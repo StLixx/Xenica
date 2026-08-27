@@ -1,0 +1,43 @@
+warning: field `pool` is never read
+  --> src\import.rs:34:9
+   |
+33 | pub struct ImportContext {
+   |            ------------- field in this struct
+34 |     pub pool: PgPool,
+   |         ^^^^
+   |
+   = note: `ImportContext` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: variant `UnsupportedMimeType` is never constructed
+  --> src\import.rs:41:5
+   |
+39 | pub enum ImportError {
+   |          ----------- variant in this enum
+40 |     #[error("unsupported MIME type: {0}")]
+41 |     UnsupportedMimeType(String),
+   |     ^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `ImportError` has a derived impl for the trait `Debug`, but this is intentionally ignored during dead code analysis
+
+warning: method `supported` is never used
+  --> src\import.rs:78:12
+   |
+62 | impl HandlerRegistry {
+   | -------------------- method in this implementation
+...
+78 |     pub fn supported(&self) -> Vec<String> {
+   |            ^^^^^^^^^
+
+warning: struct `ExternalCliHandler` is never constructed
+   --> src\import.rs:182:12
+    |
+182 | pub struct ExternalCliHandler {
+    |            ^^^^^^^^^^^^^^^^^^
+
+warning: `xenica` (bin "xenica") generated 4 warnings
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.53s
+     Running `target\debug\xenica.exe serve`
+Database migrations applied.
+API Server listening on http://127.0.0.1:3000
+error: process didn't exit successfully: `target\debug\xenica.exe serve` (exit code: 1)

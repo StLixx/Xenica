@@ -1,0 +1,1 @@
+"use strict";var _zod=require("zod");Object.defineProperty(exports,"__esModule",{value:!0}),exports.emailSchema=void 0;const emailSchema=exports.emailSchema=_zod.z.string().email().toLowerCase();

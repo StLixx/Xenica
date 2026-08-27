@@ -1,0 +1,1 @@
+"use strict";Object.defineProperty(exports,"__esModule",{value:!0}),exports.getStandardError=getStandardError;function getStandardError(a){if(a instanceof Error)return a;try{return new Error(JSON.stringify(a))}catch{return new Error(a+"")}}

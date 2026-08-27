@@ -1,0 +1,5 @@
+provider: generic
+url: https://updater.thebrain.com/dekutron
+updaterCacheDirName: com.thebrain.dekutron-updater
+publisherName:
+  - TheBrain Technologies LP

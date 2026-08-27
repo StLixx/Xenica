@@ -1,0 +1,17 @@
+C:\dev\Reverse\tools\metadump\bin\Release\net8.0\metadump.exe
+C:\dev\Reverse\tools\metadump\bin\Release\net8.0\metadump.deps.json
+C:\dev\Reverse\tools\metadump\bin\Release\net8.0\metadump.runtimeconfig.json
+C:\dev\Reverse\tools\metadump\bin\Release\net8.0\metadump.dll
+C:\dev\Reverse\tools\metadump\bin\Release\net8.0\metadump.pdb
+C:\dev\Reverse\tools\metadump\obj\Release\net8.0\metadump.GeneratedMSBuildEditorConfig.editorconfig
+C:\dev\Reverse\tools\metadump\obj\Release\net8.0\metadump.AssemblyInfoInputs.cache
+C:\dev\Reverse\tools\metadump\obj\Release\net8.0\metadump.AssemblyInfo.cs
+C:\dev\Reverse\tools\metadump\obj\Release\net8.0\metadump.csproj.CoreCompileInputs.cache
+C:\dev\Reverse\tools\metadump\obj\Release\net8.0\metadump.dll
+C:\dev\Reverse\tools\metadump\obj\Release\net8.0\refint\metadump.dll
+C:\dev\Reverse\tools\metadump\obj\Release\net8.0\metadump.pdb
+C:\dev\Reverse\tools\metadump\obj\Release\net8.0\metadump.genruntimeconfig.cache
+C:\dev\Reverse\tools\metadump\obj\Release\net8.0\ref\metadump.dll
+C:\dev\Reverse\tools\metadump\obj\Release\net8.0\metadump.csproj.AssemblyReference.cache
+C:\dev\Reverse\tools\metadump\bin\Release\net8.0\dnlib.dll
+C:\dev\Reverse\tools\metadump\obj\Release\net8.0\metadump.csproj.Up2Date

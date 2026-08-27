@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0, viewport-fit=cover"
+    />
+
+    <!-- Early theme bootstrap: set data-theme & background before first paint -->
+    <style>
+      html {
+        /* background-primary */
+        background-color: #f7f7f7;
+        color-scheme: light;
+      }
+
+      html[data-theme='dark'] {
+        /* background-primary */
+        background-color: #212121;
+        color-scheme: dark;
+      }
+    </style>
+    <script>
+      (function () {
+        try {
+          var theme = localStorage.getItem('heptabaseTheme');
+          var isDark =
+            theme === 'dark' ||
+            (theme !== 'light' &&
+              window.matchMedia('(prefers-color-scheme: dark)').matches);
+          if (isDark) {
+            document.documentElement.dataset.theme = 'dark';
+          }
+        } catch (error) {
+          console.error('Error getting theme from localStorage:', error);
+        }
+      })();
+    </script>
+
+    <meta
+      name="description"
+      content="Create visual playgrounds for your notes."
+    />
+    <title>Heptabase</title>
+
+    <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="./favicon-16x16.png" />
+    <link rel="manifest" href="./manifest.json" />
+    <link rel="mask-icon" href="./safari-pinned-tab.svg" color="#5bbad5" />
+    <meta name="msapplication-TileColor" content="#2b5797" />
+    <meta name="theme-color" content="#000000" />
+    <meta name="robots" content="noindex,nofollow" />
+    <meta
+      property="og:image"
+      content="https://heptabase.com/assets/images/opengraph-image.png"
+    />
+    <script>
+      // We pre-filled your app ID in the widget URL: 'https://widget.intercom.io/widget/nc7yq1pg'
+      (function () {
+        var w = window;
+        var ic = w.Intercom;
+        if (typeof ic === 'function') {
+          ic('reattach_activator');
+          ic('update', w.intercomSettings);
+        } else {
+          var d = document;
+          var i = function () {
+            i.c(arguments);
+          };
+          i.q = [];
+          i.c = function (args) {
+            i.q.push(args);
+          };
+          w.Intercom = i;
+          var l = function () {
+            var s = d.createElement('script');
+            s.type = 'text/javascript';
+            s.async = true;
+            s.src = 'https://widget.intercom.io/widget/nc7yq1pg';
+            var x = d.getElementsByTagName('script')[0];
+            x.parentNode.insertBefore(s, x);
+          };
+          if (document.readyState === 'complete') {
+            l();
+          } else if (w.attachEvent) {
+            w.attachEvent('onload', l);
+          } else {
+            w.addEventListener('load', l, false);
+          }
+        }
+      })();
+    </script>
+
+    <script type="text/javascript">
+      (function () {
+        var gs = document.createElement('script');
+        gs.src = 'https://get.heptabase.com/pr/js';
+        gs.type = 'text/javascript';
+        gs.async = 'true';
+        gs.onload = gs.onreadystatechange = function () {
+          var rs = this.readyState;
+          if (rs && rs != 'complete' && rs != 'loaded') return;
+          try {
+            growsumo._initialize('pk_gMoo12CUQTlAXRXiVjzxG5xoLjYpi7XR');
+            if (typeof growsumoInit === 'function') {
+              growsumoInit();
+            }
+          } catch (e) {}
+        };
+        var s = document.getElementsByTagName('script')[0];
+        s.parentNode.insertBefore(gs, s);
+      })();
+    </script>
+    <script type="module" crossorigin src="./assets/main-Dn-krFK4.js"></script>
+    <link rel="modulepreload" crossorigin href="./assets/accountApi-CYLWAIWm.js">
+    <link rel="modulepreload" crossorigin href="./assets/path-CmuepD6E.js">
+    <link rel="modulepreload" crossorigin href="./assets/array-CGW-6M9q.js">
+    <link rel="modulepreload" crossorigin href="./assets/line-BdpLQaD-.js">
+    <link rel="stylesheet" crossorigin href="./assets/accountApi-BW5ltK_j.css">
+    <link rel="stylesheet" crossorigin href="./assets/main-BfE2P_j_.css">
+  </head>
+
+  <body>
+    <div id="root" class="no-print"></div>
+
+  </body>
+</html>

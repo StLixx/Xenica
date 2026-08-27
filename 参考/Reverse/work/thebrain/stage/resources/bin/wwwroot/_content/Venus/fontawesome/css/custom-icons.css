@@ -1,0 +1,39 @@
+.fak.fa-plex, .fa-kit.fa-plex { --fa: "\e000"; }
+.fak.fa-thebrain-logo, .fa-kit.fa-thebrain-logo { --fa: "\e001"; }
+.fak.fa-thebrain-sphere, .fa-kit.fa-thebrain-sphere { --fa: "\e002"; }
+
+.fak, .fa-kit {
+  --fa-family: 'Font Awesome Kit';
+  --fa-style: 400;
+
+  --_fa-family: var(--fa-family, var(--fa-style-family, "Font Awesome Kit"));
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  display: var(--fa-display, inline-block);
+  font-family: var(--_fa-family);
+  font-style: normal;
+  font-synthesis: none;
+  font-variant: normal;
+  font-weight: var(--fa-style, 400);
+  line-height: 1;
+  text-align: center;
+  text-rendering: auto;
+  width: var(--fa-width, 1.25em);
+}
+
+.fak::before, .fa-kit::before {
+  content: var(--fa)/"";
+}
+
+@supports not (content: ''/'') {
+  .fak::before, .fa-kit::before {
+    content: var(--fa);
+  }
+}
+
+@font-face {
+  font-family: "Font Awesome Kit";
+  font-style: normal;
+  font-display: block;
+  src: url("../webfonts/custom-icons.woff2") format("woff2");
+}

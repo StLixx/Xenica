@@ -1,0 +1,1 @@
+"use strict";var _getUrlOrNull=require("../utils-share-with-browser/getUrlOrNull");Object.defineProperty(exports,"__esModule",{value:!0}),exports.getOomRecoveryUrl=getOomRecoveryUrl;function getOomRecoveryUrl({currentUrl:a,startUrl:b}){const c=(0,_getUrlOrNull.getUrlOrNull)(a)?.hash??"",d=c.match(/^#\/([^/?#]+)/)?.[1];return null==d?void 0:`${b}#/${d}/map?electronRecovery=oom`}

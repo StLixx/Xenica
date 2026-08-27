@@ -1,0 +1,1 @@
+"use strict";Object.defineProperty(exports,"__esModule",{value:!0}),exports.BaseError=void 0;class BaseError extends Error{constructor(a,...[b]){super(a,b),this.code=b?.code}}exports.BaseError=BaseError;

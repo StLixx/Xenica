@@ -1,0 +1,1 @@
+"use strict";var _WindowManager=require("../utils/WindowManager");Object.defineProperty(exports,"__esModule",{value:!0}),exports.windowManager=exports.default=void 0;const globalData={backupWindow:void 0,didInstallUpdate:!1},windowManager=exports.windowManager=new _WindowManager.WindowManager;var _default=exports.default=globalData;

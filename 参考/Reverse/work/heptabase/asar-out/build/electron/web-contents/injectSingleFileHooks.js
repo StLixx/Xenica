@@ -1,0 +1,1 @@
+"use strict";Object.defineProperty(exports,"__esModule",{value:!0}),exports.injectSingleFileHooks=injectSingleFileHooks;function injectSingleFileHooks({getScriptContent:a}){const b=document.createElement("script");b.textContent=a(),document.head.insertBefore(b,document.head.firstChild),b.remove()}
