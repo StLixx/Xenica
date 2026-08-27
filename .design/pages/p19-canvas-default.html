@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>画布 · 默认节点布局 · Xenica</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#000;color:var(--ant-color-text);font-family:var(--ant-font-family);-webkit-font-smoothing:antialiased;height:100vh;overflow:hidden}
+  .app{height:100vh;display:grid;grid-template-rows:36px 1fr 28px}
+  .hd{background:var(--ant-color-bg-elevated);border-bottom:1px solid var(--ant-color-border);padding:0 16px;display:flex;align-items:center;gap:12px;font-size:12px}
+  .hd .brand{font-weight:700;letter-spacing:.14em}
+  .hd .brand .dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--ant-color-primary);box-shadow:0 0 6px var(--ant-color-primary);margin-right:8px;vertical-align:middle}
+  .hd .crumbs{color:var(--ant-color-text-secondary)}
+  .hd .crumbs b{color:var(--ant-color-text);font-weight:500}
+  .hd .right{margin-left:auto;display:flex;align-items:center;gap:10px;font-size:11px;color:var(--ant-color-text-tertiary)}
+  .mid{background:var(--ant-color-bg-layout);position:relative;overflow:hidden}
+  .canvas-bg{position:absolute;inset:0;background-image:var(--xe-bg-grid);background-size:40px 40px;opacity:.4}
+  .node{position:absolute;background:var(--ant-color-bg-elevated);border:1px solid var(--ant-color-border);border-radius:10px;padding:12px 16px;min-width:160px;font-size:13px;box-shadow:0 4px 12px #00000060;transition:all .2s}
+  .node h4{font-size:13px;font-weight:600;margin-bottom:6px}
+  .node p{font-size:11px;color:var(--ant-color-text-secondary);line-height:1.4;margin-bottom:8px}
+  .node .meta{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace}
+  .node .type-dot{position:absolute;top:14px;right:14px;width:6px;height:6px;border-radius:50%}
+  .node .tags{display:flex;gap:4px;margin-bottom:8px}
+  .node .tag{font-size:10px;padding:1px 6px;border-radius:3px;background:var(--ant-color-fill-secondary);color:var(--ant-color-text-tertiary);height:16px;display:inline-flex;align-items:center}
+  .node .tag.primary{background:var(--ant-color-primary-bg);color:var(--ant-color-primary-text)}
+  .node .tag.success{background:#0a1912;color:#95de64}
+  .node .tag.warning{background:#1f1611;color:#ffc53d}
+  .node.t-blue .type-dot{background:var(--xe-node-blue)}
+  .node.t-purple .type-dot{background:var(--xe-node-purple)}
+  .node.t-yellow .type-dot{background:var(--xe-node-yellow)}
+  .node.t-green .type-dot{background:var(--xe-node-green)}
+  .node.t-pink .type-dot{background:var(--xe-node-pink)}
+  .vtool{position:absolute;left:14px;top:50%;transform:translateY(-50%);background:var(--ant-color-bg-elevated);border:1px solid var(--ant-color-border);border-radius:8px;padding:4px;display:flex;flex-direction:column;gap:2px;box-shadow:0 8px 24px #00000080}
+  .vb{width:28px;height:28px;border-radius:5px;display:flex;align-items:center;justify-content:center;color:var(--ant-color-text-secondary);font-size:13px}
+  .vb.on{background:var(--ant-color-primary-bg);color:var(--ant-color-primary-text)}
+  .vb:hover{background:var(--ant-color-fill-secondary)}
+  .minimap{position:absolute;right:14px;bottom:14px;width:200px;height:140px;background:var(--ant-color-bg-elevated);border:1px solid var(--ant-color-border);border-radius:8px;padding:8px;box-shadow:0 8px 24px #00000080}
+  .mm-title{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--ant-color-text-tertiary);margin-bottom:6px;display:flex;justify-content:space-between}
+  .mm-inner{position:relative;width:100%;height:100px;background:#0a0a0a;border-radius:4px;overflow:hidden}
+  .mm-node{position:absolute;border-radius:1px}
+  .mm-viewport{position:absolute;border:1px solid var(--ant-color-primary-text);background:#14b8a610}
+  .ft{background:var(--ant-color-bg-elevated);border-top:1px solid var(--ant-color-border);padding:0 16px;display:flex;align-items:center;font-size:11px;color:var(--ant-color-text-secondary);gap:12px}
+  .ft .right{margin-left:auto;display:flex;gap:10px;align-items:center}
+</style></head><body>
+<div class="app">
+  <div class="hd">
+    <div class="brand"><span class="dot"></span>XENICA</div>
+    <div class="crumbs">· 工作区 · <b>节点画布</b> · 主画布</div>
+    <div class="right"><span>已保存</span><span>⌘K</span><div class="av" style="width:22px;height:22px;font-size:10px">XL</div></div>
+  </div>
+  <div class="mid">
+    <div class="canvas-bg"></div>
+    <svg style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none">
+      <path d="M 280 180 Q 360 140 440 180" class="edge"/>
+      <path d="M 280 180 Q 200 280 240 380" class="edge"/>
+      <path d="M 440 180 Q 540 240 620 380" class="edge"/>
+      <path d="M 240 380 Q 320 440 480 400" class="edge"/>
+      <path d="M 480 400 Q 600 460 760 380" class="edge"/>
+      <path d="M 760 380 Q 820 280 880 200" class="edge"/>
+      <path d="M 440 180 Q 520 100 600 60" class="edge"/>
+      <path d="M 240 380 Q 140 460 100 540" class="edge"/>
+      <path d="M 880 200 Q 980 240 1060 320" class="edge"/>
+    </svg>
+    <div class="node" style="left:200px;top:140px"><div class="type-dot" style="background:var(--xe-node-default)"></div><h4>晨间笔记 2026-07-17</h4><div class="tags"><span class="tag primary">日记</span></div><div class="meta">5 分钟前 · 1 字</div></div>
+    <div class="node t-blue" style="left:360px;top:140px"><div class="type-dot"></div><h4>本周目标</h4><div class="tags"><span class="tag">任务</span></div><div class="meta">8 分钟前 · 6 字</div></div>
+    <div class="node t-purple" style="left:520px;top:40px"><div class="type-dot"></div><h4>Antd 6 调研笔记</h4><div class="tags"><span class="tag">文档</span><span class="tag">ADR</span></div><div class="meta">12 分钟前 · ~340 字</div></div>
+    <div class="node t-green" style="left:160px;top:340px"><div class="type-dot"></div><h4>本月 OKR</h4><div class="tags"><span class="tag">OKR</span></div><div class="meta">1 小时前</div></div>
+    <div class="node t-yellow" style="left:400px;top:360px"><div class="type-dot"></div><h4>设计原则 v3</h4><div class="tags"><span class="tag primary">核心</span></div><div class="meta">3 小时前 · ~120 字</div></div>
+    <div class="node" style="left:680px;top:340px"><div class="type-dot" style="background:var(--xe-node-cyan)"></div><h4>团队周会</h4><div class="tags"><span class="tag">会议</span></div><div class="meta">昨天 16:00</div></div>
+    <div class="node t-pink" style="left:800px;top:160px"><div class="type-dot"></div><h4>读书《思考，快与慢》</h4><div class="tags"><span class="tag">阅读</span></div><div class="meta">3 天前</div></div>
+    <div class="node" style="left:920px;top:280px"><div class="type-dot" style="background:var(--xe-node-default)"></div><h4>用户访谈：林奇</h4><div class="tags"><span class="tag">访谈</span></div><div class="meta">上周</div></div>
+    <div class="node t-blue" style="left:40px;top:500px"><div class="type-dot"></div><h4>归档：旧实验</h4><div class="tags"><span class="tag warning">归档</span></div><div class="meta">2 周前</div></div>
+    <div class="vtool">
+      <div class="vb on">✥</div><div class="vb">↕</div><div class="vb">⌖</div>
+      <div style="height:1px;background:var(--ant-color-border);margin:4px 0"></div>
+      <div class="vb">⊕</div><div class="vb">⊟</div><div class="vb">✎</div>
+    </div>
+    <div class="minimap">
+      <div class="mm-title"><span>缩略图</span><span>1:1</span></div>
+      <div class="mm-inner">
+        <div class="mm-node" style="left:18%;top:22%;width:12%;height:5%;background:var(--xe-node-default)"></div>
+        <div class="mm-node" style="left:32%;top:22%;width:12%;height:5%;background:var(--xe-node-blue)"></div>
+        <div class="mm-node" style="left:48%;top:8%;width:14%;height:5%;background:var(--xe-node-purple)"></div>
+        <div class="mm-node" style="left:14%;top:55%;width:12%;height:5%;background:var(--xe-node-green)"></div>
+        <div class="mm-node" style="left:36%;top:58%;width:14%;height:5%;background:var(--xe-node-yellow)"></div>
+        <div class="mm-node" style="left:62%;top:55%;width:12%;height:5%;background:var(--xe-node-cyan)"></div>
+        <div class="mm-node" style="left:72%;top:24%;width:14%;height:5%;background:var(--xe-node-pink)"></div>
+        <div class="mm-viewport" style="left:2%;top:30%;width:96%;height:60%"></div>
+      </div>
+    </div>
+  </div>
+  <div class="ft">
+    <span>10 节点</span><span>·</span><span>9 连接</span><span>·</span><span>100%</span>
+    <div class="right"><span>布局 · 自动</span><span>·</span><span>⌘\\ 切换侧栏</span></div>
+  </div>
+</div>
+</body></html>

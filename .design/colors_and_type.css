@@ -1,0 +1,86 @@
+/* Xenica Atrium · Design Tokens · v2
+ * Aligned with Antd 6 darkAlgorithm visual language
+ * All canvas pages reference these tokens via :root vars
+ */
+
+:root, html {
+  /* ── Antd 6 darkAlgorithm · surface ─────────────── */
+  --ant-color-bg-base:        #000000;
+  --ant-color-bg-container:   #141414;
+  --ant-color-bg-elevated:    #1f1f1f;
+  --ant-color-bg-layout:      #000000;
+
+  /* ── Antd 6 darkAlgorithm · text ────────────────── */
+  --ant-color-text:           #ffffffd9;
+  --ant-color-text-secondary: #ffffffa6;
+  --ant-color-text-tertiary:  #ffffff73;
+  --ant-color-text-quaternary:#ffffff40;
+
+  /* ── Antd 6 darkAlgorithm · fill ────────────────── */
+  --ant-color-fill:           #ffffff0a;
+  --ant-color-fill-secondary: #ffffff14;
+  --ant-color-fill-tertiary:  #ffffff1f;
+  --ant-color-fill-quaternary:#ffffff29;
+
+  /* ── Antd 6 darkAlgorithm · border ──────────────── */
+  --ant-color-border:         #ffffff14;
+  --ant-color-border-secondary: #ffffff0a;
+
+  /* ── Antd 6 darkAlgorithm · brand (Xenica teal) ── */
+  --ant-color-primary:        #14b8a6;
+  --ant-color-primary-hover:  #2dd4bf;
+  --ant-color-primary-active: #0d9488;
+  --ant-color-primary-bg:     #0a2922;
+  --ant-color-primary-bg-hover:#0d3a30;
+  --ant-color-primary-border: #134e44;
+  --ant-color-primary-text:   #5eead4;
+  --ant-color-primary-text-hover: #99f6e4;
+
+  /* ── Antd 6 darkAlgorithm · state ───────────────── */
+  --ant-color-success:        #49aa19;
+  --ant-color-error:          #dc4446;
+  --ant-color-warning:        #d89614;
+  --ant-color-info:           #14b8a6;
+
+  /* ── Antd 6 darkAlgorithm · control ─────────────── */
+  --ant-control-height:       32px;
+  --ant-border-radius:        6px;
+  --ant-border-radius-lg:     8px;
+
+  /* ── Antd 6 darkAlgorithm · typography ──────────── */
+  --ant-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+
+  /* ── Xenica extension · node highlight palette ──── */
+  --xe-node-default:  #5eead4;
+  --xe-node-blue:     #4096ff;
+  --xe-node-purple:   #b37feb;
+  --xe-node-pink:     #ff85c0;
+  --xe-node-yellow:   #ffc53d;
+  --xe-node-orange:   #ff9c6e;
+  --xe-node-green:    #95de64;
+  --xe-node-cyan:     #36cfc9;
+  --xe-node-magenta:  #f759ab;
+
+  /* ── Xenica extension · semantic bg ─────────────── */
+  --xe-bg-glow:       radial-gradient(circle at 50% 0%, #14b8a61a 0%, transparent 60%);
+  --xe-bg-grid:       linear-gradient(rgba(255,255,255,.02) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(255,255,255,.02) 1px, transparent 1px);
+
+  /* ── Xenica extension · elevation ──────────────── */
+  --xe-shadow-1: 0 1px 2px rgba(0,0,0,.4);
+  --xe-shadow-2: 0 4px 12px rgba(0,0,0,.4);
+  --xe-shadow-3: 0 10px 30px -8px rgba(0,0,0,.6);
+  --xe-shadow-glow: 0 0 20px rgba(20,184,166,.3);
+
+  /* ── Xenica extension · spacing scale ───────────── */
+  --xe-s1: 4px;
+  --xe-s2: 8px;
+  --xe-s3: 12px;
+  --xe-s4: 16px;
+  --xe-s5: 20px;
+  --xe-s6: 24px;
+  --xe-s8: 32px;
+  --xe-s10: 40px;
+  --xe-s12: 48px;
+  --xe-s16: 64px;
+}

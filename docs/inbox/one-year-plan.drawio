@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="drawio" version="26.0.0">
+  <diagram name="One Year Plan" id="one-year-plan">
+    <mxGraphModel dx="1600" dy="1100" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1650" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="title" value="Xenica &#8212; &#19968;&#24180;&#20869;&#34892;&#21160;&#32490;&#32439;&#22270;" style="text;html=1;align=center;verticalAlign=middle;fontSize=20;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="600" y="20" width="450" height="40" as="geometry" />
+        </mxCell>
+
+        <mxCell id="swim_now" value="&#29616;&#22312;&#24577; / Current" style="swimlane;startSize=28;fillColor=#fde0d2;strokeColor=#d79b00;swimlaneFillColor=#fff7e6;fontSize=14;fontStyle=1;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="80" width="320" height="420" as="geometry" />
+        </mxCell>
+
+        <mxCell id="pain1" value="A. &#36328; Agent / &#36328;&#23545;&#35805;&#35760;&#24518;&#19981;&#20132;&#34701;&#10;&#19968;&#21477;&#35805;&#35201;&#37325;&#22797;&#22810;&#36941;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;" vertex="1" parent="swim_now">
+          <mxGeometry x="20" y="50" width="280" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="pain2" value="B. &#25991;&#26723;&#23601;&#26159;&#23617;&#23665;&#10;&#20889;&#36234;&#22810;&#36234;&#26080;&#27861;&#32500;&#25252;&#65292;&#21516;&#19968;&#20301;&#32622;&#19981;&#33021;&#21160;&#24577;&#26356;&#26032;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;" vertex="1" parent="swim_now">
+          <mxGeometry x="20" y="150" width="280" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="pain3" value="C. Agent &#32500;&#25252;&#25991;&#26723;&#19981;&#26234;&#33021;&#10;&#25913;&#19981;&#21160;&#12289;&#36319;&#19981;&#19978;&#12289;&#26080;&#27861;&#36861;&#28335;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;" vertex="1" parent="swim_now">
+          <mxGeometry x="20" y="250" width="280" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="gaokao" value="D. &#39640;&#32771;&#20498;&#35745;&#26102; 1 &#24180;&#10;&#36825;&#19968;&#24180;&#20027;&#30446;&#26631;&#19981;&#26159;&#24320;&#21457;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontStyle=1;" vertex="1" parent="swim_now">
+          <mxGeometry x="20" y="350" width="280" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="swim_learning" value="&#23398;&#20064;&#26041;&#21521; / Learning Tracks" style="swimlane;startSize=28;fillColor=#d5e8d4;strokeColor=#82b366;swimlaneFillColor=#eef5e0;fontSize=14;fontStyle=1;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="420" y="80" width="320" height="420" as="geometry" />
+        </mxCell>
+
+        <mxCell id="L_godot" value="1. Godot&#10;&#20026;&#22270;&#35889;&#24335; / 3D / &#22330;&#22495;&#24335;&#20132;&#20114;&#20570;&#25216;&#26415;&#22791;&#36830;&#10;&#22330;&#26223;&#26641;&#12289;&#20449;&#21495;&#12289;Node&#21542;Resource" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;" vertex="1" parent="swim_learning">
+          <mxGeometry x="20" y="50" width="280" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="L_design" value="2. &#21069;&#31471;&#35774;&#35745;&#65288;&#19981;&#26159;&#21069;&#31471;&#20195;&#30721;&#65289;&#10;&#26694;&#26550;&#19968;&#30452;&#22312;&#21464;&#65292;&#35774;&#35745;&#33258;&#36523;&#26159;&#24213;&#22352;&#10;AI &#21487;&#20197;&#35774;&#35745;-&gt;&#20195;&#30721;&#65292;&#20294;&#35774;&#35745;&#26412;&#36523;&#20154;&#26469;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;" vertex="1" parent="swim_learning">
+          <mxGeometry x="20" y="170" width="280" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="L_detail" value="3. &#21069;&#31471;&#32454;&#33410;&#20043;&#26102;&#33258;&#24049;&#25269;&#10;&#29616;&#38454;&#27573; Agent &#33021;&#21147;&#19981;&#22815;&#65292;&#22806;&#21253;&#19981;&#20986;&#22909;&#30340;&#10;&#29616;&#22312;&#33258;&#24049;&#25269;&#65292;&#19981;&#26159;&#27704;&#36828;&#19981;&#31649;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;" vertex="1" parent="swim_learning">
+          <mxGeometry x="20" y="290" width="280" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="swim_future" value="&#26410;&#26469;&#24577; / After 1 Year" style="swimlane;startSize=28;fillColor=#dae8fc;strokeColor=#6c8ebf;swimlaneFillColor=#e8effa;fontSize=14;fontStyle=1;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="800" y="80" width="400" height="420" as="geometry" />
+        </mxCell>
+
+        <mxCell id="F_godot" value="F1. Godot &#36807;&#31243;&#20013;&#23398;&#21040;&#30340;&#65306;&#10;&#10;&#8226; &#22330;&#26223;&#26641;&#37319;&#26641;&#24418;&#20869;&#23884;&#8651;&#65306;&#33410;&#28857; = &#29238;&#23376;&#20851;&#31995;&#10;&#8226; &#20449;&#21495;&#26426;&#21046;&#65306;&#33410;&#28857;&#38388;&#26494;&#32806;&#21512;&#36890;&#20449;&#10;&#8226; 3D &#30456;&#26426;/&#36830;&#25509;&#36924;&#20276;&#65306;TheBrain / Roam &#23548;&#33322;&#26426;&#21046;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;" vertex="1" parent="swim_future">
+          <mxGeometry x="20" y="50" width="360" height="130" as="geometry" />
+        </mxCell>
+
+        <mxCell id="F_design" value="F2. &#35774;&#35745;&#23398;&#21040;&#30340;&#65306;&#10;&#10;&#8226; &#35774;&#35745;&#31995;&#32479;&#65306;&#21098;&#29260;&#12289;&#32452;&#20214;&#24211;&#12289;&#33410;&#22863;&#10;&#8226; IA &#20449;&#24687;&#26550;&#26550;&#65306;&#20837;&#21475;/&#20986;&#21475;&#36923;&#36753;&#10;&#8226; AI &#21487;&#20197;&#30475;&#21333;&#39029;&#65292;&#20294;&#25165;&#30475;&#19981;&#20986;&#39029;&#38754;&#20043;&#38388;&#30340;&#19990;&#30028;&#35266;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;" vertex="1" parent="swim_future">
+          <mxGeometry x="20" y="200" width="360" height="130" as="geometry" />
+        </mxCell>
+
+        <mxCell id="F_xenica" value="F3. &#22238;&#24402; Xenica &#26102;&#20855;&#22791;&#65306;&#10;&#10;&#8226; &#33410;&#28857; + &#36830;&#36793;&#30340;&#25968;&#25454;&#27169;&#22411;&#10;&#8226; &#29609;&#36807; 3D &#20114;&#20114;&#65292;&#22270;&#35889;&#20027;&#20132;&#20114;&#26356;&#33021;&#20307;&#20250;&#10;&#8226; &#35774;&#35745;&#35273;&#37266;&#65292;&#19981;&#21482;&#26159;&#26495;&#21040;&#35201;&#20195;&#30721;&#8220;&#35774;&#35745;&#8221;&#10;&#8226; &#24494;&#32454;&#33410;&#19981;&#38656;&#22806;&#21253;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontStyle=1;" vertex="1" parent="swim_future">
+          <mxGeometry x="20" y="350" width="360" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="swim_phil" value="&#20041;&#21270;&#27086;&#28857; / Philosophical Anchors" style="swimlane;startSize=28;fillColor=#e1d5e7;strokeColor=#9673a6;swimlaneFillColor=#f2ebf5;fontSize=14;fontStyle=1;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="540" width="1160" height="280" as="geometry" />
+        </mxCell>
+
+        <mxCell id="P1" value="P1. &#20449;&#24687;&#21407;&#23376;&#21270; + &#26412;&#20307;&#21270;&#10;&#10;&#25991;&#20214;&#12289;&#20851;&#31995;&#12289;&#23646;&#24615;&#22312;&#24213;&#23618;&#37117;&#26159;&#33410;&#28857;&#10;&#24184;&#33021;&#34987;&#37325;&#20889;&#65292;&#21516;&#19968;&#20301;&#32622;&#21487;&#20197;&#21160;&#24577;&#26356;&#26032;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;" vertex="1" parent="swim_phil">
+          <mxGeometry x="20" y="50" width="360" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="P2" value="P2. &#24037;&#31243;&#23454;&#36341;&#19982;&#20132;&#20114;&#30452;&#35272;&#30340;&#35299;&#32806;&#10;&#10;&#21518;&#31471;&#24590;&#20040;&#23384;/&#26597;/&#32034;&#24341;&#65292;&#36319;&#29992;&#25143;&#24590;&#20040;&#24819;/&#36339;&#33618;/&#32852;&#24819;&#20998;&#24320;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;" vertex="1" parent="swim_phil">
+          <mxGeometry x="400" y="50" width="360" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="P3" value="P3. &#22242;&#20307;&#22823;&#33041;/&#25991;&#21270;&#32047;&#31215;&#10;&#10;&#29275;&#39039;&#22855;&#36857;&#24180;=&#24050;&#26377;&#30693;&#35782;&#30340;&#37325;&#32452;&#25506;&#25104;&#10;Xenica &#26159;&#19978;&#36848;&#29702;&#24819;&#30340;&#32570;&#21475;&#26696;&#20363;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;" vertex="1" parent="swim_phil">
+          <mxGeometry x="780" y="50" width="360" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="legend" value="&#39068;&#33394;&#35828;&#26126;&#65306;&#10;&#31895;&#32418;=&#30140;&#28857;&#10;&#31881;&#32418;=&#29616;&#38454;&#27573;&#38480;&#21046;&#10;&#28145;&#32511;=&#23398;&#20064;&#26041;&#21521;&#10;&#28145;&#34013;=&#26410;&#26469;&#33021;&#21147;&#10;&#32043;=&#20041;&#21270;&#27086;&#28857;" style="text;html=1;align=left;verticalAlign=top;fontSize=11;fillColor=none;strokeColor=none;" vertex="1" parent="swim_phil">
+          <mxGeometry x="20" y="180" width="360" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e_pain1_godot" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;endArrow=classic;strokeColor=#82b366;strokeWidth=2;" edge="1" parent="1" source="pain1" target="L_godot">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e_pain2_godot" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;endArrow=classic;strokeColor=#82b366;strokeWidth=2;" edge="1" parent="1" source="pain2" target="L_godot">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="380" y="280" />
+              <mxPoint x="380" y="155" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="e_pain3_design" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;endArrow=classic;strokeColor=#82b366;strokeWidth=2;" edge="1" parent="1" source="pain3" target="L_design">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e_gaokao_design" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;endArrow=classic;strokeColor=#82b366;strokeWidth=2;dashed=1;" edge="1" parent="1" source="gaokao" target="L_detail">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e_godot_future1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;endArrow=classic;strokeColor=#6c8ebf;strokeWidth=2;" edge="1" parent="1" source="L_godot" target="F_godot">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e_design_future2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;endArrow=classic;strokeColor=#6c8ebf;strokeWidth=2;" edge="1" parent="1" source="L_design" target="F_design">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e_detail_future3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;endArrow=classic;strokeColor=#6c8ebf;strokeWidth=2;" edge="1" parent="1" source="L_detail" target="F_xenica">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="780" y="445" />
+              <mxPoint x="780" y="445" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="e_pain1_P1" value="&#28335;&#28304;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=classic;dashed=1;strokeColor=#9673a6;fontSize=10;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="pain1" target="P1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e_pain2_P1" value="&#28335;&#28304;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=classic;dashed=1;strokeColor=#9673a6;fontSize=10;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="pain2" target="P1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e_pain3_P2" value="&#28335;&#28304;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=classic;dashed=1;strokeColor=#9673a6;fontSize=10;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="pain3" target="P2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e_F_xenica_P3" value="&#26368;&#32456;&#30446;&#26631;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=classic;dashed=1;strokeColor=#9673a6;fontSize=10;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="F_xenica" target="P3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e_label_pain_godot" value="&#20160;&#20040;&#21487;&#20197;&#35299;" style="text;html=1;align=center;fontSize=11;fontStyle=2;fillColor=none;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="350" y="118" width="80" height="20" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

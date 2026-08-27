@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>设置 · 自动布局 · Xenica</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<link rel="stylesheet" href="_mini.css">
+<style>*{box-sizing:border-box;margin:0;padding:0}html,body{background:#000;color:var(--ant-color-text);font-family:var(--ant-font-family);-webkit-font-smoothing:antialiased}.slider-row{display:flex;align-items:center;gap:12px;flex:1}.slider-row .v{font-family:ui-monospace,monospace;font-size:12px;color:var(--ant-color-primary-text);min-width:50px;text-align:right}.slider{flex:1;height:4px;background:var(--ant-color-fill-secondary);border-radius:100px;position:relative}.slider>i{position:absolute;left:0;top:0;bottom:0;background:var(--ant-color-primary);border-radius:100px}.slider .handle{position:absolute;top:-6px;width:16px;height:16px;border-radius:50%;background:var(--ant-color-primary);box-shadow:0 0 0 4px var(--ant-color-primary-bg);transform:translateX(-50%)}.algo-card{background:var(--ant-color-bg-elevated);border:1px solid var(--ant-color-border);border-radius:10px;padding:16px 20px;display:flex;gap:14px;margin-bottom:10px;cursor:default;position:relative}.algo-card.on{border-color:var(--ant-color-primary);background:var(--ant-color-primary-bg)}.algo-card .ico{width:36px;height:36px;border-radius:8px;background:var(--ant-color-fill-secondary);display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--ant-color-primary-text);flex:none}.algo-card.on .ico{background:var(--ant-color-primary);color:#fff}.algo-card .info{flex:1}.algo-card h4{font-size:13px;font-weight:600;margin-bottom:2px}.algo-card p{font-size:12px;color:var(--ant-color-text-secondary);line-height:1.5}.algo-card .meta{margin-top:8px;font-size:10px;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace;display:flex;gap:14px}</style></body>
+<div class="shell">
+<div class="shell-hd"><div class="brand"><span class="dot"></span>XENICA</div><div style="color:var(--ant-color-text-tertiary)">· 设置 · 自动布局</div><div class="right"><span>⌘,</span><div class="av" style="width:22px;height:22px;font-size:10px">XL</div></div></div>
+<div class="shell-sb"><h3>账户</h3><div class="si"><span class="ico">◐</span>总览</div><div class="si"><span class="ico">☻</span>个人资料</div><div class="si"><span class="ico">⌬</span>订阅与计费</div><h3 style="margin-top:14px">外观</h3><div class="si"><span class="ico">◑</span>主题</div><div class="si"><span class="ico">⌗</span>字体与间距</div><div class="si"><span class="ico">⌘</span>快捷键</div><h3 style="margin-top:14px">编辑器</h3><div class="si"><span class="ico">▦</span>画布设置</div><div class="si on"><span class="ico">⌬</span>自动布局</div><div class="si"><span class="ico">⤓</span>导入与导出</div><h3 style="margin-top:14px">数据</h3><div class="si"><span class="ico">⇅</span>同步与备份</div><div class="si"><span class="ico">⚠</span>危险操作</div><h3 style="margin-top:14px">其他</h3><div class="si"><span class="ico">▦</span>扩展</div><div class="si"><span class="ico">i</span>关于</div></div>
+<div class="shell-ct">
+<div class="shell-ch"><div class="crumb">设置 · 编辑器 · 自动布局</div><h1>自动布局</h1><p>3 种算法可选，每种独立调参。⌘⇧L 触发自动布局。</p></div>
+<div class="shell-card">
+<h3 style="font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace;margin-bottom:14px;font-weight:600">算法</h3>
+<div class="algo-card on"><div class="ico">✥</div><div class="info"><h4>力导向 · d3-force</h4><p>物理模拟 · 节点互相吸引/排斥 · 边视为弹簧</p><div class="meta"><span>★ 推荐</span><span>12–500 节点</span><span>~0.3s/100 节点</span></div></div></div>
+<div class="algo-card"><div class="ico">▦</div><div class="info"><h4>层次布局 · dagre</h4><p>按父子关系分层 · DAG 友好 · 适合树形结构</p><div class="meta"><span>层级结构</span><span>~0.1s/100 节点</span></div></div></div>
+<div class="algo-card"><div class="ico">◯</div><div class="info"><h4>圆形布局 · circle</h4><p>所有节点均匀分布在大圆上 · 适合演示</p><div class="meta"><span>≤100 节点</span><span>瞬时</span></div></div></div>
+</div>
+<div class="shell-card" style="margin-top:16px">
+<h3 style="font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace;margin-bottom:14px;font-weight:600">力导向参数</h3>
+<div class="shell-row"><div class="k"><b>节点间距</b><span class="hint">节点间距离</span></div><div class="v"><div class="slider-row"><div class="slider"><i style="width:60%"></i><div class="handle" style="left:60%"></div></div><span class="v">120</span></div></div></div>
+<div class="shell-row"><div class="k"><b>排斥力</b><span class="hint">节点间斥力强度</span></div><div class="v"><div class="slider-row"><div class="slider"><i style="width:50%"></i><div class="handle" style="left:50%"></div></div><span class="v">−300</span></div></div></div>
+<div class="shell-row"><div class="k"><b>边长度</b><span class="hint">连线目标长度</span></div><div class="v"><div class="slider-row"><div class="slider"><i style="width:50%"></i><div class="handle" style="left:50%"></div></div><span class="v">120</span></div></div></div>
+<div class="shell-row"><div class="k"><b>迭代次数</b><span class="hint">模拟步数</span></div><div class="v"><div class="slider-row"><div class="slider"><i style="width:30%"></i><div class="handle" style="left:30%"></div></div><span class="v">300 tick</span></div></div></div>
+<div class="shell-row"><div class="k"><b>固定中心</b><span class="hint">防止整体漂移</span></div><div class="v"><div class="shell-sw on"></div></div></div>
+<div class="shell-row"><div class="k"><b>碰撞避免</b><span class="hint">节点不重叠</span></div><div class="v"><div class="shell-sw on"></div></div></div>
+<div class="shell-row"><div class="k"><b>动画过渡</b><span class="hint">布局过程动画</span></div><div class="v"><div class="shell-sw on"></div></div></div>
+<div class="shell-row"><div class="k"><b>过渡时长</b><span class="hint">毫秒</span></div><div class="v"><div class="slider-row"><div class="slider"><i style="width:60%"></i><div class="handle" style="left:60%"></div></div><span class="v">800 ms</span></div></div></div>
+<div class="shell-save"><span class="status">● <b>已保存</b></span><div style="display:flex;gap:8px"><button class="btn btn-ghost">恢复默认</button><button class="btn btn-default">⌒ 试运行</button><button class="btn btn-primary">⌘S 保存</button></div></div>
+</div>
+</div>
+<div class="shell-ft"><span>设置 · 自动布局 · d3-force</span><span class="right">⌘, 关闭</span></div>
+</div>
+</body></html>

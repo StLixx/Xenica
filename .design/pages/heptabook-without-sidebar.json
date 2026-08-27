@@ -1,0 +1,12 @@
+{
+  "id": "heptabook-without-sidebar",
+  "type": "page",
+  "title": "Heptabook · Ref · 侧栏收起",
+  "html": "pages/heptabook-without-sidebar.html",
+  "png": "pages/heptabook-without-sidebar.png",
+  "width": 1600,
+  "height": 920,
+  "designSystem": "heptabook-ref",
+  "mode": "dark",
+  "tags": ["heptabook", "reference", "sidebar-collapsed"]
+}

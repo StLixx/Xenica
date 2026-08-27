@@ -1,0 +1,54 @@
+{
+  "project": {
+    "name": "Xenica Atrium",
+    "path": "C:\\dev\\Xenica\\.design",
+    "operation": "create",
+    "deviceType": "desktop",
+    "language": "en",
+    "dashboardMode": false,
+    "operatingMode": "free-explore",
+    "designDials": {
+      "layoutVariance": 2,
+      "motionIntensity": 1,
+      "visualDensity": 3
+    },
+    "styleContinuityAnchors": {
+      "colorSystem": {
+        "primaryColorRole": "single terra-cotta accent (brand-500 #D97757) reserved for primary CTA, focal card, and italic display accents",
+        "brandHuePolicy": "single-hue brand identity, no secondary accent",
+        "stateColors": "success-500 only for status pulse; no warning/info tokens"
+      },
+      "shapeSystem": "restrained radius scale (8/12/16px) — no large rounded shapes",
+      "typographySystem": "Newsreader (display) + Lora (reading) + Poppins (UI) + Geist Mono (markers) with editorial italic accent",
+      "spacingSystem": "4px base rhythm; generous vertical breathing in dark mode",
+      "componentLanguage": "three surface elevations: sunken (bg-50) / floating (bg-200) / emphasis (text-800 inverted)",
+      "surfaceAndDepth": "paper-thin shadows; emphasis uses brand halo instead of heavy shadow",
+      "imageryAndIconography": "no decorative imagery; rely on typography, surface, and the warm accent as the focal gesture",
+      "interactionTone": "static cover plate — no interactive states in v1"
+    }
+  },
+  "pages": [
+    {
+      "nodeId": "page-page-01-home",
+      "slug": "page-01-home",
+      "title": "Plate I · Cover",
+      "htmlSrc": "pages/page-01-home.html",
+      "pageType": "showcase",
+      "businessScenario": "design system cover / plate of an editorial series",
+      "visualNorthStar": "a quiet, paper-lit dark room where a single terra-cotta accent carries the entire emotional sentence",
+      "compositionPattern": "Editorial plate: margin numerals + brand header + display slogan + token strip + 3-elevation cluster + components lab + type spec + footer",
+      "continuityAnchors": [
+        "dark-first bg-100 with terra-cotta brand-500 as the single warm note",
+        "Newsreader italic accent for the focal phrase",
+        "three surface elevations in card cluster"
+      ],
+      "componentPlan": ["display heading", "token strip", "card cluster", "controls lab", "type spec", "footer plate"],
+      "imagePlan": ["assets/plate-01-cover.png (static preview reference)"],
+      "qualityRisks": []
+    }
+  ],
+  "designSource": {
+    "operatingMode": "free-explore",
+    "libraryIdentity": null
+  }
+}

@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>主题切换面板 · Xenica</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#000;color:var(--ant-color-text);font-family:var(--ant-font-family);-webkit-font-smoothing:antialiased;height:100vh;overflow:hidden}
+  .app{height:100vh;position:relative;background:linear-gradient(180deg,#0a0a0a,#000)}
+  .app::before{content:"";position:absolute;inset:0;background-image:var(--xe-bg-grid);background-size:48px 48px;opacity:.25;pointer-events:none}
+  .hd{height:48px;display:flex;align-items:center;padding:0 16px;gap:14px;background:var(--ant-color-bg-elevated);border-bottom:1px solid var(--ant-color-border);position:relative;z-index:2}
+  .brand{font-weight:700;font-size:13px;letter-spacing:.14em;color:var(--ant-color-primary-text);display:flex;align-items:center;gap:8px}
+  .brand .dot{width:6px;height:6px;border-radius:50%;background:var(--ant-color-primary);box-shadow:0 0 6px var(--ant-color-primary)}
+  .crumb{font-size:12px;color:var(--ant-color-text-secondary)}
+  .crumb b{color:var(--ant-color-text);font-weight:500}
+  .hd-right{margin-left:auto;display:flex;gap:10px;align-items:center}
+  .ico-btn{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--ant-color-text-secondary);font-size:13px}
+  .av{width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#14b8a6,#0d9488);display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:600;flex:none}
+  .scrim{position:absolute;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);z-index:50}
+  .modal{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:760px;background:var(--ant-color-bg-elevated);border:1px solid var(--ant-color-border);border-radius:14px;box-shadow:var(--xe-shadow-3);z-index:51;overflow:hidden}
+  .m-head{padding:18px 22px;border-bottom:1px solid var(--ant-color-border);display:flex;justify-content:space-between;align-items:flex-start}
+  .m-head h2{font-size:17px;font-weight:600;margin-bottom:4px}
+  .m-head .sub{font-size:12px;color:var(--ant-color-text-secondary)}
+  .close{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--ant-color-text-tertiary)}
+  .close:hover{background:var(--ant-color-fill-secondary);color:var(--ant-color-text)}
+  .m-body{padding:22px}
+  .section-title{font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--ant-color-text-tertiary);margin-bottom:12px;font-family:'JetBrains Mono',ui-monospace,monospace;display:flex;justify-content:space-between;align-items:center}
+  .themes{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px}
+  .theme-card{border:1px solid var(--ant-color-border);border-radius:12px;overflow:hidden;cursor:default;transition:all .15s}
+  .theme-card:hover{border-color:var(--ant-color-primary-border)}
+  .theme-card.on{border-color:var(--ant-color-primary);box-shadow:0 0 0 2px var(--ant-color-primary-bg)}
+  .preview{height:140px;position:relative;overflow:hidden}
+  .preview.light{background:linear-gradient(135deg,#fafafa,#f0f0f0)}
+  .preview.dark{background:linear-gradient(135deg,#0a0a0a,#1f1f1f)}
+  .preview.system{background:linear-gradient(135deg,#fafafa 50%,#0a0a0a 50%)}
+  .preview .ribbon{position:absolute;top:14px;left:14px;right:14px;height:14px;border-radius:3px;display:flex;align-items:center;padding:0 8px;font-size:9px;font-family:'JetBrains Mono',ui-monospace,monospace}
+  .preview.light .ribbon{background:#fff;color:#000;border:1px solid #d9d9d9}
+  .preview.dark .ribbon{background:#1f1f1f;color:#fff;border:1px solid #303030}
+  .preview.system .ribbon{background:linear-gradient(90deg,#fff 50%,#1f1f1f 50%);color:transparent;border:1px solid #888}
+  .preview .blocks{position:absolute;top:36px;left:14px;right:14px;bottom:14px;display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .preview .bl{border-radius:4px}
+  .preview.light .bl.a{background:#fff;border:1px solid #d9d9d9}
+  .preview.light .bl.b{background:#14b8a6}
+  .preview.light .bl.c{background:#f0f0f0}
+  .preview.light .bl.d{background:#fff;border:1px solid #14b8a6}
+  .preview.dark .bl.a{background:#1f1f1f;border:1px solid #303030}
+  .preview.dark .bl.b{background:#14b8a6}
+  .preview.dark .bl.c{background:#141414}
+  .preview.dark .bl.d{background:#1f1f1f;border:1px solid #14b8a6}
+  .preview.system .bl.a{background:#fff;border:1px solid #d9d9d9}
+  .preview.system .bl.b{background:#14b8a6}
+  .preview.system .bl.c{background:#141414}
+  .preview.system .bl.d{background:linear-gradient(90deg,#fff 50%,#1f1f1f 50%)}
+  .t-foot{padding:12px 14px;border-top:1px solid var(--ant-color-border);background:var(--ant-color-bg-container);display:flex;justify-content:space-between;align-items:center}
+  .t-foot .name{font-size:13px;font-weight:600}
+  .t-foot .check{width:18px;height:18px;border-radius:50%;background:var(--ant-color-primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px}
+  .palette-card{display:flex;align-items:center;gap:14px;padding:14px 16px;border:1px solid var(--ant-color-border);border-radius:10px;background:var(--ant-color-bg-container)}
+  .swatches{display:flex;gap:0;border-radius:8px;overflow:hidden;flex:none;border:1px solid var(--ant-color-border)}
+  .swatches span{width:34px;height:48px;display:block}
+  .pal-info{flex:1}
+  .pal-info .ttl{font-size:13px;font-weight:600;margin-bottom:4px}
+  .pal-info .desc{font-size:11.5px;color:var(--ant-color-text-secondary)}
+  .pal-tags{display:flex;gap:6px;margin-top:6px}
+  .pal-tags span{padding:2px 7px;background:var(--ant-color-fill-secondary);border-radius:100px;font-size:10px;color:var(--ant-color-text-secondary);font-family:'JetBrains Mono',ui-monospace,monospace}
+  .custom-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:8px;margin-top:14px}
+  .swatch{height:48px;border-radius:8px;border:1px solid var(--ant-color-border);position:relative;cursor:default}
+  .swatch.on{border-color:var(--ant-color-primary);box-shadow:0 0 0 2px var(--ant-color-primary-bg)}
+  .swatch.on::after{content:"✓";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:600}
+  .foot{padding:14px 22px;border-top:1px solid var(--ant-color-border);background:var(--ant-color-bg-container);display:flex;justify-content:space-between;align-items:center}
+  .btn{display:inline-flex;align-items:center;gap:6px;height:32px;padding:4px 16px;border-radius:6px;font-size:13px;border:1px solid transparent;cursor:default;font-family:inherit}
+  .btn-default{background:var(--ant-color-bg-elevated);color:var(--ant-color-text);border-color:var(--ant-color-border)}
+  .btn-primary{background:var(--ant-color-primary);color:#fff;border-color:var(--ant-color-primary)}
+</style></head><body>
+<div class="app">
+  <div class="hd">
+    <div class="brand"><span class="dot"></span>XENICA</div>
+    <div class="crumb">工作区 <span style="color:var(--ant-color-text-quaternary);margin:0 4px">/</span> <b>主题</b></div>
+    <div class="hd-right"><div class="ico-btn">⌕</div><div class="ico-btn">🔔</div><div class="av">XL</div></div>
+  </div>
+  <div class="scrim"></div>
+  <div class="modal">
+    <div class="m-head">
+      <div>
+        <h2>主题切换</h2>
+        <div class="sub">选择适合你工作节奏的视觉风格</div>
+      </div>
+      <div class="close">✕</div>
+    </div>
+    <div class="m-body">
+      <div class="section-title"><span>外观模式</span><span>3 选项</span></div>
+      <div class="themes">
+        <div class="theme-card">
+          <div class="preview light">
+            <div class="ribbon">LIGHT · 06:00–18:00</div>
+            <div class="blocks"><div class="bl a"></div><div class="bl b"></div><div class="bl c"></div><div class="bl d"></div></div>
+          </div>
+          <div class="t-foot"><span class="name">浅色模式</span><span style="font-size:11px;color:var(--ant-color-text-tertiary)">适合白天</span></div>
+        </div>
+        <div class="theme-card on">
+          <div class="preview dark">
+            <div class="ribbon">DARK · ACTIVE</div>
+            <div class="blocks"><div class="bl a"></div><div class="bl b"></div><div class="bl c"></div><div class="bl d"></div></div>
+          </div>
+          <div class="t-foot"><span class="name">暗色模式</span><div class="check">✓</div></div>
+        </div>
+        <div class="theme-card">
+          <div class="preview system">
+            <div class="ribbon">SYSTEM</div>
+            <div class="blocks"><div class="bl a"></div><div class="bl b"></div><div class="bl c"></div><div class="bl d"></div></div>
+          </div>
+          <div class="t-foot"><span class="name">跟随系统</span><span style="font-size:11px;color:var(--ant-color-text-tertiary)">自动切换</span></div>
+        </div>
+      </div>
+      <div class="section-title"><span>品牌色板</span><span>CUSTOM TEAL · #14b8a6</span></div>
+      <div class="palette-card">
+        <div class="swatches">
+          <span style="background:#5eead4"></span>
+          <span style="background:#2dd4bf"></span>
+          <span style="background:#14b8a6"></span>
+          <span style="background:#0d9488"></span>
+          <span style="background:#0a2922"></span>
+        </div>
+        <div class="pal-info">
+          <div class="ttl">Xenica Teal · 默认主题</div>
+          <div class="desc">基于 Antd 6 darkAlgorithm，品牌色 teal 贯穿所有交互态</div>
+          <div class="pal-tags"><span>token · 5eead4</span><span>bg · 0a2922</span><span>border · 134e44</span></div>
+        </div>
+      </div>
+      <div class="section-title" style="margin-top:24px"><span>节点配色</span><span>9 色</span></div>
+      <div class="custom-grid">
+        <div class="swatch" style="background:#5eead4"></div>
+        <div class="swatch on" style="background:#14b8a6"></div>
+        <div class="swatch" style="background:#0d9488"></div>
+        <div class="swatch" style="background:#4096ff"></div>
+        <div class="swatch" style="background:#b37feb"></div>
+        <div class="swatch" style="background:#ff85c0"></div>
+        <div class="swatch" style="background:#ffc53d"></div>
+        <div class="swatch" style="background:#95de64"></div>
+      </div>
+    </div>
+    <div class="foot">
+      <span style="font-size:11px;color:var(--ant-color-text-tertiary)">主题切换会立即应用到所有面板</span>
+      <div style="display:flex;gap:8px"><div class="btn btn-default">重置</div><div class="btn btn-primary">应用</div></div>
+    </div>
+  </div>
+</div>
+</body></html>

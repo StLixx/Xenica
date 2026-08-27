@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>块编辑器 · 拖动手柄 · Xenica</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#000;color:var(--ant-color-text);font-family:var(--ant-font-family);-webkit-font-smoothing:antialiased;min-height:100vh}
+  .stage{padding:60px;background:radial-gradient(circle at 50% 0%,#14b8a608 0%,transparent 60%);min-height:100vh;max-width:920px;margin:0 auto}
+  .eyebrow{font-family:ui-monospace,monospace;font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--ant-color-primary-text);margin-bottom:16px;display:flex;align-items:center;gap:10px}
+  .eyebrow .d{width:24px;height:1px;background:var(--ant-color-primary-text);opacity:.6}
+  h1{font-size:42px;font-weight:600;line-height:1.1;letter-spacing:-.01em;margin-bottom:14px}
+  p.lede{font-size:14px;color:var(--ant-color-text-secondary);line-height:1.7;margin-bottom:40px;max-width:680px}
+  .doc{background:var(--ant-color-bg-container);border:1px solid var(--ant-color-border);border-radius:14px;padding:48px 56px;box-shadow:0 30px 80px -30px #00000080;position:relative}
+  .block{position:relative;padding:8px 0;display:flex;align-items:flex-start;gap:0}
+  .handle{width:24px;flex:none;display:flex;justify-content:center;padding-top:6px;cursor:grab;user-select:none;opacity:0;transition:opacity .15s;margin-left:-32px}
+  .block:hover .handle{opacity:1}
+  .handle span{color:var(--ant-color-text-quaternary);font-family:ui-monospace,monospace;font-size:14px;letter-spacing:.1em;line-height:1.4}
+  .handle:hover span{color:var(--ant-color-primary-text)}
+  .handle:active{cursor:grabbing}
+  .b-text{font-size:15px;line-height:1.75;color:var(--ant-color-text);flex:1;min-width:0}
+  .b-h{font-size:24px;font-weight:600;line-height:1.2;color:var(--ant-color-text);flex:1;min-width:0;padding:6px 0}
+  .block.active .handle{opacity:1}
+  .block.active .handle span{color:var(--ant-color-primary)}
+  .block.drop-target::before{content:"";position:absolute;left:-12px;right:-12px;top:-2px;height:3px;background:var(--ant-color-primary);border-radius:3px;box-shadow:0 0 12px var(--ant-color-primary)}
+  .block.dragging{opacity:.4;background:var(--ant-color-fill-secondary);border-radius:6px}
+  .ghost{position:fixed;left:60%;top:30%;background:var(--ant-color-bg-elevated);border:2px dashed var(--ant-color-primary);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--ant-color-text);box-shadow:0 20px 60px -10px #14b8a660;transform:rotate(-2deg);z-index:100;display:flex;align-items:center;gap:10px;min-width:280px}
+  .ghost::after{content:"";position:absolute;bottom:-12px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:8px solid var(--ant-color-primary)}
+  .ghost .ico{color:var(--ant-color-primary-text);font-size:14px}
+  .ghost .badge{margin-left:auto;font-family:ui-monospace,monospace;font-size:10px;color:var(--ant-color-text-tertiary);background:var(--ant-color-bg-container);padding:2px 6px;border-radius:3px}
+  .hud{position:fixed;left:50%;bottom:30px;transform:translateX(-50%);background:var(--ant-color-bg-elevated);border:1px solid var(--ant-color-primary-border);border-radius:999px;padding:8px 16px;font-size:12px;color:var(--ant-color-text);box-shadow:0 12px 30px #00000080;display:flex;align-items:center;gap:14px;z-index:90}
+  .hud .key{display:inline-flex;align-items:center;gap:6px;font-family:ui-monospace,monospace;font-size:11px;color:var(--ant-color-text-secondary)}
+  .hud .kbd{padding:1px 6px;background:var(--ant-color-fill-secondary);border-radius:3px;color:var(--ant-color-text)}
+</style></head><body>
+<div class="stage">
+  <div class="eyebrow"><span class="d"></span>BLOCK · 拖动手柄 · 排序 / 嵌套</div>
+  <h1>拖动手柄 · 鼠标悬停出现</h1>
+  <p class="lede">块左侧 hover 时出现 ⋮⋮ 手柄，拖动可重新排序或跨级嵌套。下方展示激活态 + 拖拽中态 + 投放指示线。</p>
+  <div class="doc">
+    <div class="block"><div class="handle"><span>⋮⋮</span></div><div class="b-h">设计原则 v3 · 完整版</div></div>
+    <div class="block active"><div class="handle"><span>⋮⋮</span></div><div class="b-text">Antd 6 的 <strong>darkAlgorithm</strong> 在保留品牌色的同时提供了细腻的色阶过渡。token 注入机制支持自定义 brandColor 而不破坏整体观感。</div></div>
+    <div class="block"><div class="handle"><span>⋮⋮</span></div><div class="b-text">这是 <s>废弃</s> 删除线 · 这是 <code>行内代码</code> · 这是 <mark>高亮</mark> · 这是 <em>斜体</em></div></div>
+    <div class="block drop-target"><div class="handle"><span>⋮⋮</span></div><div class="b-text">关于"自动布局"<span style="display:inline-block;margin-left:12px;background:var(--ant-color-primary-bg);color:var(--ant-color-primary-text);font-size:11px;padding:3px 10px;border-radius:5px;font-family:ui-monospace,monospace">↓ 放置于此</span></div></div>
+    <div class="block"><div class="handle"><span>⋮⋮</span></div><div class="b-text">每个节点之间的边，必须有名字。</div></div>
+    <div class="block"><div class="handle"><span>⋮⋮</span></div><div class="b-text">Obsidian 让 tag 替作者做决定，Xenica 让作者自己决定。</div></div>
+    <div class="block"><div class="handle"><span>⋮⋮</span></div><div class="b-text">布局应当服务思考，而不是反过来。</div></div>
+  </div>
+
+  <div class="ghost">
+    <span class="ico">⋮⋮</span>
+    <span>「关于自动布局」</span>
+    <span class="badge">1.2 KB</span>
+  </div>
+
+  <div class="hud">
+    <span class="key"><span class="kbd">⋮⋮</span> 拖动</span>
+    <span class="key"><span class="kbd">⌘</span> + <span class="kbd">↑</span>/<span class="kbd">↓</span> 快速排序</span>
+    <span class="key"><span class="kbd">Tab</span> 缩进 · <span class="kbd">⇧</span> + <span class="kbd">Tab</span> 取消缩进</span>
+    <span style="margin-left:14px;font-family:ui-monospace,monospace;color:var(--ant-color-text-tertiary)">释放以放置</span>
+  </div>
+</div>
+</body></html>

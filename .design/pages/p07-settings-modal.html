@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>设置浮层 · Xenica</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#000;color:var(--ant-color-text);font-family:var(--ant-font-family);-webkit-font-smoothing:antialiased;height:100vh;overflow:hidden}
+  .app{height:100vh;position:relative;background:linear-gradient(180deg,#0a0a0a,#000)}
+  .app::before{content:"";position:absolute;inset:0;background-image:var(--xe-bg-grid);background-size:48px 48px;opacity:.3}
+  .hd{height:48px;display:flex;align-items:center;padding:0 16px;gap:14px;background:var(--ant-color-bg-elevated);border-bottom:1px solid var(--ant-color-border);position:relative;z-index:2}
+  .brand{font-weight:700;font-size:13px;letter-spacing:.14em;color:var(--ant-color-primary-text);display:flex;align-items:center;gap:8px}
+  .brand .dot{width:6px;height:6px;border-radius:50%;background:var(--ant-color-primary);box-shadow:0 0 6px var(--ant-color-primary)}
+  .crumb{font-size:12px;color:var(--ant-color-text-secondary)}
+  .crumb b{color:var(--ant-color-text);font-weight:500}
+  .hd-right{margin-left:auto;display:flex;gap:10px;align-items:center}
+  .ico-btn{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--ant-color-text-secondary);font-size:13px}
+  .scrim{position:absolute;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);z-index:50}
+  .modal{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:640px;height:520px;background:var(--ant-color-bg-elevated);border:1px solid var(--ant-color-border);border-radius:14px;box-shadow:var(--xe-shadow-3);z-index:51;display:grid;grid-template-columns:180px 1fr;overflow:hidden}
+  .nav{background:var(--ant-color-bg-container);border-right:1px solid var(--ant-color-border);padding:14px 0;display:flex;flex-direction:column}
+  .nav-head{padding:6px 16px 14px;border-bottom:1px solid var(--ant-color-border);margin-bottom:8px}
+  .nav-head .ttl{font-size:13px;font-weight:600;margin-bottom:2px}
+  .nav-head .sub{font-size:11px;color:var(--ant-color-text-tertiary)}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:8px 16px;font-size:13px;color:var(--ant-color-text-secondary);cursor:default;border-left:2px solid transparent}
+  .nav-item:hover{background:var(--ant-color-fill-secondary);color:var(--ant-color-text)}
+  .nav-item.on{background:var(--ant-color-primary-bg);color:var(--ant-color-primary-text);border-left-color:var(--ant-color-primary)}
+  .nav-item .ic{width:18px;font-size:13px}
+  .body{display:flex;flex-direction:column;overflow:hidden}
+  .body-head{padding:16px 22px;border-bottom:1px solid var(--ant-color-border);display:flex;justify-content:space-between;align-items:center}
+  .body-head h3{font-size:16px;font-weight:600}
+  .body-head .sub{font-size:11.5px;color:var(--ant-color-text-tertiary);margin-top:3px}
+  .close{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--ant-color-text-tertiary);cursor:default}
+  .close:hover{background:var(--ant-color-fill-secondary);color:var(--ant-color-text)}
+  .body-content{flex:1;overflow-y:auto;padding:20px 22px}
+  .field{margin-bottom:18px}
+  .field-label{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+  .field-label .lbl{font-size:12px;font-weight:600;color:var(--ant-color-text)}
+  .field-label .hint{font-size:11px;color:var(--ant-color-text-tertiary)}
+  .inp{display:flex;align-items:center;gap:8px;height:32px;padding:4px 11px;border-radius:6px;background:var(--ant-color-bg-container);border:1px solid var(--ant-color-border);color:var(--ant-color-text);font-size:13px;width:100%;font-family:inherit}
+  .inp:focus-within{outline:none;border-color:var(--ant-color-primary);box-shadow:0 0 0 2px var(--ant-color-primary-bg-hover)}
+  .opt{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;border:1px solid var(--ant-color-border);cursor:default;background:var(--ant-color-bg-container);transition:all .12s}
+  .opt.on{border-color:var(--ant-color-primary);background:var(--ant-color-primary-bg)}
+  .opt:not(.on):hover{border-color:var(--ant-color-primary-border)}
+  .opt .radio{width:14px;height:14px;border-radius:50%;border:1.5px solid var(--ant-color-border);flex:none;position:relative}
+  .opt.on .radio{border-color:var(--ant-color-primary)}
+  .opt.on .radio::after{content:"";position:absolute;inset:2.5px;border-radius:50%;background:var(--ant-color-primary)}
+  .opt .ttl{font-size:13px;font-weight:500;color:var(--ant-color-text)}
+  .opt .desc{font-size:11px;color:var(--ant-color-text-tertiary);margin-top:2px}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .toggle-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--ant-color-border-secondary)}
+  .toggle-row:last-child{border-bottom:none}
+  .toggle-row .lbl{font-size:13px;color:var(--ant-color-text)}
+  .toggle-row .desc{font-size:11.5px;color:var(--ant-color-text-tertiary);margin-top:2px}
+  .sw{width:36px;height:20px;border-radius:100px;background:var(--ant-color-fill-tertiary);position:relative;cursor:default;border:1px solid var(--ant-color-border);flex:none}
+  .sw::after{content:"";position:absolute;left:2px;top:2px;width:14px;height:14px;border-radius:50%;background:var(--ant-color-text-secondary)}
+  .sw.on{background:var(--ant-color-primary);border-color:var(--ant-color-primary)}
+  .sw.on::after{left:18px;background:#fff}
+  .kbd-list{display:flex;flex-direction:column;gap:6px}
+  .kbd-row{display:grid;grid-template-columns:1fr auto;align-items:center;padding:7px 0;border-bottom:1px solid var(--ant-color-border-secondary);font-size:12.5px}
+  .kbd-row .act{color:var(--ant-color-text)}
+  .kbd-row .keys{display:flex;gap:4px}
+  .kbd-row .keys span{padding:2px 7px;background:var(--ant-color-fill-secondary);border:1px solid var(--ant-color-border);border-radius:4px;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:10.5px;color:var(--ant-color-text)}
+  .foot{padding:12px 22px;border-top:1px solid var(--ant-color-border);background:var(--ant-color-bg-container);display:flex;justify-content:flex-end;gap:8px}
+  .btn{display:inline-flex;align-items:center;gap:6px;height:32px;padding:4px 16px;border-radius:6px;font-size:13px;cursor:default;font-family:inherit;border:1px solid transparent}
+  .btn-default{background:var(--ant-color-bg-elevated);color:var(--ant-color-text);border-color:var(--ant-color-border)}
+  .btn-primary{background:var(--ant-color-primary);color:#fff;border-color:var(--ant-color-primary)}
+</style></head><body>
+<div class="app">
+  <div class="hd">
+    <div class="brand"><span class="dot"></span>XENICA</div>
+    <div class="crumb">工作区 <span style="color:var(--ant-color-text-quaternary);margin:0 4px">/</span> 节点画布 <span style="color:var(--ant-color-text-quaternary);margin:0 4px">/</span> <b>设置</b></div>
+    <div class="hd-right"><div class="ico-btn">⌕</div><div class="ico-btn">🔔</div><div class="av" style="width:24px;height:24px;font-size:10px">XL</div></div>
+  </div>
+  <div class="scrim"></div>
+  <div class="modal">
+    <div class="nav">
+      <div class="nav-head">
+        <div class="ttl">设置</div>
+        <div class="sub">工作区偏好 · v3</div>
+      </div>
+      <div class="nav-item on"><span class="ic">⚙</span>通用</div>
+      <div class="nav-item"><span class="ic">◐</span>外观</div>
+      <div class="nav-item"><span class="ic">⌨</span>快捷键</div>
+      <div class="nav-item"><span class="ic">⌬</span>数据与同步</div>
+      <div class="nav-item"><span class="ic">⚡</span>性能</div>
+      <div class="nav-item"><span class="ic">🛡</span>隐私</div>
+      <div class="nav-item"><span class="ic">ⓘ</span>关于 Xenica</div>
+    </div>
+    <div class="body">
+      <div class="body-head">
+        <div>
+          <h3>通用</h3>
+          <div class="sub">工作区名称、默认视图与编辑器行为</div>
+        </div>
+        <div class="close">✕</div>
+      </div>
+      <div class="body-content">
+        <div class="field">
+          <div class="field-label"><span class="lbl">工作区名称</span></div>
+          <div class="inp">我的研究空间</div>
+        </div>
+        <div class="field">
+          <div class="field-label"><span class="lbl">默认视图</span></div>
+          <div class="row2">
+            <div class="opt on"><span class="radio"></span><div><div class="ttl">节点画布</div><div class="desc">图形化编辑</div></div></div>
+            <div class="opt"><span class="radio"></span><div><div class="ttl">列表视图</div><div class="desc">线性阅读</div></div></div>
+          </div>
+        </div>
+        <div class="field">
+          <div class="field-label"><span class="lbl">编辑器偏好</span></div>
+          <div class="toggle-row"><div><div class="lbl">拼写检查</div><div class="desc">中文 / 英文双拼</div></div><div class="sw on"></div></div>
+          <div class="toggle-row"><div><div class="lbl">自动保存</div><div class="desc">每 30 秒保存一次</div></div><div class="sw on"></div></div>
+          <div class="toggle-row"><div><div class="lbl">行内预览链接</div><div class="desc">悬停 600ms 后展开</div></div><div class="sw"></div></div>
+          <div class="toggle-row"><div><div class="lbl">Markdown 严格模式</div><div class="desc">禁用 HTML 内联</div></div><div class="sw"></div></div>
+        </div>
+      </div>
+      <div class="foot">
+        <div class="btn btn-default">恢复默认</div>
+        <div class="btn btn-default">取消</div>
+        <div class="btn btn-primary">保存</div>
+      </div>
+    </div>
+  </div>
+</div>
+</body></html>

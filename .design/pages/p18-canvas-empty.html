@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>画布 · 空状态（首次引导）· Xenica</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#000;color:var(--ant-color-text);font-family:var(--ant-font-family);-webkit-font-smoothing:antialiased;height:100vh;overflow:hidden}
+  .app{height:100vh;display:grid;grid-template-rows:36px 1fr 28px}
+  .hd{background:var(--ant-color-bg-elevated);border-bottom:1px solid var(--ant-color-border);padding:0 16px;display:flex;align-items:center;gap:12px;font-size:12px}
+  .hd .brand{font-weight:700;letter-spacing:.14em}
+  .hd .brand .dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--ant-color-primary);box-shadow:0 0 6px var(--ant-color-primary);margin-right:8px;vertical-align:middle}
+  .hd .crumbs{color:var(--ant-color-text-secondary)}
+  .hd .crumbs b{color:var(--ant-color-text);font-weight:500}
+  .hd .right{margin-left:auto;display:flex;align-items:center;gap:10px;font-size:11px;color:var(--ant-color-text-tertiary)}
+  .mid{background:var(--ant-color-bg-layout);position:relative;overflow:hidden}
+  .canvas-bg{position:absolute;inset:0;background-image:var(--xe-bg-grid);background-size:40px 40px;opacity:.4}
+  .glow{position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,#14b8a614 0%,transparent 50%)}
+  .center-stage{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+  .empty-card{background:var(--ant-color-bg-elevated);border:1px solid var(--ant-color-border);border-radius:20px;padding:48px 64px;width:560px;text-align:center;box-shadow:0 30px 80px -20px #00000080;position:relative}
+  .empty-card::before{content:"";position:absolute;inset:-1px;border-radius:20px;background:linear-gradient(135deg,#14b8a630,transparent 50%);z-index:-1;filter:blur(8px);opacity:.5}
+  .icon-circle{width:72px;height:72px;border-radius:20px;background:linear-gradient(135deg,#14b8a6,#0d9488);display:flex;align-items:center;justify-content:center;color:#fff;font-size:32px;margin:0 auto 24px;box-shadow:0 12px 30px -8px #14b8a660;animation:bob 3s ease-in-out infinite}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+  .empty-card h2{font-size:24px;font-weight:600;color:var(--ant-color-text);margin-bottom:8px}
+  .empty-card p.lead{font-size:13px;color:var(--ant-color-text-secondary);line-height:1.7;margin-bottom:28px;max-width:400px;margin-left:auto;margin-right:auto}
+  .ctas{display:flex;gap:8px;justify-content:center;margin-bottom:32px}
+  .quick-tips{padding-top:24px;border-top:1px solid var(--ant-color-border);text-align:left}
+  .quick-tips h4{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace;margin-bottom:14px;text-align:center}
+  .tip{display:flex;align-items:center;gap:12px;padding:8px 12px;border-radius:8px;font-size:12.5px;color:var(--ant-color-text-secondary)}
+  .tip:hover{background:var(--ant-color-fill-secondary);color:var(--ant-color-text)}
+  .tip .kbd{margin-left:auto;font-family:ui-monospace,monospace;font-size:10px;color:var(--ant-color-text-tertiary);background:var(--ant-color-fill-secondary);padding:2px 6px;border-radius:3px}
+  .tip .ico{font-size:14px;color:var(--ant-color-primary-text)}
+  .ft{background:var(--ant-color-bg-elevated);border-top:1px solid var(--ant-color-border);padding:0 16px;display:flex;align-items:center;font-size:11px;color:var(--ant-color-text-secondary)}
+  .ft .right{margin-left:auto}
+</style></head><body>
+<div class="app">
+  <div class="hd">
+    <div class="brand"><span class="dot"></span>XENICA</div>
+    <div class="crumbs">· 工作区 · <b>节点画布</b> · 新建</div>
+    <div class="right"><span>0 节点</span><span>·</span><span>0 连接</span><span>·</span><span>100%</span><div class="av" style="width:22px;height:22px;font-size:10px">XL</div></div>
+  </div>
+  <div class="mid">
+    <div class="canvas-bg"></div>
+    <div class="glow"></div>
+    <div class="center-stage">
+      <div class="empty-card">
+        <div class="icon-circle">✎</div>
+        <h2>开始你的第一段思考</h2>
+        <p class="lead">新建节点、写下一句话、建立第一个连接——画布会随着你的思路自然生长。</p>
+        <div class="ctas">
+          <button class="btn btn-primary btn-lg">+ 新建节点</button>
+          <button class="btn btn-default btn-lg">⌘ 从模板开始</button>
+        </div>
+        <div class="quick-tips">
+          <h4>— 快速入门 —</h4>
+          <div class="tip"><span class="ico">+</span>在任意位置双击创建节点<span class="kbd">D</span></div>
+          <div class="tip"><span class="ico">↔</span>从节点边缘拖动建立连接<span class="kbd">L</span></div>
+          <div class="tip"><span class="ico">⌕</span>使用全局搜索快速定位<span class="kbd">⌘K</span></div>
+          <div class="tip"><span class="ico">✥</span>一键自动布局所有节点<span class="kbd">⌘⇧L</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="ft"><span>画布 · 空</span><span class="right">双击任意位置新建节点</span></div>
+</div>
+</body></html>

@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>侧栏 · 拖拽中态 · Xenica</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#000;color:var(--ant-color-text);font-family:var(--ant-font-system);-webkit-font-smoothing:antialiased;height:100vh;overflow:hidden;font-family:var(--ant-font-family)}
+  .app{height:100vh;display:grid;grid-template-columns:280px 1fr;grid-template-rows:36px 1fr 28px}
+  .hd{grid-column:1/-1;background:var(--ant-color-bg-elevated);border-bottom:1px solid var(--ant-color-border);padding:0 16px;display:flex;align-items:center;gap:12px;font-size:12px}
+  .hd .brand{font-weight:700;letter-spacing:.14em}
+  .hd .brand .dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--ant-color-primary);box-shadow:0 0 6px var(--ant-color-primary);margin-right:8px;vertical-align:middle}
+  .hd .right{margin-left:auto;display:flex;align-items:center;gap:10px;font-size:11px;color:var(--ant-color-text-tertiary)}
+  .sb{background:var(--ant-color-bg-base);border-right:1px solid var(--ant-color-border);padding:10px 0;overflow:auto}
+  .sb-section{padding:10px 16px 6px;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace}
+  .tn{display:flex;align-items:center;gap:8px;padding:6px 16px;font-size:12.5px;color:var(--ant-color-text-secondary);border-left:2px solid transparent;cursor:default}
+  .tn.drop-target{background:#14b8a614;border-left-color:var(--ant-color-primary);color:var(--ant-color-text)}
+  .tn.drop-target .drop-marker{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--ant-color-primary-text);background:var(--ant-color-primary-bg);padding:2px 6px;border-radius:4px;margin-left:auto}
+  .tn .glyph{font-size:11px;opacity:.7}
+  .tn .badge{margin-left:auto;font-size:10px;background:var(--ant-color-fill-tertiary);color:var(--ant-color-text-tertiary);padding:1px 6px;border-radius:8px}
+  .tn.divider{height:1px;background:var(--ant-color-border);margin:6px 0;padding:0}
+  .mid{background:var(--ant-color-bg-layout);position:relative;overflow:hidden}
+  .canvas-bg{position:absolute;inset:0;background-image:var(--xe-bg-grid);background-size:40px 40px;opacity:.4}
+  .ghost{position:absolute;left:520px;top:200px;width:240px;background:var(--ant-color-bg-elevated);border:2px dashed var(--ant-color-primary);border-radius:10px;padding:14px 18px;font-size:13px;box-shadow:0 20px 60px -10px #14b8a660,0 0 0 4px #14b8a610;transform:rotate(-1.5deg);cursor:grabbing}
+  .ghost .hd-row{display:flex;justify-content:space-between;margin-bottom:6px}
+  .ghost .hd-row .glyph{font-size:11px;color:var(--ant-color-primary-text)}
+  .ghost .hd-row .handle{color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace;font-size:10px;letter-spacing:.1em}
+  .ghost h4{font-size:13px;font-weight:600;color:var(--ant-color-text);margin-bottom:4px}
+  .ghost p{font-size:11px;color:var(--ant-color-text-secondary);line-height:1.4}
+  .ghost::after{content:"";position:absolute;bottom:-12px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:8px solid var(--ant-color-primary)}
+  .drop-zone-hint{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);padding:30px 60px;border:2px dashed #14b8a640;border-radius:14px;color:var(--ant-color-text-tertiary);text-align:center;background:#14b8a608}
+  .drop-zone-hint .big{font-size:24px;color:var(--ant-color-primary-text);font-weight:600;margin-bottom:6px}
+  .hud{position:absolute;top:14px;left:50%;transform:translateX(-50%);background:var(--ant-color-bg-elevated);border:1px solid var(--ant-color-primary-border);border-radius:999px;padding:8px 16px;font-size:12px;color:var(--ant-color-text);box-shadow:0 8px 24px #00000080;display:flex;align-items:center;gap:10px;z-index:10}
+  .hud .ico{color:var(--ant-color-primary);font-size:14px}
+  .hud .x{color:var(--ant-color-text-tertiary);cursor:default;font-size:14px;margin-left:4px}
+  .ft{grid-column:1/-1;background:var(--ant-color-bg-elevated);border-top:1px solid var(--ant-color-border);padding:0 16px;display:flex;align-items:center;font-size:11px;color:var(--ant-color-text-secondary);gap:10px}
+  .ft .right{margin-left:auto}
+</style></head><body>
+<div class="app">
+  <div class="hd">
+    <div class="brand"><span class="dot"></span>XENICA</div>
+    <div style="color:var(--ant-color-text-tertiary)">· 工作区 · <b>设计原则 v3</b> 正在移动</div>
+    <div class="right"><span style="color:var(--ant-color-primary-text)">✥ 拖拽中</span><span>ESC 取消</span><div class="av" style="width:22px;height:22px;font-size:10px">XL</div></div>
+  </div>
+  <div class="sb">
+    <div class="sb-section">收藏</div>
+    <div class="tn drop-target"><span class="glyph">▤</span>研究项目<span class="drop-marker"><span style="font-size:11px">▼</span>放置于此</span></div>
+    <div class="tn"><span class="glyph">◉</span>节点画布<span class="badge">128</span></div>
+    <div class="tn"><span class="glyph">✎</span>每日日记<span class="badge">31</span></div>
+    <div class="tn"><span class="glyph">▦</span>阅读清单<span class="badge">17</span></div>
+    <div class="tn"><span class="glyph">⌬</span>项目看板<span class="badge">9</span></div>
+    <div class="tn divider"></div>
+    <div class="sb-section">私人</div>
+    <div class="tn"><span class="glyph">✎</span>草稿<span class="badge">2</span></div>
+    <div class="tn"><span class="glyph">⊟</span>归档<span class="badge">12</span></div>
+  </div>
+  <div class="mid">
+    <div class="canvas-bg"></div>
+    <div class="drop-zone-hint"><div class="big">松开放置</div><div>移到「研究项目」分组</div></div>
+    <div class="ghost">
+      <div class="hd-row"><span class="glyph">▤</span><span class="handle">⋮⋮ DRAG</span></div>
+      <h4>设计原则 v3</h4>
+      <p>节点画布不是 Obsidian 风格…</p>
+    </div>
+    <div class="hud"><span class="ico">⇕</span><span>拖拽节点到目标位置</span><span class="x">✕</span></div>
+  </div>
+  <div class="ft">
+    <span style="color:var(--ant-color-primary-text)">● 正在移动 · 设计原则 v3</span>
+    <span>·</span>
+    <span>原位置：工作区 / 收藏 / 节点画布</span>
+    <span class="right">ESC 取消 · ↵ 确认</span>
+  </div>
+</div>
+</body></html>

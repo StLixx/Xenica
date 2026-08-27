@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>块编辑器 · 段落块 · Xenica</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#000;color:var(--ant-color-text);font-family:var(--ant-font-family);-webkit-font-smoothing:antialiased;min-height:100vh}
+  .stage{padding:60px;background:radial-gradient(circle at 50% 0%,#14b8a608 0%,transparent 60%);min-height:100vh;max-width:920px;margin:0 auto}
+  .eyebrow{font-family:ui-monospace,monospace;font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--ant-color-primary-text);margin-bottom:16px;display:flex;align-items:center;gap:10px}
+  .eyebrow .d{width:24px;height:1px;background:var(--ant-color-primary-text);opacity:.6}
+  h1{font-size:42px;font-weight:600;line-height:1.1;letter-spacing:-.01em;margin-bottom:14px}
+  p.lede{font-size:14px;color:var(--ant-color-text-secondary);line-height:1.7;margin-bottom:40px;max-width:680px}
+  .doc{background:var(--ant-color-bg-container);border:1px solid var(--ant-color-border);border-radius:14px;padding:48px 56px;box-shadow:0 30px 80px -30px #00000080}
+  .block{position:relative;padding:8px 0}
+  .block .handle{position:absolute;left:-32px;top:14px;width:24px;color:var(--ant-color-text-quaternary);font-family:ui-monospace,monospace;font-size:11px;opacity:0;text-align:center}
+  .block:hover .handle{opacity:1}
+  .block-text{font-size:15px;line-height:1.75;color:var(--ant-color-text)}
+  .block-text strong{color:var(--ant-color-text);font-weight:600}
+  .block-text em{color:var(--ant-color-primary-text);font-style:italic}
+  .block-text code{font-family:ui-monospace,monospace;font-size:13px;padding:2px 6px;background:var(--ant-color-bg-elevated);border:1px solid var(--ant-color-border);border-radius:4px;color:var(--ant-color-primary-text)}
+  .block-text mark{background:#ffc53d30;color:#ffc53d;padding:1px 4px;border-radius:3px}
+  .block-text u{text-decoration-color:var(--ant-color-text-tertiary);text-underline-offset:3px}
+  .block-text s{color:var(--ant-color-text-tertiary);text-decoration:line-through}
+  .block.active{background:#14b8a614;border-radius:6px;padding:8px 12px;margin:0 -12px;box-shadow:0 0 0 1px var(--ant-color-primary-border)}
+  .block.active .handle{opacity:1;color:var(--ant-color-primary)}
+  .floating-toolbar{position:absolute;top:-44px;left:40px;display:flex;align-items:center;gap:2px;background:var(--ant-color-bg-elevated);border:1px solid var(--ant-color-border);border-radius:8px;padding:4px;box-shadow:0 12px 30px #00000080;z-index:10}
+  .ft-btn{width:28px;height:28px;border-radius:5px;display:flex;align-items:center;justify-content:center;color:var(--ant-color-text-secondary);font-size:12px;font-weight:600}
+  .ft-btn:hover{background:var(--ant-color-fill-secondary);color:var(--ant-color-text)}
+  .ft-btn.on{background:var(--ant-color-primary-bg);color:var(--ant-color-primary-text)}
+  .ft-sep{width:1px;height:18px;background:var(--ant-color-border);margin:0 4px}
+  .variations{padding:36px 0 0}
+  .var-row{padding:18px 0;border-bottom:1px solid var(--ant-color-border-secondary)}
+  .var-row:last-child{border-bottom:0}
+  .var-label{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+  .var-label i{font-size:9px;color:var(--ant-color-primary-text)}
+  .var-row .demo{padding:14px 0}
+  .hover-ghost{display:inline-block;background:var(--ant-color-primary-bg);border:1px solid var(--ant-color-primary-border);color:var(--ant-color-primary-text);font-size:11px;padding:3px 8px;border-radius:5px;margin-left:8px;vertical-align:middle;font-family:ui-monospace,monospace}
+</style></head><body>
+<div class="stage">
+  <div class="eyebrow"><span class="d"></span>BLOCK · 段落块 · 文本编辑</div>
+  <h1>段落块 · 行内格式丰富</h1>
+  <p class="lede">段落是块编辑器的基础块。支持行内加粗、斜体、删除线、代码、链接、高亮、下划线等组合。选中文字后弹出浮动工具栏（bubble menu）。</p>
+  <div class="doc">
+    <div class="block block-text">Antd 6 的 <strong>darkAlgorithm</strong> 在保留品牌色的同时提供了细腻的色阶过渡。token 注入机制支持自定义 <code>brandColor</code> 而不破坏整体观感——这是与 Antd 5 相比<em>最关键的变化</em>。</div>
+    <div class="block block-text">默认情况下 hover/active 状态提供<mark>更清晰的对比度</mark>，但默认的"灰阶玻璃感"较为含蓄，需要通过 token.brandColor <s>大刀阔斧</s> <u>精细调整</u>来强化品牌表达。</div>
+    <div class="block block-text active">作为 v5.0.0 范围的基础设计系统是合适的。后续是否扩展更多定制 token 取决于产品是否需要更强的视觉差异化 <span class="hover-ghost">↪ 选区 · 4 个字符</span>
+      <div class="floating-toolbar">
+        <div class="ft-btn on" style="font-weight:700">B</div>
+        <div class="ft-btn on" style="font-style:italic">I</div>
+        <div class="ft-btn" style="text-decoration:underline">U</div>
+        <div class="ft-btn" style="text-decoration:line-through">S</div>
+        <div class="ft-sep"></div>
+        <div class="ft-btn">&lt;/&gt;</div>
+        <div class="ft-btn">@</div>
+        <div class="ft-btn">⌬</div>
+        <div class="ft-sep"></div>
+        <div class="ft-btn" style="color:var(--ant-color-error)">⊘</div>
+      </div>
+    </div>
+    <div class="block block-text">结论：<a href="#" style="color:var(--ant-color-primary-text);text-decoration:underline">作为 v5.0.0 基础设计系统</a>是合适的，避免大改。同时保留 hook 给 v6.0.0 后续扩展。</div>
+  </div>
+
+  <div class="variations">
+    <h2 style="font-size:20px;font-weight:600;margin-bottom:18px">行内格式变体</h2>
+    <div class="var-row">
+      <div class="var-label"><i>·</i>加粗 / 斜体 / 删除</div>
+      <div class="demo block-text">这是 <strong>加粗</strong> 文字 · 这是 <em>斜体</em> 文字 · 这是 <s>已废弃</s> 删除线</div>
+    </div>
+    <div class="var-row">
+      <div class="var-label"><i>·</i>行内代码 / 高亮</div>
+      <div class="demo block-text">使用 <code>darkAlgorithm</code> 切换暗色模式 · <mark>关键提示</mark>用黄色高亮</div>
+    </div>
+    <div class="var-row">
+      <div class="var-label"><i>·</i>下划线 / 链接</div>
+      <div class="demo block-text"><u>下划线</u>表示强调 · <a href="#" style="color:var(--ant-color-primary-text);text-decoration:underline">内部链接</a>自动预览</div>
+    </div>
+    <div class="var-row">
+      <div class="var-label"><i>·</i>复合格式</div>
+      <div class="demo block-text"><strong>加粗 + <em>斜体</em></strong> · <code><strong>token.brandColor</strong></code> · <mark><strong>关键 token</strong></mark></div>
+    </div>
+  </div>
+</div>
+</body></html>

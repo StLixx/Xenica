@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>通知中心 · Xenica</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#000;color:var(--ant-color-text);font-family:var(--ant-font-family);-webkit-font-smoothing:antialiased;height:100vh;overflow:hidden}
+  .app{height:100vh;display:flex;flex-direction:column;background:linear-gradient(180deg,#0a0a0a,#000)}
+  .app::before{content:"";position:absolute;inset:0;background-image:var(--xe-bg-grid);background-size:48px 48px;opacity:.25;pointer-events:none}
+  .hd{height:48px;display:flex;align-items:center;padding:0 16px;gap:14px;background:var(--ant-color-bg-elevated);border-bottom:1px solid var(--ant-color-border);position:relative;z-index:2}
+  .brand{font-weight:700;font-size:13px;letter-spacing:.14em;color:var(--ant-color-primary-text);display:flex;align-items:center;gap:8px}
+  .brand .dot{width:6px;height:6px;border-radius:50%;background:var(--ant-color-primary);box-shadow:0 0 6px var(--ant-color-primary)}
+  .crumb{font-size:12px;color:var(--ant-color-text-secondary)}
+  .crumb b{color:var(--ant-color-text);font-weight:500}
+  .hd-right{margin-left:auto;display:flex;gap:10px;align-items:center}
+  .ico-btn{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--ant-color-text-secondary);font-size:13px;cursor:default;position:relative}
+  .ico-btn:hover{background:var(--ant-color-fill-secondary);color:var(--ant-color-text)}
+  .badge{position:absolute;top:4px;right:4px;min-width:14px;height:14px;background:var(--ant-color-error);color:#fff;border-radius:100px;font-size:9px;display:flex;align-items:center;justify-content:center;padding:0 4px;font-weight:600}
+  .stage{flex:1;display:flex;align-items:flex-start;justify-content:flex-end;padding:30px 80px;position:relative}
+  .notif{width:380px;background:var(--ant-color-bg-elevated);border:1px solid var(--ant-color-border);border-radius:12px;box-shadow:var(--xe-shadow-3);overflow:hidden;margin-top:0}
+  .n-head{padding:14px 16px;border-bottom:1px solid var(--ant-color-border);display:flex;justify-content:space-between;align-items:center}
+  .n-head h3{font-size:14px;font-weight:600}
+  .n-head .meta{font-size:11px;color:var(--ant-color-text-tertiary)}
+  .n-tabs{display:flex;padding:0 16px;border-bottom:1px solid var(--ant-color-border);gap:18px}
+  .n-tab{position:relative;padding:10px 0;font-size:12.5px;color:var(--ant-color-text-secondary);cursor:default}
+  .n-tab.on{color:var(--ant-color-primary-text)}
+  .n-tab.on::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;background:var(--ant-color-primary)}
+  .n-tab .cnt{margin-left:4px;font-size:10px;background:var(--ant-color-fill-secondary);padding:1px 6px;border-radius:100px;color:var(--ant-color-text-secondary)}
+  .n-tab.on .cnt{background:var(--ant-color-primary-bg);color:var(--ant-color-primary-text)}
+  .n-grp{padding:8px 0}
+  .n-grp-title{padding:8px 16px 4px;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--ant-color-text-tertiary);font-family:'JetBrains Mono',ui-monospace,monospace}
+  .n-item{display:grid;grid-template-columns:28px 1fr auto;gap:10px;padding:10px 16px;cursor:default;border-left:2px solid transparent;transition:all .12s}
+  .n-item:hover{background:var(--ant-color-fill-secondary)}
+  .n-item.unread{background:var(--ant-color-primary-bg);border-left-color:var(--ant-color-primary)}
+  .n-item.unread:hover{background:var(--ant-color-primary-bg-hover)}
+  .n-ico{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;flex:none}
+  .n-ico.comment{background:#1f2c45;color:#4096ff}
+  .n-ico.share{background:#2a1f3d;color:#b37feb}
+  .n-ico.mention{background:#2a1215;color:#ff7875}
+  .n-ico.sync{background:#0d3a30;color:#5eead4}
+  .n-ico.success{background:#0a1912;color:#95de64}
+  .n-ico.warning{background:#1f1611;color:#ffc53d}
+  .n-body .title{font-size:12.5px;color:var(--ant-color-text);line-height:1.4}
+  .n-body .desc{font-size:11.5px;color:var(--ant-color-text-secondary);margin-top:3px;line-height:1.45}
+  .n-body .desc b{color:var(--ant-color-text);font-weight:500}
+  .n-time{font-size:10.5px;color:var(--ant-color-text-tertiary);font-family:'JetBrains Mono',ui-monospace,monospace;white-space:nowrap;margin-top:2px}
+  .n-foot{padding:10px 16px;border-top:1px solid var(--ant-color-border);background:var(--ant-color-bg-container);display:flex;justify-content:space-between;align-items:center;font-size:11.5px}
+  .n-foot a{color:var(--ant-color-primary-text);cursor:default}
+  .n-foot .mark{color:var(--ant-color-text-secondary);cursor:default}
+  .anchor{position:absolute;top:10px;right:90px;width:2px;height:30px;background:var(--ant-color-primary);box-shadow:0 0 8px var(--ant-color-primary);border-radius:2px}
+</style></head><body>
+<div class="app">
+  <div class="hd">
+    <div class="brand"><span class="dot"></span>XENICA</div>
+    <div class="crumb">工作区 <span style="color:var(--ant-color-text-quaternary);margin:0 4px">/</span> 节点画布 <span style="color:var(--ant-color-text-quaternary);margin:0 4px">/</span> <b>通知</b></div>
+    <div class="hd-right">
+      <div class="ico-btn">⌕</div>
+      <div class="ico-btn" style="background:var(--ant-color-primary-bg);color:var(--ant-color-primary-text)">🔔<span class="badge">8</span></div>
+      <div class="ico-btn">⚙</div>
+      <div class="av" style="width:24px;height:24px;font-size:10px">XL</div>
+    </div>
+  </div>
+  <div class="stage">
+    <div class="anchor"></div>
+    <div class="notif">
+      <div class="n-head">
+        <h3>通知中心</h3>
+        <div class="meta">共 12 条 · 未读 8</div>
+      </div>
+      <div class="n-tabs">
+        <div class="n-tab on">全部 <span class="cnt">12</span></div>
+        <div class="n-tab">@ 提及 <span class="cnt">3</span></div>
+        <div class="n-tab">评论 <span class="cnt">5</span></div>
+        <div class="n-tab">系统 <span class="cnt">4</span></div>
+      </div>
+      <div class="n-grp">
+        <div class="n-grp-title">今天 · 2026-07-17</div>
+        <div class="n-item unread">
+          <div class="n-ico mention">@</div>
+          <div class="n-body"><div class="title"><b>陈墨</b> 在「设计原则 v3」中提到了你</div><div class="desc">"@XL 第三节的视觉规则可以再细化…"</div></div>
+          <div class="n-time">10:24</div>
+        </div>
+        <div class="n-item unread">
+          <div class="n-ico comment">💬</div>
+          <div class="n-body"><div class="title">新评论 · 节点画布 ADR</div><div class="desc"><b>林清</b>：已通过 v3 审核，请合并到主干</div></div>
+          <div class="n-time">09:48</div>
+        </div>
+        <div class="n-item">
+          <div class="n-ico sync">↻</div>
+          <div class="n-body"><div class="title">同步完成</div><div class="desc">3 个节点已推送到远程</div></div>
+          <div class="n-time">08:30</div>
+        </div>
+        <div class="n-item">
+          <div class="n-ico success">✓</div>
+          <div class="n-body"><div class="title">构建成功</div><div class="desc"><b>Xenica · Atrium</b> v2.0.0-rc.3 部署到 staging</div></div>
+          <div class="n-time">07:12</div>
+        </div>
+      </div>
+      <div class="n-grp">
+        <div class="n-grp-title">昨天 · 2026-07-16</div>
+        <div class="n-item unread">
+          <div class="n-ico share">↗</div>
+          <div class="n-body"><div class="title"><b>苏野</b> 分享了工作区</div><div class="desc">邀请你协作编辑「每周回顾 · Week 29」</div></div>
+          <div class="n-time">昨日 22:15</div>
+        </div>
+        <div class="n-item unread">
+          <div class="n-ico comment">💬</div>
+          <div class="n-body"><div class="title">回复了你的评论</div><div class="desc">"<b>陈墨</b>：v3 文本已经准备就绪"</div></div>
+          <div class="n-time">昨日 18:42</div>
+        </div>
+        <div class="n-item">
+          <div class="n-ico warning">!</div>
+          <div class="n-body"><div class="title">存储空间预警</div><div class="desc">已使用 82% / 10GB，建议清理归档</div></div>
+          <div class="n-time">昨日 14:00</div>
+        </div>
+      </div>
+      <div class="n-grp">
+        <div class="n-grp-title">更早</div>
+        <div class="n-item">
+          <div class="n-ico mention">@</div>
+          <div class="n-body"><div class="title">在「Antd 6 适配」中被提及</div><div class="desc">请确认 teal token 是否需要更新</div></div>
+          <div class="n-time">7-15</div>
+        </div>
+      </div>
+      <div class="n-foot">
+        <a class="mark">全部标记为已读</a>
+        <a>查看通知设置 →</a>
+      </div>
+    </div>
+  </div>
+</div>
+</body></html>

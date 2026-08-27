@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>画布 · 大画布性能态（虚拟化）· Xenica</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#000;color:var(--ant-color-text);font-family:var(--ant-font-family);-webkit-font-smoothing:antialiased;height:100vh;overflow:hidden}
+  .app{height:100vh;display:grid;grid-template-rows:36px 1fr 28px}
+  .hd{background:var(--ant-color-bg-elevated);border-bottom:1px solid var(--ant-color-border);padding:0 16px;display:flex;align-items:center;gap:12px;font-size:12px}
+  .hd .brand{font-weight:700;letter-spacing:.14em}
+  .hd .brand .dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--ant-color-primary);box-shadow:0 0 6px var(--ant-color-primary);margin-right:8px;vertical-align:middle}
+  .hd .right{margin-left:auto;display:flex;align-items:center;gap:10px;font-size:11px;color:var(--ant-color-text-tertiary)}
+  .perf-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;background:#ffc53d20;color:#ffc53d;font-size:11px;letter-spacing:.06em;border:1px solid #ffc53d40;font-family:ui-monospace,monospace}
+  .perf-badge i{width:6px;height:6px;border-radius:50%;background:#ffc53d;box-shadow:0 0 6px #ffc53d80;animation:pulse 1.5s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  .mid{background:var(--ant-color-bg-layout);position:relative;overflow:hidden}
+  .canvas-bg{position:absolute;inset:0;background-image:var(--xe-bg-grid);background-size:60px 60px;opacity:.4}
+  .virtual-area{position:absolute;inset:0;overflow:hidden;display:flex;align-items:center;justify-content:center}
+  .virtual-content{position:relative;width:2400px;height:1600px;background:#00000040;border:1px dashed #14b8a630;transform:scale(0.32) translate(0,0);transform-origin:center center}
+  .virt-edge{position:absolute;background:var(--ant-color-border);height:1px}
+  .virt-node{position:absolute;background:var(--ant-color-bg-elevated);border:1px solid var(--ant-color-border);border-radius:6px;padding:8px 10px;width:120px;font-size:9px;color:var(--ant-color-text);box-shadow:0 2px 6px #00000060}
+  .virt-node .meta{font-size:8px;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace;margin-top:2px}
+  .virt-node.t-purple{border-left:3px solid var(--xe-node-purple)}
+  .virt-node.t-blue{border-left:3px solid var(--xe-node-blue)}
+  .virt-node.t-yellow{border-left:3px solid var(--xe-node-yellow)}
+  .virt-node.t-green{border-left:3px solid var(--xe-node-green)}
+  .virt-node.t-pink{border-left:3px solid var(--xe-node-pink)}
+  .viewport-frame{position:absolute;width:480px;height:320px;border:2px solid var(--ant-color-primary);box-shadow:0 0 0 9999px #00000050 inset;background:transparent;pointer-events:none}
+  .viewport-frame .lbl{position:absolute;top:-22px;left:0;font-size:10px;color:var(--ant-color-primary-text);background:var(--ant-color-bg-elevated);padding:2px 8px;border-radius:4px;font-family:ui-monospace,monospace}
+  .perf-panel{position:absolute;top:14px;right:14px;width:300px;background:var(--ant-color-bg-elevated);border:1px solid var(--ant-color-border);border-radius:10px;padding:14px;box-shadow:0 12px 30px #00000080;font-size:12px}
+  .perf-panel h4{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace;margin-bottom:12px;font-weight:600}
+  .perf-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--ant-color-border-secondary);font-size:11px}
+  .perf-row .k{color:var(--ant-color-text-tertiary)}
+  .perf-row .v{color:var(--ant-color-text);font-family:ui-monospace,monospace;font-variant-numeric:tabular-nums}
+  .perf-row .v.good{color:var(--ant-color-success)}
+  .perf-row .v.warn{color:var(--ant-color-warning)}
+  .bar-wrap{margin-top:6px;margin-bottom:10px}
+  .bar-wrap .b{display:flex;justify-content:space-between;font-size:10px;color:var(--ant-color-text-tertiary);margin-bottom:3px;font-family:ui-monospace,monospace}
+  .bar{height:4px;background:var(--ant-color-fill-secondary);border-radius:2px;overflow:hidden}
+  .bar>i{display:block;height:100%;border-radius:2px;background:var(--ant-color-success)}
+  .bar>i.warn{background:var(--ant-color-warning)}
+  .bar>i.err{background:var(--ant-color-error)}
+  .ft{background:var(--ant-color-bg-elevated);border-top:1px solid var(--ant-color-border);padding:0 16px;display:flex;align-items:center;font-size:11px;color:var(--ant-color-text-secondary);gap:10px}
+  .ft .right{margin-left:auto;display:flex;gap:10px}
+  .ft .warn{color:var(--ant-color-warning)}
+</style></head><body>
+<div class="app">
+  <div class="hd">
+    <div class="brand"><span class="dot"></span>XENICA</div>
+    <div class="crumbs">· 工作区 · <b>研究项目</b> · 大画布</div>
+    <div class="right">
+      <span class="perf-badge"><i></i>渲染中 · 1,247 节点</span>
+      <span style="color:var(--ant-color-text-tertiary)">⚡ 虚拟化渲染</span>
+      <div class="av" style="width:22px;height:22px;font-size:10px">XL</div>
+    </div>
+  </div>
+  <div class="mid">
+    <div class="canvas-bg"></div>
+    <div class="virtual-area">
+      <div class="virtual-content">
+        <div class="virt-edge" style="left:0;top:0;width:2400px;height:1px;background:#14b8a620"></div>
+        <div class="virt-edge" style="left:0;top:400px;width:2400px;height:1px;background:#14b8a620"></div>
+        <div class="virt-edge" style="left:0;top:800px;width:2400px;height:1px;background:#14b8a620"></div>
+        <div class="virt-edge" style="left:0;top:1200px;width:2400px;height:1px;background:#14b8a620"></div>
+        <div class="virt-node" style="left:80px;top:60px"><div>晨间笔记</div><div class="meta">日记</div></div>
+        <div class="virt-node t-purple" style="left:300px;top:140px"><div>Antd 调研</div><div class="meta">文档</div></div>
+        <div class="virt-node t-blue" style="left:520px;top:80px"><div>本周目标</div><div class="meta">任务</div></div>
+        <div class="virt-node t-yellow" style="left:760px;top:200px"><div>设计原则</div><div class="meta">核心</div></div>
+        <div class="virt-node t-green" style="left:980px;top:140px"><div>OKR</div><div class="meta">季度</div></div>
+        <div class="virt-node t-pink" style="left:1240px;top:220px"><div>读书笔记</div><div class="meta">阅读</div></div>
+        <div class="virt-node" style="left:1480px;top:80px"><div>团队周会</div><div class="meta">会议</div></div>
+        <div class="virt-node t-blue" style="left:1800px;top:200px"><div>用户访谈</div><div class="meta">访谈</div></div>
+        <div class="virt-node t-yellow" style="left:2080px;top:120px"><div>归档</div><div class="meta">归档</div></div>
+        <div class="virt-node" style="left:200px;top:520px"><div>实验 A</div><div class="meta">研究</div></div>
+        <div class="virt-node t-purple" style="left:500px;top:580px"><div>Notion 对比</div><div class="meta">文档</div></div>
+        <div class="virt-node t-green" style="left:800px;top:520px"><div>OKR Q3</div><div class="meta">季度</div></div>
+        <div class="virt-node" style="left:1100px;top:600px"><div>原型 v2</div><div class="meta">设计</div></div>
+        <div class="virt-node t-blue" style="left:1400px;top:540px"><div>导出测试</div><div class="meta">工程</div></div>
+        <div class="virt-node" style="left:1700px;top:600px"><div>同步日志</div><div class="meta">系统</div></div>
+        <div class="virt-node t-pink" style="left:2000px;top:520px"><div>Changelog</div><div class="meta">系统</div></div>
+        <div class="virt-node t-yellow" style="left:240px;top:960px"><div>设计原则 v2</div><div class="meta">归档</div></div>
+        <div class="virt-node" style="left:560px;top:1000px"><div>ADR 历史</div><div class="meta">ADR</div></div>
+        <div class="virt-node t-purple" style="left:900px;top:960px"><div>组件库 v1</div><div class="meta">文档</div></div>
+        <div class="virt-node t-blue" style="left:1240px;top:1040px"><div>废弃实验</div><div class="meta">归档</div></div>
+        <div class="viewport-frame" style="left:760px;top:280px">
+          <span class="lbl">viewport · 32% × 20%</span>
+        </div>
+      </div>
+    </div>
+    <div class="perf-panel">
+      <h4>渲染性能 · 大画布</h4>
+      <div class="perf-row"><span class="k">总节点数</span><span class="v">1,247</span></div>
+      <div class="perf-row"><span class="k">可见节点</span><span class="v good">128</span></div>
+      <div class="perf-row"><span class="k">已渲染 DOM</span><span class="v good">128</span></div>
+      <div class="perf-row"><span class="k">虚拟化比率</span><span class="v good">10.3%</span></div>
+      <div class="perf-row"><span class="k">FPS</span><span class="v warn">54 fps</span></div>
+      <div class="bar-wrap"><div class="b"><span>GPU 占用</span><span class="warn">68%</span></div><div class="bar"><i class="warn" style="width:68%"></i></div></div>
+      <div class="bar-wrap"><div class="b"><span>主线程</span><span>42%</span></div><div class="bar"><i style="width:42%"></i></div></div>
+      <div class="bar-wrap"><div class="b"><span>内存</span><span>312 MB</span></div><div class="bar"><i style="width:48%"></i></div></div>
+    </div>
+  </div>
+  <div class="ft">
+    <span>1,247 节点 · 3,891 连接 · 虚拟化</span>
+    <span class="warn">·</span>
+    <span class="warn">建议：>2000 节点时启用分组折叠</span>
+    <span class="right">⌘0 适配 · ⌘1 缩略图模式 · ⌘2 简化渲染</span>
+  </div>
+</div>
+</body></html>

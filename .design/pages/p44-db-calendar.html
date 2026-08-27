@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>数据库 · 日历视图 · Xenica</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#000;color:var(--ant-color-text);font-family:var(--ant-font-family);-webkit-font-smoothing:antialiased;min-height:100vh}
+  .stage{padding:40px;background:radial-gradient(circle at 50% 0%,#14b8a608 0%,transparent 60%);min-height:100vh}
+  .db-shell{background:var(--ant-color-bg-container);border:1px solid var(--ant-color-border);border-radius:14px;overflow:hidden;box-shadow:0 30px 80px -30px #00000080}
+  .db-head{padding:18px 24px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--ant-color-border);background:var(--ant-color-bg-elevated)}
+  .db-head .left{display:flex;align-items:center;gap:14px}
+  .db-head .ico{width:40px;height:40px;border-radius:10px;background:#14b8a620;color:var(--ant-color-primary-text);display:flex;align-items:center;justify-content:center;font-size:18px}
+  .db-head h2{font-size:18px;font-weight:600}
+  .db-head .meta{font-size:11px;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace;margin-top:2px}
+  .view-tabs{display:flex;gap:0;border-bottom:1px solid var(--ant-color-border);background:var(--ant-color-bg-base);padding:0 16px}
+  .vt{padding:11px 14px;font-size:12px;color:var(--ant-color-text-secondary);border-bottom:2px solid transparent;cursor:default;display:flex;align-items:center;gap:6px}
+  .vt.on{color:var(--ant-color-primary-text);border-bottom-color:var(--ant-color-primary)}
+  .cal-toolbar{padding:14px 18px;display:flex;justify-content:space-between;align-items:center;background:var(--ant-color-bg-container);border-bottom:1px solid var(--ant-color-border)}
+  .cal-toolbar .left{display:flex;align-items:center;gap:14px}
+  .cal-toolbar h3{font-size:16px;font-weight:600;color:var(--ant-color-text)}
+  .cal-toolbar .nav{display:flex;gap:4px}
+  .nav-btn{width:30px;height:30px;border-radius:5px;background:var(--ant-color-bg-elevated);border:1px solid var(--ant-color-border);color:var(--ant-color-text-secondary);display:flex;align-items:center;justify-content:center;font-size:12px;cursor:default}
+  .nav-btn:hover{background:var(--ant-color-fill-secondary);color:var(--ant-color-text)}
+  .cal-toolbar .today{height:30px;padding:0 14px;background:var(--ant-color-primary-bg);color:var(--ant-color-primary-text);border:1px solid var(--ant-color-primary-border);border-radius:5px;font-size:12px;font-weight:500;cursor:default}
+  .view-toggle{display:flex;gap:0;background:var(--ant-color-bg-elevated);border:1px solid var(--ant-color-border);border-radius:6px;padding:2px}
+  .view-toggle span{padding:4px 12px;font-size:11px;color:var(--ant-color-text-secondary);border-radius:4px;cursor:default}
+  .view-toggle span.on{background:var(--ant-color-primary);color:#fff}
+  .cal{display:grid;grid-template-columns:repeat(7,1fr);background:var(--ant-color-bg-base)}
+  .cal .dow{padding:10px;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace;border-bottom:1px solid var(--ant-color-border);text-align:center;background:var(--ant-color-bg-elevated);font-weight:600}
+  .day{min-height:120px;border-right:1px solid var(--ant-color-border-secondary);border-bottom:1px solid var(--ant-color-border-secondary);padding:8px;position:relative;background:var(--ant-color-bg-container)}
+  .day:nth-child(7n+1){border-left:1px solid var(--ant-color-border-secondary)}
+  .day.outer{background:var(--ant-color-bg-base);opacity:.5}
+  .day.today{background:#14b8a614;box-shadow:inset 0 0 0 1px var(--ant-color-primary)}
+  .day .num{font-size:12px;color:var(--ant-color-text-secondary);font-family:ui-monospace,monospace;font-weight:500}
+  .day.today .num{color:var(--ant-color-primary-text);font-weight:700}
+  .day.outer .num{color:var(--ant-color-text-quaternary)}
+  .day .events{display:flex;flex-direction:column;gap:3px;margin-top:6px}
+  .event{font-size:10px;padding:3px 6px;border-radius:3px;color:var(--ant-color-text);background:var(--ant-color-primary-bg);border-left:3px solid var(--ant-color-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:ui-monospace,monospace;cursor:default}
+  .event.warning{background:#d8961420;border-left-color:var(--ant-color-warning);color:var(--ant-color-warning)}
+  .event.error{background:#2a1215;border-left-color:var(--ant-color-error);color:#ff7875}
+  .event.success{background:#0a1912;border-left-color:var(--ant-color-success);color:#95de64}
+  .event.review{background:#722ed120;border-left-color:#b37feb;color:#b37feb}
+  .day .more{font-size:10px;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace;margin-top:2px}
+  .day-bullet{display:flex;gap:2px;margin-top:4px}
+  .day-bullet i{width:4px;height:4px;border-radius:50%}
+  .day-bullet i.doing{background:var(--ant-color-primary)}
+  .day-bullet i.todo{background:var(--ant-color-text-tertiary)}
+  .day-bullet i.review{background:#b37feb}
+  .day-bullet i.done{background:var(--ant-color-success)}
+  .day-bullet i.blocked{background:var(--ant-color-error)}
+</style></head><body>
+<div class="stage">
+  <div class="db-shell">
+    <div class="db-head">
+      <div class="left">
+        <div class="ico">▦</div>
+        <div><h2>项目看板 · v5.0.0</h2><div class="meta">视图：<b>日历</b> · 按截止日期 · 12 项</div></div>
+      </div>
+      <div class="right" style="display:flex;gap:6px"><button class="btn btn-default btn-sm">⊞ 配置</button><button class="btn btn-default btn-sm">+ 新建</button></div>
+    </div>
+    <div class="view-tabs">
+      <div class="vt">▦ 表格</div>
+      <div class="vt">▤ 看板</div>
+      <div class="vt on">▤ 日历</div>
+      <div class="vt">▦ 画廊</div>
+      <div class="vt">▬ 时间线</div>
+    </div>
+    <div class="cal-toolbar">
+      <div class="left">
+        <div class="nav">
+          <div class="nav-btn">‹</div>
+          <div class="nav-btn">›</div>
+        </div>
+        <div class="today">今天</div>
+        <h3>2026 年 7 月</h3>
+      </div>
+      <div class="view-toggle">
+        <span>日</span>
+        <span>周</span>
+        <span class="on">月</span>
+        <span>年</span>
+      </div>
+    </div>
+    <div class="cal">
+      <div class="dow">周一</div><div class="dow">周二</div><div class="dow">周三</div><div class="dow">周四</div><div class="dow">周五</div><div class="dow">周六</div><div class="dow">周日</div>
+
+      <div class="day outer"><div class="num">29</div></div>
+      <div class="day outer"><div class="num">30</div></div>
+      <div class="day"><div class="num">1</div></div>
+      <div class="day"><div class="num">2</div><div class="event">锁定 v5.0.0 讨论</div></div>
+      <div class="day"><div class="num">3</div></div>
+      <div class="day"><div class="num">4</div><div class="event">Antd 5 调研</div></div>
+      <div class="day"><div class="num">5</div></div>
+
+      <div class="day"><div class="num">6</div></div>
+      <div class="day"><div class="num">7</div><div class="event success">✓ 锁定 v5.0.0 范围</div></div>
+      <div class="day"><div class="num">8</div></div>
+      <div class="day"><div class="num">9</div></div>
+      <div class="day"><div class="num">10</div><div class="event">Notion 对比研究</div></div>
+      <div class="day"><div class="num">11</div></div>
+      <div class="day"><div class="num">12</div><div class="event success">✓ Plate VI 完成</div></div>
+
+      <div class="day"><div class="num">13</div></div>
+      <div class="day"><div class="num">14</div><div class="event error">⚠ Notion 导入回归</div><div class="event">用户引导设计</div></div>
+      <div class="day"><div class="num">15</div><div class="event success">✓ 锁定 v5.0.0</div></div>
+      <div class="day"><div class="num">16</div><div class="event success">✓ Antd 6 + darkAlgo</div></div>
+      <div class="day today"><div class="num">17</div><div class="event">Antd 6 darkAlgo 适配</div><div class="event warning">100 页设计 18:00</div><div class="day-bullet"><i class="doing"></i><i class="review"></i><i class="blocked"></i><i class="todo"></i></div></div>
+      <div class="day"><div class="num">18</div></div>
+      <div class="day"><div class="num">19</div><div class="event">用户引导设计</div></div>
+
+      <div class="day"><div class="num">20</div><div class="event">.design manifest</div><div class="day-bullet"><i class="todo"></i><i class="doing"></i></div></div>
+      <div class="day"><div class="num">21</div></div>
+      <div class="day"><div class="num">22</div><div class="event">Playwright 验证</div></div>
+      <div class="day"><div class="num">23</div></div>
+      <div class="day"><div class="num">24</div></div>
+      <div class="day"><div class="num">25</div><div class="event">ADR-004</div></div>
+      <div class="day"><div class="num">26</div></div>
+
+      <div class="day"><div class="num">27</div></div>
+      <div class="day"><div class="num">28</div></div>
+      <div class="day"><div class="num">29</div></div>
+      <div class="day"><div class="num">30</div><div class="event">v5.0.0 发布准备</div></div>
+      <div class="day"><div class="num">31</div><div class="event success">✓ v5.0.0 锁定</div></div>
+      <div class="day outer"><div class="num">1</div></div>
+      <div class="day outer"><div class="num">2</div></div>
+    </div>
+  </div>
+</div>
+</body></html>

@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>块编辑器 · 块菜单（悬浮）· Xenica</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#000;color:var(--ant-color-text);font-family:var(--ant-font-family);-webkit-font-smoothing:antialiased;min-height:100vh}
+  .stage{padding:60px;background:radial-gradient(circle at 50% 0%,#14b8a608 0%,transparent 60%);min-height:100vh;max-width:920px;margin:0 auto}
+  .eyebrow{font-family:ui-monospace,monospace;font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--ant-color-primary-text);margin-bottom:16px;display:flex;align-items:center;gap:10px}
+  .eyebrow .d{width:24px;height:1px;background:var(--ant-color-primary-text);opacity:.6}
+  h1{font-size:42px;font-weight:600;line-height:1.1;letter-spacing:-.01em;margin-bottom:14px}
+  p.lede{font-size:14px;color:var(--ant-color-text-secondary);line-height:1.7;margin-bottom:40px;max-width:680px}
+  .doc{background:var(--ant-color-bg-container);border:1px solid var(--ant-color-border);border-radius:14px;padding:48px 56px;box-shadow:0 30px 80px -30px #00000080;position:relative;min-height:600px}
+  .b-h{font-size:24px;font-weight:600;line-height:1.2;color:var(--ant-color-text);margin:18px 0 12px;padding:6px 0}
+  .b-text{font-size:15px;line-height:1.75;color:var(--ant-color-text);margin:8px 0}
+  .block-menu{position:absolute;left:50%;top:50%;transform:translate(-50%,80px);width:360px;background:var(--ant-color-bg-elevated);border:1px solid var(--ant-color-border);border-radius:12px;box-shadow:0 20px 60px -10px #000000c0;padding:6px;z-index:50}
+  .menu-search{padding:8px 10px;border-bottom:1px solid var(--ant-color-border);margin-bottom:4px;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ant-color-text-tertiary)}
+  .menu-search input{flex:1;background:transparent;border:none;outline:none;color:var(--ant-color-text);font-size:12px;font-family:inherit}
+  .cursor{display:inline-block;width:1.5px;height:14px;background:var(--ant-color-primary);vertical-align:-1px;animation:blink 1s infinite}
+  @keyframes blink{0%,50%{opacity:1}51%,100%{opacity:0}}
+  .menu-label{padding:8px 12px 4px;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace}
+  .menu-item{display:flex;align-items:center;gap:12px;padding:8px 12px;font-size:13px;color:var(--ant-color-text-secondary);border-radius:8px;cursor:default}
+  .menu-item:hover{background:var(--ant-color-fill-secondary);color:var(--ant-color-text)}
+  .menu-item.on{background:var(--ant-color-primary-bg);color:var(--ant-color-primary-text)}
+  .menu-item .ico{width:24px;height:24px;border-radius:6px;background:var(--ant-color-fill-secondary);display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--ant-color-text-secondary);flex:none}
+  .menu-item.on .ico{background:var(--ant-color-primary);color:#fff}
+  .menu-item .info{flex:1;min-width:0}
+  .menu-item .ttl{font-size:13px;font-weight:500}
+  .menu-item .desc{font-size:11px;color:var(--ant-color-text-tertiary);margin-top:1px}
+  .menu-item .kbd{margin-left:auto;font-family:ui-monospace,monospace;font-size:10px;color:var(--ant-color-text-tertiary)}
+  .menu-item .arr{margin-left:auto;color:var(--ant-color-text-tertiary);font-size:10px}
+  .menu-foot{padding:8px 14px;border-top:1px solid var(--ant-color-border);margin-top:6px;font-size:10px;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace;display:flex;justify-content:space-between}
+  .menu-foot kbd{padding:1px 5px;background:var(--ant-color-fill-secondary);border-radius:3px;color:var(--ant-color-text-secondary);font-family:inherit}
+  .slash{position:absolute;color:var(--ant-color-primary);font-weight:700;font-size:18px}
+  .indicator{position:absolute;width:8px;height:8px;border-radius:50%;background:var(--ant-color-primary);box-shadow:0 0 12px var(--ant-color-primary);animation:pulse 1.5s infinite}
+  @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.7)}}
+</style></head><body>
+<div class="stage">
+  <div class="eyebrow"><span class="d"></span>BLOCK · 块菜单（slash menu / hover menu）</div>
+  <h1>块菜单 · Slash 触发 + Hover</h1>
+  <p class="lede">在任意空行输入「/」触发 slash 菜单，支持块类型与操作。或 hover 块左侧手柄显示 6 操作按钮：删除、复制、转为、移动、上移、下移。</p>
+  <div class="doc">
+    <div class="b-h">设计原则 v3</div>
+    <div class="b-text">Antd 6 的 darkAlgorithm 在保留品牌色的同时提供了细腻的色阶过渡。<span class="slash">/</span><span class="indicator" style="left:540px;top:223px"></span></div>
+    <div class="b-text">token 注入机制支持自定义 brandColor 而不破坏整体观感。</div>
+    <div class="b-text">后续是否扩展更多定制 token 取决于产品是否需要更强的视觉差异化。</div>
+
+    <div class="block-menu">
+      <div class="menu-search"><span>⌕</span><input value="代码" readonly/><span class="cursor"></span></div>
+      <div class="menu-label">基础块</div>
+      <div class="menu-item">
+        <div class="ico">▦</div>
+        <div class="info"><div class="ttl">代码块</div><div class="desc">带语法高亮的代码片段</div></div>
+        <span class="kbd">⌘⌥C</span>
+      </div>
+      <div class="menu-item on">
+        <div class="ico">&lt;/&gt;</div>
+        <div class="info"><div class="ttl">行内代码</div><div class="desc">段落中的 code 片段</div></div>
+        <span class="kbd">⌘E</span>
+      </div>
+      <div class="menu-item">
+        <div class="ico">⌬</div>
+        <div class="info"><div class="ttl">公式块</div><div class="desc">LaTeX / KaTeX 数学公式</div></div>
+        <span class="kbd">⌘⌥E</span>
+      </div>
+      <div class="menu-label">媒体</div>
+      <div class="menu-item">
+        <div class="ico">▦</div>
+        <div class="info"><div class="ttl">图片</div><div class="desc">上传或链接图片</div></div>
+      </div>
+      <div class="menu-item">
+        <div class="ico">↗</div>
+        <div class="info"><div class="ttl">嵌入</div><div class="desc">嵌入外部链接 / 文件</div></div>
+      </div>
+      <div class="menu-item">
+        <div class="ico">▦</div>
+        <div class="info"><div class="ttl">数据库内嵌</div><div class="desc">嵌入任意数据库视图</div></div>
+        <span class="arr">▸</span>
+      </div>
+      <div class="menu-label">操作</div>
+      <div class="menu-item">
+        <div class="ico">✎</div>
+        <div class="info"><div class="ttl">评论此块</div><div class="desc">开启讨论线程</div></div>
+        <span class="kbd">⌘⇧M</span>
+      </div>
+      <div class="menu-foot">
+        <span><kbd>↑</kbd><kbd>↓</kbd> 移动 · <kbd>↵</kbd> 选择</span>
+        <span>6 项匹配</span>
+      </div>
+    </div>
+  </div>
+</div>
+</body></html>

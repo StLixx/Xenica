@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>Welcome · 首次启动 · Xenica</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#000;color:var(--ant-color-text);font-family:var(--ant-font-family);-webkit-font-smoothing:antialiased;height:100vh;overflow:hidden}
+  .stage{display:grid;grid-template-columns:1fr 1fr;height:100vh}
+  .pane-left{background:linear-gradient(135deg,#0a2922,#000);padding:80px;display:flex;flex-direction:column;justify-content:space-between;border-right:1px solid var(--ant-color-border)}
+  .pane-right{background:var(--ant-color-bg-base);padding:80px;display:flex;flex-direction:column;justify-content:center;overflow:auto}
+  .brand{font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:var(--ant-color-primary-text);font-family:ui-monospace,monospace}
+  .hero{margin-top:60px}
+  .hero h1{font-size:64px;font-weight:600;line-height:1.05;letter-spacing:-.02em;margin-bottom:20px}
+  .hero h1 em{font-style:normal;color:var(--ant-color-primary-text)}
+  .hero p{font-size:15px;line-height:1.6;color:var(--ant-color-text-secondary);max-width:480px}
+  .visual{margin-top:auto;height:280px;border:1px solid var(--ant-color-border);border-radius:12px;background:#0a292240;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
+  .visual::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 30% 50%,#14b8a620 0%,transparent 50%),radial-gradient(circle at 70% 50%,#4096ff15 0%,transparent 50%)}
+  .nodes{position:relative;width:100%;height:100%}
+  .nd{position:absolute;background:var(--ant-color-bg-elevated);border:1px solid var(--ant-color-primary-border);border-radius:8px;padding:8px 12px;font-size:11px;box-shadow:0 4px 12px #00000080}
+  .footer-row{display:flex;justify-content:space-between;font-size:11px;color:var(--ant-color-text-quaternary);font-family:ui-monospace,monospace}
+  .form h2{font-size:20px;margin-bottom:6px}
+  .form p.sub{font-size:13px;color:var(--ant-color-text-secondary);margin-bottom:32px}
+  .opt-list{display:flex;flex-direction:column;gap:12px;margin-bottom:32px}
+  .opt{display:flex;align-items:center;gap:16px;padding:18px 20px;border:1px solid var(--ant-color-border);border-radius:10px;background:var(--ant-color-bg-container);cursor:default;transition:all .15s}
+  .opt:hover{border-color:var(--ant-color-primary-border);background:var(--ant-color-bg-elevated)}
+  .opt.on{border-color:var(--ant-color-primary);background:var(--ant-color-primary-bg);box-shadow:0 0 0 1px var(--ant-color-primary)}
+  .opt-icon{width:40px;height:40px;border-radius:8px;background:var(--ant-color-fill-secondary);display:flex;align-items:center;justify-content:center;font-size:18px;flex:none}
+  .opt.on .opt-icon{background:var(--ant-color-primary);color:#fff}
+  .opt-info{flex:1}
+  .opt-title{font-size:14px;font-weight:600;color:var(--ant-color-text);margin-bottom:2px}
+  .opt-desc{font-size:12px;color:var(--ant-color-text-secondary)}
+  .opt-check{width:18px;height:18px;border-radius:50%;border:1px solid var(--ant-color-border);display:flex;align-items:center;justify-content:center}
+  .opt.on .opt-check{background:var(--ant-color-primary);border-color:var(--ant-color-primary);color:#fff}
+  .actions{display:flex;gap:12px;justify-content:space-between;align-items:center}
+  .lang{font-size:11px;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace}
+</style></head><body>
+<div class="stage">
+  <div class="pane-left">
+    <div class="brand">XENICA · ATRIUM</div>
+    <div class="hero">
+      <div style="font-family:ui-monospace,monospace;font-size:11px;letter-spacing:.2em;color:var(--ant-color-primary-text);margin-bottom:14px">WELCOME · 欢迎</div>
+      <h1>让每一段思考<br>都有<em>位置</em>。</h1>
+      <p>Xenica 是一个以节点画布为核心的工作台，把你的笔记、引用、任务、灵感织成一张可生长的网。</p>
+    </div>
+    <div class="visual">
+      <div class="nodes">
+        <div class="nd" style="top:30%;left:10%">晨间笔记</div>
+        <div class="nd" style="top:50%;left:35%">会议纪要</div>
+        <div class="nd" style="top:20%;left:55%">设计灵感</div>
+        <div class="nd" style="top:60%;left:75%">项目计划</div>
+        <svg style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"><line x1="80" y1="60" x2="220" y2="100" stroke="#14b8a640" stroke-width="1.5"/><line x1="220" y1="100" x2="320" y2="40" stroke="#14b8a640" stroke-width="1.5"/><line x1="220" y1="100" x2="430" y2="120" stroke="#14b8a640" stroke-width="1.5"/></svg>
+      </div>
+    </div>
+    <div class="footer-row"><span>v2.4.1 · 2026</span><span>PRESS · ESC</span></div>
+  </div>
+  <div class="pane-right">
+    <div class="form">
+      <h2>选择你的使用场景</h2>
+      <p class="sub">我们据此推荐初始模板与节点视图布局</p>
+      <div class="opt-list">
+        <div class="opt on">
+          <div class="opt-icon">◐</div>
+          <div class="opt-info"><div class="opt-title">个人笔记</div><div class="opt-desc">日记、阅读清单、研究碎片、灵感捕捉</div></div>
+          <div class="opt-check">✓</div>
+        </div>
+        <div class="opt">
+          <div class="opt-icon">◇</div>
+          <div class="opt-info"><div class="opt-title">团队协作</div><div class="opt-desc">项目计划、会议纪要、文档共享、评论</div></div>
+          <div class="opt-check"></div>
+        </div>
+        <div class="opt">
+          <div class="opt-icon">⌬</div>
+          <div class="opt-info"><div class="opt-title">学术研究</div><div class="opt-desc">文献管理、双链笔记、引用与脚注</div></div>
+          <div class="opt-check"></div>
+        </div>
+      </div>
+      <div class="actions">
+        <span class="lang">中文 · 简体中文</span>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-default">跳过</button>
+          <button class="btn btn-primary btn-lg">继续 →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body></html>

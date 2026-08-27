@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<title>Home · Xenica Atrium · antd 6 dark · layered</title>
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@19?bundle",
+    "react-dom": "https://esm.sh/react-dom@19?bundle",
+    "react-dom/client": "https://esm.sh/react-dom@19/client?bundle",
+    "antd": "https://esm.sh/antd@6?bundle",
+    "@ant-design/icons": "https://esm.sh/@ant-design/icons@6?bundle",
+    "dayjs": "https://esm.sh/dayjs@1?bundle"
+  }
+}
+</script>
+<style>
+  :root, html, body { margin: 0; padding: 0; height: 100%; background: #000; color: #f0eee8; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; overflow: hidden; }
+
+  .l-sider   { background: var(--ant-color-bg-base)      !important; border-right: 1px solid var(--ant-color-border-secondary); }
+  .l-header  { background: var(--ant-color-bg-elevated) !important; border-bottom: 1px solid var(--ant-color-border-secondary); padding: 0 12px !important; height: 36px !important; line-height: 36px; }
+  .l-content { background: var(--ant-color-bg-layout)    !important; }
+  .l-footer  { background: var(--ant-color-bg-elevated) !important; border-top: 1px solid var(--ant-color-border-secondary); padding: 0 12px !important; height: 30px !important; line-height: 30px; }
+  .mid { display: flex; flex: 1; min-height: 0; }
+  .canvas-host { flex: 1; min-width: 0; position: relative; overflow: hidden; }
+  .r-rail { background: var(--ant-color-bg-container) !important; border-left: 1px solid var(--ant-color-border-secondary); width: 360px; flex: none; display: flex; flex-direction: column; }
+
+  /* Sidebar */
+  .sb { display: flex; flex-direction: column; height: 100%; }
+  .sb-head { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px 8px; }
+  .sb-brand { color: var(--ant-color-text); font-weight: 700; letter-spacing: .12em; font-size: 12px; display: flex; align-items: center; gap: 8px; }
+  .sb-brand .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ant-color-primary); box-shadow: 0 0 6px var(--ant-color-primary); }
+  .sb-actions { display: flex; gap: 4px; color: var(--ant-color-text-secondary); }
+  .sb-actions .sb-act { width: 22px; height: 22px; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; }
+  .sb-actions .sb-act:hover { background: var(--ant-color-fill-tertiary); }
+  .sb-search { padding: 0 12px 12px; }
+  .sb-section { padding: 8px 12px 4px; font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: var(--ant-color-text-tertiary); display: flex; justify-content: space-between; align-items: center; }
+  .sb-list { padding: 0 6px 8px; display: flex; flex-direction: column; gap: 2px; }
+  .sb-item { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 7px 10px; border-radius: 6px; }
+  .sb-item:hover { background: var(--ant-color-fill-secondary); }
+  .sb-item .lhs { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--ant-color-text); }
+  .sb-item .lhs .glyph { width: 20px; height: 20px; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; }
+  .sb-item .count { font-size: 11px; color: var(--ant-color-text-tertiary); font-variant-numeric: tabular-nums; }
+  .sb-item.on { background: var(--ant-color-fill-tertiary); }
+  .sb-foot { margin-top: auto; display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border-top: 1px solid var(--ant-color-border-secondary); }
+  .sb-foot .lhs { display: flex; gap: 6px; }
+  .sb-foot .ico { width: 24px; height: 24px; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; color: var(--ant-color-text-secondary); font-size: 12px; }
+  .sb-foot .rhs { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--ant-color-text-tertiary); }
+  .sb-foot .ring { width: 16px; height: 16px; border-radius: 50%; background: var(--ant-color-fill-secondary); border: 1px solid var(--ant-color-border); }
+
+  /* Header */
+  .hd { display: flex; align-items: center; height: 100%; gap: 8px; }
+  .hd .lhs, .hd .rhs { display: flex; align-items: center; gap: 6px; }
+  .hd .ctr { flex: 1; display: flex; align-items: center; justify-content: center; }
+  .hd-icon { width: 26px; height: 26px; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; color: var(--ant-color-text-secondary); font-size: 13px; }
+  .hd-status { display: inline-flex; align-items: center; gap: 6px; padding: 0 10px; height: 24px; border-radius: 12px; background: var(--ant-color-fill-secondary); color: var(--ant-color-success); font-size: 11px; }
+
+  /* Canvas */
+  .stage { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+  .stage-inner { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+  .stage h1 { color: var(--ant-color-text); font-size: 22px; font-weight: 600; margin: 0; }
+  .stage p { color: var(--ant-color-text-secondary); font-size: 13px; margin: 0; }
+  .stage .kbd-row { display: flex; gap: 6px; margin-top: 6px; }
+  .stage .kbd { font-family: ui-monospace, monospace; font-size: 11px; padding: 3px 9px; border: 1px solid var(--ant-color-border); border-radius: 5px; background: var(--ant-color-bg-container); color: var(--ant-color-text-secondary); }
+
+  .vtool { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 6px; padding: 6px; background: var(--ant-color-bg-elevated); border: 1px solid var(--ant-color-border); border-radius: 8px; box-shadow: 0 10px 30px -8px rgba(0,0,0,.7); }
+  .vtool .vb { width: 24px; height: 24px; border-radius: 5px; display: flex; align-items: center; justify-content: center; color: var(--ant-color-text-secondary); font-size: 12px; }
+  .vtool .vb.on { color: var(--ant-color-primary); background: var(--ant-color-primary-bg); }
+  .vtool .sep { height: 1px; background: var(--ant-color-border-secondary); margin: 2px 0; }
+
+  .gs-card { position: absolute; left: 16px; bottom: 14px; display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border: 1px solid var(--ant-color-border); border-radius: 6px; background: var(--ant-color-bg-container); color: var(--ant-color-text-secondary); font-size: 12px; }
+
+  .r-tabs-head { padding: 4px 12px 0; border-bottom: 1px solid var(--ant-color-border-secondary); background: var(--ant-color-bg-elevated); }
+  .r-body { flex: 1; overflow: auto; }
+  .r-pane { padding: 14px; color: var(--ant-color-text-secondary); font-size: 12px; line-height: 1.65; }
+  .r-card { background: var(--ant-color-bg-elevated); border: 1px solid var(--ant-color-border-secondary); border-radius: 10px; padding: 14px; }
+  .r-card .name { color: var(--ant-color-text); font-weight: 600; font-size: 14px; }
+  .r-card .meta { display: grid; grid-template-columns: 64px 1fr; row-gap: 8px; column-gap: 12px; margin-top: 12px; font-size: 12px; align-items: center; }
+  .r-card .k { color: var(--ant-color-text-tertiary); }
+  .r-card .v { color: var(--ant-color-text); }
+  .r-card .glyph-row { display: flex; gap: 8px; margin-top: 12px; }
+  .r-card .glyph-row .g { width: 36px; height: 36px; border-radius: 8px; background: var(--ant-color-fill-secondary); border: 1px solid var(--ant-color-border); display: flex; align-items: center; justify-content: center; color: var(--ant-color-text-secondary); }
+  .r-card .glyph-row .g.on { border-color: var(--ant-color-primary); color: var(--ant-color-primary); background: var(--ant-color-primary-bg); }
+  .r-card .progress-row { margin-top: 14px; }
+  .r-card .bar { height: 4px; background: var(--ant-color-fill-secondary); border-radius: 100px; overflow: hidden; margin-top: 6px; }
+  .r-card .bar > i { display: block; height: 100%; width: 32%; background: var(--ant-color-primary); border-radius: 100px; }
+  .r-card .row-2 { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; font-size: 11px; color: var(--ant-color-text-tertiary); }
+  .r-card .switch-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-top: 1px solid var(--ant-color-border-secondary); margin-top: 12px; font-size: 12px; color: var(--ant-color-text); }
+
+  .ft { display: flex; align-items: center; justify-content: space-between; height: 100%; font-size: 11px; color: var(--ant-color-text-secondary); }
+  .ft .lhs, .ft .rhs { display: flex; align-items: center; gap: 12px; }
+  .ft .ico { width: 22px; height: 22px; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; color: var(--ant-color-text-secondary); font-size: 12px; }
+  .ft .slider { width: 100px; height: 3px; background: var(--ant-color-fill-tertiary); border-radius: 100px; position: relative; }
+  .ft .slider > i { position: absolute; left: 0; top: 0; bottom: 0; width: 32%; background: var(--ant-color-primary); border-radius: 100px; }
+  .ft .kbd { padding: 0 6px; background: var(--ant-color-fill-secondary); border-radius: 3px; color: var(--ant-color-text); font-family: ui-monospace, monospace; margin-right: 4px; font-size: 10px; }
+
+  #boot-log { display: none; }
+</style>
+</head><body>
+<div id="root"></div>
+<div id="boot-log"></div>
+<script type="module">
+const log = (s, c) => { document.getElementById('boot-log').innerHTML += '<span style="color:'+(c||'#888')+'">'+s+'</span><br>'; };
+try {
+  log('booting…', '#888');
+  const React    = await import('react');
+  const RD       = await import('react-dom/client');
+  const antd     = await import('antd');
+  const iconsMod = await import('@ant-design/icons');
+  log('modules loaded', '#0f0');
+
+  const {
+    ConfigProvider, Layout, Menu, Button, Input, Tag, Switch, Tabs,
+    Segmented, Tooltip, Divider, Typography, Space,
+  } = antd;
+  const { Header, Sider, Content, Footer } = Layout;
+
+  const IIc = (name) => {
+    try { return React.createElement(iconsMod[name]); }
+    catch { return React.createElement('span', null, name[0]); }
+  };
+
+  function SbItem(p) {
+    return React.createElement('div', { className: 'sb-item' + (p.on ? ' on' : '') },
+      React.createElement('span', { className: 'lhs' },
+        React.createElement('span', { className: 'glyph', style: { background: p.bg, color: p.fg } }, p.glyph),
+        React.createElement('span', null, p.label)
+      ),
+      p.count != null && React.createElement('span', { className: 'count' }, p.count)
+    );
+  }
+
+  function Sidebar() {
+    return React.createElement(Sider, { width: 240, className: 'l-sider' },
+      React.createElement('div', { className: 'sb' },
+        React.createElement('div', { className: 'sb-head' },
+          React.createElement('span', { className: 'sb-brand' },
+            React.createElement('span', { className: 'dot' }),
+            'Xenica'
+          ),
+          React.createElement('div', { className: 'sb-actions' },
+            React.createElement('span', { className: 'sb-act' }, '‹'),
+            React.createElement('span', { className: 'sb-act' }, '›'),
+            React.createElement('span', { className: 'sb-act', title: 'live' },
+              React.createElement('span', { style: { display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: 'var(--ant-color-success)' } })
+            ),
+            React.createElement('span', { className: 'sb-act' }, '«»')
+          )
+        ),
+        React.createElement('div', { className: 'sb-search' },
+          React.createElement(Input, { prefix: React.createElement('span', { style: { color: 'var(--ant-color-text-tertiary)', fontSize: 12 } }, '⌕'), placeholder: '在 Xenica 中搜念', size: 'middle', allowClear: true })
+        ),
+        React.createElement('div', { className: 'sb-section' },
+          React.createElement('span', null, 'Sources'),
+          React.createElement('span', null, '···')
+        ),
+        React.createElement('div', { className: 'sb-list' },
+          React.createElement(SbItem, { bg: 'var(--ant-color-primary-bg)', fg: 'var(--ant-color-primary)', glyph: '↑', label: 'Upload sources' })
+        ),
+        React.createElement('div', { className: 'sb-list' },
+          React.createElement(SbItem, { bg: '#1f1f1f', fg: '#a78bfa', glyph: '✉', label: 'Inbox',   count: '0' }),
+          React.createElement(SbItem, { bg: '#1f1f1f', fg: '#f87171', glyph: 'J', label: 'Journal' }),
+          React.createElement(SbItem, { bg: '#1f1f1f', fg: '#34d399', glyph: '☐', label: 'Whiteboard' }),
+          React.createElement(SbItem, { bg: '#1f1f1f', fg: '#60a5fa', glyph: 'C', label: 'Card Library' }),
+          React.createElement(SbItem, { bg: '#1f1f1f', fg: '#fbbf24', glyph: '#', label: 'Tag Database' }),
+          React.createElement(SbItem, { bg: '#1f1f1f', fg: '#22d3ee', glyph: '✦', label: 'Chat' })
+        ),
+        React.createElement('div', { className: 'sb-section' },
+          React.createElement('span', null, 'Tabs'),
+          React.createElement('span', null, '···')
+        ),
+        React.createElement('div', { className: 'sb-list' },
+          React.createElement(SbItem, { bg: 'var(--ant-color-fill-secondary)', fg: 'var(--ant-color-text-secondary)', glyph: '+', label: 'New tab' })
+        ),
+        React.createElement('div', { className: 'sb-list' },
+          React.createElement(SbItem, { bg: 'var(--ant-color-primary-bg)', fg: 'var(--ant-color-primary)', glyph: '⏰', label: 'Untitled',                        on: true }),
+          React.createElement(SbItem, { bg: 'var(--ant-color-primary-bg)', fg: 'var(--ant-color-primary)', glyph: '⏰', label: 'Getting Started' }),
+          React.createElement(SbItem, { bg: 'var(--ant-color-primary-bg)', fg: 'var(--ant-color-primary)', glyph: '⏰', label: 'Principles of Microeconomics' })
+        ),
+        React.createElement('div', { className: 'sb-foot' },
+          React.createElement('div', { className: 'lhs' },
+            React.createElement('span', { className: 'ico' }, '⚙'),
+            React.createElement('span', { className: 'ico', style: { fontWeight: 700 } }, 'T'),
+            React.createElement('span', { className: 'ico', style: { fontWeight: 700 } }, '?')
+          ),
+          React.createElement('div', { className: 'rhs' },
+            React.createElement('span', { className: 'ring' }),
+            React.createElement('span', null, '12')
+          )
+        )
+      )
+    );
+  }
+
+  function TopBar() {
+    return React.createElement(Header, { className: 'l-header' },
+      React.createElement('div', { className: 'hd' },
+        React.createElement('div', { className: 'lhs' },
+          React.createElement('span', { className: 'hd-icon', style: { fontWeight: 700 } }, 'L'),
+          React.createElement('span', { className: 'hd-icon', style: { fontSize: 11, color: 'var(--ant-color-text)' } }, '⏰ Untitled')
+        ),
+        React.createElement('div', { className: 'ctr' },
+          React.createElement(Segmented, {
+            value: 'edit',
+            options: [
+              { label: '编辑',  value: 'edit' },
+              { label: '预览',  value: 'preview' },
+              { label: '织念图', value: 'graph' }
+            ]
+          })
+        ),
+        React.createElement('div', { className: 'rhs' },
+          React.createElement('span', { className: 'hd-status' },
+            React.createElement('span', { style: { color: 'var(--ant-color-success)' } }, '●'),
+            'Saved'
+          ),
+          React.createElement('span', { className: 'hd-icon' }, 'Share'),
+          React.createElement('span', { className: 'hd-icon' }, 'AI'),
+          React.createElement('span', { className: 'hd-icon' }, '◫')
+        )
+      )
+    );
+  }
+
+  function CenterCanvas() {
+    return React.createElement(Content, { className: 'l-content' },
+      React.createElement('div', { className: 'canvas-host' },
+        React.createElement('div', { className: 'stage' },
+          React.createElement('div', { className: 'stage-inner' },
+            React.createElement('h1', null, '选中一个节点开始编辑'),
+            React.createElement('p', null, '从左侧栏选一个节点；新建一条念用 N'),
+            React.createElement('div', { className: 'kbd-row' },
+              React.createElement('span', { className: 'kbd' }, 'N'),
+              React.createElement('span', { className: 'kbd' }, '⌘ K'),
+              React.createElement('span', { className: 'kbd' }, '⌘ G'),
+              React.createElement('span', { className: 'kbd' }, '⌘ .')
+            )
+          )
+        ),
+        React.createElement('div', { className: 'vtool' },
+          React.createElement('div', { className: 'vb on' }, 'AI'),
+          React.createElement('div', { className: 'vb' }, '≡'),
+          React.createElement('div', { className: 'vb' }, '+'),
+          React.createElement('div', { className: 'sep' }),
+          React.createElement('div', { className: 'vb' }, 'T'),
+          React.createElement('div', { className: 'vb' }, '↕'),
+          React.createElement('div', { className: 'vb' }, '⤢')
+        ),
+        React.createElement('div', { className: 'gs-card' }, '⏵  Get started  1/8')
+      )
+    );
+  }
+
+  function RightRail() {
+    return React.createElement('aside', { className: 'r-rail' },
+      React.createElement('div', { className: 'r-tabs-head' },
+        React.createElement(Tabs, { defaultActiveKey: 'props' },
+          React.createElement(Tabs.TabPane, { tab: '属性', key: 'props' }, null),
+          React.createElement(Tabs.TabPane, { tab: '邻接', key: 'adj' },   null),
+          React.createElement(Tabs.TabPane, { tab: '历史', key: 'hist' },  null),
+          React.createElement(Tabs.TabPane, { tab: '设置', key: 'meta' },  null)
+        )
+      ),
+      React.createElement('div', { className: 'r-body' },
+        React.createElement('div', { className: 'r-pane' },
+          React.createElement('div', { className: 'r-card' },
+            React.createElement('div', { className: 'name' }, 'Reverse Note-Taking'),
+            React.createElement('div', { className: 'glyph-row' },
+              React.createElement('span', { className: 'g on' }, React.createElement(IIc('FileTextOutlined'))),
+              React.createElement('span', { className: 'g' }, React.createElement(IIc('BranchesOutlined'))),
+              React.createElement('span', { className: 'g' }, React.createElement(IIc('TagsOutlined'))),
+              React.createElement('span', { className: 'g' }, React.createElement(IIc('RobotOutlined')))
+            ),
+            React.createElement('div', { className: 'meta' },
+              React.createElement('span', { className: 'k' }, '类型'),
+              React.createElement('span', { className: 'v' },
+                React.createElement(Tag, { bordered: false, color: 'blue' }, 'Concept')
+              ),
+              React.createElement('span', { className: 'k' }, '邻接'),
+              React.createElement('span', { className: 'v' }, '14 个'),
+              React.createElement('span', { className: 'k' }, '创建'),
+              React.createElement('span', { className: 'v' }, '2026-07-12'),
+              React.createElement('span', { className: 'k' }, '最后'),
+              React.createElement('span', { className: 'v' }, '2 min ago'),
+              React.createElement('span', { className: 'k' }, '来源'),
+              React.createElement('span', { className: 'v' }, 'S1 网课 · 0:42')
+            ),
+            React.createElement('div', { className: 'progress-row' },
+              React.createElement('div', { className: 'row-2' },
+                React.createElement('span', null, '已完成'),
+                React.createElement('span', null, '6 / 19')
+              ),
+              React.createElement('div', { className: 'bar' }, React.createElement('i', null))
+            ),
+            React.createElement('div', { className: 'switch-row' },
+              React.createElement('span', null, '在工作台置顶'),
+              React.createElement(Switch, { size: 'small', defaultChecked: true })
+            ),
+            React.createElement('div', { className: 'switch-row' },
+              React.createElement('span', null, '每 5 秒自动保存'),
+              React.createElement(Switch, { size: 'small', defaultChecked: true })
+            )
+          )
+        )
+      )
+    );
+  }
+
+  function BottomBar() {
+    return React.createElement(Footer, { className: 'l-footer' },
+      React.createElement('div', { className: 'ft' },
+        React.createElement('div', { className: 'lhs' },
+          React.createElement('span', { className: 'ico' }, '⌘'),
+          React.createElement('span', { className: 'ico' }, '◫'),
+          React.createElement('span', { className: 'ico' }, '✶'),
+          React.createElement('span', { className: 'ico' }, '☷'),
+          React.createElement('span', null, '总计 87 个节点'),
+          React.createElement('span', null, '· 上次同步 14:32')
+        ),
+        React.createElement('div', { className: 'rhs' },
+          React.createElement('span', null,
+            React.createElement('span', { className: 'kbd' }, 'N'), '新建'
+          ),
+          React.createElement('span', null,
+            React.createElement('span', { className: 'kbd' }, '⌘K'), '搜索'
+          ),
+          React.createElement('span', null,
+            React.createElement('span', { className: 'kbd' }, '⌘G'), '织念图'
+          ),
+          React.createElement('span', { className: 'slider' }, React.createElement('i', null)),
+          React.createElement('span', null, '40%'),
+          React.createElement('span', { className: 'ico' }, '−'),
+          React.createElement('span', { className: 'ico' }, '+')
+        )
+      )
+    );
+  }
+
+  function App() {
+    return React.createElement(ConfigProvider, {
+      theme: { algorithm: antd.theme.darkAlgorithm, token: { borderRadius: 6 } },
+    },
+      React.createElement(Layout, { style: { height: '100%', minHeight: 900 } },
+        React.createElement(Sidebar, null),
+        React.createElement(Layout, { style: { minWidth: 0 } },
+          React.createElement(TopBar, null),
+          React.createElement('div', { className: 'mid' },
+            React.createElement('div', { className: 'canvas-host' },
+              React.createElement(CenterCanvas, null)
+            ),
+            React.createElement(RightRail, null)
+          ),
+          React.createElement(BottomBar, null)
+        )
+      )
+    );
+  }
+
+  RD.createRoot(document.getElementById('root')).render(React.createElement(App));
+  log('mount ok', '#0f0');
+} catch (e) {
+  document.body.innerHTML = '<pre style="color:#f55;padding:24px;font:12px monospace;white-space:pre-wrap">' + (e.stack || e.message) + '</pre>';
+}
+</script>
+</body></html>

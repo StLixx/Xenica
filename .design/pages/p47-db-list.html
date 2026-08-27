@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>数据库 · 列表视图 · Xenica</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#000;color:var(--ant-color-text);font-family:var(--ant-font-family);-webkit-font-smoothing:antialiased;min-height:100vh}
+  .stage{padding:40px;background:radial-gradient(circle at 50% 0%,#14b8a608 0%,transparent 60%);min-height:100vh}
+  .db-shell{background:var(--ant-color-bg-container);border:1px solid var(--ant-color-border);border-radius:14px;overflow:hidden;box-shadow:0 30px 80px -30px #00000080}
+  .db-head{padding:18px 24px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--ant-color-border);background:var(--ant-color-bg-elevated)}
+  .db-head .left{display:flex;align-items:center;gap:14px}
+  .db-head .ico{width:40px;height:40px;border-radius:10px;background:#14b8a620;color:var(--ant-color-primary-text);display:flex;align-items:center;justify-content:center;font-size:18px}
+  .db-head h2{font-size:18px;font-weight:600}
+  .view-tabs{display:flex;gap:0;border-bottom:1px solid var(--ant-color-border);background:var(--ant-color-bg-base);padding:0 16px}
+  .vt{padding:11px 14px;font-size:12px;color:var(--ant-color-text-secondary);border-bottom:2px solid transparent;cursor:default;display:flex;align-items:center;gap:6px}
+  .vt.on{color:var(--ant-color-primary-text);border-bottom-color:var(--ant-color-primary)}
+  .list-shell{padding:18px;background:var(--ant-color-bg-base);display:flex;flex-direction:column;gap:10px}
+  .group{background:var(--ant-color-bg-container);border:1px solid var(--ant-color-border);border-radius:10px;overflow:hidden}
+  .group-head{padding:10px 16px;display:flex;justify-content:space-between;align-items:center;background:var(--ant-color-bg-elevated);border-bottom:1px solid var(--ant-color-border-secondary);font-size:12px;color:var(--ant-color-text-secondary);font-family:ui-monospace,monospace;letter-spacing:.06em}
+  .group-head .left{display:flex;align-items:center;gap:8px}
+  .group-head .chev{color:var(--ant-color-text-tertiary);font-size:10px}
+  .group-head .count{background:var(--ant-color-fill-secondary);color:var(--ant-color-text-tertiary);padding:2px 7px;border-radius:8px;font-size:10px}
+  .item{display:flex;align-items:center;gap:14px;padding:12px 16px;border-bottom:1px solid var(--ant-color-border-secondary);font-size:13px}
+  .item:last-child{border-bottom:0}
+  .item:hover{background:var(--ant-color-fill-secondary)}
+  .item .ico{width:24px;height:24px;border-radius:5px;background:var(--ant-color-fill-secondary);color:var(--ant-color-text-secondary);display:flex;align-items:center;justify-content:center;font-size:12px;flex:none}
+  .item .ttl{flex:1;font-size:13px;font-weight:500;color:var(--ant-color-text)}
+  .item .meta-col{display:flex;align-items:center;gap:14px;font-size:11px;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace}
+  .item .meta-col .av{width:22px;height:22px;font-size:9px}
+  .status{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:5px;font-size:11px;letter-spacing:.04em;font-weight:500}
+  .status.doing{background:var(--ant-color-primary-bg);color:var(--ant-color-primary-text)}
+  .status.todo{background:var(--ant-color-fill-tertiary);color:var(--ant-color-text-secondary)}
+  .status.done{background:#0a1912;color:#95de64}
+  .status.review{background:#722ed120;color:#b37feb}
+  .status.blocked{background:#2a1215;color:#ff7875}
+  .priority{display:inline-flex;align-items:center;gap:4px;font-family:ui-monospace,monospace;font-size:11px;color:var(--ant-color-text-secondary)}
+  .priority .bar{display:flex;gap:1px}
+  .priority .bar i{width:3px;height:9px;background:var(--ant-color-fill-tertiary);border-radius:1px}
+  .priority .bar i.on{background:var(--ant-color-primary)}
+  .priority.high .bar i.on{background:var(--ant-color-error)}
+  .priority.med .bar i.on{background:var(--ant-color-warning)}
+</style></head><body>
+<div class="stage">
+  <div class="db-shell">
+    <div class="db-head">
+      <div class="left">
+        <div class="ico">▦</div>
+        <div><h2>项目看板 · v5.0.0</h2><div class="meta" style="font-size:11px;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace;margin-top:2px">视图：<b>列表</b> · 按状态分组 · 12 项</div></div>
+      </div>
+      <div class="right" style="display:flex;gap:6px"><button class="btn btn-default btn-sm">⊞ 配置</button><button class="btn btn-default btn-sm">+ 新建</button></div>
+    </div>
+    <div class="view-tabs">
+      <div class="vt">▦ 表格</div>
+      <div class="vt">▤ 看板</div>
+      <div class="vt">▤ 日历</div>
+      <div class="vt">▦ 画廊</div>
+      <div class="vt on">≡ 列表</div>
+      <div class="vt">▬ 时间线</div>
+    </div>
+    <div class="list-shell">
+      <div class="group">
+        <div class="group-head"><div class="left"><span class="chev">▾</span><span>待办</span><span class="count">4</span></div><span>+ 添加任务</span></div>
+        <div class="item"><div class="ico">▤</div><div class="ttl">建立 .design manifest 与节点注册</div><span class="meta-col"><span class="status todo">○ 待办</span><span class="priority med"><span class="bar"><i class="on"></i><i class="on"></i><i></i></span></span><span>07-20</span><div class="av">XL</div></span></div>
+        <div class="item"><div class="ico">▤</div><div class="ttl">Playwright 截图回归验证</div><span class="meta-col"><span class="status todo">○ 待办</span><span class="priority"><span class="bar"><i class="on"></i><i></i><i></i></span></span><span>07-22</span><div class="av" style="background:linear-gradient(135deg,#4096ff,#1677ff)">LQ</div></span></div>
+        <div class="item"><div class="ico">▤</div><div class="ttl">ADR-004 · 自动布局算法边界</div><span class="meta-col"><span class="status todo">○ 待办</span><span class="priority"><span class="bar"><i class="on"></i><i></i><i></i></span></span><span>07-25</span><div class="av">XL</div></span></div>
+        <div class="item"><div class="ico">▤</div><div class="ttl">更新文档站点 v5.0.0 内容</div><span class="meta-col"><span class="status todo">○ 待办</span><span class="priority"><span class="bar"><i class="on"></i><i></i><i></i></span></span><span>08-01</span><div class="av" style="background:linear-gradient(135deg,#b37feb,#722ed1)">FT</div></span></div>
+      </div>
+
+      <div class="group">
+        <div class="group-head"><div class="left"><span class="chev">▾</span><span>进行中</span><span class="count">2</span></div><span>+ 添加任务</span></div>
+        <div class="item"><div class="ico">▤</div><div class="ttl">输出 100 页全量页面设计<div style="font-size:11px;color:var(--ant-color-primary-text);margin-top:2px;font-family:ui-monospace,monospace">页 1-60 完成 · 当前批次 61-80</div></div><span class="meta-col"><span class="status doing">● 进行中</span><span class="priority high"><span class="bar"><i class="on"></i><i class="on"></i><i class="on"></i></span></span><span style="color:var(--ant-color-warning)">今天 18:00</span><div class="av">XL</div><div class="av" style="background:linear-gradient(135deg,#4096ff,#1677ff);margin-left:-6px">LQ</div></span></div>
+        <div class="item"><div class="ico">▤</div><div class="ttl">用户引导流程设计</div><span class="meta-col"><span class="status doing">● 进行中</span><span class="priority med"><span class="bar"><i class="on"></i><i class="on"></i><i></i></span></span><span>07-19</span><div class="av">XL</div></span></div>
+      </div>
+
+      <div class="group">
+        <div class="group-head"><div class="left"><span class="chev">▾</span><span>评审</span><span class="count">1</span></div><span>+ 添加任务</span></div>
+        <div class="item"><div class="ico">▤</div><div class="ttl">Antd 6 darkAlgorithm 适配</div><span class="meta-col"><span class="status review">● 评审</span><span class="priority high"><span class="bar"><i class="on"></i><i class="on"></i><i class="on"></i></span></span><span>今天</span><div class="av">XL</div></span></div>
+      </div>
+
+      <div class="group">
+        <div class="group-head"><div class="left"><span class="chev">▾</span><span>完成</span><span class="count">3</span></div><span>+ 添加任务</span></div>
+        <div class="item"><div class="ico">▤</div><div class="ttl" style="text-decoration:line-through;color:var(--ant-color-text-tertiary)">锁定 v5.0.0 范围</div><span class="meta-col"><span class="status done">✓ 完成</span><span class="priority high"><span class="bar"><i class="on"></i><i class="on"></i><i class="on"></i></span></span><span>07-15</span><div class="av">XL</div></span></div>
+        <div class="item"><div class="ico">▤</div><div class="ttl" style="text-decoration:line-through;color:var(--ant-color-text-tertiary)">锁定 Antd 6 + darkAlgorithm</div><span class="meta-col"><span class="status done">✓ 完成</span><span class="priority high"><span class="bar"><i class="on"></i><i class="on"></i><i class="on"></i></span></span><span>07-16</span><div class="av">XL</div></span></div>
+        <div class="item"><div class="ico">▤</div><div class="ttl" style="text-decoration:line-through;color:var(--ant-color-text-tertiary)">产出 Plate VI · Antd 6 组件 mount</div><span class="meta-col"><span class="status done">✓ 完成</span><span class="priority high"><span class="bar"><i class="on"></i><i class="on"></i><i class="on"></i></span></span><span>07-12</span><div class="av">XL</div></span></div>
+      </div>
+
+      <div class="group">
+        <div class="group-head"><div class="left"><span class="chev">▾</span><span style="color:var(--ant-color-error)">⚠ 阻塞</span><span class="count">1</span></div><span>+ 添加任务</span></div>
+        <div class="item"><div class="ico">▤</div><div class="ttl">导入 Notion 历史笔记回归测试</div><span class="meta-col"><span class="status blocked">⚠ 阻塞</span><span class="priority high"><span class="bar"><i class="on"></i><i class="on"></i><i class="on"></i></span></span><span style="color:var(--ant-color-error)">逾期 3 天</span><div class="av" style="background:linear-gradient(135deg,#4096ff,#1677ff)">LQ</div></span></div>
+      </div>
+    </div>
+  </div>
+</div>
+</body></html>

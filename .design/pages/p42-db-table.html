@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>数据库 · 表格视图 · Xenica</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#000;color:var(--ant-color-text);font-family:var(--ant-font-family);-webkit-font-smoothing:antialiased;min-height:100vh}
+  .stage{padding:20px;background:radial-gradient(circle at 50% 0%,#14b8a608 0%,transparent 60%);min-height:100vh;overflow:auto}
+.db-shell{background:var(--ant-color-bg-container);border:1px solid var(--ant-color-border);border-radius:14px;overflow:hidden;box-shadow:0 30px 80px -30px #00000080;max-width:1520px;margin:0 auto}
+  .db-head{padding:18px 24px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--ant-color-border);background:var(--ant-color-bg-elevated)}
+  .db-head .left{display:flex;align-items:center;gap:14px}
+  .db-head .ico{width:40px;height:40px;border-radius:10px;background:#14b8a620;color:var(--ant-color-primary-text);display:flex;align-items:center;justify-content:center;font-size:18px}
+  .db-head h2{font-size:18px;font-weight:600}
+  .db-head .meta{font-size:11px;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace;margin-top:2px;display:flex;gap:12px;align-items:center}
+  .db-head .meta b{color:var(--ant-color-primary-text);font-weight:500}
+  .db-head .right{display:flex;gap:6px;align-items:center}
+  .view-tabs{display:flex;gap:0;border-bottom:1px solid var(--ant-color-border);background:var(--ant-color-bg-base);padding:0 16px}
+  .vt{padding:11px 14px;font-size:12px;color:var(--ant-color-text-secondary);border-bottom:2px solid transparent;cursor:default;display:flex;align-items:center;gap:6px;letter-spacing:.04em}
+  .vt.on{color:var(--ant-color-primary-text);border-bottom-color:var(--ant-color-primary)}
+  .vt:hover{color:var(--ant-color-text)}
+  .toolbar{padding:10px 18px;display:flex;gap:10px;align-items:center;background:var(--ant-color-bg-container);border-bottom:1px solid var(--ant-color-border)}
+  .toolbar .search{flex:1;max-width:300px;display:flex;align-items:center;gap:8px;height:30px;padding:0 10px;background:var(--ant-color-bg-elevated);border:1px solid var(--ant-color-border);border-radius:6px;font-size:12px;color:var(--ant-color-text-tertiary)}
+  .toolbar .search input{flex:1;background:transparent;border:none;outline:none;color:var(--ant-color-text);font-size:12px;font-family:inherit}
+  .filter{display:flex;gap:6px;align-items:center}
+  .chip{padding:4px 10px;font-size:11px;background:var(--ant-color-fill-secondary);border-radius:5px;display:flex;align-items:center;gap:6px;color:var(--ant-color-text-secondary);border:1px solid var(--ant-color-border)}
+  .chip.on{background:var(--ant-color-primary-bg);color:var(--ant-color-primary-text);border-color:var(--ant-color-primary-border)}
+  .chip .x{font-size:10px;opacity:.6}
+  .toolbar .right{margin-left:auto;display:flex;gap:6px;align-items:center;font-size:11px;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace}
+  .tbl-wrap{overflow-x:auto}
+  .tbl{width:100%;border-collapse:collapse;font-size:13px;min-width:1080px}
+  .tbl th{text-align:left;padding:10px 14px;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ant-color-text-tertiary);font-weight:600;background:var(--ant-color-bg-base);border-bottom:1px solid var(--ant-color-border);position:sticky;top:0;cursor:default;white-space:nowrap}
+  .tbl th .col-name{display:flex;align-items:center;gap:6px}
+  .tbl th .col-name .type{color:var(--ant-color-text-quaternary);font-size:9px}
+  .tbl th:hover{color:var(--ant-color-text)}
+  .tbl th.on{color:var(--ant-color-primary-text);background:var(--ant-color-bg-container)}
+  .tbl td{padding:12px 14px;border-bottom:1px solid var(--ant-color-border-secondary);color:var(--ant-color-text);vertical-align:middle}
+  .tbl tr:hover td{background:var(--ant-color-fill-secondary)}
+  .tbl tr.checked td{background:#14b8a614}
+  .tbl td.indent{padding-left:36px;color:var(--ant-color-text-secondary)}
+  .tbl td.indent2{padding-left:54px;color:var(--ant-color-text-secondary);font-size:12px}
+  .cell-title{font-weight:500;color:var(--ant-color-text);display:flex;align-items:center;gap:8px}
+  .cell-title .ico{width:18px;height:18px;border-radius:4px;background:var(--ant-color-fill-secondary);color:var(--ant-color-text-secondary);display:flex;align-items:center;justify-content:center;font-size:10px}
+  .cell-tag{padding:2px 8px;border-radius:4px;font-size:10px;letter-spacing:.04em;display:inline-flex;align-items:center;gap:4px;font-weight:500}
+  .tag-doing{background:var(--ant-color-primary-bg);color:var(--ant-color-primary-text)}
+  .tag-todo{background:var(--ant-color-fill-tertiary);color:var(--ant-color-text-secondary)}
+  .tag-done{background:#0a1912;color:#95de64}
+  .tag-blocked{background:#2a1215;color:#ff7875}
+  .tag-review{background:#722ed120;color:#b37feb}
+  .priority{display:inline-flex;align-items:center;gap:5px;font-family:ui-monospace,monospace;font-size:11px;color:var(--ant-color-text-secondary)}
+  .priority .bar{display:flex;gap:1px}
+  .priority .bar i{width:3px;height:11px;background:var(--ant-color-fill-tertiary);border-radius:1px}
+  .priority .bar i.on{background:var(--ant-color-primary)}
+  .priority.high .bar i.on{background:var(--ant-color-error)}
+  .priority.med .bar i.on{background:var(--ant-color-warning)}
+  .av-cell{display:flex;align-items:center;gap:-4px}
+  .av-cell .av{width:24px;height:24px;font-size:9px;border:2px solid var(--ant-color-bg-container);margin-left:-6px}
+  .av-cell .av:first-child{margin-left:0}
+  .av-more{font-size:11px;color:var(--ant-color-text-tertiary);margin-left:6px;font-family:ui-monospace,monospace}
+  .date-cell{font-family:ui-monospace,monospace;font-size:12px;color:var(--ant-color-text)}
+  .date-cell .day{font-size:10px;color:var(--ant-color-text-tertiary)}
+  .date-cell.warn{color:var(--ant-color-warning)}
+  .date-cell.overdue{color:var(--ant-color-error)}
+  .prog{height:5px;background:var(--ant-color-fill-secondary);border-radius:100px;overflow:hidden;width:80px;display:inline-block;vertical-align:middle;margin-right:8px}
+  .prog>i{display:block;height:100%;background:var(--ant-color-primary);border-radius:100px}
+  .check{width:14px;height:14px;border-radius:4px;border:1.5px solid var(--ant-color-border);display:inline-block;vertical-align:middle}
+  .check.on{background:var(--ant-color-primary);border-color:var(--ant-color-primary)}
+  .tbl-foot{padding:14px 24px;background:var(--ant-color-bg-base);border-top:1px solid var(--ant-color-border);font-size:11px;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace;display:flex;justify-content:space-between;align-items:center}
+  .tbl-foot .pagination{display:flex;gap:4px;align-items:center}
+  .page-btn{width:28px;height:28px;border-radius:5px;background:var(--ant-color-bg-container);border:1px solid var(--ant-color-border);color:var(--ant-color-text-secondary);display:flex;align-items:center;justify-content:center;font-size:12px;cursor:default}
+  .page-btn.on{background:var(--ant-color-primary);color:#fff;border-color:var(--ant-color-primary)}
+</style></head><body>
+<div class="stage">
+  <div class="db-shell">
+    <div class="db-head">
+      <div class="left">
+        <div class="ico">▦</div>
+        <div><h2>项目看板 · v5.0.0</h2><div class="meta"><span><b>12</b> 项</span><span>·</span><span>修改于 5 分钟前</span><span>·</span><span>视图：<b>表格</b></span></div></div>
+      </div>
+      <div class="right"><button class="btn btn-default btn-sm">⊞ 配置</button><button class="btn btn-default btn-sm">⇪ 分享</button><button class="btn btn-primary btn-sm">+ 新建</button></div>
+    </div>
+    <div class="view-tabs">
+      <div class="vt on">▦ 表格</div>
+      <div class="vt">▤ 看板</div>
+      <div class="vt">▤ 日历</div>
+      <div class="vt">▦ 画廊</div>
+      <div class="vt">▬ 时间线</div>
+      <div class="vt">⊞ 模板</div>
+    </div>
+    <div class="toolbar">
+      <div class="search">⌕<input placeholder="搜索任务..."/></div>
+      <div class="filter">
+        <span class="chip on">状态 = 进行中<span class="x">×</span></span>
+        <span class="chip">负责人 = 我<span class="x">×</span></span>
+        <span class="chip">+ 添加过滤</span>
+      </div>
+      <div class="right"><span>排序：优先级 ↓</span><span>·</span><span>6 项匹配 / 共 12</span></div>
+    </div>
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr>
+          <th style="width:36px"><div class="check"></div></th>
+          <th style="width:280px"><div class="col-name">任务 <span class="type">T</span></div></th>
+          <th><div class="col-name">状态 <span class="type">S</span></div></th>
+          <th><div class="col-name">优先级 <span class="type">P</span></div></th>
+          <th><div class="col-name">截止 <span class="type">D</span></div></th>
+          <th><div class="col-name">负责人 <span class="type">P</span></div></th>
+          <th><div class="col-name">进度 <span class="type">N</span></div></th>
+          <th><div class="col-name">标签 <span class="type">M</span></div></th>
+        </tr></thead>
+        <tbody>
+          <tr class="checked">
+            <td><div class="check on"></div></td>
+            <td><div class="cell-title"><span class="ico">▦</span>锁定 v5.0.0 范围</div><div style="font-size:11px;color:var(--ant-color-text-tertiary);margin-top:3px;margin-left:26px">设计系统 + 标准页面 · 已归档到 v5.0.0</div></td>
+            <td><span class="cell-tag tag-done">● 完成</span></td>
+            <td><span class="priority high"><span class="bar"><i class="on"></i><i class="on"></i><i class="on"></i></span>高</span></td>
+            <td><div class="date-cell">07-15<span class="day">已交付</span></div></td>
+            <td><div class="av-cell"><div class="av">XL</div></div></td>
+            <td><div class="prog"><i style="width:100%"></i></div><span style="color:var(--ant-color-text-tertiary)">100%</span></td>
+            <td><span class="cell-tag" style="background:var(--ant-color-fill-secondary);color:var(--ant-color-text-tertiary)">v5.0.0</span></td>
+          </tr>
+          <tr>
+            <td><div class="check on"></div></td>
+            <td><div class="cell-title"><span class="ico">▤</span>锁定 Antd 6 + darkAlgorithm</div></td>
+            <td><span class="cell-tag tag-done">● 完成</span></td>
+            <td><span class="priority high"><span class="bar"><i class="on"></i><i class="on"></i><i class="on"></i></span>高</span></td>
+            <td><div class="date-cell">07-16</div></td>
+            <td><div class="av-cell"><div class="av">XL</div></div></td>
+            <td><div class="prog"><i style="width:100%"></i></div><span style="color:var(--ant-color-text-tertiary)">100%</span></td>
+            <td><span class="cell-tag" style="background:var(--ant-color-fill-secondary);color:var(--ant-color-text-tertiary)">设计系统</span></td>
+          </tr>
+          <tr>
+            <td><div class="check"></div></td>
+            <td><div class="cell-title"><span class="ico">▤</span>输出 100 页全量页面设计<div style="font-size:11px;color:var(--ant-color-primary-text);margin-top:3px;margin-left:26px;font-family:ui-monospace,monospace">页 1-60 完成 · 当前批次 61-80</div></td>
+            <td><span class="cell-tag tag-doing">● 进行中</span></td>
+            <td><span class="priority high"><span class="bar"><i class="on"></i><i class="on"></i><i class="on"></i></span>高</span></td>
+            <td><div class="date-cell warn">今天 18:00<span class="day">剩 6h</span></div></td>
+            <td><div class="av-cell"><div class="av">XL</div><div class="av" style="background:linear-gradient(135deg,#4096ff,#1677ff)">LQ</div></div></td>
+            <td><div class="prog"><i style="width:60%"></i></div><span style="color:var(--ant-color-text-tertiary)">60%</span></td>
+            <td><span class="cell-tag" style="background:var(--ant-color-primary-bg);color:var(--ant-color-primary-text)">核心</span> <span class="cell-tag" style="background:var(--ant-color-fill-secondary);color:var(--ant-color-text-tertiary)">设计</span></td>
+          </tr>
+          <tr>
+            <td><div class="check"></div></td>
+            <td><div class="cell-title"><span class="ico">▤</span>建立 .design manifest 与节点注册</div></td>
+            <td><span class="cell-tag tag-todo">○ 待办</span></td>
+            <td><span class="priority med"><span class="bar"><i class="on"></i><i class="on"></i><i></i></span>中</span></td>
+            <td><div class="date-cell">07-20<span class="day">还有 3 天</span></div></td>
+            <td><div class="av-cell"><div class="av">XL</div></div></td>
+            <td><div class="prog"><i style="width:0%"></i></div><span style="color:var(--ant-color-text-tertiary)">0%</span></td>
+            <td><span class="cell-tag" style="background:var(--ant-color-fill-secondary);color:var(--ant-color-text-tertiary)">工程</span></td>
+          </tr>
+          <tr>
+            <td><div class="check"></div></td>
+            <td><div class="cell-title"><span class="ico">▤</span>Playwright 截图回归验证</div></td>
+            <td><span class="cell-tag tag-todo">○ 待办</span></td>
+            <td><span class="priority"><span class="bar"><i class="on"></i><i></i><i></i></span>低</span></td>
+            <td><div class="date-cell">07-22</div></td>
+            <td><div class="av-cell"><div class="av" style="background:linear-gradient(135deg,#4096ff,#1677ff)">LQ</div></div></td>
+            <td><div class="prog"><i style="width:0%"></i></div><span style="color:var(--ant-color-text-tertiary)">0%</span></td>
+            <td><span class="cell-tag" style="background:var(--ant-color-fill-secondary);color:var(--ant-color-text-tertiary)">QA</span></td>
+          </tr>
+          <tr>
+            <td><div class="check"></div></td>
+            <td><div class="cell-title"><span class="ico">▤</span>导入 Notion 历史笔记回归测试</div></td>
+            <td><span class="cell-tag tag-blocked">⚠ 阻塞</span></td>
+            <td><span class="priority high"><span class="bar"><i class="on"></i><i class="on"></i><i class="on"></i></span>高</span></td>
+            <td><div class="date-cell overdue">07-14<span class="day">逾期 3 天</span></div></td>
+            <td><div class="av-cell"><div class="av" style="background:linear-gradient(135deg,#4096ff,#1677ff)">LQ</div></div></td>
+            <td><div class="prog"><i style="width:25%;background:var(--ant-color-error)"></i></div><span style="color:var(--ant-color-text-tertiary)">25%</span></td>
+            <td><span class="cell-tag" style="background:#2a1215;color:#ff7875">P0</span></td>
+          </tr>
+          <tr>
+            <td><div class="check"></div></td>
+            <td><div class="cell-title"><span class="ico">▤</span>用户引导流程设计</div></td>
+            <td><span class="cell-tag tag-doing">● 进行中</span></td>
+            <td><span class="priority med"><span class="bar"><i class="on"></i><i class="on"></i><i></i></span>中</span></td>
+            <td><div class="date-cell">07-19</div></td>
+            <td><div class="av-cell"><div class="av">XL</div></div></td>
+            <td><div class="prog"><i style="width:40%"></i></div><span style="color:var(--ant-color-text-tertiary)">40%</span></td>
+            <td><span class="cell-tag tag-review">UX</span></td>
+          </tr>
+          <tr>
+            <td><div class="check"></div></td>
+            <td><div class="cell-title"><span class="ico">▤</span>ADR-004 · 自动布局算法边界</div></td>
+            <td><span class="cell-tag tag-todo">○ 待办</span></td>
+            <td><span class="priority"><span class="bar"><i class="on"></i><i></i><i></i></span>低</span></td>
+            <td><div class="date-cell">07-25</div></td>
+            <td><div class="av-cell"><div class="av">XL</div></div></td>
+            <td><div class="prog"><i style="width:0%"></i></div><span style="color:var(--ant-color-text-tertiary)">0%</span></td>
+            <td><span class="cell-tag" style="background:var(--ant-color-fill-secondary);color:var(--ant-color-text-tertiary)">ADR</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="tbl-foot">
+      <span>显示 1-8 / 12 · 选中 0</span>
+      <div class="pagination">
+        <span class="page-btn">‹</span>
+        <span class="page-btn on">1</span>
+        <span class="page-btn">2</span>
+        <span class="page-btn">›</span>
+      </div>
+    </div>
+  </div>
+</div>
+</body></html>

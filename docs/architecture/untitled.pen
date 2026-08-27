@@ -1,0 +1,348 @@
+{
+  "version": "2.14",
+  "children": [
+    {
+      "type": "frame",
+      "id": "QDv7M",
+      "x": 757,
+      "y": -34,
+      "name": "V5-Stack-Confirmed",
+      "clip": true,
+      "width": 1920,
+      "height": 1080,
+      "fill": "$surface.primary",
+      "layout": "vertical",
+      "gap": "$space.section",
+      "padding": "$space.frame",
+      "children": [
+        {
+          "type": "frame",
+          "id": "nZWEt",
+          "name": "Title",
+          "width": "fill_container",
+          "layout": "vertical",
+          "gap": 8,
+          "children": [
+            {
+              "type": "text",
+              "id": "OuTFb",
+              "name": "Headline",
+              "fill": "$foreground.primary",
+              "content": "V5 Stack — Confirmed",
+              "fontFamily": "Inter",
+              "fontSize": "$size.headline",
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "QtNi3",
+              "name": "Subtitle",
+              "fill": "$foreground.secondary",
+              "content": "Source: V5.0.0 frontend-stack-selection ADR · 2026-07-10",
+              "fontFamily": "Inter",
+              "fontSize": "$size.body",
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "ikBHz",
+          "name": "Columns",
+          "width": "fill_container",
+          "height": "fill_container",
+          "gap": "$space.section",
+          "children": [
+            {
+              "type": "frame",
+              "id": "Y2D5e",
+              "name": "Backend Stack",
+              "width": "fill_container",
+              "height": 360,
+              "fill": "$zone.l3",
+              "stroke": "$border.primary",
+              "strokeWidth": "$stroke.thin",
+              "layout": "vertical",
+              "gap": "$space.gap",
+              "padding": "$space.card",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "lOGXK",
+                  "name": "Label",
+                  "fill": "$foreground.muted",
+                  "content": "BACKEND",
+                  "fontFamily": "Inter",
+                  "fontSize": "$size.label",
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "F1d9O",
+                  "name": "Title",
+                  "fill": "$foreground.primary",
+                  "content": "Rust + Axum + sqlx + PostgreSQL",
+                  "fontFamily": "Inter",
+                  "fontSize": "$size.title",
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "r5tLyT",
+                  "name": "List",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "CGMGH",
+                      "name": "Lang",
+                      "fill": "$foreground.secondary",
+                      "content": "• Rust 1.93+",
+                      "fontFamily": "Inter",
+                      "fontSize": "$size.body",
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "EBuvN",
+                      "name": "Web",
+                      "fill": "$foreground.secondary",
+                      "content": "• Axum",
+                      "fontFamily": "Inter",
+                      "fontSize": "$size.body",
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "tm0vR",
+                      "name": "DB Layer",
+                      "fill": "$foreground.secondary",
+                      "content": "• sqlx",
+                      "fontFamily": "Inter",
+                      "fontSize": "$size.body",
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "n4uDM4",
+                      "name": "Database",
+                      "fill": "$foreground.secondary",
+                      "content": "• PostgreSQL 17",
+                      "fontFamily": "Inter",
+                      "fontSize": "$size.body",
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "TNwrU",
+              "name": "Frontend Shell",
+              "width": "fill_container",
+              "height": 360,
+              "fill": "$zone.l4",
+              "stroke": "$border.primary",
+              "strokeWidth": "$stroke.thin",
+              "layout": "vertical",
+              "gap": "$space.gap",
+              "padding": "$space.card",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "CT8Df",
+                  "name": "Label",
+                  "fill": "$foreground.muted",
+                  "content": "FRONTEND SHELL",
+                  "fontFamily": "Inter",
+                  "fontSize": "$size.label",
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "cLFXF",
+                  "name": "Title",
+                  "fill": "$foreground.primary",
+                  "content": "Electron + TypeScript + Tailwind",
+                  "fontFamily": "Inter",
+                  "fontSize": "$size.title",
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "MZBH2",
+                  "name": "List",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 4,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "GhVfE",
+                      "name": "Shell",
+                      "fill": "$foreground.secondary",
+                      "content": "• Electron (Chromium-based desktop)",
+                      "fontFamily": "Inter",
+                      "fontSize": "$size.body",
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "r6cWw",
+                      "name": "Lang",
+                      "fill": "$foreground.secondary",
+                      "content": "• TypeScript strict",
+                      "fontFamily": "Inter",
+                      "fontSize": "$size.body",
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "pZ8E2",
+                      "name": "CSS",
+                      "fill": "$foreground.secondary",
+                      "content": "• Tailwind CSS v4",
+                      "fontFamily": "Inter",
+                      "fontSize": "$size.body",
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variables": {
+    "surface.primary": {
+      "type": "color",
+      "value": "#0A0A0AFF"
+    },
+    "surface.secondary": {
+      "type": "color",
+      "value": "#1A1A1AFF"
+    },
+    "foreground.primary": {
+      "type": "color",
+      "value": "#FFFFFFFF"
+    },
+    "foreground.secondary": {
+      "type": "color",
+      "value": "#A1A1AAFF"
+    },
+    "foreground.muted": {
+      "type": "color",
+      "value": "#71717AFF"
+    },
+    "accent.primary": {
+      "type": "color",
+      "value": "#A855F7FF"
+    },
+    "border.primary": {
+      "type": "color",
+      "value": "#27272AFF"
+    },
+    "border.subtle": {
+      "type": "color",
+      "value": "#1A1A1AFF"
+    },
+    "node.recommended": {
+      "type": "color",
+      "value": "#22C55EFF"
+    },
+    "node.deprecated": {
+      "type": "color",
+      "value": "#71717AFF"
+    },
+    "node.warning": {
+      "type": "color",
+      "value": "#F59E0BFF"
+    },
+    "node.info": {
+      "type": "color",
+      "value": "#3B82F6FF"
+    },
+    "flow.solid": {
+      "type": "color",
+      "value": "#FFFFFFFF"
+    },
+    "flow.typed": {
+      "type": "color",
+      "value": "#3B82F6FF"
+    },
+    "flow.weak": {
+      "type": "color",
+      "value": "#71717AFF"
+    },
+    "zone.l1": {
+      "type": "color",
+      "value": "#0A0A0AFF"
+    },
+    "zone.l2": {
+      "type": "color",
+      "value": "#141414FF"
+    },
+    "zone.l3": {
+      "type": "color",
+      "value": "#1A1A1AFF"
+    },
+    "zone.l4": {
+      "type": "color",
+      "value": "#1F1F23FF"
+    },
+    "size.headline": {
+      "type": "number",
+      "value": 48
+    },
+    "size.title": {
+      "type": "number",
+      "value": 24
+    },
+    "size.body": {
+      "type": "number",
+      "value": 14
+    },
+    "size.label": {
+      "type": "number",
+      "value": 11
+    },
+    "space.frame": {
+      "type": "number",
+      "value": 40
+    },
+    "space.section": {
+      "type": "number",
+      "value": 24
+    },
+    "space.card": {
+      "type": "number",
+      "value": 16
+    },
+    "space.gap": {
+      "type": "number",
+      "value": 12
+    },
+    "stroke.thin": {
+      "type": "number",
+      "value": 1
+    },
+    "stroke.thick": {
+      "type": "number",
+      "value": 2
+    },
+    "badge.recommend.bg": {
+      "type": "color",
+      "value": "#22C55EFF"
+    },
+    "badge.avoid.bg": {
+      "type": "color",
+      "value": "#71717AFF"
+    }
+  },
+  "fileToken": "b49875e7-299e-4b05-afea-e012c699ef7a"
+}

@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Plate IV–V · Antd Default Dark · Theme Examples</title>
+<style>
+  @font-face{font-family:'M';src:url('file:///c:/Users/21885/.trae/skills/canvas-design/canvas-fonts/GeistMono-Regular.ttf') format('truetype');font-display:block}
+  @font-face{font-family:'MB';src:url('file:///c:/Users/21885/.trae/skills/canvas-design/canvas-fonts/GeistMono-Bold.ttf') format('truetype');font-display:block}
+  @font-face{font-family:'R';src:url('file:///c:/Users/21885/.trae/skills/canvas-design/canvas-fonts/Lora-Regular.ttf') format('truetype');font-display:block}
+  @font-face{font-family:'RI';src:url('file:///c:/Users/21885/.trae/skills/canvas-design/canvas-fonts/Lora-Italic.ttf') format('truetype');font-display:block}
+
+  :root{
+    --ant-color-text:#ffffffd9;
+    --ant-color-text-secondary:#ffffffa6;
+    --ant-color-text-tertiary:#ffffff73;
+    --ant-color-text-quaternary:#ffffff40;
+    --ant-color-bg-base:#000000;
+    --ant-color-bg-container:#141414;
+    --ant-color-bg-elevated:#1f1f1f;
+    --ant-color-bg-layout:#000000;
+    --ant-color-fill:#ffffff0a;
+    --ant-color-fill-secondary:#ffffff14;
+    --ant-color-fill-tertiary:#ffffff1f;
+    --ant-color-fill-quaternary:#ffffff29;
+    --ant-color-border:#ffffff14;
+    --ant-color-border-secondary:#ffffff0a;
+    --ant-color-primary:#1668dc;
+    --ant-color-primary-hover:#3c89e8;
+    --ant-color-primary-bg:#111a2c;
+    --ant-color-primary-bg-hover:#112545;
+    --ant-color-primary-border:#15325b;
+    --ant-color-primary-text:#4096ff;
+    --ant-color-primary-text-hover:#69b1ff;
+    --ant-color-success:#49aa19;
+    --ant-color-error:#dc4446;
+    --ant-color-warning:#d89614;
+    --ant-color-info:#1668dc;
+    --ant-color-success-bg:#0a1912;
+    --ant-color-error-bg:#2a1215;
+    --ant-color-warning-bg:#1f1611;
+    --ant-color-info-bg:#111a2c;
+    --ant-control-height:32px;
+    --ant-border-radius:6px;
+    --ant-border-radius-lg:8px;
+    --ant-font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#000;overflow:hidden}
+  body{width:1600px;height:2400px;font-family:var(--ant-font-family);color:var(--ant-color-text);-webkit-font-smoothing:antialiased}
+
+  .plate{position:relative;width:1600px;height:2400px;padding:80px 96px;overflow:hidden}
+  .mnum{position:absolute;top:36px;font-family:'M',monospace;font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--ant-color-text-quaternary)}
+  .mnum.l{left:96px}
+  .mnum.r{right:96px}
+  .eyebrow{display:inline-flex;align-items:center;gap:10px;font-family:'M',monospace;font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--ant-color-primary-text);margin-bottom:20px}
+  .eyebrow .d{width:22px;height:1px;background:var(--ant-color-primary-text);opacity:.6}
+  h1{font-family:'R',serif;font-size:56px;line-height:1.05;font-weight:400;letter-spacing:-.01em;color:var(--ant-color-text);max-width:1300px}
+  h1 em{font-style:italic;color:var(--ant-color-primary-text)}
+  .lede{font-family:'RI',serif;font-style:italic;font-size:16px;line-height:1.55;color:var(--ant-color-text-secondary);margin-top:14px;max-width:1080px}
+
+  .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:36px;width:100%}
+  .demo{background:var(--ant-color-bg-container);border:1px solid var(--ant-color-border);border-radius:var(--ant-border-radius-lg);padding:20px 22px;position:relative;overflow:hidden;min-width:0}
+  .demo .tag{position:absolute;top:12px;right:14px;font-family:'M',monospace;font-size:8px;letter-spacing:.16em;text-transform:uppercase;color:var(--ant-color-text-tertiary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60%}
+  .demo h3{font-family:'MB',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ant-color-text-secondary);margin-bottom:14px;font-weight:700}
+
+  .btn{display:inline-flex;align-items:center;gap:6px;height:var(--ant-control-height);padding:4px 14px;border-radius:var(--ant-border-radius);font-family:var(--ant-font-family);font-size:13px;line-height:1;border:1px solid transparent;cursor:default;transition:all .15s}
+  .btn-primary{background:var(--ant-color-primary);color:#fff;border-color:var(--ant-color-primary)}
+  .btn-default{background:var(--ant-color-bg-container);color:var(--ant-color-text);border-color:var(--ant-color-border)}
+  .btn-text{background:transparent;color:var(--ant-color-primary-text);border-color:transparent}
+  .btn-danger{background:var(--ant-color-error);color:#fff;border-color:var(--ant-color-error)}
+  .btn-group{display:flex;gap:8px;flex-wrap:wrap}
+
+  .inp{display:flex;align-items:center;gap:8px;height:var(--ant-control-height);padding:4px 11px;border-radius:var(--ant-border-radius);background:var(--ant-color-bg-container);border:1px solid var(--ant-color-border);color:var(--ant-color-text);font-family:var(--ant-font-family);font-size:13px;width:100%;min-width:0;transition:all .15s}
+  .inp:hover{border-color:var(--ant-color-primary-hover)}
+  .inp:focus{outline:none;border-color:var(--ant-color-primary);box-shadow:0 0 0 2px var(--ant-color-primary-bg-hover)}
+
+  .tag-pill{display:inline-flex;align-items:center;height:22px;padding:0 8px;border-radius:var(--ant-border-radius);font-family:var(--ant-font-family);font-size:12px;line-height:20px;border:1px solid transparent;white-space:nowrap}
+  .tag-default{background:var(--ant-color-fill-tertiary);color:var(--ant-color-text);border-color:var(--ant-color-border)}
+  .tag-processing{background:var(--ant-color-primary-bg);color:var(--ant-color-primary-text);border-color:var(--ant-color-primary-border)}
+  .tag-success{background:var(--ant-color-success-bg);color:var(--ant-color-success);border-color:var(--ant-color-success)}
+  .tag-error{background:var(--ant-color-error-bg);color:var(--ant-color-error);border-color:var(--ant-color-error)}
+  .tag-warning{background:var(--ant-color-warning-bg);color:var(--ant-color-warning);border-color:var(--ant-color-warning)}
+
+  .alert{padding:8px 12px;border-radius:var(--ant-border-radius);border:1px solid;display:flex;gap:10px;align-items:flex-start;font-family:var(--ant-font-family);font-size:13px;line-height:1.5}
+  .alert-i{background:var(--ant-color-info-bg);border-color:var(--ant-color-primary-border);color:var(--ant-color-text)}
+  .alert-s{background:var(--ant-color-success-bg);border-color:var(--ant-color-success);color:var(--ant-color-text)}
+  .alert-w{background:var(--ant-color-warning-bg);border-color:var(--ant-color-warning);color:var(--ant-color-text)}
+  .alert-e{background:var(--ant-color-error-bg);border-color:var(--ant-color-error);color:var(--ant-color-text)}
+  .alert .ic{flex:none;width:14px;height:14px;margin-top:2px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'MB',monospace;font-size:8px;font-weight:700;color:#fff}
+  .alert-i .ic{background:var(--ant-color-primary)}
+  .alert-s .ic{background:var(--ant-color-success)}
+  .alert-w .ic{background:var(--ant-color-warning)}
+  .alert-e .ic{background:var(--ant-color-error)}
+  .alert .body{flex:1;min-width:0}
+  .alert-stack{display:flex;flex-direction:column;gap:8px}
+
+  .prog{width:100%;height:8px;background:var(--ant-color-fill-secondary);border-radius:100px;overflow:hidden}
+  .prog>span{display:block;height:100%;border-radius:100px}
+  .prog>span.primary{background:var(--ant-color-primary)}
+  .prog>span.success{background:var(--ant-color-success)}
+  .prog>span.error{background:var(--ant-color-error)}
+  .prog-row{display:flex;flex-direction:column;gap:6px}
+
+  .tbl{width:100%;border-collapse:collapse;font-family:var(--ant-font-family);font-size:13px;table-layout:fixed}
+  .tbl th{text-align:left;padding:10px 12px;background:var(--ant-color-fill-tertiary);color:var(--ant-color-text);font-weight:600;font-size:12px;border-bottom:1px solid var(--ant-color-border)}
+  .tbl td{padding:10px 12px;border-bottom:1px solid var(--ant-color-border-secondary);color:var(--ant-color-text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .tbl tr:last-child td{border-bottom:none}
+  .tbl tr:hover td{background:var(--ant-color-fill)}
+
+  .sw{width:32px;height:18px;border-radius:100px;background:var(--ant-color-fill-quaternary);position:relative;cursor:default;border:0;transition:all .15s;flex:none}
+  .sw::after{content:'';position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:100%;background:#fff;transition:all .15s}
+  .sw.on{background:var(--ant-color-primary)}
+  .sw.on::after{left:16px}
+  .sw-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:8px 0;border-bottom:1px solid var(--ant-color-border-secondary)}
+  .sw-row:last-child{border-bottom:none}
+  .sw-row>div:first-child{flex:1;min-width:0}
+  .sw-row .lbl{font-family:var(--ant-font-family);font-size:13px;color:var(--ant-color-text);line-height:1.4}
+  .sw-row .desc{font-family:var(--ant-font-family);font-size:12px;color:var(--ant-color-text-tertiary);margin-top:2px;line-height:1.4}
+
+  .seg{display:inline-flex;border-radius:var(--ant-border-radius);padding:2px;background:var(--ant-color-fill-secondary);gap:2px}
+  .seg button{font-family:var(--ant-font-family);font-size:13px;padding:4px 12px;border:none;background:transparent;color:var(--ant-color-text-secondary);border-radius:calc(var(--ant-border-radius) - 2px);cursor:default;line-height:1.4}
+  .seg button.on{background:var(--ant-color-bg-container);color:var(--ant-color-text);box-shadow:0 1px 2px rgba(0,0,0,.06)}
+
+  .pag{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .pag .p{min-width:32px;height:32px;padding:0 8px;border-radius:var(--ant-border-radius);display:flex;align-items:center;justify-content:center;font-family:var(--ant-font-family);font-size:13px;border:1px solid var(--ant-color-border);color:var(--ant-color-text);cursor:default;background:transparent}
+  .pag .p.on{background:var(--ant-color-primary);color:#fff;border-color:var(--ant-color-primary)}
+
+  .dd{background:var(--ant-color-bg-elevated);border:1px solid var(--ant-color-border);border-radius:var(--ant-border-radius-lg);padding:6px 0;width:100%;max-width:300px}
+  .dd .row{padding:6px 14px;color:var(--ant-color-text);font-size:13px;display:flex;justify-content:space-between;align-items:center}
+  .dd .row.hi{background:var(--ant-color-fill-tertiary)}
+  .dd .row.err{color:var(--ant-color-error)}
+  .dd .row .kbd{font-family:'M',monospace;font-size:10px;color:var(--ant-color-text-tertiary)}
+  .dd .sep{height:1px;background:var(--ant-color-border);margin:4px 0}
+
+  .form-stack{display:flex;flex-direction:column;gap:8px}
+
+  .foot{margin-top:48px;padding-top:24px;border-top:1px solid var(--ant-color-border-secondary);display:flex;justify-content:space-between;align-items:flex-end;gap:24px}
+  .foot .l{font-family:'RI',serif;font-style:italic;font-size:14px;color:var(--ant-color-text-secondary)}
+  .foot .r{font-family:'M',monospace;font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--ant-color-text-tertiary);text-align:right;white-space:nowrap}
+
+  .flow{margin-top:36px;background:var(--ant-color-fill-quaternary);border-radius:var(--ant-border-radius-lg);padding:20px 24px;font-family:'M',monospace;font-size:11px;line-height:1.7;color:var(--ant-color-text-tertiary);letter-spacing:.04em;word-break:break-word}
+  .flow .h{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--ant-color-text-secondary);margin-bottom:10px;font-weight:700}
+  .flow .k{color:var(--ant-color-primary-text);font-weight:700}
+</style>
+</head>
+<body>
+
+<section class="plate">
+  <div class="mnum l">PLATE · IV–V</div>
+  <div class="mnum r">ANTD · DEFAULT · DARK</div>
+
+  <div class="eyebrow"><span class="d"></span><span>Theme · Antd default darkAlgorithm · 17 hooks from glassTheme.ts</span></div>
+  <h1>The Antd <em>default</em>, untouched.</h1>
+  <p class="lede">No custom tokens. No terra-cotta. This is what the glassTheme.ts hook already produces. Use it as-is for page design; revisit only when an explicit UX gap appears.</p>
+
+  <div class="grid">
+    <div class="demo">
+      <div class="tag">button.classNames</div>
+      <h3>Button · 4 variants</h3>
+      <div class="btn-group">
+        <button class="btn btn-primary">新建一条念</button>
+        <button class="btn btn-default">打开织念图</button>
+        <button class="btn btn-text">继续当前的念</button>
+        <button class="btn btn-danger">删除节点</button>
+      </div>
+    </div>
+
+    <div class="demo">
+      <div class="tag">input.classNames</div>
+      <h3>Input · default + focus</h3>
+      <input class="inp" value="Reverse Note-Taking" style="margin-bottom:10px"/>
+      <input class="inp" placeholder="在 Xenica 中搜念" />
+    </div>
+
+    <div class="demo">
+      <div class="tag">tag</div>
+      <h3>Tag · 5 statuses</h3>
+      <div class="btn-group">
+        <span class="tag-pill tag-processing">Concept</span>
+        <span class="tag-pill tag-success">Reading</span>
+        <span class="tag-pill tag-warning">Modified</span>
+        <span class="tag-pill tag-error">Conflict</span>
+        <span class="tag-pill tag-default">Archived</span>
+      </div>
+    </div>
+
+    <div class="demo">
+      <div class="tag">segmented.className</div>
+      <h3>Segmented · view switcher</h3>
+      <div class="seg">
+        <button>编辑</button>
+        <button class="on">预览</button>
+        <button>关系图</button>
+      </div>
+    </div>
+
+    <div class="demo">
+      <div class="tag">alert.className</div>
+      <h3>Alert · 4 severities</h3>
+      <div class="alert-stack">
+        <div class="alert alert-i"><span class="ic">i</span><span class="body">自动保存已启用 · 14:32</span></div>
+        <div class="alert alert-s"><span class="ic">✓</span><span class="body">节点已链接到「Reverse Note-Taking」</span></div>
+        <div class="alert alert-w"><span class="ic">!</span><span class="body">检测到未保存的修改</span></div>
+        <div class="alert alert-e"><span class="ic">×</span><span class="body">节点冲突 · 本地与云端不一致</span></div>
+      </div>
+    </div>
+
+    <div class="demo">
+      <div class="tag">progress.classNames + styles</div>
+      <h3>Progress · 3 statuses</h3>
+      <div class="prog-row">
+        <div><div class="prog"><span class="primary" style="width:68%"></span></div></div>
+        <div><div class="prog"><span class="success" style="width:100%"></span></div></div>
+        <div><div class="prog"><span class="error" style="width:32%"></span></div></div>
+      </div>
+    </div>
+
+    <div class="demo">
+      <div class="tag">switch.classNames</div>
+      <h3>Switch · settings</h3>
+      <div class="sw-row"><div><div class="lbl">自动保存</div><div class="desc">每 5 秒保存一次</div></div><div class="sw on"></div></div>
+      <div class="sw-row"><div><div class="lbl">深色模式</div><div class="desc">跟随系统</div></div><div class="sw on"></div></div>
+      <div class="sw-row"><div><div class="lbl">显示节点种类色</div><div class="desc">导航栏用颜色区分</div></div><div class="sw"></div></div>
+    </div>
+
+    <div class="demo">
+      <div class="tag">pagination</div>
+      <h3>Pagination · 87 nodes</h3>
+      <div class="pag">
+        <div class="p">‹</div>
+        <div class="p on">1</div>
+        <div class="p">2</div>
+        <div class="p">3</div>
+        <div class="p">4</div>
+        <div class="p">…</div>
+        <div class="p">9</div>
+        <div class="p">›</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="demo" style="margin-top:16px">
+    <div class="tag">table</div>
+    <h3>Table · node list</h3>
+    <table class="tbl">
+      <colgroup><col style="width:42%"/><col style="width:18%"/><col style="width:18%"/><col style="width:10%"/><col style="width:12%"/></colgroup>
+      <thead><tr><th>node</th><th>type</th><th>updated</th><th>links</th><th></th></tr></thead>
+      <tbody>
+        <tr><td>Reverse Note-Taking</td><td><span class="tag-pill tag-processing">Concept</span></td><td>2 min</td><td>14</td><td><button class="btn btn-text" style="height:24px;padding:0 6px;font-size:12px">打开</button></td></tr>
+        <tr><td>S1 网课第二段 · 0:42</td><td><span class="tag-pill tag-success">Reading</span></td><td>1 h</td><td>6</td><td><button class="btn btn-text" style="height:24px;padding:0 6px;font-size:12px">打开</button></td></tr>
+        <tr><td>password 节点 · L2</td><td><span class="tag-pill tag-error">Conflict</span></td><td>3 h</td><td>2</td><td><button class="btn btn-text" style="height:24px;padding:0 6px;font-size:12px">打开</button></td></tr>
+        <tr><td>code/ingest.ts · draft</td><td><span class="tag-pill tag-warning">Modified</span></td><td>yest</td><td>9</td><td><button class="btn btn-text" style="height:24px;padding:0 6px;font-size:12px">打开</button></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="grid" style="margin-top:16px">
+    <div class="demo">
+      <div class="tag">dropdown.classNames</div>
+      <h3>Dropdown · popup overlay</h3>
+      <div class="dd">
+        <div class="row"><span>新建节点</span><span class="kbd">⌘N</span></div>
+        <div class="row hi"><span>打开织念图</span><span class="kbd">⌘G</span></div>
+        <div class="row"><span>全局搜索</span><span class="kbd">⌘K</span></div>
+        <div class="sep"></div>
+        <div class="row err">删除节点</div>
+      </div>
+    </div>
+
+    <div class="demo">
+      <div class="tag">select + datePicker + inputNumber</div>
+      <h3>Form · select · date · number</h3>
+      <div class="form-stack">
+        <select class="inp">
+          <option>Concept · 概念</option>
+          <option>Reading · 摘录</option>
+          <option>Thought · 想法</option>
+          <option>Code · 代码</option>
+        </select>
+        <input class="inp" placeholder="2026-07-13" />
+        <input class="inp" placeholder="12" type="number" />
+      </div>
+    </div>
+  </div>
+
+  <div class="flow">
+    <div class="h">glassTheme.ts · ConfigProvider mapping · 17 hooks</div>
+    <span class="k">app</span> · <span class="k">card</span>.classNames.root · <span class="k">modal</span>.classNames.container · <span class="k">button</span>.classNames.root · <span class="k">alert</span>.className · <span class="k">colorPicker</span>.classNames.root · <span class="k">dropdown</span>.classNames.root · <span class="k">select</span>.classNames.root + popup.root · <span class="k">datePicker</span>.classNames.root + popup.container · <span class="k">input</span>.classNames.root · <span class="k">inputNumber</span>.classNames.root · <span class="k">popover</span>.classNames.container · <span class="k">switch</span>.classNames.root · <span class="k">radio</span>.classNames.root · <span class="k">segmented</span>.className · <span class="k">progress</span>.classNames.track + styles.track + styles.rail
+  </div>
+
+  <div class="foot">
+    <div class="l">"One ConfigProvider · one defaultAlgorithm · zero custom tokens."</div>
+    <div class="r">Plate IV–V · Antd default dark<br>2026 · uses · glassTheme.ts</div>
+  </div>
+</section>
+
+</body>
+</html>

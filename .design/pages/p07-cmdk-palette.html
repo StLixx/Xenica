@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>命令面板 · 关闭态 · Xenica</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#000;color:var(--ant-color-text);font-family:var(--ant-font-family);-webkit-font-smoothing:antialiased;height:100vh;overflow:hidden}
+  .stage{position:fixed;inset:0;display:flex;align-items:flex-start;justify-content:center;padding-top:120px;background:rgba(0,0,0,.5);backdrop-filter:blur(8px)}
+  .panel{width:680px;background:var(--ant-color-bg-elevated);border:1px solid var(--ant-color-border);border-radius:14px;box-shadow:0 40px 100px -20px #000000c0,0 0 0 1px #14b8a610;overflow:hidden;animation:slideIn .18s ease-out}
+  @keyframes slideIn{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)}}
+  .search{padding:18px 22px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--ant-color-border);background:var(--ant-color-bg-container)}
+  .search .ico{font-size:18px;color:var(--ant-color-text-tertiary)}
+  .search input{flex:1;background:transparent;border:none;outline:none;color:var(--ant-color-text);font-size:18px;font-weight:400;font-family:inherit}
+  .search input::placeholder{color:var(--ant-color-text-tertiary)}
+  .kbd-hint{font-family:ui-monospace,monospace;font-size:11px;color:var(--ant-color-text-tertiary);background:var(--ant-color-fill-secondary);padding:3px 7px;border-radius:4px;border:1px solid var(--ant-color-border)}
+  .section{padding:14px 0 6px}
+  .section-title{padding:6px 22px;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace}
+  .item{display:flex;align-items:center;gap:14px;padding:10px 22px;font-size:14px;color:var(--ant-color-text-secondary);cursor:default;transition:background .12s}
+  .item:hover{background:var(--ant-color-fill-secondary);color:var(--ant-color-text)}
+  .item.on{background:var(--ant-color-primary-bg);color:var(--ant-color-primary-text)}
+  .item.on .ico{color:var(--ant-color-primary-text)}
+  .ico{width:24px;height:24px;border-radius:6px;background:var(--ant-color-fill-secondary);display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--ant-color-text-secondary);flex:none}
+  .item-info{flex:1;min-width:0}
+  .item-title{font-size:14px;font-weight:500}
+  .item-desc{font-size:12px;color:var(--ant-color-text-tertiary);margin-top:1px}
+  .item-kbd{font-family:ui-monospace,monospace;font-size:11px;color:var(--ant-color-text-tertiary)}
+  .item-kbd span{padding:2px 6px;background:var(--ant-color-fill-secondary);border-radius:3px;margin-left:4px}
+  .item-kbd span:first-child{margin-left:0}
+  .foot{padding:10px 22px;border-top:1px solid var(--ant-color-border);background:var(--ant-color-bg-container);display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace}
+  .foot .group{display:flex;gap:14px}
+  .foot kbd{padding:2px 6px;background:var(--ant-color-fill-secondary);border-radius:3px;color:var(--ant-color-text-secondary);font-family:inherit}
+</style></head><body>
+<div class="stage">
+  <div class="panel">
+    <div class="search">
+      <span class="ico">⌕</span>
+      <input placeholder="搜索命令、节点、设置..." autofocus/>
+      <span class="kbd-hint">ESC</span>
+    </div>
+    <div class="section">
+      <div class="section-title">最近使用</div>
+      <div class="item">
+        <div class="ico">◉</div>
+        <div class="item-info"><div class="item-title">新建节点画布</div><div class="item-desc">空白画布 · 自动布局</div></div>
+        <div class="item-kbd"><span>⌘</span><span>N</span></div>
+      </div>
+      <div class="item on">
+        <div class="ico">⌘</div>
+        <div class="item-info"><div class="item-title">全局搜索</div><div class="item-desc">跨工作区搜索节点、数据库、设置</div></div>
+        <div class="item-kbd"><span>⌘</span><span>K</span></div>
+      </div>
+      <div class="item">
+        <div class="ico">⊞</div>
+        <div class="item-info"><div class="item-title">切换主题</div><div class="item-desc">暗色 / 亮色 / 跟随系统</div></div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">节点操作</div>
+      <div class="item">
+        <div class="ico">+</div>
+        <div class="item-info"><div class="item-title">新建节点</div><div class="item-desc">在当前画布新建一个节点</div></div>
+        <div class="item-kbd"><span>⌘</span><span>↵</span></div>
+      </div>
+      <div class="item">
+        <div class="ico">↔</div>
+        <div class="item-info"><div class="item-title">建立连接</div><div class="item-desc">从选中节点连接到目标</div></div>
+        <div class="item-kbd"><span>⌘</span><span>L</span></div>
+      </div>
+      <div class="item">
+        <div class="ico">✥</div>
+        <div class="item-info"><div class="item-title">自动布局</div><div class="item-desc">按连接关系重排所有节点</div></div>
+        <div class="item-kbd"><span>⌘</span><span>⇧</span><span>L</span></div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">导航</div>
+      <div class="item">
+        <div class="ico">▦</div>
+        <div class="item-info"><div class="item-title">切换到阅读清单</div><div class="item-desc">工作区 · 17 项</div></div>
+      </div>
+      <div class="item">
+        <div class="ico">⌬</div>
+        <div class="item-info"><div class="item-title">切换到项目看板</div><div class="item-desc">工作区 · 9 项</div></div>
+      </div>
+    </div>
+    <div class="foot">
+      <div class="group"><span><kbd>↑</kbd><kbd>↓</kbd> 移动</span><span><kbd>↵</kbd> 选择</span></div>
+      <span>Xenica · 命令面板</span>
+    </div>
+  </div>
+</div>
+</body></html>

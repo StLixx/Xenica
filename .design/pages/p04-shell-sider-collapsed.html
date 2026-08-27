@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>主框架 · 左侧栏收起 · Xenica</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#000;color:var(--ant-color-text);font-family:var(--ant-font-family);-webkit-font-smoothing:antialiased;height:100vh;overflow:hidden}
+  .app{height:100vh;display:grid;grid-template-rows:36px 1fr 28px;grid-template-columns:60px 1fr}
+  .hd{grid-column:1/-1;background:var(--ant-color-bg-elevated);border-bottom:1px solid var(--ant-color-border);display:flex;align-items:center;padding:0 14px;gap:10px;font-size:12px}
+  .hd .brand{font-weight:700;letter-spacing:.14em}
+  .hd .brand .dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--ant-color-primary);box-shadow:0 0 6px var(--ant-color-primary);margin-right:6px;vertical-align:middle}
+  .hd .crumbs{color:var(--ant-color-text-secondary);margin-left:8px}
+  .hd .crumbs b{color:var(--ant-color-text);font-weight:500}
+  .hd .right{margin-left:auto;display:flex;align-items:center;gap:8px}
+  .sb{background:var(--ant-color-bg-base);border-right:1px solid var(--ant-color-border);display:flex;flex-direction:column;align-items:center;padding:12px 0;gap:6px}
+  .sb-i{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--ant-color-text-secondary);font-size:16px;cursor:default;position:relative}
+  .sb-i:hover{background:var(--ant-color-fill-secondary);color:var(--ant-color-text)}
+  .sb-i.on{background:var(--ant-color-primary-bg);color:var(--ant-color-primary-text)}
+  .sb-i.on::before{content:"";position:absolute;left:0;top:8px;bottom:8px;width:2px;background:var(--ant-color-primary);border-radius:2px}
+  .sb-i .dot{position:absolute;top:8px;right:8px;width:6px;height:6px;border-radius:50%;background:var(--ant-color-error)}
+  .mid{background:var(--ant-color-bg-layout);position:relative;overflow:hidden}
+  .canvas-bg{position:absolute;inset:0;background-image:var(--xe-bg-grid);background-size:40px 40px;opacity:.4}
+  .node{position:absolute;background:var(--ant-color-bg-elevated);border:1px solid var(--ant-color-border);border-radius:10px;padding:12px 16px;min-width:180px;font-size:13px;box-shadow:0 4px 16px #00000060}
+  .node h4{font-size:13px;font-weight:600;margin-bottom:4px}
+  .node p{font-size:11px;color:var(--ant-color-text-secondary)}
+  .expand-btn{position:absolute;left:14px;top:14px;background:var(--ant-color-bg-elevated);border:1px solid var(--ant-color-border);border-radius:6px;padding:6px 10px;font-size:12px;color:var(--ant-color-text-secondary);display:flex;align-items:center;gap:6px;cursor:default}
+  .ft{grid-column:1/-1;background:var(--ant-color-bg-elevated);border-top:1px solid var(--ant-color-border);display:flex;align-items:center;padding:0 14px;gap:10px;font-size:11px;color:var(--ant-color-text-secondary)}
+  .ft .right{margin-left:auto}
+</style></head><body>
+<div class="app">
+  <div class="hd">
+    <div class="brand"><span class="dot"></span>XENICA</div>
+    <div class="crumbs">· 工作区 · <b>节点画布</b></div>
+    <div class="right">
+      <span style="color:var(--ant-color-success)">● 已同步</span>
+      <span style="color:var(--ant-color-text-tertiary)">⌘K</span>
+      <div class="av" style="width:22px;height:22px;font-size:10px">XL</div>
+    </div>
+  </div>
+  <div class="sb">
+    <div class="sb-i" title="展开侧栏">»</div>
+    <div class="sb-i on">◉</div>
+    <div class="sb-i">▤</div>
+    <div class="sb-i">⌗</div>
+    <div class="sb-i">▦</div>
+    <div class="sb-i">⌬</div>
+    <div class="sb-i">✎</div>
+    <div style="flex:1"></div>
+    <div class="sb-i">⚙</div>
+    <div class="sb-i" style="position:relative">⚠<span class="dot"></span></div>
+  </div>
+  <div class="mid">
+    <div class="canvas-bg"></div>
+    <div class="expand-btn">»  展开侧栏</div>
+    <svg style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none">
+      <path d="M 280 240 Q 400 200 540 240" class="edge"/>
+      <path d="M 280 240 Q 220 360 260 480" class="edge"/>
+      <path d="M 540 240 Q 660 320 720 460" class="edge"/>
+    </svg>
+    <div class="node" style="left:200px;top:200px"><h4>晨间笔记</h4><p>2026-07-17 · 日记</p></div>
+    <div class="node" style="left:460px;top:200px"><h4>设计原则 v3</h4><p>已选中 · 文档</p></div>
+    <div class="node" style="left:640px;top:420px"><h4>Antd 6 适配</h4><p>已完成</p></div>
+  </div>
+  <div class="ft">
+    <span>8 节点</span><span>·</span><span>5 连接</span><span>·</span><span>85%</span>
+    <span class="right">布局 · 自动</span>
+  </div>
+</div>
+</body></html>

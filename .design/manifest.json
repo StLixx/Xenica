@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "project": "Xenica Atrium",
+  "library": "claude-design-system",
+  "mode": "dark",
+  "createdAt": "2026-07-13",
+  "pages": [
+    {
+      "id": "page-page-01-home",
+      "title": "Plate I · Cover",
+      "kind": "page",
+      "path": "pages/page-01-home.html",
+      "thumbnail": "pages/page-01-home.png",
+      "designSystem": "claude",
+      "tokens": { "surface": "#262624", "accent": "#D97757", "text": "#F1F1EF" },
+      "fonts": ["Newsreader", "Poppins", "Lora", "Geist Mono"],
+      "notes": "Dark-first cover plate for Xenica · 织念."
+    },
+    {
+      "id": "page-heptabook-with-sidebar",
+      "title": "Heptabook · Ref · 侧栏展开",
+      "kind": "page",
+      "path": "pages/heptabook-with-sidebar.html",
+      "designSystem": "heptabook-ref",
+      "tokens": { "surface": "#1f1f1d", "accent": "#e08d6f", "text": "#f1f1ef" },
+      "fonts": ["Inter", "Poppins"],
+      "notes": "Heptabase 'Getting Started' 视图，左侧栏展开版。'Hide sidebar' → page-heptabook-without-sidebar。"
+    },
+    {
+      "id": "page-heptabook-without-sidebar",
+      "title": "Heptabook · Ref · 侧栏收起",
+      "kind": "page",
+      "path": "pages/heptabook-without-sidebar.html",
+      "designSystem": "heptabook-ref",
+      "tokens": { "surface": "#1f1f1d", "accent": "#e08d6f", "text": "#f1f1ef" },
+      "fonts": ["Inter", "Poppins"],
+      "notes": "Heptabase 'Getting Started' 视图，侧栏收起版。Rail 左侧 Show sidebar 三角 → page-heptabook-with-sidebar。"
+    }
+  ],
+  "wiring": [
+    { "sourcePageId": "page-heptabook-with-sidebar", "selector": "[data-dom-id='hide-sidebar']", "targetPageId": "page-heptabook-without-sidebar" },
+    { "sourcePageId": "page-heptabook-without-sidebar", "selector": "[data-dom-id='show-sidebar']", "targetPageId": "page-heptabook-with-sidebar" }
+  ]
+}

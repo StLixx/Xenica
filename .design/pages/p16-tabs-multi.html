@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>多 Tab · 顶部标签栏 · Xenica</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#000;color:var(--ant-color-text);font-family:var(--ant-font-family);-webkit-font-smoothing:antialiased;height:100vh;overflow:hidden}
+  .app{height:100vh;display:grid;grid-template-rows:36px 40px 1fr 28px;grid-template-columns:1fr}
+  .hd{background:var(--ant-color-bg-elevated);border-bottom:1px solid var(--ant-color-border);padding:0 16px;display:flex;align-items:center;gap:12px;font-size:12px}
+  .hd .brand{font-weight:700;letter-spacing:.14em}
+  .hd .brand .dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--ant-color-primary);box-shadow:0 0 6px var(--ant-color-primary);margin-right:8px;vertical-align:middle}
+  .hd .right{margin-left:auto;display:flex;align-items:center;gap:10px;font-size:11px;color:var(--ant-color-text-tertiary)}
+  .tabs{background:var(--ant-color-bg-base);border-bottom:1px solid var(--ant-color-border);padding:0 12px;display:flex;align-items:flex-end;gap:0;overflow-x:auto}
+  .tab{display:flex;align-items:center;gap:10px;padding:10px 16px 10px 14px;font-size:13px;color:var(--ant-color-text-secondary);border-bottom:2px solid transparent;cursor:default;position:relative;white-space:nowrap}
+  .tab:hover{background:var(--ant-color-fill-secondary);color:var(--ant-color-text)}
+  .tab.on{color:var(--ant-color-primary-text);border-bottom-color:var(--ant-color-primary);background:var(--ant-color-bg-container)}
+  .tab .ico{font-size:12px;color:var(--ant-color-text-tertiary)}
+  .tab.on .ico{color:var(--ant-color-primary-text)}
+  .tab .name{font-weight:500}
+  .tab .unsaved{width:6px;height:6px;border-radius:50%;background:var(--ant-color-primary);box-shadow:0 0 6px var(--ant-color-primary)}
+  .tab .close{width:16px;height:16px;display:flex;align-items:center;justify-content:center;border-radius:4px;color:var(--ant-color-text-tertiary);font-size:14px;line-height:1}
+  .tab .close:hover{background:var(--ant-color-fill-tertiary);color:var(--ant-color-text)}
+  .tab:hover .close{opacity:1}
+  .tab .close{opacity:.5}
+  .tab.on .close{opacity:.8}
+  .new-tab{padding:8px 14px;color:var(--ant-color-text-tertiary);font-size:16px;cursor:default;border-bottom:2px solid transparent}
+  .new-tab:hover{color:var(--ant-color-text)}
+  .more-tab{padding:10px 12px;color:var(--ant-color-text-tertiary);font-size:12px;cursor:default}
+  .mid{background:var(--ant-color-bg-layout);position:relative;overflow:hidden}
+  .canvas-bg{position:absolute;inset:0;background-image:var(--xe-bg-grid);background-size:40px 40px;opacity:.4}
+  .meta-strip{position:absolute;top:14px;left:14px;display:flex;gap:6px;font-size:10px;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace;letter-spacing:.06em}
+  .meta-strip span{padding:4px 8px;background:var(--ant-color-bg-container);border:1px solid var(--ant-color-border);border-radius:5px}
+  .meta-strip span.on{background:var(--ant-color-primary-bg);color:var(--ant-color-primary-text);border-color:var(--ant-color-primary-border)}
+  .content-pane{position:absolute;inset:0;padding:80px 60px 40px;display:flex;flex-direction:column}
+  .content-pane h2{font-size:32px;font-weight:600;letter-spacing:-.01em;margin-bottom:8px}
+  .content-pane .meta{font-size:12px;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace;margin-bottom:24px}
+  .content-pane .body{font-size:14px;line-height:1.75;color:var(--ant-color-text-secondary);max-width:760px}
+  .content-pane .body p{margin-bottom:14px}
+  .ft{background:var(--ant-color-bg-elevated);border-top:1px solid var(--ant-color-border);padding:0 16px;display:flex;align-items:center;font-size:11px;color:var(--ant-color-text-secondary)}
+  .ft .right{margin-left:auto}
+  .ft .unsaved{color:var(--ant-color-primary-text)}
+</style></head><body>
+<div class="app">
+  <div class="hd">
+    <div class="brand"><span class="dot"></span>XENICA</div>
+    <div style="color:var(--ant-color-text-tertiary)">· 工作区</div>
+    <div class="right"><span style="color:var(--ant-color-warning)">● 2 个未保存</span><span>⌘K</span><div class="av" style="width:22px;height:22px;font-size:10px">XL</div></div>
+  </div>
+  <div class="tabs">
+    <div class="tab"><span class="ico">▦</span><span class="name">阅读清单</span><span class="close">×</span></div>
+    <div class="tab on"><span class="ico">▤</span><span class="name">Antd 6 调研笔记</span><span class="unsaved"></span><span class="close">×</span></div>
+    <div class="tab"><span class="ico">▤</span><span class="name">节点布局策略 v2</span><span class="unsaved"></span><span class="close">×</span></div>
+    <div class="tab"><span class="ico">▦</span><span class="name">设计原则 ADR-003</span><span class="close">×</span></div>
+    <div class="tab"><span class="ico">▦</span><span class="name">本周回顾 · 自动布局</span><span class="close">×</span></div>
+    <div class="more-tab">▸</div>
+    <div class="new-tab">+</div>
+  </div>
+  <div class="mid">
+    <div class="canvas-bg"></div>
+    <div class="meta-strip"><span class="on">Antd 6 调研笔记</span><span>已保存 4 分钟前</span><span>↻ 同步中</span></div>
+    <div class="content-pane">
+      <h2>Antd 6 调研笔记</h2>
+      <div class="meta">工作区 · 研究项目 · 修改于 5 分钟前</div>
+      <div class="body">
+        <p>Antd 6 的 <b style="color:var(--ant-color-text)">darkAlgorithm</b> 在保留品牌色的同时提供了细腻的色阶过渡，token 注入机制支持自定义 brand color 而不破坏整体观感。</p>
+        <p>相比 Antd 5，darkAlgorithm 在 hover/active 状态提供更清晰的对比度，但默认的"灰阶玻璃感"较为含蓄，需要通过 token.brandColor 强化品牌表达。</p>
+        <p>结论：作为 v5.0.0 范围的基础设计系统是合适的。后续是否扩展更多定制 token 取决于产品是否需要更强的视觉差异化。</p>
+      </div>
+    </div>
+  </div>
+  <div class="ft">
+    <span class="unsaved">● 未保存</span>
+    <span>·</span>
+    <span>Antd 6 调研笔记</span>
+    <span class="right">⌘S 保存 · ⌘W 关闭</span>
+  </div>
+</div>
+</body></html>

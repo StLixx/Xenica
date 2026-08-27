@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>画布 · 右键菜单 · Xenica</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#000;color:var(--ant-color-text);font-family:var(--ant-font-family);-webkit-font-smoothing:antialiased;height:100vh;overflow:hidden}
+  .app{height:100vh;display:grid;grid-template-rows:36px 1fr 28px}
+  .hd{background:var(--ant-color-bg-elevated);border-bottom:1px solid var(--ant-color-border);padding:0 16px;display:flex;align-items:center;gap:12px;font-size:12px}
+  .hd .brand{font-weight:700;letter-spacing:.14em}
+  .hd .brand .dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--ant-color-primary);box-shadow:0 0 6px var(--ant-color-primary);margin-right:8px;vertical-align:middle}
+  .hd .right{margin-left:auto;display:flex;align-items:center;gap:10px;font-size:11px;color:var(--ant-color-text-tertiary)}
+  .mid{background:var(--ant-color-bg-layout);position:relative;overflow:hidden}
+  .canvas-bg{position:absolute;inset:0;background-image:var(--xe-bg-grid);background-size:40px 40px;opacity:.4}
+  .node{position:absolute;background:var(--ant-color-bg-elevated);border:1px solid var(--ant-color-border);border-radius:10px;padding:12px 16px;min-width:160px;font-size:13px;box-shadow:0 4px 12px #00000060}
+  .node h4{font-size:13px;font-weight:600;margin-bottom:4px}
+  .node .meta{font-size:10px;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace}
+  .ctx{position:absolute;left:520px;top:280px;width:240px;background:var(--ant-color-bg-elevated);border:1px solid var(--ant-color-border);border-radius:10px;box-shadow:0 20px 60px -10px #000000c0;padding:6px;z-index:50}
+  .ctx-group{padding:4px 0}
+  .ctx-label{padding:6px 12px 4px;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace}
+  .ctx-item{display:flex;align-items:center;gap:10px;padding:7px 12px;font-size:13px;color:var(--ant-color-text-secondary);border-radius:6px;cursor:default}
+  .ctx-item:hover{background:var(--ant-color-fill-secondary);color:var(--ant-color-text)}
+  .ctx-item.danger{color:var(--ant-color-error)}
+  .ctx-item.danger:hover{background:#dc444620}
+  .ctx-item .ico{width:16px;font-size:12px;color:var(--ant-color-text-tertiary);display:flex;align-items:center;justify-content:center}
+  .ctx-item .kbd{margin-left:auto;font-family:ui-monospace,monospace;font-size:10px;color:var(--ant-color-text-tertiary)}
+  .ctx-item .arrow{margin-left:auto;color:var(--ant-color-text-tertiary);font-size:10px}
+  .ctx-div{height:1px;background:var(--ant-color-border);margin:4px 0}
+  .ft{background:var(--ant-color-bg-elevated);border-top:1px solid var(--ant-color-border);padding:0 16px;display:flex;align-items:center;font-size:11px;color:var(--ant-color-text-secondary)}
+  .ft .right{margin-left:auto}
+  .hud{position:absolute;top:14px;left:50%;transform:translateX(-50%);background:var(--ant-color-bg-elevated);border:1px solid var(--ant-color-border);border-radius:999px;padding:6px 14px;font-size:11px;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace;box-shadow:0 8px 24px #00000060}
+</style></head><body>
+<div class="app">
+  <div class="hd">
+    <div class="brand"><span class="dot"></span>XENICA</div>
+    <div class="crumbs">· 工作区 · <b>节点画布</b> · 右键</div>
+    <div class="right"><span>右键菜单</span><span>ESC 关闭</span><div class="av" style="width:22px;height:22px;font-size:10px">XL</div></div>
+  </div>
+  <div class="mid">
+    <div class="canvas-bg"></div>
+    <svg style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none">
+      <path d="M 240 220 Q 320 180 400 220" class="edge"/>
+      <path d="M 400 220 Q 480 260 540 360" class="edge"/>
+    </svg>
+    <div class="node" style="left:160px;top:180px"><h4>晨间笔记</h4><div class="meta">日记</div></div>
+    <div class="node" style="left:320px;top:180px"><h4>Antd 6 调研笔记</h4><div class="meta">文档</div></div>
+    <div class="node" style="left:460px;top:320px"><h4>节点布局策略 v2</h4><div class="meta">ADR</div></div>
+    <div class="ctx">
+      <div class="ctx-label">节点操作</div>
+      <div class="ctx-item"><span class="ico">✎</span>编辑<span class="kbd">↵</span></div>
+      <div class="ctx-item"><span class="ico">⧉</span>复制<span class="kbd">⌘C</span></div>
+      <div class="ctx-item"><span class="ico">⧉</span>复制引用<span class="kbd">⌘⇧C</span></div>
+      <div class="ctx-item"><span class="ico">⤓</span>粘贴为子节点<span class="kbd">⌘V</span></div>
+      <div class="ctx-div"></div>
+      <div class="ctx-label">新建</div>
+      <div class="ctx-item"><span class="ico">+</span>新建子节点<span class="kbd">⌘N</span></div>
+      <div class="ctx-item"><span class="ico">↔</span>新建并连接<span class="kbd">⌘L</span></div>
+      <div class="ctx-item"><span class="ico">▦</span>新建数据库<span class="arrow">▸</span></div>
+      <div class="ctx-div"></div>
+      <div class="ctx-label">布局</div>
+      <div class="ctx-item"><span class="ico">✥</span>自动布局<span class="kbd">⌘⇧L</span></div>
+      <div class="ctx-item"><span class="ico">⌖</span>居中此节点<span class="kbd">⌘F</span></div>
+      <div class="ctx-item"><span class="ico">⊟</span>折叠子节点</div>
+      <div class="ctx-div"></div>
+      <div class="ctx-item"><span class="ico">⊕</span>添加到收藏<span class="kbd">⌘D</span></div>
+      <div class="ctx-item"><span class="ico">⊟</span>导出为 Markdown<span class="arrow">▸</span></div>
+      <div class="ctx-item"><span class="ico">⇅</span>移动到分组…<span class="arrow">▸</span></div>
+      <div class="ctx-div"></div>
+      <div class="ctx-item danger"><span class="ico">⊘</span>删除节点<span class="kbd">⌫</span></div>
+    </div>
+    <div class="hud">右键位置 (740, 380) · 节点：节点布局策略 v2</div>
+  </div>
+  <div class="ft"><span>右键菜单 · 12 个操作</span><span class="right">ESC 关闭 · ↑↓ 浏览 · ↵ 确认</span></div>
+</div>
+</body></html>

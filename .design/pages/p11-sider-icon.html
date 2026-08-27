@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>侧栏 · 图标态（默认折叠）· Xenica</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#000;color:var(--ant-color-text);font-family:var(--ant-font-family);-webkit-font-smoothing:antialiased;height:100vh;overflow:hidden}
+  .app{height:100vh;display:grid;grid-template-columns:64px 1fr;grid-template-rows:36px 1fr 28px}
+  .hd{grid-column:1/-1;background:var(--ant-color-bg-elevated);border-bottom:1px solid var(--ant-color-border);padding:0 16px;display:flex;align-items:center;gap:12px;font-size:12px}
+  .hd .brand{font-weight:700;letter-spacing:.14em}
+  .hd .brand .dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--ant-color-primary);box-shadow:0 0 6px var(--ant-color-primary);margin-right:8px;vertical-align:middle}
+  .hd .right{margin-left:auto;display:flex;align-items:center;gap:10px;font-size:11px;color:var(--ant-color-text-tertiary)}
+  .sb{background:var(--ant-color-bg-base);border-right:1px solid var(--ant-color-border);padding:8px 0;display:flex;flex-direction:column;align-items:center;gap:2px}
+  .sb-i{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--ant-color-text-tertiary);font-size:18px;cursor:default;position:relative;transition:all .15s}
+  .sb-i:hover{background:var(--ant-color-fill-secondary);color:var(--ant-color-text)}
+  .sb-i.on{background:var(--ant-color-primary-bg);color:var(--ant-color-primary-text)}
+  .sb-i.on::before{content:"";position:absolute;left:-4px;top:10px;bottom:10px;width:3px;background:var(--ant-color-primary);border-radius:2px}
+  .sb-i .badge{position:absolute;top:6px;right:6px;min-width:16px;height:16px;border-radius:8px;background:var(--ant-color-error);color:#fff;font-size:9px;font-weight:600;display:flex;align-items:center;justify-content:center;padding:0 4px}
+  .sb-i .tip{position:absolute;left:54px;background:var(--ant-color-bg-elevated);color:var(--ant-color-text);padding:6px 10px;border-radius:6px;font-size:12px;white-space:nowrap;opacity:0;pointer-events:none;border:1px solid var(--ant-color-border);box-shadow:0 4px 16px #00000080;transition:opacity .15s;z-index:10;font-family:var(--ant-font-family)}
+  .sb-i:hover .tip{opacity:1}
+  .sb-i:hover .tip::before{content:"";position:absolute;left:-4px;top:50%;transform:translateY(-50%) rotate(45deg);width:8px;height:8px;background:var(--ant-color-bg-elevated);border-left:1px solid var(--ant-color-border);border-bottom:1px solid var(--ant-color-border)}
+  .div{height:1px;background:var(--ant-color-border);width:24px;margin:6px 0}
+  .mid{background:var(--ant-color-bg-layout);position:relative;overflow:hidden}
+  .canvas-bg{position:absolute;inset:0;background-image:var(--xe-bg-grid);background-size:40px 40px;opacity:.4}
+  .placeholder{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--ant-color-text-tertiary);gap:14px}
+  .placeholder .glyph{font-size:64px;opacity:.15}
+  .ft{grid-column:1/-1;background:var(--ant-color-bg-elevated);border-top:1px solid var(--ant-color-border);padding:0 16px;display:flex;align-items:center;font-size:11px;color:var(--ant-color-text-secondary);gap:10px}
+  .ft .right{margin-left:auto}
+</style></head><body>
+<div class="app">
+  <div class="hd">
+    <div class="brand"><span class="dot"></span>XENICA</div>
+    <div style="color:var(--ant-color-text-tertiary)">· 工作区</div>
+    <div class="right"><span>⌘K</span><div class="av" style="width:22px;height:22px;font-size:10px">XL</div></div>
+  </div>
+  <div class="sb">
+    <div class="sb-i" style="font-size:11px;color:var(--ant-color-text-quaternary)">«</div>
+    <div class="sb-i on">◉<span class="tip">节点画布 · 128</span></div>
+    <div class="sb-i">▤<span class="tip">每日日记 · 31</span></div>
+    <div class="sb-i">⌗<span class="tip">研究项目 · 17</span></div>
+    <div class="sb-i">▦<span class="tip">阅读清单 · 17</span></div>
+    <div class="sb-i">⌬<span class="tip">项目看板 · 9</span></div>
+    <div class="sb-i">✎<span class="tip">草稿 · 2</span></div>
+    <div class="sb-i">⊟<span class="tip">归档 · 12</span></div>
+    <div style="flex:1"></div>
+    <div class="div"></div>
+    <div class="sb-i">⚙<span class="tip">设置</span></div>
+    <div class="sb-i">?<span class="tip">帮助</span></div>
+    <div class="sb-i">⚠<span class="badge">3</span><span class="tip">通知 · 3 未读</span></div>
+  </div>
+  <div class="mid">
+    <div class="canvas-bg"></div>
+    <div class="placeholder"><div class="glyph">◉</div><div style="font-size:13px">点击左侧图标展开对应工作区</div><div style="font-size:11px;color:var(--ant-color-text-quaternary);font-family:ui-monospace,monospace">hover 显示 tooltip · 点击切换</div></div>
+  </div>
+  <div class="ft">
+    <span>侧栏 · 图标态</span><span class="right">⌘\\ 切换展开</span>
+  </div>
+</div>
+</body></html>

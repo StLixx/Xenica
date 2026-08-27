@@ -1,0 +1,12 @@
+{
+  "id": "page-01-home",
+  "type": "page",
+  "title": "Plate I · Cover",
+  "html": "pages/page-01-home.html",
+  "png": "pages/page-01-home.png",
+  "width": 1600,
+  "height": 2080,
+  "designSystem": "claude",
+  "mode": "dark",
+  "tags": ["cover", "tokens", "type", "elevations", "controls"]
+}

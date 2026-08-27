@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>画布 · 节点内联编辑态 · Xenica</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#000;color:var(--ant-color-text);font-family:var(--ant-font-family);-webkit-font-smoothing:antialiased;height:100vh;overflow:hidden}
+  .app{height:100vh;display:grid;grid-template-rows:36px 1fr 28px}
+  .hd{background:var(--ant-color-bg-elevated);border-bottom:1px solid var(--ant-color-border);padding:0 16px;display:flex;align-items:center;gap:12px;font-size:12px}
+  .hd .brand{font-weight:700;letter-spacing:.14em}
+  .hd .brand .dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--ant-color-primary);box-shadow:0 0 6px var(--ant-color-primary);margin-right:8px;vertical-align:middle}
+  .hd .right{margin-left:auto;display:flex;align-items:center;gap:10px;font-size:11px;color:var(--ant-color-text-tertiary)}
+  .mid{background:var(--ant-color-bg-layout);position:relative;overflow:hidden}
+  .canvas-bg{position:absolute;inset:0;background-image:var(--xe-bg-grid);background-size:40px 40px;opacity:.4}
+  .node{position:absolute;background:var(--ant-color-bg-elevated);border:1px solid var(--ant-color-border);border-radius:10px;font-size:13px;box-shadow:0 4px 12px #00000060;min-width:200px;max-width:340px}
+  .node h4{font-size:13px;font-weight:600;margin-bottom:6px;padding:12px 16px 0}
+  .node p{font-size:12px;color:var(--ant-color-text-secondary);line-height:1.5;margin-bottom:6px;padding:0 16px}
+  .node .meta{font-size:10px;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace;padding:8px 16px;border-top:1px solid var(--ant-color-border-secondary);margin-top:10px}
+  .node.editing{border-color:var(--ant-color-primary);box-shadow:0 0 0 2px var(--ant-color-primary-bg),0 12px 30px #00000080;width:380px;z-index:10}
+  .node.editing .editor{padding:0 16px 14px}
+  .editor-input{font-size:14px;line-height:1.6;color:var(--ant-color-text);background:transparent;border:none;outline:none;width:100%;min-height:60px;resize:none;font-family:inherit;margin-bottom:8px}
+  .editor-toolbar{display:flex;align-items:center;gap:4px;padding:6px;background:var(--ant-color-bg-container);border:1px solid var(--ant-color-border);border-radius:8px;margin-bottom:8px}
+  .tool-btn{width:26px;height:26px;border-radius:5px;display:flex;align-items:center;justify-content:center;color:var(--ant-color-text-tertiary);font-size:12px;font-weight:600}
+  .tool-btn:hover{background:var(--ant-color-fill-secondary);color:var(--ant-color-text)}
+  .tool-btn.on{background:var(--ant-color-primary-bg);color:var(--ant-color-primary-text)}
+  .tool-sep{width:1px;height:16px;background:var(--ant-color-border);margin:0 2px}
+  .editor-foot{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace;padding-top:8px;border-top:1px solid var(--ant-color-border-secondary)}
+  .editor-foot .right{display:flex;gap:6px}
+  .editor-foot .kbd{padding:1px 5px;background:var(--ant-color-fill-secondary);border-radius:3px;font-size:10px;color:var(--ant-color-text-secondary)}
+  .node .editing-hint{position:absolute;left:50%;bottom:-32px;transform:translateX(-50%);font-size:11px;color:var(--ant-color-primary-text);background:var(--ant-color-primary-bg);border:1px solid var(--ant-color-primary-border);border-radius:999px;padding:5px 12px;white-space:nowrap;display:flex;align-items:center;gap:8px}
+  .inline-actions{position:absolute;left:50%;top:-44px;transform:translateX(-50%);display:flex;gap:4px;background:var(--ant-color-bg-elevated);border:1px solid var(--ant-color-border);border-radius:999px;padding:5px 8px;box-shadow:0 8px 20px #00000060}
+  .ia-btn{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--ant-color-text-secondary);font-size:12px}
+  .ia-btn:hover{background:var(--ant-color-fill-secondary);color:var(--ant-color-text)}
+  .ia-btn.primary{background:var(--ant-color-primary);color:#fff}
+  .ft{background:var(--ant-color-bg-elevated);border-top:1px solid var(--ant-color-border);padding:0 16px;display:flex;align-items:center;font-size:11px;color:var(--ant-color-text-secondary)}
+  .ft .right{margin-left:auto}
+  .ft .on{color:var(--ant-color-primary-text);font-weight:500}
+</style></head><body>
+<div class="app">
+  <div class="hd">
+    <div class="brand"><span class="dot"></span>XENICA</div>
+    <div class="crumbs">· 工作区 · <b>节点画布</b> · 编辑中</div>
+    <div class="right"><span class="on">✎ 编辑中 · Antd 6 调研笔记</span><span>⌘S 保存</span><div class="av" style="width:22px;height:22px;font-size:10px">XL</div></div>
+  </div>
+  <div class="mid">
+    <div class="canvas-bg"></div>
+    <svg style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none">
+      <path d="M 240 220 Q 320 180 400 220" class="edge"/>
+      <path d="M 400 220 Q 480 260 540 360" class="edge"/>
+    </svg>
+    <div class="node" style="left:160px;top:180px">
+      <h4>本周目标</h4>
+      <p>完成 v5.0.0 设计稿与 ADR 序列…</p>
+      <div class="meta">任务 · 修改于 5 分钟前</div>
+    </div>
+    <div class="node editing" style="left:320px;top:180px">
+      <h4>Antd 6 调研笔记</h4>
+      <div class="editor">
+        <div class="editor-toolbar">
+          <span class="tool-btn on">B</span>
+          <span class="tool-btn" style="font-style:italic">I</span>
+          <span class="tool-btn" style="text-decoration:underline">U</span>
+          <span class="tool-sep"></span>
+          <span class="tool-btn">H1</span>
+          <span class="tool-btn">H2</span>
+          <span class="tool-btn">"</span>
+          <span class="tool-sep"></span>
+          <span class="tool-btn">&lt;/&gt;</span>
+          <span class="tool-btn">⌬</span>
+          <span class="tool-btn">⤓</span>
+          <span class="tool-sep"></span>
+          <span class="tool-btn">⊕</span>
+          <span class="tool-btn">@</span>
+        </div>
+        <textarea class="editor-input">Antd 6 的 darkAlgorithm 在保留品牌色的同时提供了细腻的色阶过渡。token 注入机制支持自定义 brand color 而不破坏整体观感——这是与 Antd 5 相比最关键的变化。</textarea>
+        <div class="editor-foot">
+          <span>128 字 · ≈ 1 分钟阅读</span>
+          <div class="right">
+            <span class="kbd">⌘B</span><span class="kbd">⌘I</span><span class="kbd">/</span><span class="kbd">⌘↵</span>
+          </div>
+        </div>
+      </div>
+      <div class="meta">文档 · 修改于 现在 · ↻ 自动保存</div>
+      <div class="editing-hint"><span style="color:var(--ant-color-warning)">●</span>正在编辑 · ESC 退出 · ⌘S 保存</div>
+    </div>
+    <div class="inline-actions">
+      <div class="ia-btn">+</div>
+      <div class="ia-btn">↔</div>
+      <div class="ia-btn primary">⌘</div>
+      <div class="ia-btn">⊕</div>
+      <div class="ia-btn">⊟</div>
+    </div>
+    <div class="node" style="left:460px;top:340px">
+      <h4>节点布局策略 v2</h4>
+      <p>从本页导出 → 引用为「演化」关系</p>
+      <div class="meta">文档 · ADR</div>
+    </div>
+  </div>
+  <div class="ft"><span class="on">✎ 编辑中</span><span>·</span><span>Antd 6 调研笔记 · 128 字 · 已自动保存</span><span class="right">ESC 退出 · ⌘S 强制保存 · ⌘↵ 换段</span></div>
+</div>
+</body></html>

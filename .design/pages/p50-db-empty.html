@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>数据库 · 空状态 · Xenica</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#000;color:var(--ant-color-text);font-family:var(--ant-font-family);-webkit-font-smoothing:antialiased;min-height:100vh}
+  .stage{padding:40px;background:radial-gradient(circle at 50% 0%,#14b8a608 0%,transparent 60%);min-height:100vh}
+  .db-shell{background:var(--ant-color-bg-container);border:1px solid var(--ant-color-border);border-radius:14px;overflow:hidden;box-shadow:0 30px 80px -30px #00000080;min-height:760px;display:flex;flex-direction:column}
+  .db-head{padding:18px 24px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--ant-color-border);background:var(--ant-color-bg-elevated)}
+  .db-head .left{display:flex;align-items:center;gap:14px}
+  .db-head .ico{width:40px;height:40px;border-radius:10px;background:#14b8a620;color:var(--ant-color-primary-text);display:flex;align-items:center;justify-content:center;font-size:18px}
+  .db-head h2{font-size:18px;font-weight:600}
+  .db-head .meta{font-size:11px;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace;margin-top:2px}
+  .view-tabs{display:flex;gap:0;border-bottom:1px solid var(--ant-color-border);background:var(--ant-color-bg-base);padding:0 16px}
+  .vt{padding:11px 14px;font-size:12px;color:var(--ant-color-text-secondary);border-bottom:2px solid transparent;cursor:default;display:flex;align-items:center;gap:6px}
+  .vt.on{color:var(--ant-color-primary-text);border-bottom-color:var(--ant-color-primary)}
+  .empty{flex:1;display:flex;align-items:center;justify-content:center;background:var(--ant-color-bg-base);padding:60px 24px}
+  .empty-card{text-align:center;max-width:560px;position:relative}
+  .empty-art{width:200px;height:140px;margin:0 auto 32px;position:relative}
+  .empty-art .frame{position:absolute;inset:0;border:1px solid var(--ant-color-border);border-radius:12px;background:var(--ant-color-bg-container)}
+  .empty-art .frame.empty{top:20px;left:20px;right:20px;bottom:20px;background:#14b8a608;border:1px dashed var(--ant-color-primary-border);display:flex;align-items:center;justify-content:center}
+  .empty-art .plus{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:32px;height:32px;border-radius:50%;background:var(--ant-color-primary);color:#fff;font-size:20px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 20px var(--ant-color-primary);animation:bob 2.4s ease-in-out infinite}
+  @keyframes bob{0%,100%{transform:translate(-50%,-50%) scale(1)}50%{transform:translate(-50%,-50%) scale(1.08)}}
+  .empty-art .dot{position:absolute;width:6px;height:6px;border-radius:50%;background:var(--ant-color-primary);box-shadow:0 0 8px var(--ant-color-primary)}
+  .empty-art .dot.a{top:50%;left:30%;animation:float 3s ease-in-out infinite}
+  .empty-art .dot.b{top:80%;right:25%;animation:float 3s ease-in-out 1s infinite}
+  .empty-art .dot.c{bottom:30%;left:35%;animation:float 3s ease-in-out 0.5s infinite}
+  @keyframes float{0%,100%{transform:translateY(0);opacity:.5}50%{transform:translateY(-12px);opacity:1}}
+  .empty-card h2{font-size:28px;font-weight:600;letter-spacing:-.01em;margin-bottom:12px;color:var(--ant-color-text)}
+  .empty-card p{font-size:14px;color:var(--ant-color-text-secondary);line-height:1.7;margin-bottom:28px;max-width:420px;margin-left:auto;margin-right:auto}
+  .empty-card .ctas{display:flex;gap:8px;justify-content:center;margin-bottom:36px}
+  .empty-card .templates{padding-top:28px;border-top:1px solid var(--ant-color-border)}
+  .empty-card .templates h4{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace;font-weight:600;margin-bottom:14px}
+  .templates-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+  .tpl{display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--ant-color-bg-container);border:1px solid var(--ant-color-border);border-radius:8px;font-size:12px;color:var(--ant-color-text-secondary);cursor:default;transition:all .15s}
+  .tpl:hover{background:var(--ant-color-bg-elevated);border-color:var(--ant-color-primary-border);color:var(--ant-color-text)}
+  .tpl .ico{width:24px;height:24px;border-radius:5px;background:var(--ant-color-fill-secondary);color:var(--ant-color-primary-text);display:flex;align-items:center;justify-content:center;font-size:12px}
+</style></head><body>
+<div class="stage">
+  <div class="db-shell">
+    <div class="db-head">
+      <div class="left">
+        <div class="ico">▦</div>
+        <div><h2>新工作区</h2><div class="meta">新建数据库 · 0 项</div></div>
+      </div>
+      <div class="right" style="display:flex;gap:6px"><button class="btn btn-default btn-sm">⊞ 配置</button><button class="btn btn-primary btn-sm">+ 新建</button></div>
+    </div>
+    <div class="view-tabs">
+      <div class="vt on">▦ 表格</div>
+      <div class="vt">▤ 看板</div>
+      <div class="vt">▤ 日历</div>
+      <div class="vt">▦ 画廊</div>
+      <div class="vt">▬ 时间线</div>
+    </div>
+    <div class="empty">
+      <div class="empty-card">
+        <div class="empty-art">
+          <div class="frame"></div>
+          <div class="frame empty"></div>
+          <div class="plus">+</div>
+          <div class="dot a"></div>
+          <div class="dot b"></div>
+          <div class="dot c"></div>
+        </div>
+        <h2>从空白开始</h2>
+        <p>添加第一行数据，或从模板开始。每个数据库可自定义字段、视图与过滤规则。</p>
+        <div class="ctas">
+          <button class="btn btn-primary btn-lg">+ 新建一行</button>
+          <button class="btn btn-default btn-lg">⌘ 从模板开始</button>
+        </div>
+        <div class="templates">
+          <h4>— 推荐模板 —</h4>
+          <div class="templates-row">
+            <div class="tpl"><span class="ico">▤</span>任务管理</div>
+            <div class="tpl"><span class="ico">▦</span>阅读清单</div>
+            <div class="tpl"><span class="ico">▬</span>OKR 跟踪</div>
+            <div class="tpl"><span class="ico">▤</span>项目看板</div>
+            <div class="tpl"><span class="ico">⌬</span>会议纪要</div>
+            <div class="tpl"><span class="ico">▦</span>联系人 CRM</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body></html>

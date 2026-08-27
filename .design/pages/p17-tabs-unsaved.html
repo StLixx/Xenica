@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>多 Tab · 未保存提示态 · Xenica</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#000;color:var(--ant-color-text);font-family:var(--ant-font-family);-webkit-font-smoothing:antialiased;height:100vh;overflow:hidden}
+  .app{height:100vh;display:grid;grid-template-rows:36px 40px 1fr 28px}
+  .hd{background:var(--ant-color-bg-elevated);border-bottom:1px solid var(--ant-color-border);padding:0 16px;display:flex;align-items:center;gap:12px;font-size:12px}
+  .hd .brand{font-weight:700;letter-spacing:.14em}
+  .hd .brand .dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--ant-color-primary);box-shadow:0 0 6px var(--ant-color-primary);margin-right:8px;vertical-align:middle}
+  .hd .right{margin-left:auto;display:flex;align-items:center;gap:10px;font-size:11px;color:var(--ant-color-text-tertiary)}
+  .tabs{background:var(--ant-color-bg-base);border-bottom:1px solid var(--ant-color-border);padding:0 12px;display:flex;align-items:flex-end;overflow-x:auto}
+  .tab{display:flex;align-items:center;gap:10px;padding:10px 16px 10px 14px;font-size:13px;color:var(--ant-color-text-secondary);border-bottom:2px solid transparent;cursor:default;position:relative;white-space:nowrap}
+  .tab:hover{background:var(--ant-color-fill-secondary);color:var(--ant-color-text)}
+  .tab.on{color:var(--ant-color-primary-text);border-bottom-color:var(--ant-color-primary);background:var(--ant-color-bg-container)}
+  .tab.closing{border:1px solid var(--ant-color-warning);border-bottom:2px solid var(--ant-color-warning);background:#d8961420;color:var(--ant-color-warning)}
+  .tab .ico{font-size:12px;color:var(--ant-color-text-tertiary)}
+  .tab.on .ico{color:var(--ant-color-primary-text)}
+  .tab.closing .ico{color:var(--ant-color-warning)}
+  .tab .name{font-weight:500}
+  .tab .unsaved{width:6px;height:6px;border-radius:50%;background:var(--ant-color-primary);box-shadow:0 0 6px var(--ant-color-primary)}
+  .tab .close{width:16px;height:16px;display:flex;align-items:center;justify-content:center;border-radius:4px;color:var(--ant-color-text-tertiary);font-size:14px}
+  .mid{background:var(--ant-color-bg-layout);position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
+  .dialog{background:var(--ant-color-bg-elevated);border:1px solid var(--ant-color-warning);border-radius:14px;width:520px;padding:0;box-shadow:0 40px 100px -20px #000000c0;overflow:hidden;animation:bounceIn .25s ease-out}
+  @keyframes bounceIn{from{transform:scale(.92);opacity:0}to{transform:scale(1);opacity:1}}
+  .dialog-head{padding:24px 28px 0;display:flex;align-items:flex-start;gap:16px}
+  .dialog-head .ico{width:44px;height:44px;border-radius:10px;background:#d8961420;color:var(--ant-color-warning);display:flex;align-items:center;justify-content:center;font-size:22px;flex:none}
+  .dialog-head h3{font-size:18px;font-weight:600;color:var(--ant-color-text);margin-bottom:4px}
+  .dialog-head p{font-size:13px;color:var(--ant-color-text-secondary);line-height:1.5}
+  .dialog-body{padding:16px 28px 24px;font-size:12px;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace}
+  .dialog-body ul{padding-left:18px;margin-top:8px}
+  .dialog-body li{margin-bottom:4px}
+  .dialog-body li b{color:var(--ant-color-text)}
+  .dialog-foot{padding:14px 24px;border-top:1px solid var(--ant-color-border);background:var(--ant-color-bg-container);display:flex;justify-content:flex-end;gap:8px}
+  .ft{background:var(--ant-color-bg-elevated);border-top:1px solid var(--ant-color-border);padding:0 16px;display:flex;align-items:center;font-size:11px;color:var(--ant-color-text-secondary)}
+  .ft .right{margin-left:auto}
+</style></head><body>
+<div class="app">
+  <div class="hd">
+    <div class="brand"><span class="dot"></span>XENICA</div>
+    <div style="color:var(--ant-color-text-tertiary)">· 关闭确认</div>
+    <div class="right"><span style="color:var(--ant-color-warning)">⚠ 3 个未保存</span><div class="av" style="width:22px;height:22px;font-size:10px">XL</div></div>
+  </div>
+  <div class="tabs">
+    <div class="tab"><span class="ico">▦</span><span class="name">阅读清单</span><span class="unsaved"></span><span class="close">×</span></div>
+    <div class="tab"><span class="ico">▤</span><span class="name">Antd 6 调研笔记</span><span class="unsaved"></span><span class="close">×</span></div>
+    <div class="tab closing"><span class="ico">▤</span><span class="name">节点布局策略 v2</span><span class="unsaved"></span><span class="close">×</span></div>
+    <div class="tab on"><span class="ico">▦</span><span class="name">本周回顾 · 自动布局</span><span class="unsaved"></span><span class="close">×</span></div>
+    <div class="tab"><span class="ico">▦</span><span class="name">设计原则 ADR-003</span><span class="close">×</span></div>
+  </div>
+  <div class="mid">
+    <div class="dialog">
+      <div class="dialog-head">
+        <div class="ico">!</div>
+        <div>
+          <h3>有未保存的更改</h3>
+          <p>关闭此标签前请确认如何处理当前未保存的内容。</p>
+        </div>
+      </div>
+      <div class="dialog-body">
+        未保存节点：
+        <ul>
+          <li><b>Antd 6 调研笔记</b> · 修改于 4 分钟前 · ~340 字</li>
+          <li><b>节点布局策略 v2</b> · 修改于 12 分钟前 · ~120 字</li>
+          <li><b>本周回顾 · 自动布局</b> · 修改于 18 分钟前 · ~80 字</li>
+        </ul>
+      </div>
+      <div class="dialog-foot">
+        <button class="btn btn-ghost">取消</button>
+        <button class="btn btn-danger">不保存并关闭</button>
+        <button class="btn btn-primary">保存全部并关闭</button>
+      </div>
+    </div>
+  </div>
+  <div class="ft"><span style="color:var(--ant-color-warning)">⚠ 即将关闭未保存标签</span><span class="right">ESC 取消</span></div>
+</div>
+</body></html>

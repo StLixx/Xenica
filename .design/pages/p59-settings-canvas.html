@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>设置 · 画布设置 · Xenica</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<link rel="stylesheet" href="_mini.css">
+<style>*{box-sizing:border-box;margin:0;padding:0}html,body{background:#000;color:var(--ant-color-text);font-family:var(--ant-font-family);-webkit-font-smoothing:antialiased}.slider-row{display:flex;align-items:center;gap:12px;flex:1}.slider-row .v{font-family:ui-monospace,monospace;font-size:12px;color:var(--ant-color-primary-text);min-width:50px;text-align:right}.slider{flex:1;height:4px;background:var(--ant-color-fill-secondary);border-radius:100px;position:relative}.slider>i{position:absolute;left:0;top:0;bottom:0;background:var(--ant-color-primary);border-radius:100px}.slider .handle{position:absolute;top:-6px;width:16px;height:16px;border-radius:50%;background:var(--ant-color-primary);box-shadow:0 0 0 4px var(--ant-color-primary-bg);transform:translateX(-50%)}.layout-preview{margin-top:24px;height:200px;background:var(--ant-color-bg-elevated);border:1px solid var(--ant-color-border);border-radius:10px;position:relative;overflow:hidden}.lp-node{position:absolute;width:80px;height:50px;background:var(--ant-color-bg-container);border:1px solid var(--ant-color-primary);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--ant-color-text)}</style></body>
+<div class="shell">
+<div class="shell-hd"><div class="brand"><span class="dot"></span>XENICA</div><div style="color:var(--ant-color-text-tertiary)">· 设置 · 画布</div><div class="right"><span>⌘,</span><div class="av" style="width:22px;height:22px;font-size:10px">XL</div></div></div>
+<div class="shell-sb"><h3>账户</h3><div class="si"><span class="ico">◐</span>总览</div><div class="si"><span class="ico">☻</span>个人资料</div><div class="si"><span class="ico">⌬</span>订阅与计费</div><h3 style="margin-top:14px">外观</h3><div class="si"><span class="ico">◑</span>主题</div><div class="si"><span class="ico">⌗</span>字体与间距</div><div class="si"><span class="ico">⌘</span>快捷键</div><h3 style="margin-top:14px">编辑器</h3><div class="si on"><span class="ico">▦</span>画布设置</div><div class="si"><span class="ico">⌬</span>自动布局</div><div class="si"><span class="ico">⤓</span>导入与导出</div><h3 style="margin-top:14px">数据</h3><div class="si"><span class="ico">⇅</span>同步与备份</div><div class="si"><span class="ico">⚠</span>危险操作</div><h3 style="margin-top:14px">其他</h3><div class="si"><span class="ico">▦</span>扩展</div><div class="si"><span class="ico">i</span>关于</div></div>
+<div class="shell-ct">
+<div class="shell-ch"><div class="crumb">设置 · 编辑器 · 画布设置</div><h1>画布设置</h1><p>网格 · 缩略图 · 缩放范围 · 默认视图。所有改动仅影响本地缓存。</p></div>
+<div class="shell-card">
+<h3 style="font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace;margin-bottom:14px;font-weight:600">网格</h3>
+<div class="shell-row"><div class="k"><b>显示网格</b><span class="hint">背景参考线</span></div><div class="v"><div class="shell-sw on"></div></div></div>
+<div class="shell-row"><div class="k"><b>网格大小</b><span class="hint">间距 20–80px</span></div><div class="v"><div class="slider-row"><div class="slider"><i style="width:50%"></i><div class="handle" style="left:50%"></div></div><span class="v">40 px</span></div></div></div>
+<div class="shell-row"><div class="k"><b>对齐网格</b><span class="hint">节点自动吸附</span></div><div class="v"><div class="shell-sw on"></div></div></div>
+<h3 style="font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace;margin-bottom:14px;font-weight:600;margin-top:24px">缩略图</h3>
+<div class="shell-row"><div class="k"><b>显示缩略图</b><span class="hint">右下角小地图</span></div><div class="v"><div class="shell-sw on"></div></div></div>
+<div class="shell-row"><div class="k"><b>缩略图位置</b><span class="hint">右下 / 左下</span></div><div class="v"><div class="shell-inp" style="cursor:default">右下角<span style="margin-left:auto;color:var(--ant-color-text-tertiary)">▾</span></div></div></div>
+<h3 style="font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace;margin-bottom:14px;font-weight:600;margin-top:24px">缩放</h3>
+<div class="shell-row"><div class="k"><b>最小缩放</b><span class="hint">10–50%</span></div><div class="v"><div class="slider-row"><div class="slider"><i style="width:30%"></i><div class="handle" style="left:30%"></div></div><span class="v">25%</span></div></div></div>
+<div class="shell-row"><div class="k"><b>最大缩放</b><span class="hint">200–800%</span></div><div class="v"><div class="slider-row"><div class="slider"><i style="width:50%"></i><div class="handle" style="left:50%"></div></div><span class="v">400%</span></div></div></div>
+<div class="shell-row"><div class="k"><b>缩放时显示比例尺</b></div><div class="v"><div class="shell-sw on"></div></div></div>
+<div class="shell-row"><div class="k"><b>滚轮缩放（按住 ⌘）</b></div><div class="v"><div class="shell-sw on"></div></div></div>
+<h3 style="font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace;margin-bottom:14px;font-weight:600;margin-top:24px">默认视图</h3>
+<div class="shell-row"><div class="k"><b>新画布打开</b><span class="hint">首次进入行为</span></div><div class="v"><div class="shell-inp" style="cursor:default">居中显示所有节点<span style="margin-left:auto;color:var(--ant-color-text-tertiary)">▾</span></div></div></div>
+<div class="shell-save"><span class="status">● <b>已应用</b></span><div style="display:flex;gap:8px"><button class="btn btn-ghost">恢复默认</button><button class="btn btn-primary">⌘S 保存</button></div></div>
+</div>
+<div class="layout-preview">
+<svg style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:.3"><defs><pattern id="g" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="#ffffff" stroke-width="0.5"/></pattern></defs><rect width="100%" height="100%" fill="url(#g)"/></svg>
+<div class="lp-node" style="left:30px;top:30px">节点 A</div>
+<div class="lp-node" style="left:200px;top:60px">节点 B</div>
+<div class="lp-node" style="left:120px;top:130px">节点 C</div>
+</div>
+</div>
+<div class="shell-ft"><span>设置 · 画布设置</span><span class="right">⌘, 关闭</span></div>
+</div>
+</body></html>

@@ -1,0 +1,47 @@
+# 数据
+backend/data/
+
+# 临时上传和测试文件
+backend/uploads/
+test-image.png
+test-note.md
+
+# Rust 编译产物
+backend/target/
+
+# 环境变量
+backend/.env
+
+# Node
+frontend/node_modules/
+frontend/dist/
+
+# 备份
+backups/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+
+# Logs
+*.log
+
+# Obsidian（工具配置，部分保留）
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+.obsidian/plugins/
+.obsidian/themes/
+.obsidian/community-plugins.json
+.obsidian/core-plugins*.json
+
+# 参考材料（本地保留，不进 git）
+参考/
+
+# 临时
+.trash/
+.cowork-temp/

@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>画布 · 多选 · 框选态 · Xenica</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#000;color:var(--ant-color-text);font-family:var(--ant-font-family);-webkit-font-smoothing:antialiased;height:100vh;overflow:hidden}
+  .app{height:100vh;display:grid;grid-template-rows:36px 1fr 28px}
+  .hd{background:var(--ant-color-bg-elevated);border-bottom:1px solid var(--ant-color-border);padding:0 16px;display:flex;align-items:center;gap:12px;font-size:12px}
+  .hd .brand{font-weight:700;letter-spacing:.14em}
+  .hd .brand .dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--ant-color-primary);box-shadow:0 0 6px var(--ant-color-primary);margin-right:8px;vertical-align:middle}
+  .hd .right{margin-left:auto;display:flex;align-items:center;gap:10px;font-size:11px;color:var(--ant-color-text-tertiary)}
+  .mid{background:var(--ant-color-bg-layout);position:relative;overflow:hidden}
+  .canvas-bg{position:absolute;inset:0;background-image:var(--xe-bg-grid);background-size:40px 40px;opacity:.4}
+  .marquee{position:absolute;left:140px;top:80px;width:680px;height:380px;border:1px solid var(--ant-color-primary);background:#14b8a608;pointer-events:none;animation:marquee-pulse 1.5s ease-in-out infinite}
+  @keyframes marquee-pulse{0%,100%{background:#14b8a608}50%{background:#14b8a614}}
+  .marquee .dim{position:absolute;font-size:10px;font-family:ui-monospace,monospace;color:var(--ant-color-primary-text);background:var(--ant-color-bg-elevated);padding:2px 6px;border-radius:3px;border:1px solid var(--ant-color-primary-border)}
+  .marquee .dim.tl{top:-8px;left:-1px}
+  .marquee .dim.br{bottom:-8px;right:-1px}
+  .node{position:absolute;background:var(--ant-color-bg-elevated);border:1px solid var(--ant-color-border);border-radius:10px;padding:12px 16px;min-width:160px;font-size:13px;box-shadow:0 4px 12px #00000060}
+  .node.selected{border-color:var(--ant-color-primary);background:#14b8a614;box-shadow:0 0 0 1px var(--ant-color-primary)}
+  .node h4{font-size:13px;font-weight:600;margin-bottom:2px}
+  .node .meta{font-size:10px;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace}
+  .floating-action{position:absolute;background:var(--ant-color-bg-elevated);border:1px solid var(--ant-color-border);border-radius:999px;padding:6px 10px;display:flex;align-items:center;gap:6px;box-shadow:0 12px 30px #00000080;left:50%;top:340px;transform:translateX(-50%);z-index:10}
+  .floating-action .info{font-size:11px;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace;padding:0 6px;border-right:1px solid var(--ant-color-border);margin-right:6px}
+  .floating-action .info b{color:var(--ant-color-primary-text);font-weight:600}
+  .fa-btn{display:flex;align-items:center;gap:5px;padding:5px 10px;border-radius:6px;font-size:12px;color:var(--ant-color-text-secondary)}
+  .fa-btn:hover{background:var(--ant-color-fill-secondary);color:var(--ant-color-text)}
+  .fa-btn.primary{background:var(--ant-color-primary);color:#fff}
+  .fa-sep{width:1px;height:16px;background:var(--ant-color-border)}
+  .ft{background:var(--ant-color-bg-elevated);border-top:1px solid var(--ant-color-border);padding:0 16px;display:flex;align-items:center;font-size:11px;color:var(--ant-color-text-secondary);gap:12px}
+  .ft .right{margin-left:auto}
+  .ft .on{color:var(--ant-color-primary-text);font-weight:500}
+</style></head><body>
+<div class="app">
+  <div class="hd">
+    <div class="brand"><span class="dot"></span>XENICA</div>
+    <div class="crumbs">· 工作区 · <b>节点画布</b></div>
+    <div class="right"><span class="on">● 已选中 5 个节点</span><span>ESC 取消</span><div class="av" style="width:22px;height:22px;font-size:10px">XL</div></div>
+  </div>
+  <div class="mid">
+    <div class="canvas-bg"></div>
+    <svg style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none">
+      <path d="M 240 220 Q 320 180 400 220" class="edge active"/>
+      <path d="M 400 220 Q 500 260 600 220" class="edge active"/>
+      <path d="M 240 220 Q 180 320 240 420" class="edge active"/>
+      <path d="M 600 220 Q 660 320 700 420" class="edge active"/>
+      <path d="M 240 420 Q 380 460 480 420" class="edge"/>
+      <path d="M 480 420 Q 580 460 700 420" class="edge"/>
+    </svg>
+    <div class="marquee">
+      <div class="dim tl">5 节点 · 4 连接</div>
+      <div class="dim br">680 × 380</div>
+    </div>
+    <div class="node selected" style="left:160px;top:120px"><h4>晨间笔记</h4><div class="meta">日记</div></div>
+    <div class="node selected" style="left:320px;top:120px"><h4>本周目标</h4><div class="meta">任务</div></div>
+    <div class="node selected" style="left:520px;top:120px"><h4>Antd 6 调研</h4><div class="meta">文档</div></div>
+    <div class="node selected" style="left:160px;top:320px"><h4>本月 OKR</h4><div class="meta">OKR</div></div>
+    <div class="node selected" style="left:600px;top:320px"><h4>设计原则 v3</h4><div class="meta">核心</div></div>
+    <div class="node" style="left:400px;top:320px"><h4>团队周会</h4><div class="meta">会议</div></div>
+    <div class="node" style="left:780px;top:200px"><h4>读书笔记</h4><div class="meta">阅读</div></div>
+    <div class="floating-action">
+      <span class="info"><b>5</b> 节点 · <b>4</b> 连接</span>
+      <div class="fa-btn primary">✥ 布局</div>
+      <div class="fa-btn">↔ 连接</div>
+      <div class="fa-btn">⊕ 分组</div>
+      <div class="fa-btn">⧉ 复制</div>
+      <div class="fa-btn">⊟ 导出</div>
+      <div class="fa-sep"></div>
+      <div class="fa-btn" style="color:var(--ant-color-error)">⊘ 删除</div>
+    </div>
+  </div>
+  <div class="ft"><span class="on">● 已选中 5 个节点 · 4 条连接</span><span>·</span><span>680 × 380</span><span class="right">⇧ 点击加入选择 · ⌘A 全选 · ⌫ 删除</span></div>
+</div>
+</body></html>

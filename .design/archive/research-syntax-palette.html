@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Syntax Token Palette · Xenica Atrium</title>
+<style>
+  @font-face{font-family:'M';src:url('file:///c:/Users/21885/.trae/skills/canvas-design/canvas-fonts/GeistMono-Regular.ttf') format('truetype');font-display:block}
+  @font-face{font-family:'MB';src:url('file:///c:/Users/21885/.trae/skills/canvas-design/canvas-fonts/GeistMono-Bold.ttf') format('truetype');font-display:block}
+  @font-face{font-family:'R';src:url('file:///c:/Users/21885/.trae/skills/canvas-design/canvas-fonts/Lora-Regular.ttf') format('truetype');font-display:block}
+  @font-face{font-family:'RI';src:url('file:///c:/Users/21885/.trae/skills/canvas-design/canvas-fonts/Lora-Italic.ttf') format('truetype');font-display:block}
+
+  :root{
+    --bg:#1b1b19; --bg-100:#262624; --bg-200:#2c2c2b; --bg-300:#30302e;
+    --text-700:#d8d6cd; --text-800:#f1f1ef; --text-900:#faf9f5;
+    --text-400:#908e84; --text-500:#b7b5a9;
+    --brand:#d97757;
+    --border-300:#3e3e38; --border-500:#52514a;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    width:1600px;height:2400px;background:var(--bg-100);color:var(--text-800);
+    font-family:'M',monospace;-webkit-font-smoothing:antialiased;padding:96px 120px;
+  }
+  h1{font-family:'R',serif;font-size:72px;line-height:1.05;color:var(--text-900);font-weight:400;letter-spacing:-.01em}
+  h1 em{font-style:italic;color:var(--brand)}
+  .eyebrow{font-family:'M',monospace;font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--brand);margin-bottom:24px;display:flex;gap:10px;align-items:center}
+  .eyebrow .d{width:22px;height:1px;background:var(--brand);opacity:.7}
+  .sub{font-family:'RI',serif;font-size:18px;line-height:1.55;color:var(--text-500);max-width:920px;margin-top:20px;margin-bottom:64px}
+
+  section{margin-bottom:64px}
+  .sect-title{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid var(--border-300)}
+  .sect-title h2{font-family:'R',serif;font-style:italic;font-size:32px;color:var(--text-900);font-weight:400}
+  .sect-title .meta{font-family:'M',monospace;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--text-400)}
+
+  /* token row */
+  .row{display:grid;grid-template-columns:280px 1fr;gap:32px;align-items:start;padding:24px 0;border-top:1px solid var(--border-300)}
+  .row:first-of-type{border-top:none}
+  .label .k{font-family:'MB',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-800)}
+  .label .scope{font-family:'M',monospace;font-size:10px;color:var(--text-400);margin-top:6px}
+  .label .desc{font-family:'R',serif;font-size:13px;color:var(--text-500);margin-top:10px;line-height:1.5;font-style:italic}
+
+  .swatches{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+  .sw{position:relative;height:88px;border-radius:10px;border:1px solid var(--border-300);padding:10px 12px;display:flex;flex-direction:column;justify-content:space-between}
+  .sw .nm{font-family:'MB',monospace;font-size:9px;letter-spacing:.18em;text-transform:uppercase}
+  .sw .hex{font-family:'M',monospace;font-size:9px;opacity:.7}
+  .sw .sample{font-family:'M',monospace;font-size:13px;letter-spacing:.04em;line-height:1.2}
+
+  /* example block */
+  .example{margin-top:32px;padding:32px 36px;background:var(--bg-200);border:1px solid var(--border-300);border-radius:14px;font-family:'M',monospace;font-size:14px;line-height:1.85;color:var(--text-700);white-space:pre-wrap}
+  .example .ln{color:var(--text-400);user-select:none;margin-right:18px;display:inline-block;width:18px;text-align:right}
+  .example .kw{color:#c678dd}
+  .example .str{color:#98c379}
+  .example .num{color:#d19a66}
+  .example .cmt{color:#75715e;font-style:italic}
+  .example .fn{color:#61afef}
+  .example .ty{color:#e5c07b}
+  .example .link{color:var(--brand);text-decoration:underline;text-underline-offset:3px;text-decoration-color:rgba(217,119,87,.4)}
+  .example .tag{color:#b7b5a9}
+  .example .mention{color:#7b8aa1}
+
+  /* status legend */
+  .status{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:24px}
+  .st{padding:18px 18px 20px;border-radius:14px;background:var(--bg-200);border:1px solid var(--border-300);position:relative;overflow:hidden}
+  .st::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--c)}
+  .st .nm{font-family:'MB',monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--c)}
+  .st .desc{font-family:'R',serif;font-size:13px;color:var(--text-500);margin-top:8px;line-height:1.45;font-style:italic}
+  .st .hex{font-family:'M',monospace;font-size:10px;color:var(--text-400);margin-top:14px}
+
+  .foot{margin-top:80px;padding-top:32px;border-top:1px solid var(--border-300);display:flex;justify-content:space-between;align-items:flex-end}
+  .foot .l{font-family:'RI',serif;font-style:italic;font-size:16px;color:var(--text-700)}
+  .foot .r{font-family:'M',monospace;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--text-400);text-align:right}
+
+  .corner{position:absolute;font-family:'M',monospace;font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--text-400)}
+  .c-tl{top:48px;left:120px}
+  .c-tr{top:48px;right:120px}
+</style>
+</head>
+<body>
+  <div class="corner c-tl">PLATE · II / III</div>
+  <div class="corner c-tr">XENICA · RESEARCH</div>
+
+  <div class="eyebrow"><span class="d"></span><span>Syntax & Diff · Token Palette</span></div>
+  <h1>The colors that <em>give meaning</em><br>before words do.</h1>
+  <p class="sub">A reference palette for Xenica's node view — inspired by the de-facto standards set by TextMate scopes, LSP semantic tokens, and Git's red/green diff convention. Each row maps a Xenica token to the four major theming families, so the choice of palette family never breaks the grammar.</p>
+
+  <!-- Section 1: Syntax tokens -->
+  <section>
+    <div class="sect-title"><h2>01 · Syntax tokens</h2><div class="meta">Inspired by TextMate grammar scopes & LSP semantic tokens</div></div>
+
+    <div class="row">
+      <div class="label"><div class="k">Keyword · control</div><div class="scope">scope: keyword.control.flow</div><div class="desc">control flow: if, for, return, await</div></div>
+      <div class="swatches">
+        <div class="sw" style="background:#1e1f29;color:#c678dd"><div><div class="nm">One Dark</div><div class="hex">#c678dd</div></div><div class="sample">if / return</div></div>
+        <div class="sw" style="background:#272822;color:#f92672"><div><div class="nm">Monokai</div><div class="hex">#f92672</div></div><div class="sample">if / return</div></div>
+        <div class="sw" style="background:#1a1b26;color:#bb9af7"><div><div class="nm">Tokyo</div><div class="hex">#bb9af7</div></div><div class="sample">if / return</div></div>
+        <div class="sw" style="background:#1e1e2e;color:#cba6f7"><div><div class="nm">Catppuccin</div><div class="hex">#cba6f7</div></div><div class="sample">if / return</div></div>
+        <div class="sw" style="background:#fdf6e3;color:#6c71c4"><div><div class="nm">Solarized</div><div class="hex">#6c71c4</div></div><div class="sample">if / return</div></div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="label"><div class="k">String · quoted</div><div class="scope">scope: string.quoted.double</div><div class="desc">string literals & template parts</div></div>
+      <div class="swatches">
+        <div class="sw" style="background:#1e1f29;color:#98c379"><div><div class="nm">One Dark</div><div class="hex">#98c379</div></div><div class="sample">"hello"</div></div>
+        <div class="sw" style="background:#272822;color:#e6db74"><div><div class="nm">Monokai</div><div class="hex">#e6db74</div></div><div class="sample">"hello"</div></div>
+        <div class="sw" style="background:#1a1b26;color:#9ece6a"><div><div class="nm">Tokyo</div><div class="hex">#9ece6a</div></div><div class="sample">"hello"</div></div>
+        <div class="sw" style="background:#1e1e2e;color:#a6e3a1"><div><div class="nm">Catppuccin</div><div class="hex">#a6e3a1</div></div><div class="sample">"hello"</div></div>
+        <div class="sw" style="background:#fdf6e3;color:#2aa198"><div><div class="nm">Solarized</div><div class="hex">#2aa198</div></div><div class="sample">"hello"</div></div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="label"><div class="k">Number · constant</div><div class="scope">scope: constant.numeric</div><div class="desc">integers, floats, hex literals</div></div>
+      <div class="swatches">
+        <div class="sw" style="background:#1e1f29;color:#d19a66"><div><div class="nm">One Dark</div><div class="hex">#d19a66</div></div><div class="sample">3.14</div></div>
+        <div class="sw" style="background:#272822;color:#ae81ff"><div><div class="nm">Monokai</div><div class="hex">#ae81ff</div></div><div class="sample">3.14</div></div>
+        <div class="sw" style="background:#1a1b26;color:#ff9e64"><div><div class="nm">Tokyo</div><div class="hex">#ff9e64</div></div><div class="sample">3.14</div></div>
+        <div class="sw" style="background:#1e1e2e;color:#fab387"><div><div class="nm">Catppuccin</div><div class="hex">#fab387</div></div><div class="sample">3.14</div></div>
+        <div class="sw" style="background:#fdf6e3;color:#cb4b16"><div><div class="nm">Solarized</div><div class="hex">#cb4b16</div></div><div class="sample">3.14</div></div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="label"><div class="k">Function · name</div><div class="scope">scope: entity.name.function</div><div class="desc">function / method declarations</div></div>
+      <div class="swatches">
+        <div class="sw" style="background:#1e1f29;color:#61afef"><div><div class="nm">One Dark</div><div class="hex">#61afef</div></div><div class="sample">onClick</div></div>
+        <div class="sw" style="background:#272822;color:#a6e22e"><div><div class="nm">Monokai</div><div class="hex">#a6e22e</div></div><div class="sample">onClick</div></div>
+        <div class="sw" style="background:#1a1b26;color:#7aa2f7"><div><div class="nm">Tokyo</div><div class="hex">#7aa2f7</div></div><div class="sample">onClick</div></div>
+        <div class="sw" style="background:#1e1e2e;color:#89b4fa"><div><div class="nm">Catppuccin</div><div class="hex">#89b4fa</div></div><div class="sample">onClick</div></div>
+        <div class="sw" style="background:#fdf6e3;color:#268bd2"><div><div class="nm">Solarized</div><div class="hex">#268bd2</div></div><div class="sample">onClick</div></div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="label"><div class="k">Type · class</div><div class="scope">scope: entity.name.class</div><div class="desc">class / struct / interface / type</div></div>
+      <div class="swatches">
+        <div class="sw" style="background:#1e1f29;color:#e5c07b"><div><div class="nm">One Dark</div><div class="hex">#e5c07b</div></div><div class="sample">UserRepo</div></div>
+        <div class="sw" style="background:#272822;color:#66d9ef"><div><div class="nm">Monokai</div><div class="hex">#66d9ef</div></div><div class="sample">UserRepo</div></div>
+        <div class="sw" style="background:#1a1b26;color:#e0af68"><div><div class="nm">Tokyo</div><div class="hex">#e0af68</div></div><div class="sample">UserRepo</div></div>
+        <div class="sw" style="background:#1e1e2e;color:#f9e2af"><div><div class="nm">Catppuccin</div><div class="hex">#f9e2af</div></div><div class="sample">UserRepo</div></div>
+        <div class="sw" style="background:#fdf6e3;color:#b58900"><div><div class="nm">Solarized</div><div class="hex">#b58900</div></div><div class="sample">UserRepo</div></div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="label"><div class="k">Comment</div><div class="scope">scope: comment.line</div><div class="desc">single & block comments</div></div>
+      <div class="swatches">
+        <div class="sw" style="background:#1e1f29;color:#5c6370"><div><div class="nm">One Dark</div><div class="hex">#5c6370</div></div><div class="sample">// note</div></div>
+        <div class="sw" style="background:#272822;color:#75715e"><div><div class="nm">Monokai</div><div class="hex">#75715e</div></div><div class="sample">// note</div></div>
+        <div class="sw" style="background:#1a1b26;color:#565f89"><div><div class="nm">Tokyo</div><div class="hex">#565f89</div></div><div class="sample">// note</div></div>
+        <div class="sw" style="background:#1e1e2e;color:#6c7086"><div><div class="nm">Catppuccin</div><div class="hex">#6c7086</div></div><div class="sample">// note</div></div>
+        <div class="sw" style="background:#fdf6e3;color:#93a1a1"><div><div class="nm">Solarized</div><div class="hex">#93a1a1</div></div><div class="sample">// note</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 2: Xenica-specific tokens -->
+  <section>
+    <div class="sect-title"><h2>02 · Xenica node tokens</h2><div class="meta">Mapped to the markup.* / entity.name.* scopes</div></div>
+
+    <div class="row">
+      <div class="label"><div class="k">Bi-directional link</div><div class="scope">scope: markup.underline.link</div><div class="desc">[[connected thought]]</div></div>
+      <div class="swatches">
+        <div class="sw" style="background:var(--bg-100);color:#d97757;border-color:var(--brand)"><div><div class="nm">Xenica · accent</div><div class="hex">#d97757</div></div><div class="sample" style="text-decoration:underline">[[note]]</div></div>
+        <div class="sw" style="background:#1e1f29;color:#61afef"><div><div class="nm">One Dark</div><div class="hex">#61afef</div></div><div class="sample" style="text-decoration:underline">[[note]]</div></div>
+        <div class="sw" style="background:#1a1b26;color:#7aa2f7"><div><div class="nm">Tokyo</div><div class="hex">#7aa2f7</div></div><div class="sample" style="text-decoration:underline">[[note]]</div></div>
+        <div class="sw" style="background:#1e1e2e;color:#89b4fa"><div><div class="nm">Catppuccin</div><div class="hex">#89b4fa</div></div><div class="sample" style="text-decoration:underline">[[note]]</div></div>
+        <div class="sw" style="background:#fdf6e3;color:#268bd2"><div><div class="nm">Solarized</div><div class="hex">#268bd2</div></div><div class="sample" style="text-decoration:underline">[[note]]</div></div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="label"><div class="k">Tag</div><div class="scope">scope: entity.name.tag</div><div class="desc">#thread / #daily-log</div></div>
+      <div class="swatches">
+        <div class="sw" style="background:var(--bg-100);color:#b7b5a9"><div><div class="nm">Xenica · muted</div><div class="hex">#b7b5a9</div></div><div class="sample">#thread</div></div>
+        <div class="sw" style="background:#1e1f29;color:#e06c75"><div><div class="nm">One Dark</div><div class="hex">#e06c75</div></div><div class="sample">#thread</div></div>
+        <div class="sw" style="background:#1a1b26;color:#f7768e"><div><div class="nm">Tokyo</div><div class="hex">#f7768e</div></div><div class="sample">#thread</div></div>
+        <div class="sw" style="background:#1e1e2e;color:#f38ba8"><div><div class="nm">Catppuccin</div><div class="hex">#f38ba8</div></div><div class="sample">#thread</div></div>
+        <div class="sw" style="background:#fdf6e3;color:#d33682"><div><div class="nm">Solarized</div><div class="hex">#d33682</div></div><div class="sample">#thread</div></div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="label"><div class="k">@mention</div><div class="scope">scope: constant.language</div><div class="desc">people / AI agents / systems</div></div>
+      <div class="swatches">
+        <div class="sw" style="background:var(--bg-100);color:#7b8aa1"><div><div class="nm">Xenica · lamp-oil blue</div><div class="hex">#7b8aa1</div></div><div class="sample">@reader</div></div>
+        <div class="sw" style="background:#1e1f29;color:#56b6c2"><div><div class="nm">One Dark</div><div class="hex">#56b6c2</div></div><div class="sample">@reader</div></div>
+        <div class="sw" style="background:#1a1b26;color:#7dcfff"><div><div class="nm">Tokyo</div><div class="hex">#7dcfff</div></div><div class="sample">@reader</div></div>
+        <div class="sw" style="background:#1e1e2e;color:#94e2d5"><div><div class="nm">Catppuccin</div><div class="hex">#94e2d5</div></div><div class="sample">@reader</div></div>
+        <div class="sw" style="background:#fdf6e3;color:#2aa198"><div><div class="nm">Solarized</div><div class="hex">#2aa198</div></div><div class="sample">@reader</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 3: Example block -->
+  <section>
+    <div class="sect-title"><h2>03 · Live example</h2><div class="meta">A node body, rendered with One Dark + Xenica accents</div></div>
+    <div class="example"><span class="ln">1</span><span class="cmt">// 2026-07-13 · 织念 · Note from inbox</span>
+<span class="ln">2</span>
+<span class="ln">3</span>This connects to <span class="link">[[Reverse Note-Taking]]</span> and
+<span class="ln">4</span><span class="tag">#research</span> <span class="tag">#daily-log</span>, mentioned by <span class="mention">@claude</span>.
+<span class="ln">5</span>
+<span class="ln">6</span>```ts
+<span class="ln">7</span><span class="kw">export async function</span> <span class="fn">ingest</span>(<span class="cmt">/* payload */</span>) {
+<span class="ln">8</span>  <span class="kw">const</span> items: <span class="ty">Note</span>[] = <span class="kw">await</span> <span class="fn">fetchAll</span>();
+<span class="ln">9</span>  <span class="kw">return</span> items.<span class="fn">map</span>(n =&gt; n.<span class="fn">embeds</span>(<span class="str">"v1"</span>));
+<span class="ln">10</span>}
+<span class="ln">11</span>```
+</div>
+  </section>
+
+  <!-- Section 4: Status legend -->
+  <section>
+    <div class="sect-title"><h2>04 · Node status</h2><div class="meta">VS Code gitDecoration.* convention applied to nodes</div></div>
+    <div class="status">
+      <div class="st" style="--c:#8ca06f"><div class="nm">Added · new</div><div class="desc">未读的新建节点，left bar green</div><div class="hex">#8ca06f</div></div>
+      <div class="st" style="--c:#d97757"><div class="nm">Modified · draft</div><div class="desc">已编辑未保存，accent halo</div><div class="hex">#d97757</div></div>
+      <div class="st" style="--c:#ef4444"><div class="nm">Conflict</div><div class="desc">节点损坏或同步冲突</div><div class="hex">#ef4444</div></div>
+      <div class="st" style="--c:#908e84"><div class="nm">Archived</div><div class="desc">已归档节点，muted + strikethrough</div><div class="hex">#908e84</div></div>
+    </div>
+  </section>
+
+  <div class="foot">
+    <div class="l">"The standard is the grammar, not the color."</div>
+    <div class="r">Plate II · Xenica · Atrium<br>2026 · references: TextMate, LSP, Solarized, One Dark</div>
+  </div>
+</body>
+</html>

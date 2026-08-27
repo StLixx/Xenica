@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>设置 · 总览 · Xenica</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#000;color:var(--ant-color-text);font-family:var(--ant-font-family);-webkit-font-smoothing:antialiased;min-height:100vh}
+  .app{min-height:100vh;display:grid;grid-template-columns:260px 1fr;grid-template-rows:36px 1fr 28px}
+  .hd{grid-column:1/-1;background:var(--ant-color-bg-elevated);border-bottom:1px solid var(--ant-color-border);padding:0 16px;display:flex;align-items:center;gap:12px;font-size:12px}
+  .hd .brand{font-weight:700;letter-spacing:.14em}
+  .hd .brand .dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--ant-color-primary);box-shadow:0 0 6px var(--ant-color-primary);margin-right:8px;vertical-align:middle}
+  .hd .right{margin-left:auto;display:flex;align-items:center;gap:10px;font-size:11px;color:var(--ant-color-text-tertiary)}
+  .sider{background:var(--ant-color-bg-base);border-right:1px solid var(--ant-color-border);padding:18px 12px;overflow:auto}
+  .sider h3{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace;padding:8px 12px;margin-bottom:4px;font-weight:600}
+  .sider-item{display:flex;align-items:center;gap:12px;padding:10px 12px;font-size:13px;color:var(--ant-color-text-secondary);border-radius:8px;cursor:default;margin-bottom:2px}
+  .sider-item:hover{background:var(--ant-color-fill-secondary);color:var(--ant-color-text)}
+  .sider-item.on{background:var(--ant-color-primary-bg);color:var(--ant-color-primary-text);font-weight:500}
+  .sider-item .ico{width:18px;font-size:14px;display:flex;align-items:center;justify-content:center;color:var(--ant-color-text-tertiary)}
+  .sider-item.on .ico{color:var(--ant-color-primary-text)}
+  .sider-item .badge{margin-left:auto;font-size:10px;background:var(--ant-color-fill-tertiary);color:var(--ant-color-text-tertiary);padding:1px 6px;border-radius:8px;font-family:ui-monospace,monospace}
+  .sider-item.on .badge{background:var(--ant-color-primary);color:#fff}
+  .content{background:var(--ant-color-bg-base);padding:40px 56px;overflow:auto}
+  .content-head{margin-bottom:32px}
+  .content-head .crumb{font-size:11px;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace;margin-bottom:6px;letter-spacing:.04em}
+  .content-head h1{font-size:32px;font-weight:600;letter-spacing:-.01em;color:var(--ant-color-text)}
+  .content-head p{font-size:13px;color:var(--ant-color-text-secondary);margin-top:6px;max-width:600px;line-height:1.6}
+  .sec-title{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace;margin-bottom:14px;font-weight:600;display:flex;align-items:center;gap:8px}
+  .sec-title::before{content:"";width:14px;height:1px;background:var(--ant-color-primary-text);opacity:.5}
+  .overview-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:36px}
+  .ov-card{background:var(--ant-color-bg-container);border:1px solid var(--ant-color-border);border-radius:12px;padding:18px 20px;transition:all .15s;cursor:default;position:relative;overflow:hidden}
+  .ov-card:hover{border-color:var(--ant-color-primary-border);background:var(--ant-color-bg-elevated);transform:translateY(-1px)}
+  .ov-card::after{content:"→";position:absolute;top:18px;right:18px;font-size:14px;color:var(--ant-color-text-quaternary);transition:all .15s}
+  .ov-card:hover::after{color:var(--ant-color-primary-text);transform:translateX(2px)}
+  .ov-card .ico{width:36px;height:36px;border-radius:9px;background:var(--ant-color-primary-bg);color:var(--ant-color-primary-text);display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:12px}
+  .ov-card h4{font-size:14px;font-weight:600;color:var(--ant-color-text);margin-bottom:4px}
+  .ov-card p{font-size:12px;color:var(--ant-color-text-secondary);line-height:1.5;margin-bottom:12px}
+  .ov-card .meta{font-size:11px;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace;padding-top:10px;border-top:1px solid var(--ant-color-border-secondary);display:flex;justify-content:space-between}
+  .ov-card .meta b{color:var(--ant-color-primary-text);font-weight:500}
+  .ft{grid-column:1/-1;background:var(--ant-color-bg-elevated);border-top:1px solid var(--ant-color-border);padding:0 16px;display:flex;align-items:center;font-size:11px;color:var(--ant-color-text-secondary)}
+  .ft .right{margin-left:auto}
+  .profile-strip{background:linear-gradient(135deg,#14b8a614,transparent);border:1px solid var(--ant-color-primary-border);border-radius:12px;padding:20px 24px;margin-bottom:32px;display:flex;align-items:center;gap:20px}
+  .profile-strip .av{width:64px;height:64px;border-radius:14px;background:linear-gradient(135deg,#14b8a6,#0d9488);color:#fff;font-size:22px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none}
+  .profile-strip .info{flex:1}
+  .profile-strip h2{font-size:20px;font-weight:600;color:var(--ant-color-text);margin-bottom:4px}
+  .profile-strip .meta{font-size:12px;color:var(--ant-color-text-secondary);font-family:ui-monospace,monospace;letter-spacing:.04em}
+  .profile-strip .badges{display:flex;gap:8px;margin-top:10px}
+  .badge-pill{padding:4px 10px;font-size:11px;background:var(--ant-color-primary-bg);color:var(--ant-color-primary-text);border-radius:999px;font-family:ui-monospace,monospace;letter-spacing:.04em}
+  .badge-pill.alt{background:var(--ant-color-bg-elevated);color:var(--ant-color-text-secondary);border:1px solid var(--ant-color-border)}
+  .profile-strip .right{display:flex;gap:8px}
+</style></head><body>
+<div class="app">
+  <div class="hd">
+    <div class="brand"><span class="dot"></span>XENICA</div>
+    <div style="color:var(--ant-color-text-tertiary)">· 设置</div>
+    <div class="right"><span>⌘,</span><div class="av" style="width:22px;height:22px;font-size:10px">XL</div></div>
+  </div>
+  <div class="sider">
+    <h3>账户</h3>
+    <div class="sider-item on"><span class="ico">◐</span>总览</div>
+    <div class="sider-item"><span class="ico">☻</span>个人资料</div>
+    <div class="sider-item"><span class="ico">⌬</span>订阅与计费<span class="badge">Pro</span></div>
+    <h3 style="margin-top:14px">外观</h3>
+    <div class="sider-item"><span class="ico">◑</span>主题</div>
+    <div class="sider-item"><span class="ico">⌗</span>字体与间距</div>
+    <div class="sider-item"><span class="ico">⌘</span>快捷键</div>
+    <h3 style="margin-top:14px">编辑器</h3>
+    <div class="sider-item"><span class="ico">▦</span>画布设置</div>
+    <div class="sider-item"><span class="ico">⌬</span>自动布局</div>
+    <div class="sider-item"><span class="ico">⤓</span>导入与导出</div>
+    <h3 style="margin-top:14px">数据</h3>
+    <div class="sider-item"><span class="ico">⇅</span>同步与备份</div>
+    <div class="sider-item"><span class="ico">⚠</span>危险操作</div>
+    <h3 style="margin-top:14px">其他</h3>
+    <div class="sider-item"><span class="ico">▦</span>扩展</div>
+    <div class="sider-item"><span class="ico">i</span>关于</div>
+  </div>
+  <div class="content">
+    <div class="content-head">
+      <div class="crumb">设置 · 账户</div>
+      <h1>总览</h1>
+      <p>所有偏好集中在一个地方。配置后会立即在所有工作区生效。</p>
+    </div>
+    <div class="profile-strip">
+      <div class="av">XL</div>
+      <div class="info">
+        <h2>谢凌</h2>
+        <div class="meta">[email protected] · 自 2024-08 加入 · 已使用 1,247 个工作区</div>
+        <div class="badges">
+          <span class="badge-pill">⌬ Pro · 团队版</span>
+          <span class="badge-pill alt">3 / 10 工作区</span>
+          <span class="badge-pill alt">β TestFlight 用户</span>
+        </div>
+      </div>
+      <div class="right">
+        <button class="btn btn-default">⌬ 升级</button>
+        <button class="btn btn-primary">⌘ 编辑资料</button>
+      </div>
+    </div>
+
+    <div class="sec-title">外观</div>
+    <div class="overview-grid">
+      <div class="ov-card"><div class="ico">◑</div><h4>主题</h4><p>暗色 · 渐变 teal · 跟随系统</p><div class="meta"><span>当前 <b>暗色</b></span><span>3 套可选</span></div></div>
+      <div class="ov-card"><div class="ico">⌗</div><h4>字体与间距</h4><p>Inter Display 14px · 行高 1.75</p><div class="meta"><span>字号 <b>14</b>px</span><span>行高 <b>1.75</b></span></div></div>
+      <div class="ov-card"><div class="ico">⌘</div><h4>快捷键</h4><p>全局命令 ⌘K · 自动布局 ⌘⇧L</p><div class="meta"><span>已配置 <b>24</b></span><span>默认 <b>30</b></span></div></div>
+    </div>
+
+    <div class="sec-title">编辑器</div>
+    <div class="overview-grid">
+      <div class="ov-card"><div class="ico">▦</div><h4>画布设置</h4><p>网格 · 缩略图 · 缩放范围</p><div class="meta"><span>缩放范围 <b>25% – 400%</b></span><span>网格 <b>40px</b></span></div></div>
+      <div class="ov-card"><div class="ico">⌬</div><h4>自动布局</h4><p>力导向 · 节点间距 120</p><div class="meta"><span>算法 <b>d3-force</b></span><span>迭代 <b>300 tick</b></span></div></div>
+      <div class="ov-card"><div class="ico">⤓</div><h4>导入与导出</h4><p>默认格式 Markdown / JSON</p><div class="meta"><span>格式 <b>2</b></span><span>预设 <b>3</b></span></div></div>
+    </div>
+
+    <div class="sec-title">数据</div>
+    <div class="overview-grid">
+      <div class="ov-card"><div class="ico">⇅</div><h4>同步与备份</h4><p>云端 · 每天 03:00 自动备份</p><div class="meta"><span>上次同步 <b>5 分钟前</b></span><span>存储 <b>312 MB</b></span></div></div>
+      <div class="ov-card"><div class="ico">▦</div><h4>扩展</h4><p>已安装 4 个 · 启用 3 个</p><div class="meta"><span>总数 <b>4</b></span><span>启用 <b>3</b></span></div></div>
+      <div class="ov-card"><div class="ico">i</div><h4>关于</h4><p>Xenica Atrium v2.4.1 · 2026-07</p><div class="meta"><span>版本 <b>2.4.1</b></span><span>build <b>20260717</b></span></div></div>
+    </div>
+  </div>
+  <div class="ft"><span>设置 · 总览</span><span class="right">⌘, 关闭</span></div>
+</div>
+</body></html>

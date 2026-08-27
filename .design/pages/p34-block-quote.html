@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>块编辑器 · 引用块 · Xenica</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#000;color:var(--ant-color-text);font-family:var(--ant-font-family);-webkit-font-smoothing:antialiased;min-height:100vh}
+  .stage{padding:60px;background:radial-gradient(circle at 50% 0%,#14b8a608 0%,transparent 60%);min-height:100vh;max-width:920px;margin:0 auto}
+  .eyebrow{font-family:ui-monospace,monospace;font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--ant-color-primary-text);margin-bottom:16px;display:flex;align-items:center;gap:10px}
+  .eyebrow .d{width:24px;height:1px;background:var(--ant-color-primary-text);opacity:.6}
+  h1{font-size:42px;font-weight:600;line-height:1.1;letter-spacing:-.01em;margin-bottom:14px}
+  p.lede{font-size:14px;color:var(--ant-color-text-secondary);line-height:1.7;margin-bottom:40px;max-width:680px}
+  .doc{background:var(--ant-color-bg-container);border:1px solid var(--ant-color-border);border-radius:14px;padding:48px 56px;box-shadow:0 30px 80px -30px #00000080}
+  .quote{padding:14px 0 14px 18px;border-left:3px solid var(--ant-color-primary);color:var(--ant-color-text-secondary);font-style:italic;margin:18px 0;font-size:15px;line-height:1.7}
+  .quote .body{font-size:16px}
+  .quote .author{margin-top:8px;font-size:12px;color:var(--ant-color-text-tertiary);font-style:normal;display:flex;align-items:center;gap:8px}
+  .quote .author::before{content:"";display:inline-block;width:14px;height:1px;background:var(--ant-color-text-quaternary)}
+  .quote .author .src{color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace}
+  .quote .author .src b{color:var(--ant-color-primary-text);font-weight:500}
+  .quote.nested{border-left-color:var(--xe-node-purple);margin-left:24px}
+  .quote.nested2{border-left-color:var(--xe-node-blue);margin-left:48px}
+  .callout{display:flex;gap:14px;padding:16px 20px;background:var(--ant-color-primary-bg);border:1px solid var(--ant-color-primary-border);border-radius:10px;margin:14px 0;color:var(--ant-color-text)}
+  .callout .ico{width:32px;height:32px;border-radius:8px;background:#14b8a620;color:var(--ant-color-primary-text);display:flex;align-items:center;justify-content:center;font-size:16px;flex:none}
+  .callout h5{font-size:13px;font-weight:600;color:var(--ant-color-primary-text);margin-bottom:6px;letter-spacing:.04em;text-transform:uppercase;font-family:ui-monospace,monospace}
+  .callout p{margin:0;font-size:14px;line-height:1.6;color:var(--ant-color-text)}
+  .callout.warn{background:#d8961420;border-color:#d8961440}
+  .callout.warn .ico{background:#d8961430;color:var(--ant-color-warning)}
+  .callout.warn h5{color:var(--ant-color-warning)}
+  .callout.error{background:#dc444620;border-color:#dc444440}
+  .callout.error .ico{background:#dc444630;color:var(--ant-color-error)}
+  .callout.error h5{color:var(--ant-color-error)}
+  .callout.info{background:#4096ff20;border-color:#4096ff40}
+  .callout.info .ico{background:#4096ff30;color:#4096ff}
+  .callout.info h5{color:#4096ff}
+  .callout.success{background:#49aa1920;border-color:#49aa1940}
+  .callout.success .ico{background:#49aa1930;color:#49aa19}
+  .callout.success h5{color:#49aa19}
+</style></head><body>
+<div class="stage">
+  <div class="eyebrow"><span class="d"></span>BLOCK · 引用块 + Callout</div>
+  <h1>引用块 · Callout 提示</h1>
+  <p class="lede">引用块用于标注来源或强调内容，支持嵌套与多级缩进。Callout 提供 5 种语义（info / success / warn / error / idea），用色块强化关键信息。</p>
+  <div class="doc">
+    <div class="quote">
+      <div class="body">"布局应当服务思考，而不是反过来。把控制权交给作者，把复杂性藏进算法。"</div>
+      <div class="author"><span class="src">来源：<b>ADR-003 · 设计原则</b> · 谢凌 · 2026-07-12</span></div>
+    </div>
+    <div class="quote nested">
+      <div class="body">"每个节点之间的边，必须有名字。"</div>
+      <div class="author"><span class="src"><b>设计原则 v3</b> · 章节 2.1</span></div>
+    </div>
+    <div class="quote nested2">
+      <div class="body">"Obsidian 让 tag 替作者做决定，Xenica 让作者自己决定。"</div>
+      <div class="author"><span class="src">调研笔记 · 2026-07-15</span></div>
+    </div>
+    <div class="divider" style="height:1px;background:var(--ant-color-border);margin:32px 0"></div>
+    <h3 style="font-size:18px;font-weight:600;margin-bottom:14px">Callout · 5 种语义</h3>
+    <div class="callout">
+      <div class="ico">✦</div>
+      <div><h5>INFO · 默认</h5><p>Antd 6 的 darkAlgorithm 推荐使用 token.brandColor 注入品牌色，避免破坏整体观感。</p></div>
+    </div>
+    <div class="callout success">
+      <div class="ico">✓</div>
+      <div><h5>SUCCESS · 已完成</h5><p>v5.0.0 设计系统已锁定：Antd 6 + darkAlgorithm + 自定义 token 注入。</p></div>
+    </div>
+    <div class="callout warn">
+      <div class="ico">!</div>
+      <div><h5>WARNING · 注意</h5><p>节点视图不是 Obsidian 风格。引用 Obsidian 用法（如 [[tag]]）会导致结构混乱。</p></div>
+    </div>
+    <div class="callout error">
+      <div class="ico">⊘</div>
+      <div><h5>ERROR · 错误</h5><p>已废弃：从 v6.0.0 起不再支持 Obsidian 导入，请使用 Markdown / Notion 导入路径。</p></div>
+    </div>
+  </div>
+</div>
+</body></html>

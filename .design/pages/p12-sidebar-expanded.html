@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>侧栏 · 展开文字态 · Xenica</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#000;color:var(--ant-color-text);font-family:var(--ant-font-family);-webkit-font-smoothing:antialiased;height:100vh;overflow:hidden}
+  .app{height:100vh;display:grid;grid-template-columns:240px 1fr;grid-template-rows:48px 1fr}
+  .hd{grid-column:1/-1;background:var(--ant-color-bg-elevated);border-bottom:1px solid var(--ant-color-border);display:flex;align-items:center;padding:0 16px;gap:14px}
+  .brand{font-weight:700;font-size:13px;letter-spacing:.14em;color:var(--ant-color-primary-text);display:flex;align-items:center;gap:8px}
+  .brand .dot{width:6px;height:6px;border-radius:50%;background:var(--ant-color-primary);box-shadow:0 0 6px var(--ant-color-primary)}
+  .crumb{font-size:12px;color:var(--ant-color-text-secondary)}
+  .crumb b{color:var(--ant-color-text);font-weight:500}
+  .hd-right{margin-left:auto;display:flex;gap:10px;align-items:center}
+  .ico{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--ant-color-text-secondary);font-size:13px}
+  .ico:hover{background:var(--ant-color-fill-secondary);color:var(--ant-color-text)}
+  .av{width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#14b8a6,#0d9488);display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:600}
+  .sb{background:var(--ant-color-bg-base);border-right:1px solid var(--ant-color-border);padding:12px 0;display:flex;flex-direction:column;overflow:auto}
+  .sb-head{display:flex;align-items:center;justify-content:space-between;padding:6px 16px 10px}
+  .sb-head .ttl{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--ant-color-text-tertiary);font-family:'JetBrains Mono',ui-monospace,monospace}
+  .sb-head .act{font-size:14px;color:var(--ant-color-text-secondary)}
+  .search{margin:0 12px 12px;padding:7px 10px;background:var(--ant-color-bg-container);border:1px solid var(--ant-color-border);border-radius:6px;font-size:12.5px;color:var(--ant-color-text-tertiary);display:flex;align-items:center;gap:8px}
+  .search input{flex:1;background:transparent;border:none;outline:none;color:var(--ant-color-text);font-family:inherit;font-size:12.5px}
+  .search .k{padding:1px 5px;background:var(--ant-color-fill-secondary);border-radius:3px;font-size:9.5px;font-family:'JetBrains Mono',ui-monospace,monospace;color:var(--ant-color-text-tertiary)}
+  .grp{padding:0 0 6px}
+  .grp-head{display:flex;align-items:center;justify-content:space-between;padding:8px 16px 4px;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--ant-color-text-tertiary);font-family:'JetBrains Mono',ui-monospace,monospace}
+  .grp-head .arr{font-size:9px;color:var(--ant-color-text-quaternary)}
+  .item{display:flex;align-items:center;gap:10px;padding:7px 16px;font-size:13px;color:var(--ant-color-text-secondary);cursor:default;border-left:2px solid transparent}
+  .item:hover{background:var(--ant-color-fill-secondary);color:var(--ant-color-text)}
+  .item.on{background:var(--ant-color-primary-bg);color:var(--ant-color-primary-text);border-left-color:var(--ant-color-primary)}
+  .item .glyph{width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--ant-color-text-tertiary);background:var(--ant-color-fill-secondary);flex:none}
+  .item.on .glyph{background:var(--ant-color-primary);color:#fff}
+  .item .cnt{margin-left:auto;font-size:11px;color:var(--ant-color-text-tertiary);font-variant-numeric:tabular-nums}
+  .item.on .cnt{color:var(--ant-color-primary-text);opacity:.7}
+  .tree{margin-left:18px;border-left:1px solid var(--ant-color-border)}
+  .tree .item{padding-left:14px}
+  .tree .indent{width:8px;display:inline-block}
+  .body{background:var(--ant-color-bg-layout);position:relative;overflow:hidden}
+  .body::before{content:"";position:absolute;inset:0;background-image:var(--xe-bg-grid);background-size:48px 48px;opacity:.35}
+  .body::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 30% 40%,#14b8a614 0%,transparent 60%)}
+  .hint{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--ant-color-bg-elevated);border:1px solid var(--ant-color-border);border-radius:10px;padding:14px 18px;display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--ant-color-text-secondary);box-shadow:var(--xe-shadow-2);z-index:2}
+  .hint .kbd{padding:1px 7px;background:var(--ant-color-fill-secondary);border:1px solid var(--ant-color-border);border-radius:3px;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:10.5px;color:var(--ant-color-text)}
+  .node{position:absolute;background:var(--ant-color-bg-elevated);border:1px solid var(--ant-color-border);border-radius:10px;padding:12px 16px;min-width:180px;box-shadow:var(--xe-shadow-2);z-index:1}
+  .node.on{border-color:var(--ant-color-primary);box-shadow:0 0 0 2px var(--ant-color-primary-bg),var(--xe-shadow-3)}
+  .node h5{font-size:12.5px;font-weight:600;margin-bottom:3px}
+  .node p{font-size:10.5px;color:var(--ant-color-text-tertiary);line-height:1.4}
+</style></head><body>
+<div class="app">
+  <div class="hd">
+    <div class="brand"><span class="dot"></span>XENICA</div>
+    <div class="crumb">工作区 <span style="color:var(--ant-color-text-quaternary);margin:0 4px">/</span> 节点画布</div>
+    <div class="hd-right"><div class="ico">⌕</div><div class="ico">🔔</div><div class="ico">⚙</div><div class="av">XL</div></div>
+  </div>
+  <div class="sb">
+    <div class="sb-head">
+      <span class="ttl">工作区</span>
+      <span class="act">+</span>
+    </div>
+    <div class="search"><span style="color:var(--ant-color-text-tertiary)">⌕</span><input placeholder="搜索节点、标签或引用…"><span class="k">⌘F</span></div>
+    <div class="grp">
+      <div class="grp-head"><span>收藏</span><span class="arr">▾</span></div>
+      <div class="item on"><span class="glyph">◉</span>节点画布<span class="cnt">128</span></div>
+      <div class="item"><span class="glyph">▤</span>每日日记<span class="cnt">31</span></div>
+      <div class="item"><span class="glyph">⌗</span>研究项目<span class="cnt">17</span></div>
+      <div class="item"><span class="glyph">📐</span>设计原则<span class="cnt">4</span></div>
+    </div>
+    <div class="grp">
+      <div class="grp-head"><span>私人</span><span class="arr">▾</span></div>
+      <div class="item"><span class="glyph">✎</span>草稿<span class="cnt">2</span></div>
+      <div class="item"><span class="glyph">⊟</span>归档<span class="cnt">12</span></div>
+    </div>
+    <div class="grp">
+      <div class="grp-head"><span>数据库</span><span class="arr">▾</span></div>
+      <div class="item"><span class="glyph">▦</span>阅读清单<span class="cnt">68</span></div>
+      <div class="item"><span class="glyph">⌬</span>项目看板<span class="cnt">5</span></div>
+    </div>
+    <div class="grp">
+      <div class="grp-head"><span>树形目录 · 节点画布</span><span class="arr">▾</span></div>
+      <div class="tree">
+        <div class="item"><span class="glyph" style="background:transparent">▾</span>2026 年</div>
+        <div class="tree">
+          <div class="item"><span class="glyph" style="background:transparent">▾</span>07 月</div>
+          <div class="tree">
+            <div class="item on"><span class="glyph">◉</span>设计原则 v3</div>
+            <div class="item"><span class="glyph">▤</span>晨间笔记</div>
+            <div class="item"><span class="glyph">⊟</span>本周回顾</div>
+            <div class="item"><span class="glyph">▦</span>ADR 序列</div>
+          </div>
+        </div>
+        <div class="item"><span class="glyph" style="background:transparent">▸</span>2025 年</div>
+        <div class="item"><span class="glyph" style="background:transparent">▸</span>2024 年</div>
+      </div>
+    </div>
+  </div>
+  <div class="body">
+    <div class="node" style="left:200px;top:160px"><h5>晨间笔记</h5><p>今日待办</p></div>
+    <div class="node on" style="left:440px;top:160px"><h5>设计原则 v3</h5><p>正在编辑</p></div>
+    <div class="node" style="left:680px;top:160px"><h5>Antd 6 适配</h5><p>已完成</p></div>
+    <div class="node" style="left:320px;top:340px"><h5>本周回顾</h5><p>Week 29</p></div>
+    <div class="node" style="left:560px;top:340px"><h5>节点画布 ADR</h5><p>v3 待审</p></div>
+    <div class="hint"><span>已选中</span><b style="color:var(--ant-color-text)">设计原则 v3</b><span>·</span><span class="kbd">⌘ \\</span><span>折叠侧栏</span></div>
+  </div>
+</div>
+</body></html>

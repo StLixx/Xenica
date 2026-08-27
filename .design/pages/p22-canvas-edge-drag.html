@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>画布 · 拖拽连线态 · Xenica</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#000;color:var(--ant-color-text);font-family:var(--ant-font-family);-webkit-font-smoothing:antialiased;height:100vh;overflow:hidden}
+  .app{height:100vh;display:grid;grid-template-rows:36px 1fr 28px}
+  .hd{background:var(--ant-color-bg-elevated);border-bottom:1px solid var(--ant-color-border);padding:0 16px;display:flex;align-items:center;gap:12px;font-size:12px}
+  .hd .brand{font-weight:700;letter-spacing:.14em}
+  .hd .brand .dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--ant-color-primary);box-shadow:0 0 6px var(--ant-color-primary);margin-right:8px;vertical-align:middle}
+  .hd .right{margin-left:auto;display:flex;align-items:center;gap:10px;font-size:11px;color:var(--ant-color-text-tertiary)}
+  .mid{background:var(--ant-color-bg-layout);position:relative;overflow:hidden}
+  .canvas-bg{position:absolute;inset:0;background-image:var(--xe-bg-grid);background-size:40px 40px;opacity:.4}
+  .node{position:absolute;background:var(--ant-color-bg-elevated);border:1px solid var(--ant-color-border);border-radius:10px;padding:12px 16px;min-width:160px;font-size:13px;box-shadow:0 4px 12px #00000060}
+  .node h4{font-size:13px;font-weight:600;margin-bottom:2px}
+  .node .meta{font-size:10px;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace}
+  .node.source{border-color:var(--ant-color-primary);box-shadow:0 0 0 2px var(--ant-color-primary-bg)}
+  .port{position:absolute;width:10px;height:10px;border-radius:50%;background:var(--ant-color-bg-elevated);border:2px solid var(--ant-color-border)}
+  .port.right{right:-5px;top:50%;transform:translateY(-50%)}
+  .port.left{left:-5px;top:50%;transform:translateY(-50%)}
+  .port.top{top:-5px;left:50%;transform:translateX(-50%)}
+  .port.bottom{bottom:-5px;left:50%;transform:translateX(-50%)}
+  .node.source .port.right{border-color:var(--ant-color-primary);background:var(--ant-color-primary);box-shadow:0 0 12px var(--ant-color-primary)}
+  .target-hint{position:absolute;left:860px;top:340px;width:200px;border:2px dashed var(--ant-color-primary);background:#14b8a614;border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--ant-color-primary-text);font-size:13px;padding:20px;animation:targetPulse 1.2s ease-in-out infinite}
+  @keyframes targetPulse{0%,100%{box-shadow:0 0 0 0 #14b8a640}50%{box-shadow:0 0 0 8px #14b8a600}}
+  .relation-menu{position:absolute;left:660px;top:240px;background:var(--ant-color-bg-elevated);border:1px solid var(--ant-color-border);border-radius:10px;padding:8px;box-shadow:0 12px 30px #00000080;display:flex;flex-direction:column;gap:4px;z-index:20;min-width:180px}
+  .rel-title{padding:6px 10px;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace}
+  .rel-item{padding:8px 10px;font-size:12.5px;color:var(--ant-color-text-secondary);border-radius:6px;cursor:default;display:flex;align-items:center;gap:10px}
+  .rel-item:hover{background:var(--ant-color-fill-secondary);color:var(--ant-color-text)}
+  .rel-item .ico{width:18px;height:18px;border-radius:4px;background:var(--ant-color-fill-secondary);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--ant-color-primary-text)}
+  .rel-item .arrow{margin-left:auto;color:var(--ant-color-text-tertiary);font-size:10px}
+  .hud{position:absolute;top:14px;left:50%;transform:translateX(-50%);background:var(--ant-color-bg-elevated);border:1px solid var(--ant-color-primary-border);border-radius:999px;padding:8px 16px;font-size:12px;color:var(--ant-color-text);box-shadow:0 8px 24px #00000080;display:flex;align-items:center;gap:10px;z-index:10}
+  .hud .ico{color:var(--ant-color-primary);font-size:14px}
+  .hud .esc{font-size:10px;color:var(--ant-color-text-tertiary);background:var(--ant-color-fill-secondary);padding:2px 5px;border-radius:3px;font-family:ui-monospace,monospace}
+  .ft{background:var(--ant-color-bg-elevated);border-top:1px solid var(--ant-color-border);padding:0 16px;display:flex;align-items:center;font-size:11px;color:var(--ant-color-text-secondary)}
+  .ft .right{margin-left:auto}
+  .ft .on{color:var(--ant-color-primary-text);font-weight:500}
+</style></head><body>
+<div class="app">
+  <div class="hd">
+    <div class="brand"><span class="dot"></span>XENICA</div>
+    <div class="crumbs">· 工作区 · <b>节点画布</b> · 拖拽连线</div>
+    <div class="right"><span class="on">↔ 正在建立连接</span><span class="esc">ESC 取消</span><div class="av" style="width:22px;height:22px;font-size:10px">XL</div></div>
+  </div>
+  <div class="mid">
+    <div class="canvas-bg"></div>
+    <svg style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none">
+      <path d="M 360 200 Q 480 220 560 280" stroke="#14b8a6" stroke-width="2" stroke-dasharray="6,4" fill="none">
+        <animate attributeName="stroke-dashoffset" values="0;-20" dur="1s" repeatCount="indefinite"/>
+      </path>
+    </svg>
+    <div class="node source" style="left:200px;top:160px">
+      <div class="port right"></div>
+      <h4>晨间笔记</h4>
+      <div class="meta">日记 · 源节点</div>
+    </div>
+    <div class="node" style="left:380px;top:140px">
+      <div class="port top"></div>
+      <div class="port right"></div>
+      <h4>本周目标</h4>
+      <div class="meta">任务</div>
+    </div>
+    <div class="node" style="left:380px;top:300px">
+      <div class="port left"></div>
+      <div class="port top"></div>
+      <h4>设计原则 v3</h4>
+      <div class="meta">核心</div>
+    </div>
+    <div class="target-hint">+ 释放以连接</div>
+    <div class="relation-menu">
+      <div class="rel-title">关系类型</div>
+      <div class="rel-item"><span class="ico">↔</span>引用<span class="arrow">↵</span></div>
+      <div class="rel-item"><span class="ico">⊕</span>从属</div>
+      <div class="rel-item"><span class="ico">⇌</span>对比</div>
+      <div class="rel-item"><span class="ico">⊗</span>反驳</div>
+      <div class="rel-item"><span class="ico">⌬</span>演化</div>
+    </div>
+    <div class="hud"><span class="ico">↔</span>从源节点拖动连接到目标 · 释放后选择关系类型</div>
+  </div>
+  <div class="ft"><span class="on">↔ 拖拽连线中</span><span>·</span><span>源：晨间笔记 → 目标：设计原则 v3</span><span class="right">ESC 取消 · ↵ 选择「引用」</span></div>
+</div>
+</body></html>

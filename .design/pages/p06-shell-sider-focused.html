@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>主框架 · 专注模式（双栏收起）· Xenica</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#000;color:var(--ant-color-text);font-family:var(--ant-font-family);-webkit-font-smoothing:antialiased;height:100vh;overflow:hidden}
+  .app{height:100vh;display:grid;grid-template-rows:36px 1fr 28px;grid-template-columns:1fr}
+  .hd{background:var(--ant-color-bg-elevated);border-bottom:1px solid var(--ant-color-border);display:flex;align-items:center;padding:0 16px;gap:12px;font-size:12px}
+  .hd .brand{font-weight:700;letter-spacing:.14em}
+  .hd .brand .dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--ant-color-primary);box-shadow:0 0 6px var(--ant-color-primary);margin-right:8px;vertical-align:middle}
+  .hd .crumbs{color:var(--ant-color-text-secondary)}
+  .hd .crumbs b{color:var(--ant-color-text);font-weight:500}
+  .hd .right{margin-left:auto;display:flex;align-items:center;gap:10px}
+  .hd .ico{width:24px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:5px;color:var(--ant-color-text-secondary);font-size:13px;cursor:default}
+  .hd .ico:hover{background:var(--ant-color-fill-secondary)}
+  .hd .focus-badge{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;background:var(--ant-color-primary-bg);color:var(--ant-color-primary-text);font-size:11px;letter-spacing:.08em}
+  .hd .focus-badge i{width:6px;height:6px;border-radius:50%;background:var(--ant-color-primary);box-shadow:0 0 6px var(--ant-color-primary)}
+  .mid{background:var(--ant-color-bg-layout);position:relative;overflow:hidden}
+  .canvas-bg{position:absolute;inset:0;background-image:var(--xe-bg-grid);background-size:48px 48px;opacity:.4}
+  .center-stage{display:flex;align-items:center;justify-content:center;height:100%}
+  .card-stack{position:relative;width:680px}
+  .card{background:var(--ant-color-bg-elevated);border:1px solid var(--ant-color-border);border-radius:14px;padding:36px 44px;box-shadow:0 30px 80px -20px #00000080;position:relative}
+  .card::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--ant-color-primary),transparent);border-radius:14px 14px 0 0}
+  .card-meta{display:flex;justify-content:space-between;align-items:center;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--ant-color-text-tertiary);margin-bottom:14px;font-family:ui-monospace,monospace}
+  .card-meta .dot{width:6px;height:6px;border-radius:50%;background:var(--ant-color-success);box-shadow:0 0 6px var(--ant-color-success);display:inline-block;margin-right:8px;vertical-align:middle}
+  .card h1{font-size:36px;font-weight:600;line-height:1.15;letter-spacing:-.01em;margin-bottom:18px;color:var(--ant-color-text)}
+  .card p{font-size:15px;line-height:1.7;color:var(--ant-color-text-secondary);margin-bottom:14px}
+  .card-tags{display:flex;gap:8px;margin-top:20px}
+  .nav-hint{position:absolute;left:50%;transform:translateX(-50%);bottom:80px;display:flex;gap:8px;font-size:11px;color:var(--ant-color-text-tertiary)}
+  .nav-hint .kbd{padding:3px 8px;background:var(--ant-color-fill-secondary);border-radius:4px;font-family:ui-monospace,monospace;color:var(--ant-color-text-secondary)}
+  .ft{background:var(--ant-color-bg-elevated);border-top:1px solid var(--ant-color-border);padding:0 16px;display:flex;align-items:center;font-size:11px;color:var(--ant-color-text-secondary);gap:12px}
+  .ft .progress{flex:1;height:2px;background:var(--ant-color-fill-tertiary);border-radius:2px;position:relative;max-width:300px}
+  .ft .progress>i{position:absolute;left:0;top:0;bottom:0;width:38%;background:var(--ant-color-primary);border-radius:2px}
+  .ft .right{margin-left:auto;display:flex;gap:10px;align-items:center}
+</style></head><body>
+<div class="app">
+  <div class="hd">
+    <div class="brand"><span class="dot"></span>XENICA</div>
+    <div class="crumbs">· <b>专注模式</b></div>
+    <div class="right">
+      <span class="focus-badge"><i></i>FOCUS</span>
+      <span class="ico" title="退出专注">⤢</span>
+      <span class="ico">⌘K</span>
+      <div class="av" style="width:22px;height:22px;font-size:10px">XL</div>
+    </div>
+  </div>
+  <div class="mid">
+    <div class="canvas-bg"></div>
+    <div class="center-stage">
+      <div class="card">
+        <div class="card-meta"><span><span class="dot"></span>设计原则 v3</span><span>3 / 8</span></div>
+        <h1>节点画布不是 Obsidian 风格</h1>
+        <p>Xenica 的核心场景是思考与编辑，而非文献管理。节点之间是 <b style="color:var(--ant-color-text)">关系的建立</b>，不是 tag 的堆叠。</p>
+        <p>自动布局算法接管排版，让作者专注于内容本身。这与 Godot 编辑器、Blender 节点编辑器共享同一思想。</p>
+        <p>每条连接承载语义（参考、引用、对比、反驳），而非仅仅是导航。</p>
+        <div class="card-tags">
+          <span class="tag tag-primary">原则</span>
+          <span class="tag tag-default">v3</span>
+          <span class="tag tag-success">已校对</span>
+        </div>
+      </div>
+    </div>
+    <div class="nav-hint">
+      <span><span class="kbd">←</span> 上一节</span>
+      <span><span class="kbd">→</span> 下一节</span>
+      <span><span class="kbd">ESC</span> 退出</span>
+    </div>
+  </div>
+  <div class="ft">
+    <span>设计原则 v3</span>
+    <span>·</span>
+    <span>3 / 8</span>
+    <span class="progress"><i></i></span>
+    <span>~ 4 分钟阅读</span>
+    <span class="right">
+      <span>⌘\\ 切换侧栏</span>
+      <span>·</span>
+      <span>布局 · 单页</span>
+    </span>
+  </div>
+</div>
+</body></html>

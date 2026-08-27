@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>主框架 · 左侧栏折叠 · Xenica</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#000;color:var(--ant-color-text);font-family:var(--ant-font-family);-webkit-font-smoothing:antialiased;height:100vh;overflow:hidden}
+  .app{height:100vh;display:grid;grid-template-rows:48px 1fr 28px;grid-template-columns:64px 1fr 360px}
+  .hd{grid-column:1/-1;background:var(--ant-color-bg-elevated);border-bottom:1px solid var(--ant-color-border);display:flex;align-items:center;padding:0 16px;gap:14px}
+  .brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:13px;letter-spacing:.14em;color:var(--ant-color-primary-text)}
+  .brand .dot{width:6px;height:6px;border-radius:50%;background:var(--ant-color-primary);box-shadow:0 0 6px var(--ant-color-primary)}
+  .crumbs{font-size:12px;color:var(--ant-color-text-secondary);display:flex;align-items:center;gap:6px}
+  .crumbs b{color:var(--ant-color-text);font-weight:500}
+  .crumbs .sep{color:var(--ant-color-text-quaternary)}
+  .hd-right{margin-left:auto;display:flex;align-items:center;gap:14px}
+  .sb{background:var(--ant-color-bg-base);border-right:1px solid var(--ant-color-border);padding:10px 0;display:flex;flex-direction:column;align-items:center;gap:6px}
+  .sb-ico{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--ant-color-text-secondary);cursor:default;position:relative;transition:all .15s}
+  .sb-ico:hover{background:var(--ant-color-fill-secondary);color:var(--ant-color-text)}
+  .sb-ico.on{background:var(--ant-color-primary-bg);color:var(--ant-color-primary-text);box-shadow:inset 0 0 0 1px var(--ant-color-primary-border)}
+  .sb-ico .tip{position:absolute;left:calc(100% + 12px);top:50%;transform:translateY(-50%);background:var(--ant-color-bg-elevated);border:1px solid var(--ant-color-border);color:var(--ant-color-text);padding:4px 8px;font-size:12px;border-radius:4px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .12s;box-shadow:var(--xe-shadow-2);z-index:10}
+  .sb-ico:hover .tip{opacity:1}
+  .sb-ico .kbd{position:absolute;bottom:2px;right:2px;font-size:8px;color:var(--ant-color-text-tertiary);font-family:'JetBrains Mono',ui-monospace,monospace}
+  .sb-div{width:28px;height:1px;background:var(--ant-color-border);margin:4px 0}
+  .mid{background:var(--ant-color-bg-layout);position:relative;overflow:hidden}
+  .canvas-bg{position:absolute;inset:0;background-image:var(--xe-bg-grid);background-size:40px 40px;opacity:.5}
+  .canvas-glow{position:absolute;inset:0;background:radial-gradient(circle at 40% 50%,#14b8a614 0%,transparent 55%)}
+  .node{position:absolute;background:var(--ant-color-bg-elevated);border:1px solid var(--ant-color-border);border-radius:10px;padding:12px 16px;min-width:200px;box-shadow:var(--xe-shadow-2)}
+  .node.selected{border-color:var(--ant-color-primary);box-shadow:0 0 0 2px var(--ant-color-primary-bg),var(--xe-shadow-3)}
+  .node h4{font-size:13px;font-weight:600;margin-bottom:4px}
+  .node p{font-size:11px;color:var(--ant-color-text-secondary);line-height:1.4}
+  .meta-line{margin-top:6px;display:flex;gap:4px;align-items:center}
+  .vtool{position:absolute;left:14px;top:50%;transform:translateY(-50%);background:var(--ant-color-bg-elevated);border:1px solid var(--ant-color-border);border-radius:8px;padding:4px;display:flex;flex-direction:column;gap:2px;box-shadow:var(--xe-shadow-3)}
+  .vb{width:28px;height:28px;border-radius:5px;display:flex;align-items:center;justify-content:center;color:var(--ant-color-text-secondary);font-size:13px;cursor:default}
+  .vb.on{background:var(--ant-color-primary-bg);color:var(--ant-color-primary-text)}
+  .vb:hover{background:var(--ant-color-fill-secondary)}
+  .r{background:var(--ant-color-bg-container);border-left:1px solid var(--ant-color-border);display:flex;flex-direction:column;overflow:hidden}
+  .r-tabs{display:flex;background:var(--ant-color-bg-elevated);border-bottom:1px solid var(--ant-color-border);padding:0 16px}
+  .r-tab{padding:10px 14px;font-size:12px;color:var(--ant-color-text-secondary);border-bottom:2px solid transparent}
+  .r-tab.on{color:var(--ant-color-primary-text);border-bottom-color:var(--ant-color-primary)}
+  .r-body{flex:1;overflow:auto;padding:16px}
+  .r-card{background:var(--ant-color-bg-elevated);border:1px solid var(--ant-color-border-secondary);border-radius:10px;padding:14px;margin-bottom:12px}
+  .r-card h4{font-size:13px;font-weight:600;margin-bottom:4px}
+  .ft{grid-column:1/-1;background:var(--ant-color-bg-elevated);border-top:1px solid var(--ant-color-border);display:flex;align-items:center;padding:0 16px;gap:12px;font-size:11px;color:var(--ant-color-text-secondary)}
+  .ft .right{margin-left:auto;display:flex;gap:14px;align-items:center}
+  .ft .kbd{padding:0 6px;background:var(--ant-color-fill-secondary);border-radius:3px;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:10px;color:var(--ant-color-text)}
+  .label{position:absolute;left:76px;bottom:60px;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--ant-color-text-tertiary);font-family:'JetBrains Mono',ui-monospace,monospace;writing-mode:vertical-rl;transform:rotate(180deg)}
+</style></head><body>
+<div class="app">
+  <div class="hd">
+    <div class="brand"><span class="dot"></span>XENICA</div>
+    <div class="sb-ico" style="width:28px;height:28px;border-radius:6px;background:var(--ant-color-fill-secondary);color:var(--ant-color-text)">≡<span class="tip" style="left:calc(100% + 8px);top:50%;font-size:11px">展开侧栏 ⌘\\</span></div>
+    <div class="crumbs">工作区 <span class="sep">/</span> <span>节点画布</span> <span class="sep">/</span> <b>设计原则 v3</b></div>
+    <div class="hd-right">
+      <span style="font-size:11px;color:var(--ant-color-success);display:flex;align-items:center;gap:6px"><span style="width:6px;height:6px;border-radius:50%;background:var(--ant-color-success);box-shadow:0 0 6px var(--ant-color-success)"></span>已同步</span>
+      <span style="padding:2px 8px;background:var(--ant-color-fill-secondary);border-radius:4px;font-size:11px;color:var(--ant-color-text-tertiary);font-family:'JetBrains Mono',ui-monospace,monospace">⌘K</span>
+      <div class="av" style="width:24px;height:24px;font-size:10px">XL</div>
+    </div>
+  </div>
+  <div class="sb">
+    <div class="sb-ico on">◉<span class="tip">节点画布 · ⌘1</span></div>
+    <div class="sb-ico">▤<span class="tip">每日日记 · ⌘2</span></div>
+    <div class="sb-ico">⌗<span class="tip">研究项目 · ⌘3</span></div>
+    <div class="sb-ico">▦<span class="tip">阅读清单 · ⌘4</span></div>
+    <div class="sb-ico">⊟<span class="tip">归档 · ⌘5</span></div>
+    <div class="sb-div"></div>
+    <div class="sb-ico">⌕<span class="tip">搜索 · ⌘F</span></div>
+    <div class="sb-ico">✎<span class="tip">新建节点 · N</span></div>
+    <div class="sb-ico">⚙<span class="tip">设置 · ⌘,</span></div>
+    <div class="label">64 PX · COLLAPSED</div>
+  </div>
+  <div class="mid">
+    <div class="canvas-bg"></div>
+    <div class="canvas-glow"></div>
+    <svg style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none">
+      <path d="M 240 280 Q 380 220 520 280" stroke="#ffffff40" stroke-width="1.5" fill="none" stroke-dasharray="4,4"/>
+      <path d="M 520 280 Q 640 360 700 480" stroke="#14b8a6" stroke-width="2" fill="none"/>
+      <path d="M 240 280 Q 200 380 220 480" stroke="#ffffff40" stroke-width="1.5" fill="none"/>
+      <path d="M 700 480 Q 600 540 480 480" stroke="#ffffff40" stroke-width="1.5" fill="none"/>
+    </svg>
+    <div class="node" style="left:140px;top:240px">
+      <h4>晨间笔记</h4>
+      <p>今日：节点画布 v2 设计稿</p>
+      <div class="meta-line"><span style="width:6px;height:6px;border-radius:50%;background:var(--xe-node-default)"></span><span style="font-size:10px;color:var(--ant-color-text-tertiary)">默认</span></div>
+    </div>
+    <div class="node selected" style="left:420px;top:240px">
+      <h4>设计原则 v3</h4>
+      <p>自动布局 + 编辑体验优先</p>
+      <div class="meta-line"><span style="width:6px;height:6px;border-radius:50%;background:var(--xe-node-yellow)"></span><span style="font-size:10px;color:var(--ant-color-text-tertiary)">黄 · 选中</span></div>
+    </div>
+    <div class="node" style="left:600px;top:440px">
+      <h4>Antd 6 适配</h4>
+      <p>darkAlgorithm + teal 品牌</p>
+      <div class="meta-line"><span style="width:6px;height:6px;border-radius:50%;background:var(--ant-color-success)"></span><span style="font-size:10px;color:var(--ant-color-text-tertiary)">已完成</span></div>
+    </div>
+    <div class="vtool">
+      <div class="vb on">✥</div><div class="vb">↕</div><div class="vb">⌖</div>
+      <div style="height:1px;background:var(--ant-color-border);margin:2px 4px"></div>
+      <div class="vb">⊕</div><div class="vb">⊟</div><div class="vb">✎</div>
+    </div>
+  </div>
+  <div class="r">
+    <div class="r-tabs">
+      <div class="r-tab on">属性</div><div class="r-tab">评论</div><div class="r-tab">历史</div><div class="r-tab">引用</div>
+    </div>
+    <div class="r-body">
+      <div class="r-card">
+        <h4>设计原则 v3</h4>
+        <div style="font-size:11px;color:var(--ant-color-text-tertiary);margin-top:2px">已选中 · 1 个节点</div>
+        <div style="display:grid;grid-template-columns:60px 1fr;row-gap:6px;column-gap:10px;font-size:11px;margin-top:10px">
+          <span style="color:var(--ant-color-text-tertiary)">类型</span><span>文档</span>
+          <span style="color:var(--ant-color-text-tertiary)">作者</span><span>XL · 我</span>
+          <span style="color:var(--ant-color-text-tertiary)">修改</span><span>5 分钟前</span>
+          <span style="color:var(--ant-color-text-tertiary)">连接</span><span>3 入 · 2 出</span>
+        </div>
+      </div>
+      <div class="r-card">
+        <h4>视图切换提示</h4>
+        <div style="font-size:11px;color:var(--ant-color-text-secondary);margin-top:8px;line-height:1.5">按 <span class="kbd" style="padding:0 6px;background:var(--ant-color-fill-secondary);border-radius:3px;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:10px">⌘ \\</span> 展开左侧栏</div>
+      </div>
+    </div>
+  </div>
+  <div class="ft">
+    <span style="width:22px;height:22px;border-radius:4px;display:inline-flex;align-items:center;justify-content:center">⚙</span>
+    <span>8 个节点</span><span>·</span><span>5 条连接</span><span>·</span><span>侧栏 <b style="color:var(--ant-color-text);margin:0 4px">已折叠</b></span>
+    <div class="right">
+      <span><span class="kbd">⌘</span><span class="kbd">S</span> 保存</span>
+      <span><span class="kbd">⌘</span><span class="kbd">Z</span> 撤销</span>
+    </div>
+  </div>
+</div>
+</body></html>

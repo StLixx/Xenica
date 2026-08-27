@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>块编辑器 · 块类型总览 · Xenica</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#000;color:var(--ant-color-text);font-family:var(--ant-font-family);-webkit-font-smoothing:antialiased;min-height:100vh}
+  .stage{padding:60px;background:radial-gradient(circle at 50% 0%,#14b8a608 0%,transparent 60%);min-height:100vh;max-width:920px;margin:0 auto}
+  .eyebrow{font-family:ui-monospace,monospace;font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--ant-color-primary-text);margin-bottom:16px;display:flex;align-items:center;gap:10px}
+  .eyebrow .d{width:24px;height:1px;background:var(--ant-color-primary-text);opacity:.6}
+  h1{font-size:42px;font-weight:600;line-height:1.1;letter-spacing:-.01em;margin-bottom:14px}
+  p.lede{font-size:14px;color:var(--ant-color-text-secondary);line-height:1.7;margin-bottom:40px;max-width:680px}
+  .doc{background:var(--ant-color-bg-container);border:1px solid var(--ant-color-border);border-radius:14px;padding:48px 56px;box-shadow:0 30px 80px -30px #00000080}
+  .block{padding:10px 0;font-size:15px;line-height:1.75;color:var(--ant-color-text)}
+  .block-h1{font-size:32px;font-weight:700;letter-spacing:-.01em;line-height:1.15;margin:18px 0 10px}
+  .block-h2{font-size:24px;font-weight:600;line-height:1.2;margin:16px 0 8px}
+  .block-h3{font-size:18px;font-weight:600;line-height:1.25;margin:14px 0 6px}
+  .block-h1 .anchor{font-size:14px;color:var(--ant-color-text-tertiary);margin-left:8px;opacity:0}
+  .block-h1:hover .anchor{opacity:1}
+  .block-text{font-size:15px}
+  .block-text strong{color:var(--ant-color-text);font-weight:600}
+  .block-text em{color:var(--ant-color-primary-text);font-style:italic}
+  .block-text code{font-family:ui-monospace,monospace;font-size:13px;padding:2px 6px;background:var(--ant-color-bg-elevated);border:1px solid var(--ant-color-border);border-radius:4px;color:var(--ant-color-primary-text)}
+  .block-callout{display:flex;gap:14px;padding:16px 20px;background:var(--ant-color-primary-bg);border:1px solid var(--ant-color-primary-border);border-radius:10px;margin:14px 0;color:var(--ant-color-text)}
+  .block-callout .ico{font-size:20px;color:var(--ant-color-primary-text);flex:none}
+  .block-callout p{margin:0;font-size:14px;line-height:1.6}
+  .block-quote{padding:8px 0 8px 18px;border-left:3px solid var(--ant-color-primary);color:var(--ant-color-text-secondary);font-style:italic;margin:12px 0}
+  .block-quote .author{margin-top:6px;font-size:12px;color:var(--ant-color-text-tertiary);font-style:normal}
+  .block-list{padding-left:20px;margin:8px 0}
+  .block-list li{padding:4px 0;font-size:14px;line-height:1.6;list-style-type:disc}
+  .block-list li.checked{text-decoration:line-through;color:var(--ant-color-text-tertiary)}
+  .block-todo{display:flex;gap:10px;padding:6px 0;font-size:14px;align-items:center}
+  .block-todo .box{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--ant-color-border);flex:none;display:flex;align-items:center;justify-content:center}
+  .block-todo .box.on{background:var(--ant-color-success);border-color:var(--ant-color-success);color:#fff;font-size:11px}
+  .block-divider{margin:24px 0;border:0;border-top:1px solid var(--ant-color-border);position:relative;text-align:center}
+  .block-divider::before{content:"· · ·";position:absolute;left:50%;top:-10px;transform:translateX(-50%);background:var(--ant-color-bg-container);padding:0 12px;color:var(--ant-color-text-tertiary);font-size:14px;letter-spacing:.4em}
+  .block-image{margin:18px 0;border:1px solid var(--ant-color-border);border-radius:10px;overflow:hidden;background:var(--ant-color-bg-elevated)}
+  .block-image .ph{aspect-ratio:16/9;background:linear-gradient(135deg,#0a2922,#1f1f1f);display:flex;align-items:center;justify-content:center;color:var(--ant-color-text-tertiary);font-size:13px;position:relative}
+  .block-image .ph::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 30% 30%,#14b8a620,transparent 50%)}
+  .block-image .cap{padding:10px 14px;font-size:12px;color:var(--ant-color-text-tertiary);border-top:1px solid var(--ant-color-border)}
+  .block-embed{margin:18px 0;border:1px solid var(--ant-color-border);border-radius:10px;padding:14px;display:flex;gap:14px;background:var(--ant-color-bg-elevated)}
+  .block-embed .fav{width:48px;height:48px;border-radius:8px;background:#0a2922;display:flex;align-items:center;justify-content:center;font-size:24px;color:var(--ant-color-primary-text);flex:none}
+  .block-embed .info{flex:1;min-width:0}
+  .block-embed .ttl{font-size:14px;font-weight:600;color:var(--ant-color-text);margin-bottom:4px}
+  .block-embed .desc{font-size:12px;color:var(--ant-color-text-secondary);line-height:1.5;margin-bottom:6px}
+  .block-embed .meta{font-size:10px;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace}
+  .block-code{margin:14px 0;border:1px solid var(--ant-color-border);border-radius:10px;background:#0a0a0a;overflow:hidden}
+  .block-code-head{display:flex;justify-content:space-between;align-items:center;padding:8px 14px;background:var(--ant-color-bg-elevated);border-bottom:1px solid var(--ant-color-border);font-size:11px;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace}
+  .block-code pre{padding:14px;font-family:ui-monospace,monospace;font-size:12px;line-height:1.7;color:var(--ant-color-text-secondary);overflow-x:auto}
+  .tok-kw{color:#b37feb}
+  .tok-str{color:#95de64}
+  .tok-num{color:#ffc53d}
+  .tok-fn{color:#4096ff}
+  .tok-cm{color:var(--ant-color-text-quaternary);font-style:italic}
+  .block-math{margin:14px 0;padding:18px;background:var(--ant-color-bg-elevated);border:1px solid var(--ant-color-border);border-radius:10px;text-align:center;font-family:'Cambria Math',Georgia,serif;font-size:18px;color:var(--ant-color-text);letter-spacing:.04em}
+  .block-math .src{font-size:10px;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace;text-align:left;margin-top:10px;padding-top:10px;border-top:1px solid var(--ant-color-border-secondary)}
+  .handle{display:inline-block;width:18px;color:var(--ant-color-text-quaternary);font-family:ui-monospace,monospace;font-size:11px;margin-right:8px;vertical-align:middle;opacity:0}
+  .block:hover .handle{opacity:1}
+</style></head><body>
+<div class="stage">
+  <div class="eyebrow"><span class="d"></span>BLOCK TYPES · 块类型总览</div>
+  <h1>块编辑器 · 所有可用块类型</h1>
+  <p class="lede">Xenica 的块编辑器采用类 Notion 的设计：每行一个块、悬浮手柄、支持嵌套与拖拽排序。以下是当前支持的全部块类型与样式参考。</p>
+  <div class="doc">
+    <div class="block block-h1">设计原则 v3 · 完整版<span class="anchor">#</span></div>
+    <div class="block block-h2">关于"自动布局"<span class="anchor">#</span></div>
+    <div class="block block-text">Xenica 的核心场景是思考与编辑，<strong>不是文献管理</strong>。节点之间是<em>关系的建立</em>，不是 tag 的堆叠。</div>
+    <div class="block block-callout"><span class="ico">✦</span><p>每条连接都承载语义（参考、引用、对比、反驳），而非仅仅是导航。这是与 Obsidian 风格的关键差异。</p></div>
+    <div class="block block-h3">为什么放弃 Obsidian 风格<span class="anchor">#</span></div>
+    <div class="block block-text">Obsidian 把每个 <code>[]</code> 当作可点击的引用，<strong>鼓励双向链接密度</strong>。Xenica 反过来——强调<em>显性关系</em>，每条边必须有名字。</div>
+    <div class="block block-quote">"布局应当服务思考，而不是反过来。"<div class="author">— ADR-003 · 设计原则</div></div>
+    <div class="block block-h3">块类型清单<span class="anchor">#</span></div>
+    <div class="block block-list">
+      <li>标题（H1 / H2 / H3 / H4）</li>
+      <li>段落（支持加粗、斜体、行内代码）</li>
+      <li>列表（有序、无序、待办）</li>
+      <li>引用块（含来源）</li>
+      <li>Callout（提示框）</li>
+      <li>代码块（含语法高亮 + 语言标识）</li>
+      <li>数学公式（LaTeX / KaTeX）</li>
+      <li>图片（含说明）</li>
+      <li>嵌入（外部链接预览）</li>
+      <li>数据库内嵌视图（Table / Board / Calendar）</li>
+      <li>分隔线（divider）</li>
+    </div>
+    <div class="block block-h3">本周待办<span class="anchor">#</span></div>
+    <div class="block block-todo"><div class="box on">✓</div>完成 v5.0.0 设计稿与 ADR 序列</div>
+    <div class="block block-todo"><div class="box on">✓</div>锁定 Antd 6 + darkAlgorithm 设计系统</div>
+    <div class="block block-todo"><div class="box"></div>输出 100 页全量页面设计</div>
+    <div class="block block-todo"><div class="box"></div>导入 Notion 历史笔记回归测试</div>
+    <div class="block block-divider"></div>
+    <div class="block block-h2">代码示例 · auto-layout 算法<span class="anchor">#</span></div>
+    <div class="block block-code">
+      <div class="block-code-head"><span>TypeScript · auto-layout.ts</span><span>⌘C 复制</span></div>
+      <pre><span class="tok-kw">function</span> <span class="tok-fn">forceLayout</span>(nodes: <span class="tok-kw">Node</span>[], edges: <span class="tok-kw">Edge</span>[]) {
+  <span class="tok-kw">const</span> sim = <span class="tok-kw">new</span> <span class="tok-fn">ForceSimulation</span>(nodes)
+    .<span class="tok-fn">force</span>(<span class="tok-str">'charge'</span>, d3.<span class="tok-fn">forceManyBody</span>().<span class="tok-fn">strength</span>(-<span class="tok-num">300</span>))
+    .<span class="tok-fn">force</span>(<span class="tok-str">'link'</span>, d3.<span class="tok-fn">forceLink</span>(edges).<span class="tok-fn">distance</span>(<span class="tok-num">120</span>))
+    .<span class="tok-fn">force</span>(<span class="tok-str">'center'</span>, d3.<span class="tok-fn">forceCenter</span>(<span class="tok-num">0</span>, <span class="tok-num">0</span>));
+  <span class="tok-kw">return</span> sim.<span class="tok-fn">tick</span>(<span class="tok-num">300</span>);
+}</pre>
+    </div>
+    <div class="block block-math">
+      ∇ · <b>τ</b> = ρ·<b>a</b>
+      <div class="src">// 来源：动量守恒方程（Cauchy 形式）<br>∂ρ/∂t + ∇·(ρ<b>v</b>) = 0</div>
+    </div>
+    <div class="block block-embed">
+      <div class="fav">↗</div>
+      <div class="info">
+        <div class="ttl">Ant Design · 算法组件深度解析</div>
+        <div class="desc">Antd 6 darkAlgorithm 通过语义化 token 实现暗色模式下的色彩统一，让品牌色在 dark 表面保持一致。</div>
+        <div class="meta">ant.design · 2026-07-12 · 5 分钟阅读</div>
+      </div>
+    </div>
+    <div class="block block-image">
+      <div class="ph">⌬ 自动布局算法示意图 · 200×120 占位</div>
+      <div class="cap">图 1：力导向布局 (d3-force) 在 12 节点 / 11 连接上的输出</div>
+    </div>
+  </div>
+</div>
+</body></html>

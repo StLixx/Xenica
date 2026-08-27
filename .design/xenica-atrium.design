@@ -1,0 +1,1780 @@
+{
+  "data": [
+    {
+      "id": "page-page-01-home",
+      "title": "Plate I · Cover",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1783906700000,
+      "canvasData": {
+        "x": -360,
+        "y": 984,
+        "group": 0
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/page-01-home.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-heptabook-with-sidebar",
+      "title": "Heptabook · Ref · 侧栏展开",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1783916400000,
+      "canvasData": {
+        "x": 820,
+        "y": 0,
+        "group": 1
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/heptabook-with-sidebar.html",
+        "interactions": [
+          {
+            "domId": "hide-sidebar",
+            "label": "Hide sidebar",
+            "event": "click",
+            "toPageId": "heptabook-without-sidebar",
+            "selector": "[data-dom-id='hide-sidebar']"
+          },
+          {
+            "domId": "interaction-id-ljbh1vs",
+            "targetPageId": "page-heptabook-without-sidebar"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-heptabook-without-sidebar",
+      "title": "Heptabook · Ref · 侧栏收起",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1783916500000,
+      "canvasData": {
+        "x": 180,
+        "y": 312,
+        "group": 1
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/heptabook-without-sidebar.html",
+        "interactions": [
+          {
+            "domId": "show-sidebar",
+            "label": "Show sidebar",
+            "event": "click",
+            "toPageId": "heptabook-with-sidebar",
+            "selector": "[data-dom-id='show-sidebar']"
+          },
+          {
+            "domId": "interaction-id-h2d2d8d",
+            "targetPageId": "page-heptabook-with-sidebar"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-plate-theme-examples",
+      "title": "Plate IV–V · Theme Examples (Antd + Xenica token)",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1783920000000,
+      "canvasData": {
+        "x": 620,
+        "y": 480,
+        "group": 2
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/plate-theme-examples.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-home",
+      "title": "Home · 首页 (antd 6 darkAlgorithm, ESM CDN mount)",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784010000000,
+      "canvasData": {
+        "x": 1240,
+        "y": 480,
+        "group": 3
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/home.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p01-splash",
+      "title": "splash",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278000000,
+      "canvasData": {
+        "x": -2400,
+        "y": -1800,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p01-splash.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p02-welcome",
+      "title": "welcome",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278001000,
+      "canvasData": {
+        "x": -1980,
+        "y": -1800,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p02-welcome.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p03-shell-default",
+      "title": "shell-default",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278002000,
+      "canvasData": {
+        "x": -1560,
+        "y": -1800,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p03-shell-default.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p04-shell-sider-collapsed",
+      "title": "shell-sider-collapsed",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278003000,
+      "canvasData": {
+        "x": -1140,
+        "y": -1800,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p04-shell-sider-collapsed.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p04-shell-left-collapsed",
+      "title": "shell-left-collapsed",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278004000,
+      "canvasData": {
+        "x": -1140,
+        "y": -1800,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p04-shell-left-collapsed.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p05-shell-sider-expanded",
+      "title": "shell-sider-expanded",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278005000,
+      "canvasData": {
+        "x": -2400,
+        "y": -1480,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p05-shell-sider-expanded.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p05-shell-focus-mode",
+      "title": "shell-focus-mode",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278006000,
+      "canvasData": {
+        "x": -2400,
+        "y": -1480,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p05-shell-focus-mode.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p06-shell-sider-focused",
+      "title": "shell-sider-focused",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278007000,
+      "canvasData": {
+        "x": -1560,
+        "y": -1480,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p06-shell-sider-focused.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p06-command-palette",
+      "title": "command-palette",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278008000,
+      "canvasData": {
+        "x": -1560,
+        "y": -1480,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p06-command-palette.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p07-settings-modal",
+      "title": "settings-modal",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278009000,
+      "canvasData": {
+        "x": -720,
+        "y": -1480,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p07-settings-modal.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p07-cmdk-palette",
+      "title": "cmdk-palette",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278010000,
+      "canvasData": {
+        "x": -720,
+        "y": -1480,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p07-cmdk-palette.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p08-notifications",
+      "title": "notifications",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278011000,
+      "canvasData": {
+        "x": -1980,
+        "y": -1160,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p08-notifications.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p08-cmdk-typing",
+      "title": "cmdk-typing",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278012000,
+      "canvasData": {
+        "x": -1980,
+        "y": -1160,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p08-cmdk-typing.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p09-user-menu",
+      "title": "user-menu",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278013000,
+      "canvasData": {
+        "x": -1140,
+        "y": -1160,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p09-user-menu.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p09-notifications",
+      "title": "notifications",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278014000,
+      "canvasData": {
+        "x": -1140,
+        "y": -1160,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p09-notifications.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p10-user-menu",
+      "title": "user-menu",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278015000,
+      "canvasData": {
+        "x": 0,
+        "y": -1800,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p10-user-menu.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p10-theme-switcher",
+      "title": "theme-switcher",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278016000,
+      "canvasData": {
+        "x": 0,
+        "y": -1800,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p10-theme-switcher.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p11-sidebar-folded",
+      "title": "sidebar-folded",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278017000,
+      "canvasData": {
+        "x": 840,
+        "y": -1800,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p11-sidebar-folded.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p11-sider-icon",
+      "title": "sider-icon",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278018000,
+      "canvasData": {
+        "x": 840,
+        "y": -1800,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p11-sider-icon.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p12-sider-search-active",
+      "title": "sider-search-active",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278019000,
+      "canvasData": {
+        "x": 1680,
+        "y": -1800,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p12-sider-search-active.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p12-sidebar-expanded",
+      "title": "sidebar-expanded",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278020000,
+      "canvasData": {
+        "x": 1680,
+        "y": -1800,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p12-sidebar-expanded.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p13-sider-drag",
+      "title": "sider-drag",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278021000,
+      "canvasData": {
+        "x": 420,
+        "y": -1480,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p13-sider-drag.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p14-sider-contextmenu",
+      "title": "sider-contextmenu",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278022000,
+      "canvasData": {
+        "x": 840,
+        "y": -1480,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p14-sider-contextmenu.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p15-breadcrumbs",
+      "title": "breadcrumbs",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278023000,
+      "canvasData": {
+        "x": 1260,
+        "y": -1480,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p15-breadcrumbs.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p16-tabs-multi",
+      "title": "tabs-multi",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278024000,
+      "canvasData": {
+        "x": 1680,
+        "y": -1480,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p16-tabs-multi.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p17-tabs-unsaved",
+      "title": "tabs-unsaved",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278025000,
+      "canvasData": {
+        "x": 0,
+        "y": -1160,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p17-tabs-unsaved.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p18-canvas-empty",
+      "title": "canvas-empty",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278026000,
+      "canvasData": {
+        "x": 2400,
+        "y": -1800,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p18-canvas-empty.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p19-canvas-default",
+      "title": "canvas-default",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278027000,
+      "canvasData": {
+        "x": 2820,
+        "y": -1800,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p19-canvas-default.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p20-canvas-selected",
+      "title": "canvas-selected",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278028000,
+      "canvasData": {
+        "x": 3240,
+        "y": -1800,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p20-canvas-selected.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p21-canvas-multiselect",
+      "title": "canvas-multiselect",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278029000,
+      "canvasData": {
+        "x": 3660,
+        "y": -1800,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p21-canvas-multiselect.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p22-canvas-edge-drag",
+      "title": "canvas-edge-drag",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278030000,
+      "canvasData": {
+        "x": 4080,
+        "y": -1800,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p22-canvas-edge-drag.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p23-canvas-editing",
+      "title": "canvas-editing",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278031000,
+      "canvasData": {
+        "x": 2400,
+        "y": -1480,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p23-canvas-editing.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p24-canvas-autolayout",
+      "title": "canvas-autolayout",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278032000,
+      "canvasData": {
+        "x": 2820,
+        "y": -1480,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p24-canvas-autolayout.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p25-canvas-zoom",
+      "title": "canvas-zoom",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278033000,
+      "canvasData": {
+        "x": 3240,
+        "y": -1480,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p25-canvas-zoom.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p26-canvas-minimap",
+      "title": "canvas-minimap",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278034000,
+      "canvasData": {
+        "x": 3660,
+        "y": -1480,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p26-canvas-minimap.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p27-canvas-readonly",
+      "title": "canvas-readonly",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278035000,
+      "canvasData": {
+        "x": 4080,
+        "y": -1480,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p27-canvas-readonly.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p28-canvas-large",
+      "title": "canvas-large",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278036000,
+      "canvasData": {
+        "x": 2400,
+        "y": -1160,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p28-canvas-large.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p29-canvas-context",
+      "title": "canvas-context",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278037000,
+      "canvasData": {
+        "x": 2820,
+        "y": -1160,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p29-canvas-context.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p30-block-overview",
+      "title": "block-overview",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278038000,
+      "canvasData": {
+        "x": -2400,
+        "y": -400,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p30-block-overview.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p31-block-text",
+      "title": "block-text",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278039000,
+      "canvasData": {
+        "x": -1980,
+        "y": -400,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p31-block-text.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p32-block-code",
+      "title": "block-code",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278040000,
+      "canvasData": {
+        "x": -1560,
+        "y": -400,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p32-block-code.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p33-block-headings",
+      "title": "block-headings",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278041000,
+      "canvasData": {
+        "x": -1140,
+        "y": -400,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p33-block-headings.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p34-block-quote",
+      "title": "block-quote",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278042000,
+      "canvasData": {
+        "x": -720,
+        "y": -400,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p34-block-quote.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p35-block-todo",
+      "title": "block-todo",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278043000,
+      "canvasData": {
+        "x": -2400,
+        "y": -80,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p35-block-todo.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p36-block-database-embed",
+      "title": "block-database-embed",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278044000,
+      "canvasData": {
+        "x": -1980,
+        "y": -80,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p36-block-database-embed.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p37-block-math-image-embed",
+      "title": "block-math-image-embed",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278045000,
+      "canvasData": {
+        "x": -1560,
+        "y": -84,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p37-block-math-image-embed.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p38-block-drag-handle",
+      "title": "block-drag-handle",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278046000,
+      "canvasData": {
+        "x": -1140,
+        "y": -80,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p38-block-drag-handle.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p39-block-menu",
+      "title": "block-menu",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278047000,
+      "canvasData": {
+        "x": -720,
+        "y": -80,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p39-block-menu.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p40-block-divider",
+      "title": "block-divider",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278048000,
+      "canvasData": {
+        "x": -2400,
+        "y": 240,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p40-block-divider.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p41-block-comments",
+      "title": "block-comments",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278049000,
+      "canvasData": {
+        "x": -1980,
+        "y": 240,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p41-block-comments.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p42-db-table",
+      "title": "db-table",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278050000,
+      "canvasData": {
+        "x": 0,
+        "y": -400,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p42-db-table.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p43-db-board",
+      "title": "db-board",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278051000,
+      "canvasData": {
+        "x": 420,
+        "y": -400,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p43-db-board.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p44-db-calendar",
+      "title": "db-calendar",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278052000,
+      "canvasData": {
+        "x": 840,
+        "y": -400,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p44-db-calendar.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p45-db-gallery",
+      "title": "db-gallery",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278053000,
+      "canvasData": {
+        "x": 1260,
+        "y": -400,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p45-db-gallery.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p46-db-timeline",
+      "title": "db-timeline",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278054000,
+      "canvasData": {
+        "x": 1680,
+        "y": -400,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p46-db-timeline.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p47-db-list",
+      "title": "db-list",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278055000,
+      "canvasData": {
+        "x": 0,
+        "y": -80,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p47-db-list.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p48-db-row-edit",
+      "title": "db-row-edit",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278056000,
+      "canvasData": {
+        "x": 420,
+        "y": -80,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p48-db-row-edit.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p49-db-loading",
+      "title": "db-loading",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278057000,
+      "canvasData": {
+        "x": 840,
+        "y": -80,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p49-db-loading.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p50-db-empty",
+      "title": "db-empty",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278058000,
+      "canvasData": {
+        "x": 1260,
+        "y": -80,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p50-db-empty.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p53-settings-overview",
+      "title": "settings-overview",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278059000,
+      "canvasData": {
+        "x": 2400,
+        "y": -400,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p53-settings-overview.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p54-settings-profile",
+      "title": "settings-profile",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278060000,
+      "canvasData": {
+        "x": 2820,
+        "y": -400,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p54-settings-profile.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p55-settings-billing",
+      "title": "settings-billing",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278061000,
+      "canvasData": {
+        "x": 3240,
+        "y": -400,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p55-settings-billing.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p56-settings-theme",
+      "title": "settings-theme",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278062000,
+      "canvasData": {
+        "x": 3660,
+        "y": -400,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p56-settings-theme.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p57-settings-font",
+      "title": "settings-font",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278063000,
+      "canvasData": {
+        "x": 4080,
+        "y": -400,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p57-settings-font.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p58-settings-shortcuts",
+      "title": "settings-shortcuts",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278064000,
+      "canvasData": {
+        "x": 2400,
+        "y": -80,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p58-settings-shortcuts.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p59-settings-canvas",
+      "title": "settings-canvas",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278065000,
+      "canvasData": {
+        "x": 2820,
+        "y": -80,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p59-settings-canvas.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p60-settings-layout",
+      "title": "settings-layout",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278066000,
+      "canvasData": {
+        "x": 3240,
+        "y": -80,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p60-settings-layout.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p61-settings-extensions",
+      "title": "settings-extensions",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278067000,
+      "canvasData": {
+        "x": 3660,
+        "y": -80,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p61-settings-extensions.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p62-onboard-scenario",
+      "title": "onboard-scenario",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278068000,
+      "canvasData": {
+        "x": -2400,
+        "y": 1000,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p62-onboard-scenario.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p63-onboard-tutorial-1",
+      "title": "onboard-tutorial-1",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278069000,
+      "canvasData": {
+        "x": -1980,
+        "y": 1000,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p63-onboard-tutorial-1.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p64-onboard-tutorial-2",
+      "title": "onboard-tutorial-2",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278070000,
+      "canvasData": {
+        "x": -1560,
+        "y": 1000,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p64-onboard-tutorial-2.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p65-onboard-complete",
+      "title": "onboard-complete",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278071000,
+      "canvasData": {
+        "x": -1140,
+        "y": 1000,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p65-onboard-complete.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p66-help-search",
+      "title": "help-search",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278072000,
+      "canvasData": {
+        "x": -720,
+        "y": 1000,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p66-help-search.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p67-shortcuts",
+      "title": "shortcuts",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278073000,
+      "canvasData": {
+        "x": -2400,
+        "y": 1320,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p67-shortcuts.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p68-changelog",
+      "title": "changelog",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278074000,
+      "canvasData": {
+        "x": -1980,
+        "y": 1320,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p68-changelog.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p69-feedback",
+      "title": "feedback",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278075000,
+      "canvasData": {
+        "x": -1560,
+        "y": 1320,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p69-feedback.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p70-error-404",
+      "title": "error-404",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278076000,
+      "canvasData": {
+        "x": -1140,
+        "y": 1320,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p70-error-404.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p76-import-source",
+      "title": "import-source",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278077000,
+      "canvasData": {
+        "x": 0,
+        "y": 1000,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p76-import-source.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p77-import-progress",
+      "title": "import-progress",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278078000,
+      "canvasData": {
+        "x": 420,
+        "y": 1000,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p77-import-progress.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p78-import-done",
+      "title": "import-done",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278079000,
+      "canvasData": {
+        "x": 840,
+        "y": 1000,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p78-import-done.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p79-export-dialog",
+      "title": "export-dialog",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278080000,
+      "canvasData": {
+        "x": 1260,
+        "y": 1000,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p79-export-dialog.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p80-export-progress",
+      "title": "export-progress",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278081000,
+      "canvasData": {
+        "x": 1680,
+        "y": 1000,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p80-export-progress.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p81-export-done",
+      "title": "export-done",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278082000,
+      "canvasData": {
+        "x": 0,
+        "y": 1320,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p81-export-done.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p82-search-results",
+      "title": "search-results",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278083000,
+      "canvasData": {
+        "x": 2400,
+        "y": 1000,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p82-search-results.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p83-search-keyword-highlight",
+      "title": "search-keyword-highlight",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278084000,
+      "canvasData": {
+        "x": 2820,
+        "y": 1000,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p83-search-keyword-highlight.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p84-search-empty",
+      "title": "search-empty",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278085000,
+      "canvasData": {
+        "x": 3240,
+        "y": 1000,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p84-search-empty.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p85-cmdk-history",
+      "title": "cmdk-history",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278086000,
+      "canvasData": {
+        "x": 3660,
+        "y": 1000,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p85-cmdk-history.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p86-search-feedback",
+      "title": "search-feedback",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278087000,
+      "canvasData": {
+        "x": 4080,
+        "y": 1000,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p86-search-feedback.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p87-search-ai",
+      "title": "search-ai",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278088000,
+      "canvasData": {
+        "x": 2400,
+        "y": 1320,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p87-search-ai.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p88-loading-skeleton",
+      "title": "loading-skeleton",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278089000,
+      "canvasData": {
+        "x": -2400,
+        "y": 2400,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p88-loading-skeleton.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p89-empty-global",
+      "title": "empty-global",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278090000,
+      "canvasData": {
+        "x": -1980,
+        "y": 2400,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p89-empty-global.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p90-error-toast",
+      "title": "error-toast",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278091000,
+      "canvasData": {
+        "x": -1560,
+        "y": 2400,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p90-error-toast.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p91-offline",
+      "title": "offline",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278092000,
+      "canvasData": {
+        "x": -1140,
+        "y": 2400,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p91-offline.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p92-syncing",
+      "title": "syncing",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278093000,
+      "canvasData": {
+        "x": -720,
+        "y": 2400,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p92-syncing.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p93-update",
+      "title": "update",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278094000,
+      "canvasData": {
+        "x": -2400,
+        "y": 2720,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p93-update.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p94-marketing-home",
+      "title": "marketing-home",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278095000,
+      "canvasData": {
+        "x": 0,
+        "y": 2400,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p94-marketing-home.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p95-marketing-features",
+      "title": "marketing-features",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278096000,
+      "canvasData": {
+        "x": 420,
+        "y": 2400,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p95-marketing-features.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p96-marketing-pricing",
+      "title": "marketing-pricing",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278097000,
+      "canvasData": {
+        "x": 840,
+        "y": 2400,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p96-marketing-pricing.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p97-docs-home",
+      "title": "docs-home",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278098000,
+      "canvasData": {
+        "x": 1260,
+        "y": 2400,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p97-docs-home.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p98-docs-article",
+      "title": "docs-article",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278099000,
+      "canvasData": {
+        "x": 1680,
+        "y": 2568,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p98-docs-article.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p99-docs-api",
+      "title": "docs-api",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278100000,
+      "canvasData": {
+        "x": -12,
+        "y": 2808,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p99-docs-api.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p100-blog-list",
+      "title": "blog-list",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278101000,
+      "canvasData": {
+        "x": 420,
+        "y": 2720,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p100-blog-list.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p101-blog-article",
+      "title": "blog-article",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278102000,
+      "canvasData": {
+        "x": 816,
+        "y": 2988,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p101-blog-article.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-p102-download",
+      "title": "download",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1784278103000,
+      "canvasData": {
+        "x": 1260,
+        "y": 2720,
+        "group": 99
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/p102-download.html",
+        "interactions": []
+      }
+    }
+  ],
+  "config": {
+    "autoLayout": false,
+    "deviceType": "desktop",
+    "projectName": "Xenica Atrium",
+    "designLibrary": null,
+    "showEdge": true,
+    "visualEditorEnabled": true
+  }
+}

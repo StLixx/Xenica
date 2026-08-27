@@ -1,0 +1,17 @@
+# Claude Atrium — A Design Philosophy
+
+**Movement:** *Claude Atrium* — the warmth of a paper-lit room viewed through glass at night.
+
+---
+
+There is a particular hour when the sky outside is already dark but the lamp on the desk is still on. The room holds its warmth the way a good book holds a thought — not because it insists, but because it refuses to forget. *Claude Atrium* is a philosophy for interfaces that want to feel like that room: nocturnal, contemplative, and quietly lit by a single warm source. It treats dark surfaces as paper after dusk, not as a void to be filled with light.
+
+The philosophy begins with restraint in color. A palette of nine neutrals carries almost all of the visual weight — graphite warmed by ash, charcoal carrying the faintest hint of clay, borders drawn in the tone of distant ink. Against this near-black stage, a single accent speaks in terra-cotta, the color of firelight caught in a clay bowl. It appears sparingly — once, perhaps twice, on a page — so that when it arrives it carries the entire emotional sentence. Every other hue is muted, every other mark is a whisper. The composition is meticulously crafted so that the eye does not need to search: warmth is always where you already were.
+
+Form follows a discipline of generous negative space and soft geometry. Containers are drawn with corners rounded just enough to feel handled — not so much that they become soft toys, not so little that they feel industrial. Spacing breathes in a four-pixel rhythm that the body learns without noticing; a margin here, a padding there, calibrated until the page feels inevitable. Surfaces sit on each other in three elevations: a quiet floor, a slightly lifted card, and a top tier reserved for one focal element. Shadows are thin and paper-like; they suggest depth without performing it. This is the product of deep expertise: every rectangle earns its place.
+
+Composition is treated as a quiet contract between mass and breath. A vertical rhythm — a thin marginal column, a wide reading field, a slim annotation rail — repeats across the canvas, anchoring each block without ornament. Typographic scale is decided in deliberate jumps; sizes do not crawl, they step. Text, when it appears, is restrained to short labels, system markers, and a few essential words. Paragraphs are absent. The page says what it must and steps back, the way an attentive editor cuts every sentence that does not earn its breath.
+
+Material is read as paper and ink, even though it is rendered in light. The texture is flat but not clinical; it carries a warmth that comes from subtle warm-tinted shadows rather than from grain or noise. Density is patient — fields of glyphs and markers are built up through repetition, the way a typesetter lays out a page by hand, mark by mark, until the rhythm arrives. Each pass is the work of countless refinements: alignments nudged, weights adjusted, leading tuned so the eye does not stumble. The result appears effortless only because the labor behind it was total.
+
+The philosophy culminates in a single commitment: the final work should look as though someone at the very top of their craft labored over it for a long, quiet evening, and then set it down. Meticulously crafted. Painstakingly balanced. The product of master-level attention to the smallest interval between two strokes. *Xenica Atrium* asks for nothing more than that the maker sit with the page until the page is finished.

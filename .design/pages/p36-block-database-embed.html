@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>块编辑器 · 数据库内嵌视图 · Xenica</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#000;color:var(--ant-color-text);font-family:var(--ant-font-family);-webkit-font-smoothing:antialiased;min-height:100vh}
+  .stage{padding:60px;background:radial-gradient(circle at 50% 0%,#14b8a608 0%,transparent 60%);min-height:100vh;max-width:1080px;margin:0 auto}
+  .eyebrow{font-family:ui-monospace,monospace;font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--ant-color-primary-text);margin-bottom:16px;display:flex;align-items:center;gap:10px}
+  .eyebrow .d{width:24px;height:1px;background:var(--ant-color-primary-text);opacity:.6}
+  h1{font-size:42px;font-weight:600;line-height:1.1;letter-spacing:-.01em;margin-bottom:14px}
+  p.lede{font-size:14px;color:var(--ant-color-text-secondary);line-height:1.7;margin-bottom:40px;max-width:680px}
+  .doc{background:var(--ant-color-bg-container);border:1px solid var(--ant-color-border);border-radius:14px;padding:48px 56px;box-shadow:0 30px 80px -30px #00000080}
+  .db-embed{margin:24px 0;border:1px solid var(--ant-color-border);border-radius:12px;background:var(--ant-color-bg-elevated);overflow:hidden}
+  .db-head{padding:14px 18px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--ant-color-border);background:var(--ant-color-bg-container)}
+  .db-head .left{display:flex;align-items:center;gap:14px}
+  .db-head .ico{width:32px;height:32px;border-radius:8px;background:#14b8a620;color:var(--ant-color-primary-text);display:flex;align-items:center;justify-content:center;font-size:16px}
+  .db-head h4{font-size:14px;font-weight:600;color:var(--ant-color-text)}
+  .db-head .meta{font-size:11px;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace;margin-top:2px}
+  .db-head .right{display:flex;gap:4px;align-items:center}
+  .view-tabs{display:flex;gap:0;border-bottom:1px solid var(--ant-color-border);background:var(--ant-color-bg-base);padding:0 14px}
+  .vt{padding:9px 12px;font-size:11px;color:var(--ant-color-text-secondary);border-bottom:2px solid transparent;cursor:default;display:flex;align-items:center;gap:5px;letter-spacing:.04em}
+  .vt.on{color:var(--ant-color-primary-text);border-bottom-color:var(--ant-color-primary)}
+  .vt:hover{color:var(--ant-color-text)}
+  .filter-row{padding:10px 14px;display:flex;gap:8px;align-items:center;background:var(--ant-color-bg-container);border-bottom:1px solid var(--ant-color-border);font-size:12px;color:var(--ant-color-text-tertiary)}
+  .filter-chip{padding:4px 10px;background:var(--ant-color-fill-secondary);border-radius:5px;display:flex;align-items:center;gap:6px}
+  .filter-chip.on{background:var(--ant-color-primary-bg);color:var(--ant-color-primary-text);border:1px solid var(--ant-color-primary-border)}
+  .db-table{width:100%;border-collapse:collapse;font-size:13px}
+  .db-table th{text-align:left;padding:10px 14px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ant-color-text-tertiary);font-weight:600;background:var(--ant-color-bg-base);border-bottom:1px solid var(--ant-color-border);position:sticky;top:0}
+  .db-table td{padding:12px 14px;border-bottom:1px solid var(--ant-color-border-secondary);color:var(--ant-color-text)}
+  .db-table tr:hover td{background:var(--ant-color-fill-secondary)}
+  .status{padding:2px 8px;border-radius:5px;font-size:11px;letter-spacing:.04em;display:inline-flex;align-items:center;gap:5px}
+  .status.doing{background:var(--ant-color-primary-bg);color:var(--ant-color-primary-text)}
+  .status.todo{background:var(--ant-color-fill-tertiary);color:var(--ant-color-text-secondary)}
+  .status.done{background:#0a1912;color:#95de64}
+  .status.blocked{background:#2a1215;color:#ff7875}
+  .priority{display:inline-flex;align-items:center;gap:4px;font-family:ui-monospace,monospace;font-size:11px}
+  .priority .bar{display:flex;gap:1px}
+  .priority .bar i{width:3px;height:10px;background:var(--ant-color-fill-tertiary);border-radius:1px}
+  .priority .bar i.on{background:var(--ant-color-primary)}
+  .priority.high .bar i.on{background:var(--ant-color-error)}
+</style></head><body>
+<div class="stage">
+  <div class="eyebrow"><span class="d"></span>BLOCK · 数据库内嵌视图 · Table / Board / Calendar</div>
+  <h1>数据库内嵌 · 任意块可嵌入</h1>
+  <p class="lede">数据库视图（Table / Board / Calendar / Gallery / Timeline）可作为独立块嵌入任意文档。上方表头切换视图，下方支持过滤、排序、列配置。</p>
+  <div class="doc">
+    <h3 style="font-size:18px;font-weight:600;margin-bottom:6px">项目看板 · v5.0.0 任务清单</h3>
+    <p style="font-size:14px;color:var(--ant-color-text-secondary);margin-bottom:18px">以下数据为内嵌数据库视图，与 <b>项目看板</b> 工作区双向同步。</p>
+    <div class="db-embed">
+      <div class="db-head">
+        <div class="left">
+          <div class="ico">▦</div>
+          <div><h4>项目看板 · v5.0.0</h4><div class="meta">12 项 · 修改于 5 分钟前</div></div>
+        </div>
+        <div class="right"><button class="btn btn-default btn-sm">⊞ 配置</button><button class="btn btn-default btn-sm">⇪ 分享</button><button class="btn btn-primary btn-sm">+ 新建</button></div>
+      </div>
+      <div class="view-tabs">
+        <div class="vt on">▦ 表格</div>
+        <div class="vt">▤ 看板</div>
+        <div class="vt">▤ 日历</div>
+        <div class="vt">▦ 画廊</div>
+        <div class="vt">▬ 时间线</div>
+      </div>
+      <div class="filter-row">
+        <span>过滤：</span>
+        <span class="filter-chip on">状态 = 进行中</span>
+        <span class="filter-chip">负责人 = 我</span>
+        <span class="filter-chip">截止 ≥ 今天</span>
+        <span style="margin-left:auto;color:var(--ant-color-text-quaternary);font-family:ui-monospace,monospace">6 项匹配 / 共 12</span>
+      </div>
+      <table class="db-table">
+        <thead><tr><th>任务</th><th>状态</th><th>优先级</th><th>截止</th><th>负责人</th></tr></thead>
+        <tbody>
+          <tr><td><b>输出 100 页全量页面设计</b><div style="font-size:11px;color:var(--ant-color-text-tertiary);margin-top:2px">页 1-30 已完成 · 当前批次 31-60</div></td><td><span class="status doing">● 进行中</span></td><td><span class="priority high"><span class="bar"><i class="on"></i><i class="on"></i><i class="on"></i></span>高</span></td><td>今天 18:00</td><td><div class="av av-sm" style="display:inline-flex;vertical-align:middle">XL</div></td></tr>
+          <tr><td><b>建立 .design manifest 与节点注册</b></td><td><span class="status todo">○ 待办</span></td><td><span class="priority"><span class="bar"><i class="on"></i><i class="on"></i><i></i></span>中</span></td><td>07-20</td><td><div class="av av-sm" style="display:inline-flex;vertical-align:middle">XL</div></td></tr>
+          <tr><td><b>Playwright 截图回归验证</b></td><td><span class="status todo">○ 待办</span></td><td><span class="priority"><span class="bar"><i class="on"></i><i></i><i></i></span>低</span></td><td>07-22</td><td><div class="av av-sm" style="display:inline-flex;vertical-align:middle;background:linear-gradient(135deg,#4096ff,#1677ff)">LQ</div></td></tr>
+          <tr><td><b>导入 Notion 历史笔记回归测试</b></td><td><span class="status blocked">⚠ 阻塞</span></td><td><span class="priority high"><span class="bar"><i class="on"></i><i class="on"></i><i class="on"></i></span>高</span></td><td style="color:var(--ant-color-error)">已逾期 · 07-14</td><td><div class="av av-sm" style="display:inline-flex;vertical-align:middle;background:linear-gradient(135deg,#4096ff,#1677ff)">LQ</div></td></tr>
+          <tr><td><b>用户引导流程设计（首次启动 + 2 步教学）</b></td><td><span class="status doing">● 进行中</span></td><td><span class="priority"><span class="bar"><i class="on"></i><i class="on"></i><i></i></span>中</span></td><td>07-19</td><td><div class="av av-sm" style="display:inline-flex;vertical-align:middle">XL</div></td></tr>
+          <tr><td><b>ADR-004 · 自动布局算法边界</b></td><td><span class="status todo">○ 待办</span></td><td><span class="priority"><span class="bar"><i class="on"></i><i></i><i></i></span>低</span></td><td>07-25</td><td><div class="av av-sm" style="display:inline-flex;vertical-align:middle">XL</div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+</body></html>

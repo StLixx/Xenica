@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>块编辑器 · 评论与讨论 · Xenica</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#000;color:var(--ant-color-text);font-family:var(--ant-font-family);-webkit-font-smoothing:antialiased;min-height:100vh}
+  .stage{padding:60px;background:radial-gradient(circle at 50% 0%,#14b8a608 0%,transparent 60%);min-height:100vh;max-width:1080px;margin:0 auto}
+  .eyebrow{font-family:ui-monospace,monospace;font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--ant-color-primary-text);margin-bottom:16px;display:flex;align-items:center;gap:10px}
+  .eyebrow .d{width:24px;height:1px;background:var(--ant-color-primary-text);opacity:.6}
+  h1{font-size:42px;font-weight:600;line-height:1.1;letter-spacing:-.01em;margin-bottom:14px}
+  p.lede{font-size:14px;color:var(--ant-color-text-secondary);line-height:1.7;margin-bottom:40px;max-width:680px}
+  .doc{background:var(--ant-color-bg-container);border:1px solid var(--ant-color-border);border-radius:14px;padding:48px 56px;box-shadow:0 30px 80px -30px #00000080;position:relative;margin-right:420px;max-width:1000px}
+  .b-h{font-size:24px;font-weight:600;line-height:1.2;color:var(--ant-color-text);margin:18px 0 12px;padding:6px 0}
+  .b-text{font-size:15px;line-height:1.75;color:var(--ant-color-text);margin:8px 0;position:relative}
+  .anchor{position:relative;scroll-margin-top:80px}
+  .highlight-anchor{background:#ffc53d20;border-radius:4px;box-shadow:0 0 0 4px #ffc53d20;padding:1px 3px}
+  .comment-marker{position:absolute;right:-48px;top:6px;display:flex;flex-direction:column;gap:4px;align-items:center;z-index:5}
+  .cm-dot{width:22px;height:22px;border-radius:50%;background:var(--ant-color-primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;border:2px solid var(--ant-color-bg-container);cursor:default;position:relative}
+  .cm-dot.resolved{background:var(--ant-color-success)}
+  .cm-dot .num{font-family:ui-monospace,monospace;font-size:9px}
+  .cm-dot .pulse{position:absolute;inset:-2px;border-radius:50%;border:2px solid var(--ant-color-primary);animation:pulse 2s infinite}
+  @keyframes pulse{0%{opacity:.6;transform:scale(1)}100%{opacity:0;transform:scale(1.6)}}
+  .comment-thread{position:absolute;right:40px;top:0;width:340px;background:var(--ant-color-bg-elevated);border:1px solid var(--ant-color-border);border-radius:12px;box-shadow:0 20px 60px -10px #000000c0;padding:0;z-index:50}
+  .ct-head{padding:14px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--ant-color-border);background:var(--ant-color-bg-container)}
+  .ct-head h4{font-size:13px;font-weight:600}
+  .ct-head .x{color:var(--ant-color-text-tertiary);cursor:default;font-size:14px}
+  .ct-body{max-height:340px;overflow:auto;padding:14px 16px;display:flex;flex-direction:column;gap:14px}
+  .ct-comment{display:flex;gap:10px}
+  .ct-comment .av{width:28px;height:28px;font-size:10px;flex:none}
+  .ct-comment .info{flex:1;min-width:0}
+  .ct-comment .who{font-size:12px;font-weight:600;color:var(--ant-color-text);margin-bottom:2px}
+  .ct-comment .who .time{margin-left:8px;font-size:10px;color:var(--ant-color-text-tertiary);font-weight:400;font-family:ui-monospace,monospace}
+  .ct-comment .body{font-size:13px;color:var(--ant-color-text-secondary);line-height:1.5;background:var(--ant-color-bg-container);padding:8px 12px;border-radius:8px;border:1px solid var(--ant-color-border-secondary)}
+  .ct-comment .actions{display:flex;gap:8px;margin-top:6px;font-size:10px;color:var(--ant-color-text-tertiary)}
+  .ct-comment .actions span{cursor:default}
+  .ct-comment .actions span:hover{color:var(--ant-color-primary-text)}
+  .ct-input{padding:12px 16px;border-top:1px solid var(--ant-color-border);background:var(--ant-color-bg-container)}
+  .ct-input textarea{width:100%;background:var(--ant-color-bg-elevated);border:1px solid var(--ant-color-border);border-radius:8px;padding:8px 12px;color:var(--ant-color-text);font-size:13px;font-family:inherit;outline:none;resize:none;min-height:60px;line-height:1.5}
+  .ct-input textarea:focus{border-color:var(--ant-color-primary);box-shadow:0 0 0 2px var(--ant-color-primary-bg)}
+  .ct-input .ct-foot{display:flex;justify-content:space-between;align-items:center;margin-top:8px;font-size:11px;color:var(--ant-color-text-tertiary)}
+</style></head><body>
+<div class="stage">
+  <div class="eyebrow"><span class="d"></span>BLOCK · 评论 · 讨论线程 · @提及</div>
+  <h1>评论 · 在任意块上发起讨论</h1>
+  <p class="lede">任意文本块右侧都可发起评论线程。块右侧用彩色圆点标识"有评论"，点击展开右侧抽屉查看完整讨论。支持 @ 提及、解决/重开、引用块。</p>
+  <div class="doc" style="margin-right:380px">
+    <div class="b-h">设计原则 v3</div>
+    <div class="b-text">Antd 6 的 darkAlgorithm 在保留品牌色的同时提供了细腻的色阶过渡。token 注入机制支持自定义 brandColor 而不破坏整体观感——这是与 Antd 5 相比最关键的变化。
+      <div class="comment-marker"><div class="cm-dot resolved" title="已解决"><span class="num">2</span></div></div>
+    </div>
+    <div class="b-text anchor">默认情况下 hover/active 状态提供<span class="highlight-anchor">更清晰的对比度</span>，但默认的"灰阶玻璃感"较为含蓄，需要通过 token.brandColor 精细调整来强化品牌表达。
+      <div class="comment-marker"><div class="cm-dot"><span class="pulse"></span><span class="num">3</span></div></div>
+    </div>
+    <div class="b-text">作为 v5.0.0 范围的基础设计系统是合适的。后续是否扩展更多定制 token 取决于产品是否需要更强的视觉差异化。
+      <div class="comment-marker"><div class="cm-dot"><span class="num">1</span></div></div>
+    </div>
+    <div class="b-text">结论：<strong>作为 v5.0.0 基础设计系统是合适的</strong>，避免大改。同时保留 hook 给 v6.0.0 后续扩展。</div>
+  </div>
+
+  <div class="comment-thread">
+    <div class="ct-head">
+      <h4>讨论 · 3 条评论</h4>
+      <span class="x">×</span>
+    </div>
+    <div class="ct-body">
+      <div class="ct-comment">
+        <div class="av">LQ</div>
+        <div class="info">
+          <div class="who">林奇 <span class="time">2 小时前</span></div>
+          <div class="body">看一下 darkAlgorithm 的色阶是否与我们的设计 token 一致？我在 #design-system 频道贴了几个对比图。</div>
+          <div class="actions"><span>↩ 回复</span><span>✓ 解决</span><span>⋯</span></div>
+        </div>
+      </div>
+      <div class="ct-comment">
+        <div class="av">XL</div>
+        <div class="info">
+          <div class="who">谢凌 <span class="time">1 小时前</span></div>
+          <div class="body">@林奇 看了，整体一致。建议 hover/active 状态保留 teal 主调，避免灰度过亮。可以走 #5eead4 作为基础 brandColor。</div>
+          <div class="actions"><span>↩ 回复</span><span>✓ 解决</span><span>⋯</span></div>
+        </div>
+      </div>
+      <div class="ct-comment">
+        <div class="av" style="background:linear-gradient(135deg,#b37feb,#722ed1)">FT</div>
+        <div class="info">
+          <div class="who">方糖 <span class="time">30 分钟前</span></div>
+          <div class="body">这里可以再展开一下——尤其是关于 <code>token.brandColor</code> 注入的边界，以及我们不希望破坏哪些默认观感。</div>
+          <div class="actions"><span>↩ 回复</span><span>✓ 解决</span><span>⋯</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="ct-input">
+      <textarea placeholder="回复 @方糖... (⌘↵ 发送)"></textarea>
+      <div class="ct-foot"><span>@ 提及 · # 引用块 · ⌘ 格式</span><button class="btn btn-primary btn-sm">发送</button></div>
+    </div>
+  </div>
+</div>
+</body></html>

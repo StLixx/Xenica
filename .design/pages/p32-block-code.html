@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>块编辑器 · 代码块 · Xenica</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#000;color:var(--ant-color-text);font-family:var(--ant-font-family);-webkit-font-smoothing:antialiased;min-height:100vh}
+  .stage{padding:60px;background:radial-gradient(circle at 50% 0%,#14b8a608 0%,transparent 60%);min-height:100vh;max-width:920px;margin:0 auto}
+  .eyebrow{font-family:ui-monospace,monospace;font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--ant-color-primary-text);margin-bottom:16px;display:flex;align-items:center;gap:10px}
+  .eyebrow .d{width:24px;height:1px;background:var(--ant-color-primary-text);opacity:.6}
+  h1{font-size:42px;font-weight:600;line-height:1.1;letter-spacing:-.01em;margin-bottom:14px}
+  p.lede{font-size:14px;color:var(--ant-color-text-secondary);line-height:1.7;margin-bottom:40px;max-width:680px}
+  .doc{background:var(--ant-color-bg-container);border:1px solid var(--ant-color-border);border-radius:14px;padding:48px 56px;box-shadow:0 30px 80px -30px #00000080}
+  .code-block{margin:18px 0;border:1px solid var(--ant-color-border);border-radius:12px;background:#0a0a0a;overflow:hidden;position:relative}
+  .code-head{display:flex;justify-content:space-between;align-items:center;padding:8px 14px;background:var(--ant-color-bg-elevated);border-bottom:1px solid var(--ant-color-border);font-size:11px;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace}
+  .code-head .left{display:flex;gap:12px;align-items:center}
+  .code-head .lang{padding:3px 8px;background:var(--ant-color-primary-bg);color:var(--ant-color-primary-text);border-radius:4px;font-weight:600;font-size:10px;letter-spacing:.04em}
+  .code-head .right{display:flex;gap:6px;align-items:center}
+  .code-head .right span{padding:3px 7px;background:var(--ant-color-fill-secondary);border-radius:4px;color:var(--ant-color-text-secondary);cursor:default;display:flex;align-items:center;gap:4px}
+  .code-head .right span:hover{background:var(--ant-color-fill-tertiary);color:var(--ant-color-text)}
+  .code-body{padding:14px 18px;font-family:ui-monospace,monospace;font-size:12.5px;line-height:1.7;color:var(--ant-color-text-secondary);overflow-x:auto}
+  .ln{display:inline-block;width:32px;color:var(--ant-color-text-quaternary);text-align:right;margin-right:14px;user-select:none}
+  .tok-kw{color:#b37feb}
+  .tok-str{color:#95de64}
+  .tok-num{color:#ffc53d}
+  .tok-fn{color:#4096ff}
+  .tok-cm{color:var(--ant-color-text-quaternary);font-style:italic}
+  .tok-type{color:#36cfc9}
+  .tok-prop{color:var(--ant-color-text)}
+  .tok-punct{color:var(--ant-color-text-tertiary)}
+  .code-foot{display:flex;justify-content:space-between;padding:8px 14px;background:var(--ant-color-bg-elevated);border-top:1px solid var(--ant-color-border);font-size:11px;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace}
+  .code-foot .info{display:flex;gap:14px}
+  .code-foot .info b{color:var(--ant-color-text);font-weight:500}
+  .code-block.active{border-color:var(--ant-color-primary);box-shadow:0 0 0 1px var(--ant-color-primary-border)}
+  .lang-dropdown{position:absolute;top:42px;left:14px;width:200px;background:var(--ant-color-bg-elevated);border:1px solid var(--ant-color-border);border-radius:8px;padding:6px;box-shadow:0 20px 60px -10px #000000c0;z-index:20;max-height:300px;overflow:auto}
+  .lang-search{padding:6px 8px;border-bottom:1px solid var(--ant-color-border);margin-bottom:4px}
+  .lang-search input{width:100%;background:var(--ant-color-bg-container);border:1px solid var(--ant-color-border);border-radius:5px;padding:5px 8px;color:var(--ant-color-text);font-size:12px;font-family:inherit;outline:none}
+  .lang-item{padding:6px 10px;font-size:12px;color:var(--ant-color-text-secondary);border-radius:5px;display:flex;justify-content:space-between;align-items:center;cursor:default}
+  .lang-item:hover{background:var(--ant-color-fill-secondary);color:var(--ant-color-text)}
+  .lang-item.on{background:var(--ant-color-primary-bg);color:var(--ant-color-primary-text)}
+  .lang-item .id{color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace;font-size:10px}
+  .variations{padding:36px 0 0}
+  .v{padding:18px 0;border-bottom:1px solid var(--ant-color-border-secondary)}
+  .v-label{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace;margin-bottom:14px}
+</style></head><body>
+<div class="stage">
+  <div class="eyebrow"><span class="d"></span>BLOCK · 代码块 · 多语言 + 复制</div>
+  <h1>代码块 · 语法高亮</h1>
+  <p class="lede">代码块支持 60+ 种语言，左上角切换语言、右上角一键复制。支持长代码块内部滚动，行号同步。下方"语言选择器下拉"展示了切换态。</p>
+  <div class="doc">
+    <div class="code-block active">
+      <div class="code-head">
+        <div class="left"><span class="lang">TS</span><span>force-layout.ts · 24 行 · 782 字符</span></div>
+        <div class="right"><span>⤓ 复制</span><span>⊟ 折叠</span><span>⤢ 全屏</span></div>
+      </div>
+      <div class="lang-dropdown">
+        <div class="lang-search"><input placeholder="搜索语言..."/></div>
+        <div class="lang-item on"><span>TypeScript</span><span class="id">ts</span></div>
+        <div class="lang-item"><span>JavaScript</span><span class="id">js</span></div>
+        <div class="lang-item"><span>TSX</span><span class="id">tsx</span></div>
+        <div class="lang-item"><span>Python</span><span class="id">py</span></div>
+        <div class="lang-item"><span>Rust</span><span class="id">rs</span></div>
+        <div class="lang-item"><span>Go</span><span class="id">go</span></div>
+        <div class="lang-item"><span>Markdown</span><span class="id">md</span></div>
+        <div class="lang-item"><span>JSON</span><span class="id">json</span></div>
+      </div>
+      <div class="code-body">
+<span class="ln">1</span><span class="tok-kw">import</span> * <span class="tok-kw">as</span> d3 <span class="tok-kw">from</span> <span class="tok-str">'d3-force'</span>;
+<span class="ln">2</span>
+<span class="ln">3</span><span class="tok-kw">export function</span> <span class="tok-fn">forceLayout</span>&lt;<span class="tok-type">Node</span>, <span class="tok-type">Edge</span>&gt;(
+<span class="ln">4</span>  nodes: <span class="tok-type">Node</span>[],
+<span class="ln">5</span>  edges: <span class="tok-type">Edge</span>[],
+<span class="ln">6</span>  opts: <span class="tok-type">LayoutOptions</span> = {}
+<span class="ln">7</span>) {
+<span class="ln">8</span>  <span class="tok-kw">const</span> { charge = -<span class="tok-num">300</span>, distance = <span class="tok-num">120</span> } = opts;
+<span class="ln">9</span>
+<span class="ln">10</span>  <span class="tok-kw">const</span> sim = <span class="tok-kw">new</span> <span class="tok-fn">ForceSimulation</span>(nodes)
+<span class="ln">11</span>    .<span class="tok-fn">force</span>(<span class="tok-str">'charge'</span>, d3.<span class="tok-fn">forceManyBody</span>().<span class="tok-fn">strength</span>(charge))
+<span class="ln">12</span>    .<span class="tok-fn">force</span>(<span class="tok-str">'link'</span>, d3.<span class="tok-fn">forceLink</span>(edges).<span class="tok-fn">distance</span>(distance))
+<span class="ln">13</span>    .<span class="tok-fn">force</span>(<span class="tok-str">'center'</span>, d3.<span class="tok-fn">forceCenter</span>(<span class="tok-num">0</span>, <span class="tok-num">0</span>));
+<span class="ln">14</span>
+<span class="ln">15</span>  <span class="tok-cm">// 模拟 300 tick 后稳定</span>
+<span class="ln">16</span>  <span class="tok-kw">for</span> (<span class="tok-kw">let</span> i = <span class="tok-num">0</span>; i &lt; <span class="tok-num">300</span>; i++) sim.<span class="tok-fn">tick</span>();
+<span class="ln">17</span>
+<span class="ln">18</span>  <span class="tok-kw">return</span> nodes.<span class="tok-fn">map</span>(n =&gt; ({ <span class="tok-prop">id</span>: n.id, <span class="tok-prop">x</span>: n.x, <span class="tok-prop">y</span>: n.y }));
+<span class="ln">19</span>}
+</div>
+      <div class="code-foot">
+        <div class="info"><span>字符数 <b>782</b></span><span>Token 数 <b>184</b></span></div>
+        <span>TS · Monokai 主题</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="variations">
+    <h2 style="font-size:20px;font-weight:600;margin-bottom:18px">其他形态</h2>
+    <div class="v">
+      <div class="v-label">折叠态 · 长代码块</div>
+      <div class="code-block">
+        <div class="code-head"><div class="left"><span class="lang">PY</span><span>data-pipeline.py · 147 行 · 已折叠</span></div><div class="right"><span>⤓ 复制</span><span>⊞ 展开</span></div></div>
+        <div class="code-body" style="text-align:center;color:var(--ant-color-text-tertiary);font-style:italic;padding:24px">点击「展开」查看完整代码</div>
+      </div>
+    </div>
+    <div class="v">
+      <div class="v-label">跨行选择 · 部分代码高亮</div>
+      <div class="code-block">
+        <div class="code-head"><div class="left"><span class="lang">RS</span><span>render.rs</span></div><div class="right"><span>⤓ 复制</span></div></div>
+        <div class="code-body">
+<span class="ln">1</span><span class="tok-kw">fn</span> <span class="tok-fn">render</span>(canvas: &amp;<span class="tok-kw">mut</span> Canvas) {
+<span class="ln">2</span>  <span class="tok-kw">for</span> node <span class="tok-kw">in</span> &amp;canvas.nodes {
+<span class="ln">3</span>    canvas.<span class="tok-fn">draw_node</span>(node);
+<span class="ln">4</span>    <span style="background:#14b8a620;color:#5eead4;display:block;margin:0 -18px;padding:0 18px;border-left:2px solid var(--ant-color-primary)">    <span class="tok-cm">// 选中态高亮</span>
+<span class="ln">5</span>    <span style="background:#14b8a20c;display:block;margin:0 -18px;padding:0 18px">    <span class="tok-kw">if</span> node.selected {
+<span class="ln">6</span>      canvas.<span class="tok-fn">draw_selection_ring</span>(node);
+<span class="ln">7</span>    }</span></span>
+<span class="ln">8</span>  }
+<span class="ln">9</span>}</div>
+      </div>
+    </div>
+  </div>
+</div>
+</body></html>

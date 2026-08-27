@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>数据库 · 时间线视图 · Xenica</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#000;color:var(--ant-color-text);font-family:var(--ant-font-family);-webkit-font-smoothing:antialiased;min-height:100vh}
+  .stage{padding:40px;background:radial-gradient(circle at 50% 0%,#14b8a608 0%,transparent 60%);min-height:100vh}
+  .db-shell{background:var(--ant-color-bg-container);border:1px solid var(--ant-color-border);border-radius:14px;overflow:hidden;box-shadow:0 30px 80px -30px #00000080}
+  .db-head{padding:18px 24px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--ant-color-border);background:var(--ant-color-bg-elevated)}
+  .db-head .left{display:flex;align-items:center;gap:14px}
+  .db-head .ico{width:40px;height:40px;border-radius:10px;background:#14b8a620;color:var(--ant-color-primary-text);display:flex;align-items:center;justify-content:center;font-size:18px}
+  .db-head h2{font-size:18px;font-weight:600}
+  .db-head .meta{font-size:11px;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace;margin-top:2px}
+  .view-tabs{display:flex;gap:0;border-bottom:1px solid var(--ant-color-border);background:var(--ant-color-bg-base);padding:0 16px}
+  .vt{padding:11px 14px;font-size:12px;color:var(--ant-color-text-secondary);border-bottom:2px solid transparent;cursor:default;display:flex;align-items:center;gap:6px}
+  .vt.on{color:var(--ant-color-primary-text);border-bottom-color:var(--ant-color-primary)}
+  .timeline-toolbar{padding:14px 18px;display:flex;justify-content:space-between;align-items:center;background:var(--ant-color-bg-container);border-bottom:1px solid var(--ant-color-border)}
+  .scale{display:flex;gap:4px;font-size:11px;color:var(--ant-color-text-secondary);font-family:ui-monospace,monospace;background:var(--ant-color-bg-elevated);padding:3px;border-radius:6px;border:1px solid var(--ant-color-border)}
+  .scale span{padding:4px 10px;border-radius:4px;cursor:default}
+  .scale span.on{background:var(--ant-color-primary);color:#fff}
+  .tl-scroll{overflow-x:auto;background:var(--ant-color-bg-base)}
+  .tl{position:relative;min-width:1600px;padding:32px 32px 60px}
+  .tl-axis{position:absolute;left:0;right:0;top:120px;height:1px;background:var(--ant-color-border)}
+  .tl-axis.today{top:340px}
+  .tl-tick{position:absolute;top:108px;width:1px;height:24px;background:var(--ant-color-border)}
+  .tl-tick-label{position:absolute;top:80px;font-size:11px;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace;letter-spacing:.04em;transform:translateX(-50%);white-space:nowrap}
+  .tl-row{position:relative;display:flex;align-items:center;height:60px;margin-bottom:6px}
+  .tl-row-label{position:absolute;left:0;top:18px;width:120px;font-size:12px;font-weight:500;color:var(--ant-color-text);font-family:ui-monospace,monospace;letter-spacing:.04em;z-index:2}
+  .tl-row-label .sub{font-size:10px;color:var(--ant-color-text-tertiary);margin-top:2px;font-family:ui-monospace,monospace;font-weight:400}
+  .tl-bar{position:absolute;height:30px;border-radius:6px;background:var(--ant-color-primary-bg);border:1px solid var(--ant-color-primary-border);padding:6px 10px;font-size:11px;color:var(--ant-color-primary-text);font-family:ui-monospace,monospace;display:flex;align-items:center;gap:6px;cursor:default;overflow:hidden;white-space:nowrap}
+  .tl-bar.doing{background:var(--ant-color-primary);color:#fff;border-color:var(--ant-color-primary);box-shadow:0 0 16px -4px #14b8a660}
+  .tl-bar.review{background:#722ed130;border-color:#b37feb;color:#b37feb}
+  .tl-bar.done{background:#0a1912;border-color:#1a3d1f;color:#95de64}
+  .tl-bar.blocked{background:#2a1215;border-color:#5a1f23;color:#ff7875}
+  .tl-bar.todo{background:var(--ant-color-fill-tertiary);border-color:var(--ant-color-border);color:var(--ant-color-text-secondary)}
+  .tl-bar .prog{position:absolute;left:0;top:0;bottom:0;background:rgba(20,184,166,.18);pointer-events:none;border-radius:6px 0 0 6px}
+  .tl-bar .pct{position:relative;font-weight:600;margin-left:auto;padding-left:8px}
+  .tl-milestone{position:absolute;width:14px;height:14px;background:var(--ant-color-warning);border:3px solid var(--ant-color-bg-container);border-radius:50%;transform:translateX(-50%) rotate(45deg);box-shadow:0 0 12px #d8961460;z-index:3}
+  .tl-milestone::after{content:"";position:absolute;inset:-7px;border:1px dashed var(--ant-color-warning);border-radius:50%}
+  .tl-today-line{position:absolute;top:0;bottom:0;width:2px;background:linear-gradient(to bottom,transparent,var(--ant-color-primary) 120px,var(--ant-color-primary) calc(100% - 120px),transparent);z-index:1}
+  .tl-today-label{position:absolute;top:14px;font-size:10px;background:var(--ant-color-primary);color:#fff;padding:3px 8px;border-radius:5px;font-family:ui-monospace,monospace;letter-spacing:.06em;transform:translateX(-50%);z-index:2}
+  .tl-legend{padding:14px 24px;background:var(--ant-color-bg-container);border-top:1px solid var(--ant-color-border);font-size:11px;color:var(--ant-color-text-tertiary);display:flex;gap:18px;align-items:center;font-family:ui-monospace,monospace}
+  .tl-legend .dot{width:10px;height:10px;border-radius:3px;display:inline-block;vertical-align:middle;margin-right:6px}
+  .tl-legend .grp{display:flex;align-items:center;gap:6px}
+</style></head><body>
+<div class="stage">
+  <div class="db-shell">
+    <div class="db-head">
+      <div class="left">
+        <div class="ico">▦</div>
+        <div><h2>项目看板 · v5.0.0</h2><div class="meta">视图：<b>时间线</b> · 按截止日期 · 12 项</div></div>
+      </div>
+      <div class="right" style="display:flex;gap:6px"><button class="btn btn-default btn-sm">⊞ 配置</button><button class="btn btn-default btn-sm">+ 新建</button></div>
+    </div>
+    <div class="view-tabs">
+      <div class="vt">▦ 表格</div>
+      <div class="vt">▤ 看板</div>
+      <div class="vt">▤ 日历</div>
+      <div class="vt">▦ 画廊</div>
+      <div class="vt on">▬ 时间线</div>
+    </div>
+    <div class="timeline-toolbar">
+      <div class="left" style="display:flex;gap:14px;align-items:center">
+        <div class="scale"><span>日</span><span class="on">周</span><span>月</span><span>季</span></div>
+        <span style="font-size:13px;color:var(--ant-color-text);font-family:ui-monospace,monospace">2026 · Q3</span>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;font-size:11px;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace">
+        <span>分组：<span style="color:var(--ant-color-text-secondary)">状态</span></span>
+        <span>·</span>
+        <span>缩放 100%</span>
+      </div>
+    </div>
+    <div class="tl-scroll">
+      <div class="tl">
+        <!-- 时间刻度 -->
+        <div class="tl-tick-label" style="left:220px">7/1</div>
+        <div class="tl-tick" style="left:220px"></div>
+        <div class="tl-tick-label" style="left:380px">7/8</div>
+        <div class="tl-tick" style="left:380px"></div>
+        <div class="tl-tick-label" style="left:540px">7/15</div>
+        <div class="tl-tick" style="left:540px"></div>
+        <div class="tl-tick-label" style="left:700px">7/22</div>
+        <div class="tl-tick" style="left:700px"></div>
+        <div class="tl-tick-label" style="left:860px">7/29</div>
+        <div class="tl-tick" style="left:860px"></div>
+        <div class="tl-tick-label" style="left:1020px">8/5</div>
+        <div class="tl-tick" style="left:1020px"></div>
+
+        <!-- 今日线 -->
+        <div class="tl-today-line" style="left:610px"></div>
+        <div class="tl-today-label" style="left:610px">今天 7/17</div>
+
+        <!-- 行 1：待办 -->
+        <div class="tl-row">
+          <div class="tl-row-label">待办<div class="sub">4 项</div></div>
+          <div class="tl-bar todo" style="left:560px;width:160px">建立 manifest</div>
+          <div class="tl-bar todo" style="left:660px;width:130px">Playwright 验证</div>
+          <div class="tl-bar todo" style="left:780px;width:130px">ADR-004</div>
+          <div class="tl-bar todo" style="left:920px;width:140px">更新文档站</div>
+        </div>
+
+        <!-- 行 2：进行中 -->
+        <div class="tl-row">
+          <div class="tl-row-label">进行中<div class="sub">2 项</div></div>
+          <div class="tl-bar doing" style="left:520px;width:180px">
+            <span style="position:relative">输出 100 页设计</span>
+            <span class="pct">60%</span>
+            <i class="prog" style="width:60%"></i>
+          </div>
+          <div class="tl-bar doing" style="left:560px;width:140px">
+            <span style="position:relative">用户引导</span>
+            <span class="pct">40%</span>
+            <i class="prog" style="width:40%"></i>
+          </div>
+        </div>
+
+        <!-- 行 3：评审 -->
+        <div class="tl-row">
+          <div class="tl-row-label">评审<div class="sub">1 项</div></div>
+          <div class="tl-bar review" style="left:560px;width:140px">
+            <span style="position:relative">Antd 6 darkAlgo</span>
+            <span class="pct">90%</span>
+            <i class="prog" style="width:90%"></i>
+          </div>
+        </div>
+
+        <!-- 行 4：完成 -->
+        <div class="tl-row">
+          <div class="tl-row-label">完成<div class="sub">3 项</div></div>
+          <div class="tl-bar done" style="left:380px;width:180px">
+            <span style="position:relative">锁定 v5.0.0</span>
+            <span class="pct">100%</span>
+          </div>
+          <div class="tl-bar done" style="left:520px;width:140px">
+            <span style="position:relative">锁定 Antd 6</span>
+            <span class="pct">100%</span>
+          </div>
+          <div class="tl-bar done" style="left:380px;width:90px;margin-top:40px">
+            <span style="position:relative">Plate VI</span>
+            <span class="pct">100%</span>
+          </div>
+        </div>
+
+        <!-- 行 5：阻塞 -->
+        <div class="tl-row">
+          <div class="tl-row-label">阻塞<div class="sub">1 项</div></div>
+          <div class="tl-bar blocked" style="left:480px;width:240px">
+            <span style="position:relative">⚠ Notion 导入回归</span>
+            <span class="pct">25%</span>
+            <i class="prog" style="width:25%;background:#dc444640"></i>
+          </div>
+        </div>
+
+        <!-- 里程碑 -->
+        <div class="tl-milestone" style="left:560px;top:380px" title="v5.0.0 锁定"></div>
+        <div class="tl-milestone" style="left:980px;top:380px" title="v5.0.0 发布"></div>
+
+        <div style="position:absolute;left:560px;top:398px;font-size:10px;color:var(--ant-color-warning);font-family:ui-monospace,monospace;letter-spacing:.06em;transform:translateX(-50%)">v5.0.0 LOCK</div>
+        <div style="position:absolute;left:980px;top:398px;font-size:10px;color:var(--ant-color-warning);font-family:ui-monospace,monospace;letter-spacing:.06em;transform:translateX(-50%)">v5.0.0 RELEASE</div>
+      </div>
+    </div>
+    <div class="tl-legend">
+      <div class="grp"><span class="dot" style="background:var(--ant-color-primary)"></span>进行中</div>
+      <div class="grp"><span class="dot" style="background:#b37feb"></span>评审</div>
+      <div class="grp"><span class="dot" style="background:var(--ant-color-fill-tertiary);border:1px solid var(--ant-color-border)"></span>待办</div>
+      <div class="grp"><span class="dot" style="background:#95de64"></span>完成</div>
+      <div class="grp"><span class="dot" style="background:#ff7875"></span>阻塞</div>
+      <div class="grp" style="margin-left:auto;color:var(--ant-color-warning)">◆ 里程碑</div>
+    </div>
+  </div>
+</div>
+</body></html>

@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>块编辑器 · 数学/图片/嵌入 · Xenica</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#000;color:var(--ant-color-text);font-family:var(--ant-font-family);-webkit-font-smoothing:antialiased;min-height:100vh}
+  .stage{padding:60px;background:radial-gradient(circle at 50% 0%,#14b8a608 0%,transparent 60%);min-height:100vh;max-width:920px;margin:0 auto}
+  .eyebrow{font-family:ui-monospace,monospace;font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--ant-color-primary-text);margin-bottom:16px;display:flex;align-items:center;gap:10px}
+  .eyebrow .d{width:24px;height:1px;background:var(--ant-color-primary-text);opacity:.6}
+  h1{font-size:42px;font-weight:600;line-height:1.1;letter-spacing:-.01em;margin-bottom:14px}
+  p.lede{font-size:14px;color:var(--ant-color-text-secondary);line-height:1.7;margin-bottom:40px;max-width:680px}
+  .doc{background:var(--ant-color-bg-container);border:1px solid var(--ant-color-border);border-radius:14px;padding:48px 56px;box-shadow:0 30px 80px -30px #00000080}
+  .sec{margin:24px 0}
+  .sec-label{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace;margin-bottom:12px;font-weight:600}
+  .math-block{margin:14px 0;padding:24px;background:var(--ant-color-bg-elevated);border:1px solid var(--ant-color-border);border-radius:12px;text-align:center;position:relative;overflow:hidden}
+  .math-block::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 30% 30%,#14b8a610,transparent 60%);pointer-events:none}
+  .math-eq{position:relative;font-family:'Cambria Math','STIX Two Math',Georgia,serif;font-size:22px;color:var(--ant-color-text);letter-spacing:.04em;line-height:1.4}
+  .math-eq .frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 4px;font-size:18px}
+  .math-eq .frac .num{padding:0 6px;border-bottom:1.5px solid var(--ant-color-text)}
+  .math-eq .frac .den{padding:0 6px}
+  .math-eq sup{font-size:14px;vertical-align:super}
+  .math-eq sub{font-size:14px;vertical-align:sub}
+  .math-block .src{position:relative;font-size:11px;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace;margin-top:18px;padding-top:14px;border-top:1px solid var(--ant-color-border-secondary);text-align:left}
+  .math-block .src b{color:var(--ant-color-primary-text)}
+  .math-toolbar{position:absolute;top:14px;right:14px;display:flex;gap:4px;background:var(--ant-color-bg-container);border:1px solid var(--ant-color-border);border-radius:6px;padding:3px;z-index:1}
+  .math-toolbar span{width:22px;height:22px;border-radius:4px;display:flex;align-items:center;justify-content:center;color:var(--ant-color-text-tertiary);font-size:11px;cursor:default}
+  .math-toolbar span:hover{background:var(--ant-color-fill-secondary);color:var(--ant-color-text)}
+  .image-block{margin:18px 0;border:1px solid var(--ant-color-border);border-radius:12px;overflow:hidden;background:var(--ant-color-bg-elevated)}
+  .image-block .img{position:relative;aspect-ratio:16/9;background:linear-gradient(135deg,#0a2922,#1f1f1f);display:flex;align-items:center;justify-content:center;color:var(--ant-color-text-tertiary);font-size:13px;overflow:hidden}
+  .image-block .img::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 30% 30%,#14b8a630,transparent 50%),radial-gradient(circle at 70% 70%,#b37feb20,transparent 50%)}
+  .image-block .img::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(45deg,transparent,transparent 12px,#14b8a608 12px,#14b8a608 13px)}
+  .image-block .img-cap-overlay{position:absolute;bottom:14px;left:14px;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);padding:6px 10px;border-radius:5px;font-size:11px;color:var(--ant-color-text);font-family:ui-monospace,monospace}
+  .image-block .actions{position:absolute;top:14px;right:14px;display:flex;gap:6px}
+  .image-block .actions span{width:30px;height:30px;border-radius:6px;background:rgba(0,0,0,.6);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;cursor:default}
+  .image-block .cap{padding:12px 16px;font-size:13px;color:var(--ant-color-text-secondary);border-top:1px solid var(--ant-color-border);display:flex;justify-content:space-between;align-items:center}
+  .image-block .cap .left{display:flex;align-items:center;gap:8px}
+  .image-block .cap .meta{font-size:11px;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace}
+  .embed-block{margin:18px 0;border:1px solid var(--ant-color-border);border-radius:12px;padding:18px;display:flex;gap:18px;background:var(--ant-color-bg-elevated);transition:all .15s}
+  .embed-block:hover{border-color:var(--ant-color-primary-border);background:var(--ant-color-bg-container)}
+  .embed-block .fav{width:56px;height:56px;border-radius:10px;background:#0a2922;display:flex;align-items:center;justify-content:center;font-size:24px;color:var(--ant-color-primary-text);flex:none;position:relative;overflow:hidden}
+  .embed-block .fav::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 30% 30%,#14b8a620,transparent 60%)}
+  .embed-block .info{flex:1;min-width:0}
+  .embed-block .ttl{font-size:15px;font-weight:600;color:var(--ant-color-text);margin-bottom:6px;line-height:1.3}
+  .embed-block .desc{font-size:13px;color:var(--ant-color-text-secondary);line-height:1.5;margin-bottom:10px}
+  .embed-block .meta{font-size:10px;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace;display:flex;gap:14px;align-items:center}
+  .embed-block .meta a{color:var(--ant-color-primary-text);text-decoration:none}
+  .embed-block .right{flex:none;display:flex;align-items:center;gap:6px;font-size:11px;color:var(--ant-color-text-tertiary)}
+  .file-block{margin:18px 0;border:1px solid var(--ant-color-border);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:14px;background:var(--ant-color-bg-elevated)}
+  .file-block .ico{width:44px;height:44px;border-radius:8px;background:#4096ff20;color:#4096ff;display:flex;align-items:center;justify-content:center;font-size:18px;flex:none}
+  .file-block .info{flex:1;min-width:0}
+  .file-block .ttl{font-size:13px;font-weight:600;color:var(--ant-color-text);margin-bottom:2px}
+  .file-block .meta{font-size:11px;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace}
+  .file-block .actions{display:flex;gap:6px}
+</style></head><body>
+<div class="stage">
+  <div class="eyebrow"><span class="d"></span>BLOCK · 数学 · 图片 · 嵌入 · 文件</div>
+  <h1>富媒体块 · 4 种类型</h1>
+  <p class="lede">数学公式用 KaTeX 渲染（带浮动工具栏）；图片块支持说明文字 + 替换 + 居中等操作；嵌入块自动生成外部链接预览；文件块显示 PDF/Office 等附件。</p>
+  <div class="doc">
+    <div class="sec">
+      <div class="sec-label">· 数学公式</div>
+      <div class="math-block">
+        <div class="math-toolbar"><span>⊞</span><span>⤓</span><span>⌥</span><span>⊕</span></div>
+        <div class="math-eq">
+          E = mc<sup>2</sup> &nbsp;&nbsp;&nbsp;  ψ(x,t) = <span class="frac"><span class="num">1</span><span class="den">√(2π)</span></span> ∫ φ(k) e<sup>i(kx−ωt)</sup> dk
+        </div>
+        <div class="src"><b>// KaTeX 渲染 · Block: 9bd12f</b><br>\psi(x,t) = \frac{1}{\sqrt{2\pi}} \int \phi(k) e^{i(kx-\omega t)} dk</div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-label">· 图片（含说明）</div>
+      <div class="image-block">
+        <div class="img">
+          <div class="img-cap-overlay">figure-1.svg · 2400 × 1350</div>
+          <div class="actions"><span>⤢</span><span>⤓</span><span>⊕</span><span>⊘</span></div>
+        </div>
+        <div class="cap">
+          <div class="left"><span>图 1</span><span>·</span><span>力导向布局 (d3-force) 在 12 节点 / 11 连接上的输出</span></div>
+          <span class="meta">由 谢凌 添加 · 2026-07-12 · 来源：自定义</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-label">· 嵌入外部链接</div>
+      <div class="embed-block">
+        <div class="fav">↗</div>
+        <div class="info">
+          <div class="ttl">Ant Design · 算法组件深度解析</div>
+          <div class="desc">Antd 6 darkAlgorithm 通过语义化 token 实现暗色模式下的色彩统一，让品牌色在 dark 表面保持一致。相比 Antd 5 提供更细腻的色阶过渡。</div>
+          <div class="meta">
+            <span><span style="color:var(--ant-color-primary-text)">↗</span> ant.design</span>
+            <span>·</span>
+            <span>5 分钟阅读</span>
+            <span>·</span>
+            <span>2026-07-12</span>
+            <a href="#">原始链接 →</a>
+          </div>
+        </div>
+        <div class="right"><span style="cursor:default">⊟</span></div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-label">· 文件附件</div>
+      <div class="file-block">
+        <div class="ico">PDF</div>
+        <div class="info">
+          <div class="ttl">Antd 6 darkAlgorithm 调研报告.pdf</div>
+          <div class="meta">2.4 MB · 24 页 · 由 谢凌 上传 · 2026-07-16</div>
+        </div>
+        <div class="actions">
+          <button class="btn btn-default btn-sm">⤓ 下载</button>
+          <button class="btn btn-default btn-sm">⊞ 预览</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body></html>

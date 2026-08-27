@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>数据库 · 看板视图 · Xenica</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#000;color:var(--ant-color-text);font-family:var(--ant-font-family);-webkit-font-smoothing:antialiased;min-height:100vh}
+  .stage{padding:40px;background:radial-gradient(circle at 50% 0%,#14b8a608 0%,transparent 60%);min-height:100vh}
+  .db-shell{background:var(--ant-color-bg-container);border:1px solid var(--ant-color-border);border-radius:14px;overflow:hidden;box-shadow:0 30px 80px -30px #00000080}
+  .db-head{padding:18px 24px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--ant-color-border);background:var(--ant-color-bg-elevated)}
+  .db-head .left{display:flex;align-items:center;gap:14px}
+  .db-head .ico{width:40px;height:40px;border-radius:10px;background:#14b8a620;color:var(--ant-color-primary-text);display:flex;align-items:center;justify-content:center;font-size:18px}
+  .db-head h2{font-size:18px;font-weight:600}
+  .db-head .meta{font-size:11px;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace;margin-top:2px;display:flex;gap:12px;align-items:center}
+  .view-tabs{display:flex;gap:0;border-bottom:1px solid var(--ant-color-border);background:var(--ant-color-bg-base);padding:0 16px}
+  .vt{padding:11px 14px;font-size:12px;color:var(--ant-color-text-secondary);border-bottom:2px solid transparent;cursor:default;display:flex;align-items:center;gap:6px}
+  .vt.on{color:var(--ant-color-primary-text);border-bottom-color:var(--ant-color-primary)}
+  .board{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;padding:18px;background:var(--ant-color-bg-base);min-height:680px}
+  .col{background:var(--ant-color-bg-container);border:1px solid var(--ant-color-border);border-radius:10px;display:flex;flex-direction:column;max-height:680px;overflow:hidden}
+  .col-head{padding:14px 14px 10px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--ant-color-border-secondary);background:var(--ant-color-bg-elevated)}
+  .col-head .left{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--ant-color-text)}
+  .col-head .dot{width:8px;height:8px;border-radius:50%}
+  .col-head .count{font-size:11px;color:var(--ant-color-text-tertiary);background:var(--ant-color-fill-secondary);padding:2px 7px;border-radius:8px;font-family:ui-monospace,monospace;font-weight:500}
+  .col-head .add{width:24px;height:24px;border-radius:5px;color:var(--ant-color-text-tertiary);font-size:14px;display:flex;align-items:center;justify-content:center;cursor:default}
+  .col-head .add:hover{background:var(--ant-color-fill-secondary);color:var(--ant-color-text)}
+  .col-body{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:8px}
+  .card{background:var(--ant-color-bg-elevated);border:1px solid var(--ant-color-border);border-radius:8px;padding:12px 14px;cursor:grab;transition:all .15s;position:relative}
+  .card:hover{border-color:var(--ant-color-primary-border);box-shadow:0 4px 12px #00000040}
+  .card.drop-target{border:2px dashed var(--ant-color-primary);background:#14b8a614}
+  .card.dragging{opacity:.5;cursor:grabbing}
+  .card .ttl{font-size:13px;font-weight:500;color:var(--ant-color-text);margin-bottom:8px;line-height:1.4}
+  .card .ttl-tag{position:absolute;top:12px;right:12px}
+  .card .meta{display:flex;align-items:center;gap:6px;margin-top:10px;font-size:11px;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace}
+  .card .meta .priority{display:inline-flex;align-items:center;gap:3px}
+  .card .meta .bar{display:flex;gap:1px}
+  .card .meta .bar i{width:2px;height:8px;background:var(--ant-color-fill-tertiary);border-radius:1px}
+  .card .meta .bar i.on{background:var(--ant-color-primary)}
+  .card .meta .bar i.high.on{background:var(--ant-color-error)}
+  .card .meta .bar i.med.on{background:var(--ant-color-warning)}
+  .card .foot{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:8px;border-top:1px solid var(--ant-color-border-secondary);font-size:10px;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace}
+  .card .av-cell{display:flex;align-items:center}
+  .card .av{width:22px;height:22px;font-size:9px;border:2px solid var(--ant-color-bg-elevated)}
+  .card .tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+  .card .tag{padding:2px 6px;font-size:10px;background:var(--ant-color-fill-secondary);color:var(--ant-color-text-tertiary);border-radius:4px}
+  .card .tag.primary{background:var(--ant-color-primary-bg);color:var(--ant-color-primary-text)}
+  .card .tag.warn{background:#d8961420;color:#ffc53d}
+  .card .date{display:inline-flex;align-items:center;gap:4px;font-size:10px}
+  .card .date.warn{color:var(--ant-color-warning)}
+  .card .date.overdue{color:var(--ant-color-error)}
+  .col-add{padding:10px;color:var(--ant-color-text-tertiary);font-size:12px;text-align:center;border:1px dashed var(--ant-color-border);border-radius:8px;cursor:default;margin-top:6px}
+  .col-add:hover{color:var(--ant-color-primary-text);border-color:var(--ant-color-primary-border)}
+  .status-doing .dot{background:var(--ant-color-primary);box-shadow:0 0 6px var(--ant-color-primary)}
+  .status-todo .dot{background:var(--ant-color-text-tertiary)}
+  .status-review .dot{background:#b37feb}
+  .status-done .dot{background:var(--ant-color-success)}
+  .status-blocked .dot{background:var(--ant-color-error);box-shadow:0 0 6px var(--ant-color-error)}
+</style></head><body>
+<div class="stage">
+  <div class="db-shell">
+    <div class="db-head">
+      <div class="left">
+        <div class="ico">▦</div>
+        <div><h2>项目看板 · v5.0.0</h2><div class="meta"><span>12 项</span><span>·</span><span>视图：<b>看板</b>（按状态分组）</span></div></div>
+      </div>
+      <div class="right" style="display:flex;gap:6px"><button class="btn btn-default btn-sm">⊞ 配置</button><button class="btn btn-default btn-sm">+ 新建</button></div>
+    </div>
+    <div class="view-tabs">
+      <div class="vt">▦ 表格</div>
+      <div class="vt on">▤ 看板</div>
+      <div class="vt">▤ 日历</div>
+      <div class="vt">▦ 画廊</div>
+      <div class="vt">▬ 时间线</div>
+    </div>
+    <div class="board">
+      <div class="col status-todo">
+        <div class="col-head">
+          <div class="left"><span class="dot"></span><span>待办</span><span class="count">4</span></div>
+          <span class="add">+</span>
+        </div>
+        <div class="col-body">
+          <div class="card">
+            <div class="ttl">建立 .design manifest 与节点注册</div>
+            <div class="meta"><span class="priority"><span class="bar"><i class="on med"></i><i class="on med"></i><i></i></span>中</span><span>07-20</span></div>
+            <div class="tags"><span class="tag">工程</span></div>
+            <div class="foot"><div class="av-cell"><div class="av">XL</div></div><span class="date">07-20</span></div>
+          </div>
+          <div class="card">
+            <div class="ttl">Playwright 截图回归验证</div>
+            <div class="meta"><span class="priority"><span class="bar"><i class="on"></i><i></i><i></i></span>低</span><span>07-22</span></div>
+            <div class="tags"><span class="tag">QA</span></div>
+            <div class="foot"><div class="av-cell"><div class="av" style="background:linear-gradient(135deg,#4096ff,#1677ff)">LQ</div></div><span class="date">07-22</span></div>
+          </div>
+          <div class="card">
+            <div class="ttl">ADR-004 · 自动布局算法边界</div>
+            <div class="meta"><span class="priority"><span class="bar"><i class="on"></i><i></i><i></i></span>低</span><span>07-25</span></div>
+            <div class="tags"><span class="tag">ADR</span></div>
+            <div class="foot"><div class="av-cell"><div class="av">XL</div></div><span class="date">07-25</span></div>
+          </div>
+          <div class="card">
+            <div class="ttl">更新文档站点 v5.0.0 内容</div>
+            <div class="meta"><span class="priority"><span class="bar"><i class="on"></i><i></i><i></i></span>低</span><span>08-01</span></div>
+            <div class="tags"><span class="tag">文档</span></div>
+            <div class="foot"><div class="av-cell"><div class="av" style="background:linear-gradient(135deg,#b37feb,#722ed1)">FT</div></div><span class="date">08-01</span></div>
+          </div>
+          <div class="col-add">+ 新建任务</div>
+        </div>
+      </div>
+
+      <div class="col status-doing">
+        <div class="col-head">
+          <div class="left"><span class="dot"></span><span>进行中</span><span class="count">2</span></div>
+          <span class="add">+</span>
+        </div>
+        <div class="col-body">
+          <div class="card drop-target">
+            <div class="ttl">输出 100 页全量页面设计</div>
+            <div class="meta"><span class="priority"><span class="bar"><i class="on high"></i><i class="on high"></i><i class="on high"></i></span>高</span><span style="color:var(--ant-color-warning)">剩 6h</span></div>
+            <div class="tags"><span class="tag primary">核心</span><span class="tag">设计</span></div>
+            <div class="foot"><div class="av-cell"><div class="av">XL</div><div class="av" style="background:linear-gradient(135deg,#4096ff,#1677ff);margin-left:-6px">LQ</div></div><span class="date warn">今天 18:00</span></div>
+          </div>
+          <div class="card">
+            <div class="ttl">用户引导流程设计</div>
+            <div class="meta"><span class="priority"><span class="bar"><i class="on med"></i><i class="on med"></i><i></i></span>中</span><span>07-19</span></div>
+            <div class="tags"><span class="tag">UX</span></div>
+            <div class="foot"><div class="av-cell"><div class="av">XL</div></div><span class="date">07-19</span></div>
+          </div>
+          <div class="col-add">+ 新建任务</div>
+        </div>
+      </div>
+
+      <div class="col status-review">
+        <div class="col-head">
+          <div class="left"><span class="dot"></span><span>评审</span><span class="count">1</span></div>
+          <span class="add">+</span>
+        </div>
+        <div class="col-body">
+          <div class="card">
+            <div class="ttl">Antd 6 darkAlgorithm 适配</div>
+            <div class="meta"><span class="priority"><span class="bar"><i class="on high"></i><i class="on high"></i><i class="on high"></i></span>高</span><span>07-17</span></div>
+            <div class="tags"><span class="tag primary">核心</span><span class="tag">设计系统</span></div>
+            <div class="foot"><div class="av-cell"><div class="av">XL</div></div><span class="date">今天</span></div>
+          </div>
+          <div class="col-add">+ 新建任务</div>
+        </div>
+      </div>
+
+      <div class="col status-done">
+        <div class="col-head">
+          <div class="left"><span class="dot"></span><span>完成</span><span class="count">3</span></div>
+          <span class="add">+</span>
+        </div>
+        <div class="col-body">
+          <div class="card">
+            <div class="ttl">锁定 v5.0.0 范围</div>
+            <div class="meta"><span class="priority"><span class="bar"><i class="on high"></i><i class="on high"></i><i class="on high"></i></span>高</span><span style="color:var(--ant-color-success)">✓</span></div>
+            <div class="tags"><span class="tag">v5.0.0</span></div>
+            <div class="foot"><div class="av-cell"><div class="av">XL</div></div><span class="date">07-15</span></div>
+          </div>
+          <div class="card">
+            <div class="ttl">锁定 Antd 6 + darkAlgorithm</div>
+            <div class="meta"><span class="priority"><span class="bar"><i class="on high"></i><i class="on high"></i><i class="on high"></i></span>高</span><span style="color:var(--ant-color-success)">✓</span></div>
+            <div class="tags"><span class="tag primary">设计系统</span></div>
+            <div class="foot"><div class="av-cell"><div class="av">XL</div></div><span class="date">07-16</span></div>
+          </div>
+          <div class="card">
+            <div class="ttl">产出 Plate VI · Antd 6 组件 mount</div>
+            <div class="meta"><span class="priority"><span class="bar"><i class="on high"></i><i class="on high"></i><i class="on high"></i></span>高</span><span style="color:var(--ant-color-success)">✓</span></div>
+            <div class="tags"><span class="tag">设计</span></div>
+            <div class="foot"><div class="av-cell"><div class="av">XL</div></div><span class="date">07-12</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col status-blocked">
+        <div class="col-head">
+          <div class="left"><span class="dot"></span><span>阻塞</span><span class="count">1</span></div>
+          <span class="add">+</span>
+        </div>
+        <div class="col-body">
+          <div class="card">
+            <div class="ttl">导入 Notion 历史笔记回归测试</div>
+            <div class="meta"><span class="priority"><span class="bar"><i class="on high"></i><i class="on high"></i><i class="on high"></i></span>高</span><span style="color:var(--ant-color-error)">⚠</span></div>
+            <div class="tags"><span class="tag warn">P0</span></div>
+            <div class="foot"><div class="av-cell"><div class="av" style="background:linear-gradient(135deg,#4096ff,#1677ff)">LQ</div></div><span class="date overdue">逾期 3 天</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body></html>

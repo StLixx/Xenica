@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>命令面板 · 输入中 · Xenica</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#000;color:var(--ant-color-text);font-family:var(--ant-font-family);-webkit-font-smoothing:antialiased;height:100vh;overflow:hidden}
+  .stage{position:fixed;inset:0;display:flex;align-items:flex-start;justify-content:center;padding-top:120px;background:rgba(0,0,0,.5);backdrop-filter:blur(8px)}
+  .panel{width:680px;background:var(--ant-color-bg-elevated);border:1px solid var(--ant-color-border);border-radius:14px;box-shadow:0 40px 100px -20px #000000c0,0 0 0 1px #14b8a620;overflow:hidden}
+  .search{padding:18px 22px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--ant-color-border);background:var(--ant-color-bg-container)}
+  .search .ico{font-size:18px;color:var(--ant-color-primary)}
+  .search input{flex:1;background:transparent;border:none;outline:none;color:var(--ant-color-text);font-size:18px;font-family:inherit}
+  .cursor{display:inline-block;width:1.5px;height:22px;background:var(--ant-color-primary);vertical-align:-3px;margin-left:1px;animation:blink 1s infinite}
+  @keyframes blink{0%,50%{opacity:1}51%,100%{opacity:0}}
+  .kbd-hint{font-family:ui-monospace,monospace;font-size:11px;color:var(--ant-color-text-tertiary);background:var(--ant-color-fill-secondary);padding:3px 7px;border-radius:4px;border:1px solid var(--ant-color-border)}
+  .mark{background:#14b8a630;color:var(--ant-color-primary-text);padding:0 3px;border-radius:3px;font-weight:600}
+  .filters{padding:8px 22px;border-bottom:1px solid var(--ant-color-border);display:flex;gap:6px;background:var(--ant-color-bg-container)}
+  .chip{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;font-size:11px;border-radius:999px;background:var(--ant-color-fill-secondary);color:var(--ant-color-text-secondary);border:1px solid var(--ant-color-border)}
+  .chip.on{background:var(--ant-color-primary-bg);color:var(--ant-color-primary-text);border-color:var(--ant-color-primary-border)}
+  .chip .x{opacity:.6;cursor:default;font-size:10px}
+  .section{padding:14px 0 6px}
+  .section-title{padding:6px 22px;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace;display:flex;align-items:center;justify-content:space-between}
+  .section-title .count{color:var(--ant-color-text-quaternary);font-size:10px}
+  .item{display:flex;align-items:center;gap:14px;padding:10px 22px;font-size:14px;color:var(--ant-color-text-secondary);cursor:default}
+  .item.on{background:var(--ant-color-primary-bg);color:var(--ant-color-primary-text)}
+  .item.on .ico{background:var(--ant-color-primary);color:#fff}
+  .ico{width:24px;height:24px;border-radius:6px;background:var(--ant-color-fill-secondary);display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--ant-color-text-secondary);flex:none}
+  .item-info{flex:1;min-width:0}
+  .item-title{font-size:14px;font-weight:500;color:var(--ant-color-text)}
+  .item.on .item-title{color:var(--ant-color-primary-text)}
+  .item-desc{font-size:12px;color:var(--ant-color-text-tertiary);margin-top:1px}
+  .item-tag{font-size:10px;padding:1px 6px;border-radius:3px;background:var(--ant-color-fill-secondary);color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace}
+  .foot{padding:10px 22px;border-top:1px solid var(--ant-color-border);background:var(--ant-color-bg-container);display:flex;justify-content:space-between;font-size:11px;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace}
+  .foot kbd{padding:2px 6px;background:var(--ant-color-fill-secondary);border-radius:3px;color:var(--ant-color-text-secondary);font-family:inherit}
+</style></head><body>
+<div class="stage">
+  <div class="panel">
+    <div class="search">
+      <span class="ico">⌕</span>
+      <input value="布局" readonly/><span class="cursor"></span>
+      <span class="kbd-hint">ESC</span>
+    </div>
+    <div class="filters">
+      <span class="chip on">全部<span class="x">✕</span></span>
+      <span class="chip">节点</span>
+      <span class="chip">命令</span>
+      <span class="chip">设置</span>
+      <span class="chip">文档</span>
+    </div>
+    <div class="section">
+      <div class="section-title"><span>命令 · 4 项</span><span class="count">⌘1 切换</span></div>
+      <div class="item">
+        <div class="ico">✥</div>
+        <div class="item-info"><div class="item-title">自动<span class="mark">布局</span></div><div class="item-desc">按连接关系重排所有节点</div></div>
+        <span class="item-tag">⌘⇧L</span>
+      </div>
+      <div class="item on">
+        <div class="ico">⊞</div>
+        <div class="item-info"><div class="item-title">画布<span class="mark">布局</span>设置</div><div class="item-desc">切换自动 / 手动 / 网格</div></div>
+      </div>
+      <div class="item">
+        <div class="ico">⊟</div>
+        <div class="item-info"><div class="item-title">压缩<span class="mark">布局</span></div><div class="item-desc">节省节点间距</div></div>
+      </div>
+      <div class="item">
+        <div class="ico">⌖</div>
+        <div class="item-info"><div class="item-title">居中<span class="mark">布局</span></div><div class="item-desc">将所有节点移到画布中心</div></div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title"><span>节点 · 3 项</span></div>
+      <div class="item">
+        <div class="ico">▤</div>
+        <div class="item-info"><div class="item-title">节点<span class="mark">布局</span>策略 v2</div><div class="item-desc">研究项目 · 修改于 3 天前</div></div>
+        <span class="item-tag">文档</span>
+      </div>
+      <div class="item">
+        <div class="ico">✎</div>
+        <div class="item-info"><div class="item-title">本周回顾：自动<span class="mark">布局</span></div><div class="item-desc">晨间笔记 · 2026-07-15</div></div>
+        <span class="item-tag">日记</span>
+      </div>
+      <div class="item">
+        <div class="ico">▦</div>
+        <div class="item-info"><div class="item-title">节点<span class="mark">布局</span>问题清单</div><div class="item-desc">私人 · 草稿</div></div>
+        <span class="item-tag">草稿</span>
+      </div>
+    </div>
+    <div class="foot">
+      <span><kbd>↑</kbd><kbd>↓</kbd> 移动 · <kbd>↵</kbd> 选择</span>
+      <span>共 7 项 · 用时 0.04s</span>
+    </div>
+  </div>
+</div>
+</body></html>

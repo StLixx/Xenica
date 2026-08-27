@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>数据库 · 表格行选中 · 行编辑 · Xenica</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#000;color:var(--ant-color-text);font-family:var(--ant-font-family);-webkit-font-smoothing:antialiased;min-height:100vh}
+  .stage{padding:40px;background:radial-gradient(circle at 50% 0%,#14b8a608 0%,transparent 60%);min-height:100vh}
+  .db-shell{background:var(--ant-color-bg-container);border:1px solid var(--ant-color-border);border-radius:14px;overflow:hidden;box-shadow:0 30px 80px -30px #00000080}
+  .db-head{padding:18px 24px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--ant-color-border);background:var(--ant-color-bg-elevated)}
+  .db-head .left{display:flex;align-items:center;gap:14px}
+  .db-head .ico{width:40px;height:40px;border-radius:10px;background:#14b8a620;color:var(--ant-color-primary-text);display:flex;align-items:center;justify-content:center;font-size:18px}
+  .db-head h2{font-size:18px;font-weight:600}
+  .db-head .meta{font-size:11px;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace;margin-top:2px}
+  .view-tabs{display:flex;gap:0;border-bottom:1px solid var(--ant-color-border);background:var(--ant-color-bg-base);padding:0 16px}
+  .vt{padding:11px 14px;font-size:12px;color:var(--ant-color-text-secondary);border-bottom:2px solid transparent;cursor:default;display:flex;align-items:center;gap:6px}
+  .vt.on{color:var(--ant-color-primary-text);border-bottom-color:var(--ant-color-primary)}
+  .tbl{width:100%;border-collapse:collapse;font-size:13px}
+  .tbl th{text-align:left;padding:10px 14px;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ant-color-text-tertiary);font-weight:600;background:var(--ant-color-bg-base);border-bottom:1px solid var(--ant-color-border)}
+  .tbl td{padding:14px;border-bottom:1px solid var(--ant-color-border-secondary);vertical-align:top;color:var(--ant-color-text)}
+  .tbl tr.selected td{background:#14b8a614;box-shadow:inset 3px 0 0 var(--ant-color-primary)}
+  .tbl tr:hover:not(.selected) td{background:var(--ant-color-fill-secondary)}
+  .tbl tr.editing td{background:#14b8a614;box-shadow:inset 3px 0 0 var(--ant-color-primary)}
+  .cell-edit{padding:6px 10px;background:var(--ant-color-bg-elevated);border:1px solid var(--ant-color-primary);border-radius:5px;font-size:13px;color:var(--ant-color-text);outline:none;width:100%;font-family:inherit;box-shadow:0 0 0 3px var(--ant-color-primary-bg)}
+  .cell-select{padding:6px 10px;background:var(--ant-color-bg-elevated);border:1px solid var(--ant-color-primary);border-radius:5px;font-size:12px;color:var(--ant-color-text);outline:none;font-family:inherit;display:flex;justify-content:space-between;align-items:center;cursor:default;box-shadow:0 0 0 3px var(--ant-color-primary-bg);min-width:120px}
+  .cell-select::after{content:"▾";color:var(--ant-color-text-tertiary);font-size:10px;margin-left:8px}
+  .cell-actions{position:absolute;right:-1px;top:50%;transform:translate(100%,-50%);display:flex;gap:4px;background:var(--ant-color-bg-elevated);border:1px solid var(--ant-color-border);border-radius:6px;padding:3px;box-shadow:0 4px 12px #00000080;z-index:5}
+  .cell-actions button{width:24px;height:24px;border-radius:4px;background:transparent;border:none;color:var(--ant-color-text-secondary);font-size:11px;cursor:default;display:flex;align-items:center;justify-content:center}
+  .cell-actions button:hover{background:var(--ant-color-fill-secondary);color:var(--ant-color-text)}
+  .status{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:5px;font-size:11px}
+  .status.doing{background:var(--ant-color-primary-bg);color:var(--ant-color-primary-text)}
+  .status.done{background:#0a1912;color:#95de64}
+  .tbl tr.editing td:first-child{position:relative}
+  .avatar-stack{display:flex;align-items:center}
+  .avatar-stack .av{width:24px;height:24px;font-size:9px;border:2px solid var(--ant-color-bg-container);margin-left:-6px}
+  .avatar-stack .av:first-child{margin-left:0}
+  .avatar-add{width:24px;height:24px;border-radius:50%;background:var(--ant-color-bg-elevated);border:1.5px dashed var(--ant-color-border);color:var(--ant-color-text-tertiary);font-size:12px;display:flex;align-items:center;justify-content:center;margin-left:-6px;cursor:default}
+  .date-edit{padding:6px 10px;background:var(--ant-color-bg-elevated);border:1px solid var(--ant-color-primary);border-radius:5px;font-size:12px;color:var(--ant-color-text);font-family:ui-monospace,monospace;outline:none;display:flex;justify-content:space-between;align-items:center;width:140px;cursor:default;box-shadow:0 0 0 3px var(--ant-color-primary-bg)}
+  .date-edit::after{content:"▦";color:var(--ant-color-primary-text);font-size:11px}
+  .number-edit{padding:6px 10px;background:var(--ant-color-bg-elevated);border:1px solid var(--ant-color-primary);border-radius:5px;font-size:13px;color:var(--ant-color-text);font-family:ui-monospace,monospace;outline:none;width:80px;cursor:default;text-align:center;box-shadow:0 0 0 3px var(--ant-color-primary-bg)}
+  .hud{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:var(--ant-color-bg-elevated);border:1px solid var(--ant-color-primary-border);border-radius:999px;padding:8px 16px;font-size:12px;color:var(--ant-color-text);box-shadow:0 12px 30px #00000080;display:flex;align-items:center;gap:14px;z-index:50}
+  .hud .kbd{padding:1px 6px;background:var(--ant-color-fill-secondary);border-radius:3px;font-family:ui-monospace,monospace;color:var(--ant-color-text-secondary);font-size:10px}
+</style></head><body>
+<div class="stage">
+  <div class="db-shell">
+    <div class="db-head">
+      <div class="left">
+        <div class="ico">▦</div>
+        <div><h2>项目看板 · v5.0.0</h2><div class="meta">视图：<b>表格</b> · 选中 1 行 · 正在编辑</div></div>
+      </div>
+      <div class="right" style="display:flex;gap:6px"><button class="btn btn-default btn-sm">⊞ 配置</button><button class="btn btn-primary btn-sm">+ 新建</button></div>
+    </div>
+    <div class="view-tabs"><div class="vt on">▦ 表格</div><div class="vt">▤ 看板</div><div class="vt">▤ 日历</div><div class="vt">▦ 画廊</div><div class="vt">▬ 时间线</div></div>
+    <table class="tbl">
+      <thead><tr><th>任务</th><th>状态</th><th>优先级</th><th>截止</th><th>负责人</th><th>进度</th></tr></thead>
+      <tbody>
+        <tr class="editing">
+          <td><input class="cell-edit" value="输出 100 页全量页面设计"/><div class="cell-actions"><button>⤢</button><button>⊕</button><button style="color:var(--ant-color-error)">⊘</button></div></td>
+          <td><div class="cell-select"><span style="display:inline-flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:var(--ant-color-primary);box-shadow:0 0 6px var(--ant-color-primary)"></span>进行中</span></div></td>
+          <td><div class="number-edit" style="border-color:var(--ant-color-error);box-shadow:0 0 0 3px #dc444630">3</div></td>
+          <td><div class="date-edit">今天 18:00</div></td>
+          <td><div class="avatar-stack"><div class="av">XL</div><div class="av" style="background:linear-gradient(135deg,#4096ff,#1677ff)">LQ</div><div class="avatar-add">+</div></div></td>
+          <td><div class="number-edit" style="width:60px">60</div></td>
+        </tr>
+        <tr class="selected"><td><b>锁定 Antd 6 + darkAlgorithm</b></td><td><span class="status done">● 完成</span></td><td><span style="color:var(--ant-color-error);font-family:ui-monospace,monospace;font-size:11px">●●●</span></td><td style="font-family:ui-monospace,monospace;font-size:12px">07-16</td><td><div class="avatar-stack"><div class="av">XL</div></div></td><td><div style="height:5px;background:var(--ant-color-fill-secondary);border-radius:100px;width:80px;display:inline-block"><div style="height:100%;background:var(--ant-color-primary);border-radius:100px;width:100%"></div></div></td></tr>
+        <tr><td><b>建立 .design manifest 与节点注册</b></td><td><span class="status" style="background:var(--ant-color-fill-tertiary);color:var(--ant-color-text-secondary)">○ 待办</span></td><td><span style="color:var(--ant-color-warning);font-family:ui-monospace,monospace;font-size:11px">●●○</span></td><td style="font-family:ui-monospace,monospace;font-size:12px">07-20</td><td><div class="avatar-stack"><div class="av">XL</div></div></td><td><div style="height:5px;background:var(--ant-color-fill-secondary);border-radius:100px;width:80px;display:inline-block"><div style="height:100%;background:var(--ant-color-primary);border-radius:100px;width:0%"></div></div></td></tr>
+        <tr><td><b>Playwright 截图回归验证</b></td><td><span class="status" style="background:var(--ant-color-fill-tertiary);color:var(--ant-color-text-secondary)">○ 待办</span></td><td><span style="color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace;font-size:11px">●○○</span></td><td style="font-family:ui-monospace,monospace;font-size:12px">07-22</td><td><div class="avatar-stack"><div class="av" style="background:linear-gradient(135deg,#4096ff,#1677ff)">LQ</div></div></td><td><div style="height:5px;background:var(--ant-color-fill-secondary);border-radius:100px;width:80px;display:inline-block"><div style="height:100%;background:var(--ant-color-primary);border-radius:100px;width:0%"></div></div></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="hud">
+    <span>正在编辑 <b style="color:var(--ant-color-primary-text)">第 1 行</b></span>
+    <span class="kbd">↵</span> 下一字段
+    <span class="kbd">⇧↵</span> 上一字段
+    <span class="kbd">ESC</span> 退出
+    <span class="kbd">⌘S</span> 保存
+  </div>
+</div>
+</body></html>

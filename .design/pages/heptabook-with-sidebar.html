@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="dark">
+<head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>Heptabook · Ref · 侧栏展开</title>
+ <style id="theme-vars">
+/* Xenica Atrium · brand tokens
+ * 品牌前缀:xe-
+ * 模式:dark-first(默认 dark,可切 light)
+ */
+
+:root,
+:root.light {
+ /* ── Surface (light) ─────────────────────────── */
+ --xe-bg-50: #f4f3ee;
+ --xe-bg-100: #efeee8;
+ --xe-bg-200: #e6e4dd;
+ --xe-bg-300: #d8d6cd;
+ --xe-bg-400: #b7b5a9;
+ --xe-bg-500: #908e84;
+
+ /* ── Text (light) ────────────────────────────── */
+ --xe-text-300: #6e6d68;
+ --xe-text-400: #52514a;
+ --xe-text-500: #3e3e38;
+ --xe-text-700: #262624;
+ --xe-text-800: #1b1b19;
+ --xe-text-900: #0f0f0d;
+
+ /* ── Border (light) ──────────────────────────── */
+ --xe-border-200: #d8d6cd;
+ --xe-border-300: #b7b5a9;
+ --xe-border-500: #908e84;
+ --xe-border-700: #52514a;
+
+ /* ── Accent ──────────────────────────────────── */
+ --xe-brand-400: #b0683f;
+ --xe-brand-500: #d97757;
+ --xe-brand-600: #e08d6f;
+ --xe-brand-700: #e8a98f;
+
+ --xe-success-500: #8ca06f;
+ --xe-error-500: #ef4444;
+
+ /* ── Semantic aliases (used by HTML) ─────────── */
+ --xe-background: var(--xe-bg-100);
+ --xe-foreground: var(--xe-text-800);
+ --xe-card: var(--xe-bg-200);
+ --xe-muted: var(--xe-bg-300);
+ --xe-border: var(--xe-border-300);
+ --xe-primary: var(--xe-brand-500);
+ --xe-primary-foreground: #1b1b19;
+
+ /* ── Typography ──────────────────────────────── */
+ --xe-font-display: 'Newsreader', 'Lora', 'Iowan Old Style', 'Apple Garamond', Georgia, 'Times New Roman', serif;
+ --xe-font-ui: 'Poppins', 'Inter', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+ --xe-font-reading: 'Lora', 'Newsreader', 'Iowan Old Style', Georgia, serif;
+ --xe-font-mono: 'Geist Mono', 'JetBrains Mono', 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+
+ /* ── Spacing / shape ─────────────────────────── */
+ --xe-radius-sm: 8px;
+ --xe-radius-md: 12px;
+ --xe-radius-lg: 16px;
+
+ --xe-shadow-card: 0 1px 0 rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+ --xe-shadow-emphasis: 0 30px 60px -30px rgba(217,119,87,.25), 0 4px 0 rgba(0,0,0,.04);
+}
+
+:root.dark {
+ /* ── Surface (dark, default) ─────────────────── */
+ --xe-bg-50: #1b1b19;
+ --xe-bg-100: #262624;
+ --xe-bg-200: #2c2c2b;
+ --xe-bg-300: #30302e;
+ --xe-bg-400: #3e3e38;
+ --xe-bg-500: #4a4a43;
+
+ --xe-text-300: #6e6d68;
+ --xe-text-400: #908e84;
+ --xe-text-500: #b7b5a9;
+ --xe-text-700: #d8d6cd;
+ --xe-text-800: #f1f1ef;
+ --xe-text-900: #faf9f5;
+
+ --xe-border-200: #343430;
+ --xe-border-300: #3e3e38;
+ --xe-border-500: #52514a;
+ --xe-border-700: #908e84;
+
+ --xe-brand-400: #b0683f;
+ --xe-brand-500: #d97757;
+ --xe-brand-600: #e08d6f;
+ --xe-brand-700: #e8a98f;
+
+ --xe-background: var(--xe-bg-100);
+ --xe-foreground: var(--xe-text-800);
+ --xe-card: var(--xe-bg-200);
+ --xe-muted: var(--xe-bg-300);
+ --xe-border: var(--xe-border-300);
+ --xe-primary: var(--xe-brand-500);
+ --xe-primary-foreground: #1b1b19;
+
+ --xe-shadow-card: 0 1px 0 rgba(0,0,0,.4), 0 1px 2px rgba(0,0,0,.18);
+ --xe-shadow-emphasis: 0 30px 60px -30px rgba(217,119,87,.25), 0 4px 0 rgba(0,0,0,.4);
+}
+
+/* ── Typography classes (Library convention) ───── */
+.xe-display { font-family: var(--xe-font-display); font-weight: 400; letter-spacing: -.02em; line-height: 1.02; }
+.xe-display em { font-style: italic; color: var(--xe-primary); }
+.xe-h1 { font-family: var(--xe-font-display); font-size: clamp(48px, 7vw, 120px); line-height: 1.02; letter-spacing: -.02em; }
+.xe-h2 { font-family: var(--xe-font-display); font-size: clamp(28px, 3.5vw, 48px); line-height: 1.1; letter-spacing: -.01em; }
+.xe-h3 { font-family: var(--xe-font-ui); font-weight: 700; font-size: clamp(18px, 1.6vw, 24px); line-height: 1.18; letter-spacing: -.005em; }
+.xe-body { font-family: var(--xe-font-reading); font-size: clamp(15px, 1.1vw, 20px); line-height: 1.55; font-style: italic; }
+.xe-ui { font-family: var(--xe-font-ui); font-size: 13px; }
+.xe-ui-bold { font-family: var(--xe-font-ui); font-weight: 700; font-size: 13px; }
+.xe-mono { font-family: var(--xe-font-mono); font-size: 11px; letter-spacing: .06em; }
+.xe-mono-cap { font-family: var(--xe-font-mono); font-size: 10px; letter-spacing: .22em; text-transform: uppercase; }
+
+ </style>
+ <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.1/dist/index.global.js"></script>
+ <script src="https://unpkg.com/lucide@1.8.0/dist/umd/lucide.min.js"></script>
+ <style type="text/tailwindcss">
+ @theme inline {
+ --color-background: var(--xe-background);
+ --color-foreground: var(--xe-foreground);
+ --color-card: var(--xe-card);
+ --color-muted: var(--xe-muted);
+ --color-border: var(--xe-border);
+ --color-primary: var(--xe-primary);
+ --color-primary-foreground: var(--xe-primary-foreground);
+ --color-ring: var(--xe-brand-500);
+ --radius-sm: var(--xe-radius-sm);
+ --radius-md: var(--xe-radius-md);
+ --radius-lg: var(--xe-radius-lg);
+ }
+ @layer base {
+ body { background: var(--xe-background); color: var(--xe-foreground); }
+ td, th { @apply break-words; word-break: break-all; word-break: auto-phrase; }
+ th { @apply whitespace-nowrap; }
+ }
+ </style>
+ <style>
+ .no-scrollbar::-webkit-scrollbar { display: none; }
+ .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+ [data-icon] {
+ display: inline-flex;
+ align-items: center;
+ justify-content: center;
+ -webkit-mask-size: contain;
+ mask-size: contain;
+ -webkit-mask-repeat: no-repeat;
+ mask-repeat: no-repeat;
+ -webkit-mask-position: center;
+ mask-position: center;
+ background-color: currentColor;
+ }
+ </style>
+</head>
+<body class="min-h-screen font-sans antialiased">
+ <main class="min-h-screen w-full flex flex-col" style="background:var(--xe-htb-bg); color:var(--xe-htb-ink); font-family:'Inter','Poppins',system-ui,-apple-system,'Segoe UI',sans-serif;">
+
+ <!-- ── 顶部标题栏 ──────────────────────────────── -->
+ <header class="flex items-center justify-between px-3 h-11 border-b border-white/5 shrink-0">
+ <!-- 左侧 · 窗口控制 + 面包屑 -->
+ <div class="flex items-center gap-2 text-white/85">
+ <!-- macOS traffic lights -->
+ <div class="flex items-center gap-1.5 mr-2">
+ <span class="w-3 h-3 rounded-full " style="background:var(--xe-mac-red);"></span>
+ <span class="w-3 h-3 rounded-full " style="background:var(--xe-mac-yellow);"></span>
+ <span class="w-3 h-3 rounded-full " style="background:var(--xe-mac-green);"></span>
+ </div>
+ <span class="w-px h-5 bg-white/10 mx-1"></span>
+ <!-- nav arrows -->
+ <button class="w-7 h-7 grid place-items-center rounded hover:bg-white/10 text-white/70" aria-label="后退">
+ <i data-lucide="arrow-left" class="w-4 h-4"></i>
+ </button>
+ <button class="w-7 h-7 grid place-items-center rounded hover:bg-white/10 text-white/70" aria-label="前进">
+ <i data-lucide="arrow-right" class="w-4 h-4"></i>
+ </button>
+ <!-- L dot · logo · workspace -->
+ <span class="w-px h-5 bg-white/10 mx-1"></span>
+ <button class="w-7 h-7 grid place-items-center rounded hover:bg-white/10 text-white/70" aria-label="logo">
+ <span class="w-4 h-4 rounded-sm border border-white/40 grid place-items-center text-[10px] font-semibold">L</span>
+ </button>
+ <div class="w-2 h-2 rounded-full mx-0.5" style="background:var(--xe-status-online);"></div>
+ <button class="w-7 h-7 grid place-items-center rounded hover:bg-white/10 text-white/70" aria-label="collapse" data-dom-id="interaction-id-ljbh1vs">
+ <i data-lucide="chevrons-left" class="w-4 h-4"></i>
+ </button>
+ <span class="flex items-center gap-1.5 ml-1 text-[13px] font-medium">
+ <span class="w-4 h-4 rounded grid place-items-center" style="background:var(--xe-badge-amber);">
+ <i data-lucide="book-open" class="w-2.5 h-2.5 " style="color:var(--xe-htb-bg);"></i>
+ </span>
+ Getting Started
+ </span>
+ </div>
+
+ <!-- 中间 · tab + add -->
+ <div class="flex items-center gap-1 absolute left-1/2 -translate-x-1/2">
+ <button class="flex items-center gap-1.5 px-3 h-7 rounded-md bg-white/5 text-[12.5px] text-white/90">
+ <span class="w-3.5 h-3.5 rounded-sm grid place-items-center" style="background:var(--xe-chip-amber);">
+ <i data-lucide="book-open" class="w-2 h-2 " style="color:var(--xe-htb-bg);"></i>
+ </span>
+ Getting Started
+ </button>
+ <button class="w-7 h-7 grid place-items-center rounded text-white/50 hover:bg-white/10" aria-label="add tab">
+ <i data-lucide="plus" class="w-4 h-4"></i>
+ </button>
+ </div>
+
+ <!-- 右侧 · 工具 -->
+ <div class="flex items-center gap-1">
+ <span class="text-[12.5px] text-white/70 mr-1">Share</span>
+ <button class="w-7 h-7 grid place-items-center rounded text-white/60 hover:bg-white/10" aria-label="more">
+ <i data-lucide="more-horizontal" class="w-4 h-4"></i>
+ </button>
+ <span class="w-px h-5 bg-white/10 mx-1"></span>
+ <button class="w-7 h-7 grid place-items-center rounded text-white/60 hover:bg-white/10" aria-label="AI">
+ <span class="text-[11px] font-semibold">AI</span>
+ </button>
+ <button class="w-7 h-7 grid place-items-center rounded text-white/60 hover:bg-white/10" aria-label="comments">
+ <i data-lucide="message-square" class="w-4 h-4"></i>
+ </button>
+ <button class="w-7 h-7 grid place-items-center rounded text-white/60 hover:bg-white/10" aria-label="card">
+ <i data-lucide="square-stack" class="w-4 h-4"></i>
+ </button>
+ <button data-dom-id="hide-sidebar" class="w-7 h-7 grid place-items-center rounded text-white/60 hover:bg-white/10" aria-label="Hide sidebar" title="Hide sidebar">
+ <i data-lucide="panel-right-close" class="w-4 h-4"></i>
+ </button>
+ </div>
+ </header>
+
+ <!-- ── 主体 · 三栏 ────────────────────────────── -->
+ <div class="flex flex-1 min-h-0">
+
+ <!-- ── 左 · Sidebar ───────────────────────── -->
+ <aside class="w-[220px] shrink-0 border-r border-white/5 flex flex-col " style="background:var(--xe-htb-bg);">
+
+ <!-- 上半 · 主导航 -->
+ <div class="px-2 pt-2 flex flex-col gap-0.5 text-[13px]">
+ <a href="#" class="flex items-center gap-2.5 h-8 px-2 rounded-md text-white/85 hover:bg-white/5">
+ <i data-lucide="home" class="w-4 h-4"></i>Home
+ <span class="ml-auto inline-flex items-center gap-1 text-[11px] text-white/50">
+ <span class="w-3.5 h-3.5 rounded-full bg-white/10 grid place-items-center text-[9px]">✦</span>AI Tutor
+ </span>
+ </a>
+ <a href="#" class="flex items-center gap-2.5 h-8 px-2 rounded-md text-white/85 hover:bg-white/5">
+ <i data-lucide="plus" class="w-4 h-4"></i>Upload sources
+ <span class="ml-auto w-4 h-4 grid place-items-center text-white/40 hover:text-white/70">
+ <i data-lucide="search" class="w-3.5 h-3.5"></i>
+ </span>
+ </a>
+
+ <a href="#" class="flex items-center gap-2.5 h-8 px-2 rounded-md text-white/85 hover:bg-white/5">
+ <span class="w-4 h-4 rounded grid place-items-center" style="background:var(--xe-badge-rose);"><i data-lucide="inbox" class="w-2.5 h-2.5 " style="color:var(--xe-htb-bg);"></i></span>
+ Inbox
+ <span class="ml-auto text-[11px] text-white/45">0</span>
+ </a>
+ <a href="#" class="flex items-center gap-2.5 h-8 px-2 rounded-md text-white/85 hover:bg-white/5">
+ <span class="w-4 h-4 rounded grid place-items-center" style="background:var(--xe-badge-orange);"><i data-lucide="book-open" class="w-2.5 h-2.5 " style="color:var(--xe-htb-bg);"></i></span>
+ Journal
+ </a>
+ <a href="#" class="flex items-center gap-2.5 h-8 px-2 rounded-md text-white/85 hover:bg-white/5">
+ <span class="w-4 h-4 rounded grid place-items-center" style="background:var(--xe-badge-emerald);"><i data-lucide="layout" class="w-2.5 h-2.5 " style="color:var(--xe-htb-bg);"></i></span>
+ Whiteboard
+ </a>
+ <a href="#" class="flex items-center gap-2.5 h-8 px-2 rounded-md text-white/85 hover:bg-white/5">
+ <span class="w-4 h-4 rounded grid place-items-center" style="background:var(--xe-badge-sky);"><i data-lucide="library" class="w-2.5 h-2.5 " style="color:var(--xe-htb-bg);"></i></span>
+ Card Library
+ </a>
+ <a href="#" class="flex items-center gap-2.5 h-8 px-2 rounded-md text-white/85 hover:bg-white/5">
+ <span class="w-4 h-4 rounded grid place-items-center" style="background:var(--xe-badge-amber);"><i data-lucide="tag" class="w-2.5 h-2.5 " style="color:var(--xe-htb-bg);"></i></span>
+ Tag Database
+ </a>
+ <a href="#" class="flex items-center gap-2.5 h-8 px-2 rounded-md text-white/85 hover:bg-white/5">
+ <span class="w-4 h-4 rounded grid place-items-center" style="background:var(--xe-badge-teal);"><i data-lucide="message-circle" class="w-2.5 h-2.5 " style="color:var(--xe-htb-bg);"></i></span>
+ Chat
+ </a>
+
+ <!-- Tabs 折叠区 -->
+ <div class="mt-3 flex items-center px-2 text-[11.5px] uppercase tracking-wider text-white/45">
+ Tabs
+ <button class="ml-auto w-4 h-4 grid place-items-center text-white/45 hover:text-white/80" aria-label="more tabs">
+ <i data-lucide="more-horizontal" class="w-3 h-3"></i>
+ </button>
+ </div>
+ <a href="#" class="flex items-center gap-2.5 h-8 px-2 rounded-md text-white/85 hover:bg-white/5">
+ <i data-lucide="plus" class="w-4 h-4"></i>New tab
+ </a>
+ <a href="#" class="flex items-center gap-2.5 h-8 px-2 rounded-md text-white/85 hover:bg-white/5">
+ <span class="w-4 h-4 rounded grid place-items-center text-[9px] font-semibold" style="color:var(--xe-htb-bg); background:var(--xe-chip-emerald);">U</span>
+ Untitled
+ </a>
+ <a href="#" class="flex items-center gap-2.5 h-8 px-2 rounded-md bg-white/10 text-white">
+ <span class="w-4 h-4 rounded grid place-items-center" style="background:var(--xe-chip-amber);"><i data-lucide="book-open" class="w-2 h-2 " style="color:var(--xe-htb-bg);"></i></span>
+ Getting Started
+ </a>
+ <a href="#" class="flex items-center gap-2.5 h-8 px-2 rounded-md text-white/85 hover:bg-white/5">
+ <span class="w-4 h-4 rounded grid place-items-center text-[9px] font-semibold" style="color:var(--xe-htb-bg); background:var(--xe-chip-rose);">P</span>
+ Principles of Microeconomics
+ </a>
+ </div>
+
+ <!-- 底栏 · 设置 / 搜索 -->
+ <div class="mt-auto px-2 py-2 border-t border-white/5 flex items-center gap-1 text-white/55">
+ <button class="w-7 h-7 grid place-items-center rounded hover:bg-white/10" aria-label="settings">
+ <i data-lucide="settings" class="w-4 h-4"></i>
+ </button>
+ <button class="w-7 h-7 grid place-items-center rounded hover:bg-white/10" aria-label="theme">
+ <i data-lucide="sun" class="w-4 h-4"></i>
+ </button>
+ <span class="ml-auto flex items-center gap-1 text-[11px]">
+ <i data-lucide="circle-help" class="w-3.5 h-3.5"></i>
+ <i data-lucide="gift" class="w-3.5 h-3.5"></i>
+ </span>
+ </div>
+ </aside>
+
+ <!-- ── 中 · Whiteboard ────────────────────── -->
+ <section class="flex-1 min-w-0 relative overflow-auto " style="background:var(--xe-htb-bg);">
+ <!-- 工具条 -->
+ <div class="absolute left-3 top-3 z-10 flex flex-col gap-2 p-1 rounded-lg /90 border border-white/5 backdrop-blur" style="background:var(--xe-htb-panel);">
+ <button class="w-7 h-7 grid place-items-center rounded text-white/70 hover:bg-white/10"><i data-lucide="mouse-pointer-2" class="w-4 h-4"></i></button>
+ <button class="w-7 h-7 grid place-items-center rounded text-white/70 hover:bg-white/10"><i data-lucide="hand" class="w-4 h-4"></i></button>
+ <button class="w-7 h-7 grid place-items-center rounded text-white/70 hover:bg-white/10"><i data-lucide="sticky-note" class="w-4 h-4"></i></button>
+ <button class="w-7 h-7 grid place-items-center rounded text-white/70 hover:bg-white/10"><i data-lucide="move" class="w-4 h-4"></i></button>
+ <button class="w-7 h-7 grid place-items-center rounded text-white/70 hover:bg-white/10"><i data-lucide="type" class="w-4 h-4"></i></button>
+ <button class="w-7 h-7 grid place-items-center rounded text-white/70 hover:bg-white/10"><i data-lucide="pen-line" class="w-4 h-4"></i></button>
+ <span class="w-5 h-px bg-white/10 mx-auto"></span>
+ <button class="w-7 h-7 grid place-items-center rounded text-white/70 hover:bg-white/10"><i data-lucide="search" class="w-4 h-4"></i></button>
+ <button class="w-7 h-7 grid place-items-center rounded text-white/70 hover:bg-white/10"><i data-lucide="more-horizontal" class="w-4 h-4"></i></button>
+ </div>
+
+ <!-- 卡片网格 · 真实 Heptabase 内容 -->
+ <div class="px-10 py-10 grid grid-cols-4 gap-6 max-w-[1280px] mx-auto">
+
+ <!-- Col 1 · Heptabase 简介 -->
+ <article class="rounded-md p-4 border border-white/5 text-[12.5px] leading-relaxed text-white/85" style="background:var(--xe-htb-panel);">
+ <h3 class="text-white text-[15px] font-semibold mb-2">Heptabase 简介</h3>
+ <p class="mb-2.5">Heptabase 是一款专为学习和研究而设计的软件,功能强大的白板</p>
+ <ol class="list-decimal pl-5 space-y-1 mb-3 text-white/75">
+ <li>帮助你更全面地提供新的内容。</li>
+ <li>使用和分享你的资料可视化研究。</li>
+ </ol>
+ <h4 class="text-white font-semibold mb-1.5 mt-3 text-[13px]">如何开始使用 Heptabase?</h4>
+ <ol class="list-decimal pl-5 space-y-2 text-white/75">
+ <li>从左侧导航进入的栏目选择一块「白板」,这块白板是绘图区域的标题部分(例:YouTube 学习)。然后在「画」上,就可以快速滑动接取「资料」视图中的大部分内容(屏幕本地硬盘或「手」。</li>
+ <li>二次可以自定义你的白板。</li>
+ </ol>
+ <p class="mt-3 mb-1 text-white/75">1. 影片示例:</p>
+ <ul class="list-disc pl-5 text-white/70 space-y-1">
+ <li>进入白板画面后,你使用过的白板会出现在导航区域,你可以点击它们来重新进入。</li>
+ </ul>
+ </article>
+
+ <!-- Col 2 · 基础功能操作 -->
+ <article class="rounded-md p-4 border border-white/5 text-[12.5px] leading-relaxed text-white/85" style="background:var(--xe-htb-panel);">
+ <h3 class="text-white text-[15px] font-semibold mb-2">基础功能操作</h3>
+ <h4 class="text-white font-semibold mb-1.5 mt-1 text-[13px]">白板</h4>
+ <ul class="list-disc pl-5 text-white/75 space-y-1 mb-3">
+ <li>如何创建白板?</li>
+ <li>如何用卡片上的物件连接一起?</li>
+ <li>如何移动用 PDF YouTube 等内容到内容到内容到白板上?</li>
+ </ul>
+ <h4 class="text-white font-semibold mb-1.5 text-[13px]">卡片</h4>
+ <ul class="list-disc pl-5 text-white/75 space-y-1 mb-3">
+ <li>如何将一个卡片内容的相关的内容,以结构的内容?</li>
+ <li>如何用卡片内容显示相关的内容?</li>
+ <li>如何将卡片内容显示相关的内容?</li>
+ <li>如何移动卡片之间的连接?</li>
+ <li>如何使用 (Journal) 或高亮 (Highlight) 卡片?</li>
+ <li>使用(Inbox) 将卡片内化到哪些内容上?</li>
+ </ul>
+ <h4 class="text-white font-semibold mb-1.5 text-[13px]">搜索</h4>
+ <ul class="list-disc pl-5 text-white/75 space-y-1 mb-3">
+ <li>如何搜索添加新内容(Tag)?</li>
+ </ul>
+ <div class="mt-2 mb-3">
+ <div class="aspect-video rounded bg-black/60 grid place-items-center text-[10px] text-white/40 border border-white/5 relative overflow-hidden">
+ <i data-lucide="play" class="w-10 h-10" style="color:var(--xe-youtube);"></i>
+ <span class="absolute bottom-1 left-1 text-[10px]">How add tags to heptabase different</span>
+ </div>
+ </div>
+ <h4 class="text-white font-semibold mb-1.5 text-[13px]">搜索</h4>
+ <ul class="list-disc pl-5 text-white/75 space-y-1">
+ <li>如何搜索添加新内容?</li>
+ <li>如何查看内容的标题及子内容?</li>
+ </ul>
+ <h4 class="text-white font-semibold mb-1.5 mt-3 text-[13px]">分享与协作</h4>
+ <ul class="list-disc pl-5 text-white/75 space-y-1">
+ <li>如何将我的白板分享给其他成员人员?</li>
+ <li>如何将其他人协作?</li>
+ </ul>
+ </article>
+
+ <!-- Col 3 · 使用速览 -->
+ <article class="rounded-md p-4 border border-white/5 text-[12.5px] leading-relaxed text-white/85" style="background:var(--xe-htb-panel);">
+ <h3 class="text-white text-[15px] font-semibold mb-2">使用速览</h3>
+ <p class="text-white/75 mb-2">· 如何管理到不同主题的视频?</p>
+ <div class="aspect-video rounded bg-black/60 grid place-items-center border border-white/5 mb-3 relative">
+ <i data-lucide="play" class="w-10 h-10" style="color:var(--xe-youtube);"></i>
+ <span class="absolute bottom-1 left-1 text-[10px] text-white/70">How to organize fragmented ideas w</span>
+ </div>
+ <p class="text-white/75 mb-2">· 如何使用不同类型的内容?</p>
+ <p class="text-white/65 leading-relaxed mb-3">它使用对应于你内容的「不同的类型」,你可以把不同类型的内容,按结构整理、合并在一起。每种类型都提供相应的内容来表达的名称你可以同时与页面图表(Journal)、使用一个最可谈的、最可共享、或对应存储一个最深入思考的部分。</p>
+ <div class="aspect-video rounded bg-black/60 grid place-items-center border border-white/5 mb-3 relative">
+ <i data-lucide="play" class="w-10 h-10" style="color:var(--xe-youtube);"></i>
+ <span class="absolute bottom-1 left-1 text-[10px] text-white/70">How to organize what you have mer</span>
+ </div>
+ <p class="text-white/75 mb-1.5">我们试提供了「智能内容管理」,帮助你更好地理解内容:</p>
+ <ul class="list-disc pl-5 text-white/65 space-y-1 mb-3">
+ <li>可动画:单词,主题,人物,人物。提供抽象的内容及到指向的功能。</li>
+ <li>可共用:你,所有你可使用的内容、文件,你可以更深入内容思考的内容的形式。</li>
+ </ul>
+ <p class="text-white/75 mb-1.5">查看「参考 Heptabase 视频教程」</p>
+ <ul class="list-disc pl-5 text-white/65 space-y-1 mb-3">
+ <li>使用 Heptabase「视频教程」</li>
+ </ul>
+ <p class="text-white/75 mb-1.5">查看「在重点类型: Organize knowledge & projects」</p>
+ <ul class="list-disc pl-5 text-white/65 space-y-1 mb-3">
+ <li>关于 Heptabase Gallery 画廊是提供了7种不同场景的内容。它们已经自动整理和重点化高,你都可以启动他们作「智能内容管理」,是「智能 Gallery」提供了了入不同主题的入口,你可以表达自己内容的方法。</li>
+ </ul>
+ <p class="text-white/75 mb-1.5">使用「在重点类型: Heptabase」了解产品</p>
+ <ul class="list-disc pl-5 text-white/65 space-y-1">
+ <li>你想到更多详细内容:Heptabase是创作的新一代概念平台的创建,你可以使用你最喜爱的资源、链接等。你可创立资源,目录,它与你可建立内容的新创作的主题对应,你可以可整理你内容的主题的表达。</li>
+ </ul>
+ </article>
+
+ <!-- Col 4 · 笔记面板 -->
+ <article class="rounded-md p-4 border border-white/5 text-[12.5px] leading-relaxed text-white/85" style="background:var(--xe-htb-panel);">
+ <div class="flex items-center justify-between mb-2.5">
+ <h3 class="text-white text-[15px] font-semibold">Heptabase 简介</h3>
+ <span class="text-[10px] text-white/45">Section 1 · ↩</span>
+ </div>
+ <p class="text-white/80 mb-2">Heptabase 是一款专为学习和研究而设计的软件,功能强大的白板。</p>
+ <ol class="list-decimal pl-5 text-white/75 space-y-1 mb-3">
+ <li>帮助你更全面地提供新的内容。</li>
+ <li>使用和分享你的资料可视化研究。</li>
+ </ol>
+ <p class="text-white/80 mb-2">1. 为学习与研究目的设计的产品:它专为学习与研究而设计,它拥有最快的研究与学习的应用。<strong class="text-white">「手」</strong>的表面上,你可以「手」的表面上,你可以<strong class="text-white">「手」</strong>的表面上,你可以<strong class="text-white">「手」</strong>的表面上,你可以的表面。</p>
+ <p class="text-white/80 mb-2">2. 视频片段是 Heptabase 学习与研究的方法:它主要为学习与研究设计,深度学习、内容可视化的方法。它来自「可视化数据」的来源。</p>
+ <ul class="list-disc pl-5 text-white/70 space-y-1 mb-3">
+ <li>视频片段:Heptabase 学习与研究的方法。</li>
+ <li>可视化方法:可视化可视化的方法。</li>
+ </ul>
+ <p class="text-[11px] text-white/55 mb-1.5 font-mono">&lt;video id="2bb65fe2-e166-42a7-815b-69b6798fcb09" url="https://youtu.be/nN3LBo/" controls&gt;</p>
+ <p class="text-[11px] text-white/55 mb-3 font-mono">&lt;video id="2ab0bf9e-3427-444f-87a7-8b2b0db7b9f9" url="https://youtu.be/09FpatnscKg/"&gt;</p>
+ </article>
+
+ </div>
+ </section>
+
+ </div>
+
+ <!-- ── 底部状态栏 ──────────────────────────────── -->
+ <footer class="h-9 px-3 flex items-center justify-between border-t border-white/5 text-[12px] text-white/70">
+ <div class="flex items-center gap-3">
+ <button class="flex items-center gap-1.5 px-2 h-6 rounded bg-white/5 hover:bg-white/10 text-white/80">
+ <i data-lucide="circle-help" class="w-3.5 h-3.5"></i>Get started
+ <span class="text-white/50">1/8</span>
+ </button>
+ </div>
+ <div class="flex items-center gap-3 text-white/55">
+ <i data-lucide="list-tree" class="w-3.5 h-3.5"></i>
+ <i data-lucide="layout-list" class="w-3.5 h-3.5"></i>
+ <span class="text-white/80 font-medium">42%</span>
+ <button class="w-5 h-5 grid place-items-center rounded hover:bg-white/10"><i data-lucide="plus" class="w-3.5 h-3.5"></i></button>
+ <button class="w-5 h-5 grid place-items-center rounded hover:bg-white/10"><i data-lucide="minus" class="w-3.5 h-3.5"></i></button>
+ </div>
+ </footer>
+ </main>
+ <script>
+ // Tailwind v4 browser script applies styles lazily; ensure icons render after layout
+ window.addEventListener('load', () => {
+ if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
+ });
+ </script>
+</body>
+</html>
+
+

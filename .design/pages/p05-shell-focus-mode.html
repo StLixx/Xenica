@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>主框架 · 专注模式 · Xenica</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#000;color:var(--ant-color-text);font-family:var(--ant-font-family);-webkit-font-smoothing:antialiased;height:100vh;overflow:hidden}
+  .app{height:100vh;display:grid;grid-template-rows:48px 1fr 28px}
+  .hd{background:var(--ant-color-bg-elevated);border-bottom:1px solid var(--ant-color-border);display:flex;align-items:center;padding:0 16px;gap:12px;position:relative}
+  .hd-left,.hd-right{width:140px;display:flex;align-items:center;gap:10px}
+  .hd-right{justify-content:flex-end}
+  .brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:12px;letter-spacing:.14em;color:var(--ant-color-primary-text)}
+  .brand .dot{width:6px;height:6px;border-radius:50%;background:var(--ant-color-primary);box-shadow:0 0 6px var(--ant-color-primary)}
+  .hd-title{position:absolute;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:10px;padding:5px 14px;background:var(--ant-color-bg-container);border:1px solid var(--ant-color-border);border-radius:999px;font-size:13px;color:var(--ant-color-text)}
+  .hd-title .caret{color:var(--ant-color-text-tertiary);font-size:10px}
+  .hd-title .sep{color:var(--ant-color-text-quaternary);margin:0 4px}
+  .hd-title .save-dot{width:6px;height:6px;border-radius:50%;background:var(--xe-node-yellow)}
+  .ico-btn{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--ant-color-text-secondary);font-size:13px;cursor:default}
+  .ico-btn:hover{background:var(--ant-color-fill-secondary);color:var(--ant-color-text)}
+  .mid{background:var(--ant-color-bg-layout);position:relative;overflow:hidden}
+  .canvas-bg{position:absolute;inset:0;background-image:var(--xe-bg-grid);background-size:48px 48px;opacity:.4}
+  .canvas-glow{position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,#14b8a618 0%,transparent 55%)}
+  .doc{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:780px;background:var(--ant-color-bg-elevated);border:1px solid var(--ant-color-border);border-radius:16px;box-shadow:var(--xe-shadow-3);padding:48px 56px;max-height:calc(100vh - 200px);overflow:auto}
+  .doc-meta{display:flex;align-items:center;gap:10px;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--ant-color-primary-text);margin-bottom:14px;font-family:'JetBrains Mono',ui-monospace,monospace}
+  .doc-meta .d{width:24px;height:1px;background:var(--ant-color-primary-text);opacity:.6}
+  .doc h1{font-size:36px;font-weight:600;line-height:1.2;letter-spacing:-.01em;margin-bottom:18px}
+  .doc .sub{font-size:14px;color:var(--ant-color-text-secondary);line-height:1.7;margin-bottom:24px;padding-bottom:24px;border-bottom:1px solid var(--ant-color-border)}
+  .doc h2{font-size:18px;font-weight:600;margin:24px 0 10px}
+  .doc p{font-size:14px;line-height:1.85;color:var(--ant-color-text);margin-bottom:14px}
+  .doc blockquote{margin:16px 0;padding:14px 18px;border-left:3px solid var(--ant-color-primary);background:var(--ant-color-primary-bg);border-radius:0 8px 8px 0;font-size:13px;color:var(--ant-color-text-secondary);line-height:1.7}
+  .doc ul{margin:12px 0 16px 0;padding-left:22px}
+  .doc li{font-size:13.5px;line-height:1.85;color:var(--ant-color-text);margin-bottom:6px}
+  .doc .row-tags{display:flex;gap:6px;flex-wrap:wrap;margin:18px 0}
+  .focus-card{position:absolute;left:30px;bottom:80px;background:var(--ant-color-bg-elevated);border:1px solid var(--ant-color-border);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px;box-shadow:var(--xe-shadow-2)}
+  .focus-card .ic{width:22px;height:22px;border-radius:5px;background:var(--ant-color-primary-bg);color:var(--ant-color-primary-text);display:flex;align-items:center;justify-content:center;font-size:12px}
+  .focus-card .lbl{font-size:11px;color:var(--ant-color-text-tertiary);letter-spacing:.06em}
+  .focus-card .val{font-size:12px;color:var(--ant-color-text);font-weight:500}
+  .exit-tip{position:absolute;right:30px;bottom:80px;background:var(--ant-color-bg-container);border:1px solid var(--ant-color-border);border-radius:8px;padding:8px 12px;font-size:11px;color:var(--ant-color-text-secondary);display:flex;align-items:center;gap:8px}
+  .exit-tip .kbd{padding:1px 6px;background:var(--ant-color-fill-secondary);border-radius:3px;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:10px;color:var(--ant-color-text)}
+  .ft{background:var(--ant-color-bg-elevated);border-top:1px solid var(--ant-color-border);display:flex;align-items:center;padding:0 16px;gap:14px;font-size:11px;color:var(--ant-color-text-secondary)}
+  .ft .center{margin:0 auto;display:flex;align-items:center;gap:10px}
+  .ft .pill{padding:3px 10px;background:var(--ant-color-primary-bg);color:var(--ant-color-primary-text);border-radius:999px;font-size:10px;letter-spacing:.08em;text-transform:uppercase}
+  .ft .right{margin-left:auto;display:flex;gap:10px;align-items:center}
+  .ft .kbd{padding:0 6px;background:var(--ant-color-fill-secondary);border-radius:3px;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:10px;color:var(--ant-color-text)}
+  .ft .progress{display:flex;align-items:center;gap:8px}
+  .ft .bar{width:80px;height:3px;background:var(--ant-color-fill-tertiary);border-radius:100px;overflow:hidden}
+  .ft .bar>i{display:block;height:100%;width:42%;background:var(--ant-color-primary)}
+</style></head><body>
+<div class="app">
+  <div class="hd">
+    <div class="hd-left">
+      <div class="brand"><span class="dot"></span>XENICA</div>
+      <div class="ico-btn">≡</div>
+    </div>
+    <div class="hd-title">
+      <span class="save-dot"></span>
+      <span>设计原则 v3</span>
+      <span class="sep">·</span>
+      <span style="color:var(--ant-color-text-secondary)">未保存</span>
+      <span class="caret">▾</span>
+    </div>
+    <div class="hd-right">
+      <div class="ico-btn">⌕</div>
+      <div class="ico-btn">⚙</div>
+      <div class="av" style="width:24px;height:24px;font-size:10px">XL</div>
+    </div>
+  </div>
+  <div class="mid">
+    <div class="canvas-bg"></div>
+    <div class="canvas-glow"></div>
+    <div class="doc">
+      <div class="doc-meta"><span class="d"></span><span>设计文档 · v3</span></div>
+      <h1>节点画布的视觉与交互原则</h1>
+      <p class="sub">本文档定义节点画布（Canvas View）的视觉语言、布局策略和交互语义。它不是规范手册，而是约束我们设计决策的参考基准。</p>
+      <h2>核心立场</h2>
+      <p>节点画布不是 Obsidian 风格的自由拓扑，而是<strong>自动布局</strong>优先的可编辑工作区。节点的连接是结构，不是装饰；位置是状态，不是任意空间。</p>
+      <blockquote>"每个节点的位置必须能从一个函数 f(node, context) 推导出来，而不是被手动拖出来。"</blockquote>
+      <h2>视觉规则</h2>
+      <ul>
+        <li>节点色 = 节点类型，不表示状态</li>
+        <li>连接线弧度 = 父子层级深度</li>
+        <li>选中态不改变位置，只改变边与背景层</li>
+      </ul>
+      <div class="row-tags">
+        <span class="tag tag-primary" style="height:20px;font-size:11px">文档</span>
+        <span class="tag tag-default" style="height:20px;font-size:11px">v3</span>
+        <span class="tag" style="background:#0a1912;color:#95de64;border:1px solid #1a3d1f;height:20px;font-size:11px">已审阅</span>
+      </div>
+    </div>
+    <div class="focus-card">
+      <div class="ic">✥</div>
+      <div>
+        <div class="lbl">专注模式</div>
+        <div class="val">已开启 · 左右栏隐藏</div>
+      </div>
+    </div>
+    <div class="exit-tip">退出 <span class="kbd">⌘</span><span class="kbd">.</span> · 平移 <span class="kbd">⇧</span>+拖动</div>
+  </div>
+  <div class="ft">
+    <span style="font-size:11px;color:var(--ant-color-text-tertiary);letter-spacing:.16em;text-transform:uppercase;font-family:'JetBrains Mono',ui-monospace,monospace">FOCUS</span>
+    <div class="center">
+      <span class="pill">正在编辑</span>
+      <span>第 3 节 · 视觉规则</span>
+    </div>
+    <div class="right">
+      <div class="progress">
+        <span>阅读进度</span>
+        <div class="bar"><i></i></div>
+        <span>42%</span>
+      </div>
+      <span><span class="kbd">⌘</span><span class="kbd">S</span> 保存</span>
+    </div>
+  </div>
+</div>
+</body></html>

@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>面包屑 · 多级路径 · Xenica</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#000;color:var(--ant-color-text);font-family:var(--ant-font-family);-webkit-font-smoothing:antialiased;height:100vh;overflow:hidden}
+  .stage{padding:80px;background:radial-gradient(ellipse at 50% 0%,#14b8a608 0%,transparent 60%);min-height:100vh}
+  .eyebrow{font-family:ui-monospace,monospace;font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--ant-color-primary-text);margin-bottom:16px;display:flex;align-items:center;gap:10px}
+  .eyebrow .d{width:24px;height:1px;background:var(--ant-color-primary-text);opacity:.6}
+  h1{font-size:48px;font-weight:600;line-height:1.1;letter-spacing:-.01em;margin-bottom:18px}
+  p.lede{font-size:14px;color:var(--ant-color-text-secondary);max-width:720px;line-height:1.7;margin-bottom:48px}
+  .stack{display:flex;flex-direction:column;gap:32px}
+  .group h3{font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:var(--ant-color-text-tertiary);margin-bottom:14px;font-family:ui-monospace,monospace;font-weight:600}
+  .crumb{display:flex;align-items:center;gap:8px;padding:18px 22px;background:var(--ant-color-bg-container);border:1px solid var(--ant-color-border);border-radius:14px;font-size:14px}
+  .crumb .sep{color:var(--ant-color-text-quaternary);font-size:14px;margin:0 2px}
+  .crumb .item{padding:4px 10px;border-radius:6px;color:var(--ant-color-text-secondary)}
+  .crumb .item.current{color:var(--ant-color-primary-text);background:var(--ant-color-primary-bg);font-weight:500}
+  .crumb .item:hover:not(.current){background:var(--ant-color-fill-secondary);color:var(--ant-color-text);cursor:default}
+  .crumb .ico{color:var(--ant-color-text-tertiary);margin-right:4px;font-size:12px}
+  .crumb .current .ico{color:var(--ant-color-primary-text)}
+  .crumb.elev{background:var(--ant-color-bg-elevated);box-shadow:0 12px 30px -10px #00000080}
+  .crumb.glow{border-color:var(--ant-color-primary-border);box-shadow:0 0 30px -10px #14b8a650}
+  .crumb.with-actions{padding:14px 22px}
+  .crumb.with-actions .left{flex:1;display:flex;align-items:center;gap:8px}
+  .crumb.with-actions .actions{display:flex;gap:6px;align-items:center;padding-left:16px;border-left:1px solid var(--ant-color-border);margin-left:8px}
+  .crumb .dd{padding:4px 8px;background:var(--ant-color-fill-secondary);border-radius:5px;font-size:11px;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace}
+</style></head><body>
+<div class="stage">
+  <div class="eyebrow"><span class="d"></span>BREADCRUMBS · 多级路径导航</div>
+  <h1>层级清晰，从不迷失</h1>
+  <p class="lede">Xenica 的面包屑承载工作区 → 分组 → 数据库 → 节点的完整路径。支持直接点击任意一级跳转，也支持在每层下拉切换同级内容。</p>
+  <div class="stack">
+    <div class="group"><h3>Default · 标准态</h3>
+      <div class="crumb">
+        <span class="item"><span class="ico">◐</span>Xenica 实验室</span>
+        <span class="sep">/</span>
+        <span class="item"><span class="ico">▤</span>研究项目</span>
+        <span class="sep">/</span>
+        <span class="item"><span class="ico">▦</span>Antd 6 调研</span>
+        <span class="sep">/</span>
+        <span class="item current"><span class="ico">▤</span>节点布局策略 v2</span>
+      </div>
+    </div>
+    <div class="group"><h3>With Dropdown · 含下拉切换</h3>
+      <div class="crumb elev">
+        <span class="item"><span class="ico">◐</span>Xenica 实验室<span class="dd">▾</span></span>
+        <span class="sep">/</span>
+        <span class="item"><span class="ico">▤</span>研究项目<span class="dd">▾</span></span>
+        <span class="sep">/</span>
+        <span class="item current"><span class="ico">▦</span>Antd 6 调研<span class="dd">▾</span></span>
+      </div>
+    </div>
+    <div class="group"><h3>With Actions · 含操作按钮</h3>
+      <div class="crumb elev with-actions">
+        <div class="left">
+          <span class="item"><span class="ico">◐</span>Xenica 实验室</span>
+          <span class="sep">/</span>
+          <span class="item"><span class="ico">▤</span>研究项目</span>
+          <span class="sep">/</span>
+          <span class="item"><span class="ico">▦</span>Antd 6 调研</span>
+          <span class="sep">/</span>
+          <span class="item current"><span class="ico">▤</span>节点布局策略 v2</span>
+        </div>
+        <div class="actions">
+          <button class="btn btn-default btn-sm">⇪ 分享</button>
+          <button class="btn btn-default btn-sm">⊟ 导出</button>
+          <button class="btn btn-primary btn-sm">⌘ 编辑</button>
+        </div>
+      </div>
+    </div>
+    <div class="group"><h3>Glow · 当前态高亮</h3>
+      <div class="crumb glow">
+        <span class="item"><span class="ico">◐</span>Xenica 实验室</span>
+        <span class="sep">/</span>
+        <span class="item"><span class="ico">▤</span>设计原则</span>
+        <span class="sep">/</span>
+        <span class="item"><span class="ico">⌬</span>v3</span>
+        <span class="sep">/</span>
+        <span class="item current"><span class="ico">▤</span>当前节点</span>
+      </div>
+    </div>
+    <div class="group"><h3>Truncated · 路径过长截断</h3>
+      <div class="crumb">
+        <span class="item"><span class="ico">◐</span>Xenica 实验室</span>
+        <span class="sep">/</span>
+        <span class="item" style="color:var(--ant-color-text-tertiary)">…</span>
+        <span class="sep">/</span>
+        <span class="item"><span class="ico">▤</span>设计原则 v3</span>
+        <span class="sep">/</span>
+        <span class="item current"><span class="ico">▤</span>当前节点</span>
+      </div>
+    </div>
+  </div>
+</div>
+</body></html>

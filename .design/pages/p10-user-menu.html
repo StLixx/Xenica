@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>用户菜单 · 头像下拉 · Xenica</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#000;color:var(--ant-color-text);font-family:var(--ant-font-family);-webkit-font-smoothing:antialiased;height:100vh;overflow:hidden}
+  .stage{position:fixed;inset:0;background:radial-gradient(circle at 70% 10%,#14b8a608 0%,transparent 50%)}
+  .panel{position:absolute;top:50px;right:80px;width:300px;background:var(--ant-color-bg-elevated);border:1px solid var(--ant-color-border);border-radius:14px;box-shadow:0 30px 80px -20px #000000c0;overflow:hidden}
+  .head{padding:20px;display:flex;gap:14px;border-bottom:1px solid var(--ant-color-border);background:linear-gradient(135deg,#14b8a610,transparent)}
+  .av-lg{width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#14b8a6,#0d9488);display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;font-weight:700;flex:none}
+  .info{flex:1;min-width:0}
+  .info .name{font-size:15px;font-weight:600;color:var(--ant-color-text);margin-bottom:2px}
+  .info .email{font-size:12px;color:var(--ant-color-text-tertiary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .info .plan{display:inline-flex;align-items:center;gap:4px;font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:2px 8px;border-radius:6px;background:var(--ant-color-primary-bg);color:var(--ant-color-primary-text);margin-top:8px;font-family:ui-monospace,monospace}
+  .list{padding:8px}
+  .grp-title{padding:10px 12px 6px;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace}
+  .item{display:flex;align-items:center;gap:12px;padding:8px 12px;font-size:13px;color:var(--ant-color-text-secondary);border-radius:8px;cursor:default}
+  .item:hover{background:var(--ant-color-fill-secondary);color:var(--ant-color-text)}
+  .item .ico{width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--ant-color-text-tertiary)}
+  .item .shortcut{margin-left:auto;font-family:ui-monospace,monospace;font-size:10px;color:var(--ant-color-text-tertiary)}
+  .item .badge{margin-left:auto;width:6px;height:6px;border-radius:50%;background:var(--ant-color-primary)}
+  .div{height:1px;background:var(--ant-color-border);margin:6px 12px}
+  .ws{padding:6px 12px;display:flex;gap:6px;align-items:center;font-size:12px}
+  .ws-av{width:18px;height:18px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:#fff}
+  .foot{padding:10px;border-top:1px solid var(--ant-color-border);display:flex;justify-content:space-between;align-items:center;background:var(--ant-color-bg-container)}
+  .foot .ver{font-size:10px;color:var(--ant-color-text-quaternary);font-family:ui-monospace,monospace}
+  .foot .theme-toggle{display:flex;gap:4px;padding:3px;background:var(--ant-color-bg-base);border:1px solid var(--ant-color-border);border-radius:8px}
+  .theme-toggle button{width:24px;height:22px;border-radius:5px;border:none;background:transparent;color:var(--ant-color-text-tertiary);cursor:default;font-size:11px;display:flex;align-items:center;justify-content:center}
+  .theme-toggle button.on{background:var(--ant-color-primary-bg);color:var(--ant-color-primary-text)}
+</style></head><body>
+<div class="stage">
+  <div class="panel">
+    <div class="head">
+      <div class="av-lg">XL</div>
+      <div class="info">
+        <div class="name">谢凌</div>
+        <div class="email">[email protected]</div>
+        <span class="plan">⌬ Pro · 团队版</span>
+      </div>
+    </div>
+    <div class="ws">
+      <div class="ws-av" style="background:linear-gradient(135deg,#14b8a6,#0d9488)">X</div>
+      <div style="flex:1"><div style="color:var(--ant-color-text);font-weight:500">Xenica 实验室</div><div style="font-size:10px;color:var(--ant-color-text-tertiary)">个人工作区</div></div>
+      <span style="color:var(--ant-color-text-tertiary);font-size:11px">⌄</span>
+    </div>
+    <div class="list">
+      <div class="item"><span class="ico">◐</span>切换工作区<span class="shortcut">⌘⇧O</span></div>
+      <div class="item"><span class="ico">+</span>邀请成员<span class="shortcut">⌘I</span></div>
+      <div class="item"><span class="ico">⌬</span>升级到 团队版</div>
+      <div class="div"></div>
+      <div class="grp-title">账户</div>
+      <div class="item"><span class="ico">⚙</span>设置<span class="shortcut">⌘,</span></div>
+      <div class="item"><span class="ico">⌥</span>快捷键<span class="shortcut">⌘/</span></div>
+      <div class="item"><span class="ico">?</span>帮助中心<span class="badge"></span></div>
+      <div class="item"><span class="ico">⌬</span>更新日志</div>
+    </div>
+    <div class="foot">
+      <div class="theme-toggle">
+        <button>☼</button>
+        <button class="on">☾</button>
+        <button>◐</button>
+      </div>
+      <span class="ver">v2.4.1</span>
+    </div>
+  </div>
+</div>
+</body></html>

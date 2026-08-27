@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>Splash · 启动加载 · Xenica</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#000;color:var(--ant-color-text);font-family:var(--ant-font-family);-webkit-font-smoothing:antialiased;height:100%;overflow:hidden}
+  .stage{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(ellipse at center,#14b8a608 0%,transparent 70%)}
+  .logo{width:80px;height:80px;border-radius:18px;background:linear-gradient(135deg,#14b8a6,#0d9488);display:flex;align-items:center;justify-content:center;font-size:32px;color:#fff;font-weight:700;box-shadow:0 0 60px #14b8a640;animation:pulse 2s ease-in-out infinite}
+  @keyframes pulse{0%,100%{box-shadow:0 0 30px #14b8a640}50%{box-shadow:0 0 80px #14b8a680}}
+  .name{margin-top:24px;font-size:24px;font-weight:600;letter-spacing:.04em}
+  .tag{margin-top:6px;font-size:12px;color:var(--ant-color-text-tertiary);letter-spacing:.2em;text-transform:uppercase}
+  .loader{margin-top:48px;display:flex;gap:8px}
+  .loader i{width:6px;height:6px;border-radius:50%;background:var(--ant-color-primary);animation:bounce 1.4s ease-in-out infinite}
+  .loader i:nth-child(2){animation-delay:.16s}
+  .loader i:nth-child(3){animation-delay:.32s}
+  @keyframes bounce{0%,80%,100%{opacity:.3;transform:translateY(0)}40%{opacity:1;transform:translateY(-8px)}}
+  .ver{position:fixed;bottom:24px;left:0;right:0;text-align:center;font-size:11px;color:var(--ant-color-text-quaternary);letter-spacing:.18em;font-family:ui-monospace,monospace}
+</style></head><body>
+<div class="stage">
+  <div class="logo">X</div>
+  <div class="name">Xenica Atrium</div>
+  <div class="tag">A web of thought</div>
+  <div class="loader"><i></i><i></i><i></i></div>
+</div>
+<div class="ver">v2.4.1 · build 20260717 · initializing workspace</div>
+</body></html>

@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>用户菜单 · Xenica</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#000;color:var(--ant-color-text);font-family:var(--ant-font-family);-webkit-font-smoothing:antialiased;height:100vh;overflow:hidden}
+  .app{height:100vh;display:flex;flex-direction:column;background:linear-gradient(180deg,#0a0a0a,#000)}
+  .app::before{content:"";position:absolute;inset:0;background-image:var(--xe-bg-grid);background-size:48px 48px;opacity:.25;pointer-events:none}
+  .hd{height:48px;display:flex;align-items:center;padding:0 16px;gap:14px;background:var(--ant-color-bg-elevated);border-bottom:1px solid var(--ant-color-border);position:relative;z-index:2}
+  .brand{font-weight:700;font-size:13px;letter-spacing:.14em;color:var(--ant-color-primary-text);display:flex;align-items:center;gap:8px}
+  .brand .dot{width:6px;height:6px;border-radius:50%;background:var(--ant-color-primary);box-shadow:0 0 6px var(--ant-color-primary)}
+  .crumb{font-size:12px;color:var(--ant-color-text-secondary)}
+  .crumb b{color:var(--ant-color-text);font-weight:500}
+  .hd-right{margin-left:auto;display:flex;gap:10px;align-items:center}
+  .ico-btn{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--ant-color-text-secondary);font-size:13px}
+  .ico-btn:hover{background:var(--ant-color-fill-secondary);color:var(--ant-color-text)}
+  .av-btn{padding:2px 8px 2px 2px;border-radius:20px;display:flex;align-items:center;gap:6px;background:var(--ant-color-primary-bg);border:1px solid var(--ant-color-primary-border);font-size:12px;color:var(--ant-color-primary-text)}
+  .av-btn:hover{background:var(--ant-color-primary-bg-hover)}
+  .av{width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#14b8a6,#0d9488);display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:600;flex:none}
+  .stage{flex:1;display:flex;align-items:flex-start;justify-content:flex-end;padding:14px 80px;position:relative}
+  .anchor{position:absolute;top:48px;right:130px;width:2px;height:14px;background:var(--ant-color-primary);box-shadow:0 0 8px var(--ant-color-primary);border-radius:2px}
+  .menu{width:260px;background:var(--ant-color-bg-elevated);border:1px solid var(--ant-color-border);border-radius:12px;box-shadow:var(--xe-shadow-3);overflow:hidden}
+  .profile{display:flex;align-items:center;gap:10px;padding:14px;background:linear-gradient(135deg,#14b8a614,#14b8a608);border-bottom:1px solid var(--ant-color-border)}
+  .av-lg{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#14b8a6,#0d9488);display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:600;flex:none;box-shadow:0 0 0 2px var(--ant-color-bg-elevated),0 0 0 3px var(--ant-color-primary-border)}
+  .profile .name{font-size:13.5px;font-weight:600}
+  .profile .email{font-size:11px;color:var(--ant-color-text-secondary);margin-top:2px}
+  .profile .plan{display:inline-flex;align-items:center;gap:4px;margin-top:6px;padding:2px 8px;background:var(--ant-color-primary-bg);color:var(--ant-color-primary-text);border-radius:100px;font-size:10px;letter-spacing:.06em;text-transform:uppercase;font-family:'JetBrains Mono',ui-monospace,monospace}
+  .section{padding:6px 0}
+  .item{display:flex;align-items:center;gap:10px;padding:8px 14px;font-size:13px;color:var(--ant-color-text);cursor:default}
+  .item:hover{background:var(--ant-color-fill-secondary)}
+  .item .ic{width:18px;font-size:13px;color:var(--ant-color-text-secondary);flex:none}
+  .item .right{margin-left:auto;font-size:10.5px;color:var(--ant-color-text-tertiary);font-family:'JetBrains Mono',ui-monospace,monospace}
+  .div{height:1px;background:var(--ant-color-border);margin:4px 0}
+  .theme-toggle{display:flex;align-items:center;gap:6px;padding:8px 14px}
+  .theme-toggle .lbl{font-size:12px;color:var(--ant-color-text-secondary);margin-right:auto}
+  .theme-seg{display:flex;background:var(--ant-color-fill-secondary);border-radius:6px;padding:2px;border:1px solid var(--ant-color-border)}
+  .theme-seg span{padding:3px 8px;font-size:11px;color:var(--ant-color-text-secondary);border-radius:4px;cursor:default}
+  .theme-seg span.on{background:var(--ant-color-primary);color:#fff;box-shadow:0 0 0 1px var(--ant-color-primary-border)}
+  .footer{padding:8px 14px;border-top:1px solid var(--ant-color-border);background:var(--ant-color-bg-container);display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--ant-color-text-tertiary)}
+  .footer .ver{font-family:'JetBrains Mono',ui-monospace,monospace}
+</style></head><body>
+<div class="app">
+  <div class="hd">
+    <div class="brand"><span class="dot"></span>XENICA</div>
+    <div class="crumb">工作区 <span style="color:var(--ant-color-text-quaternary);margin:0 4px">/</span> 节点画布 <span style="color:var(--ant-color-text-quaternary);margin:0 4px">/</span> <b>账户</b></div>
+    <div class="hd-right">
+      <div class="ico-btn">⌕</div>
+      <div class="ico-btn">🔔</div>
+      <div class="ico-btn">⚙</div>
+      <div class="av-btn"><div class="av">XL</div><span>XL</span><span style="font-size:10px">▾</span></div>
+    </div>
+  </div>
+  <div class="stage">
+    <div class="anchor"></div>
+    <div class="menu">
+      <div class="profile">
+        <div class="av-lg">XL</div>
+        <div>
+          <div class="name">夏澜</div>
+          <div class="email">xia.lan@xenica.app</div>
+          <div class="plan">◆ PRO · 2026</div>
+        </div>
+      </div>
+      <div class="section">
+        <div class="item"><span class="ic">☺</span>个人资料<span class="right">⌘ ⇧ P</span></div>
+        <div class="item"><span class="ic">⌬</span>我的工作区<span style="margin-left:auto;font-size:10.5px;color:var(--ant-color-text-tertiary)">4</span></div>
+        <div class="item"><span class="ic">⊟</span>草稿箱<span style="margin-left:auto;font-size:10.5px;color:var(--ant-color-text-tertiary)">2</span></div>
+        <div class="item"><span class="ic">⎘</span>已复制引用<span style="margin-left:auto;font-size:10.5px;color:var(--ant-color-text-tertiary)">7</span></div>
+      </div>
+      <div class="div"></div>
+      <div class="theme-toggle">
+        <span class="lbl">主题</span>
+        <div class="theme-seg">
+          <span>浅</span>
+          <span class="on">暗</span>
+          <span>◐</span>
+        </div>
+      </div>
+      <div class="section">
+        <div class="item"><span class="ic">⌨</span>快捷键速查<span class="right">⌘ /</span></div>
+        <div class="item"><span class="ic">⚙</span>设置<span class="right">⌘ ,</span></div>
+        <div class="item"><span class="ic">ⓘ</span>帮助中心</div>
+        <div class="item"><span class="ic">✉</span>反馈建议</div>
+      </div>
+      <div class="div"></div>
+      <div class="section">
+        <div class="item" style="color:var(--ant-color-error)"><span class="ic" style="color:var(--ant-color-error)">↪</span>退出登录</div>
+      </div>
+      <div class="footer">
+        <span>登录状态</span>
+        <span class="ver">v2.4.1 · stable</span>
+      </div>
+    </div>
+  </div>
+</div>
+</body></html>

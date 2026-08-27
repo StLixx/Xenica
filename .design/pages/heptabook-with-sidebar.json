@@ -1,0 +1,12 @@
+{
+  "id": "heptabook-with-sidebar",
+  "type": "page",
+  "title": "Heptabook · Ref · 侧栏展开",
+  "html": "pages/heptabook-with-sidebar.html",
+  "png": "pages/heptabook-with-sidebar.png",
+  "width": 1600,
+  "height": 920,
+  "designSystem": "heptabook-ref",
+  "mode": "dark",
+  "tags": ["heptabook", "reference", "sidebar-expanded"]
+}

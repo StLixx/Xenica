@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>侧栏 · 折叠图标态 · Xenica</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#000;color:var(--ant-color-text);font-family:var(--ant-font-family);-webkit-font-smoothing:antialiased;height:100vh;overflow:hidden}
+  .app{height:100vh;display:grid;grid-template-columns:64px 1fr;grid-template-rows:48px 1fr}
+  .hd{grid-column:1/-1;background:var(--ant-color-bg-elevated);border-bottom:1px solid var(--ant-color-border);display:flex;align-items:center;padding:0 16px;gap:14px}
+  .brand{font-weight:700;font-size:13px;letter-spacing:.14em;color:var(--ant-color-primary-text);display:flex;align-items:center;gap:8px}
+  .brand .dot{width:6px;height:6px;border-radius:50%;background:var(--ant-color-primary);box-shadow:0 0 6px var(--ant-color-primary)}
+  .crumb{font-size:12px;color:var(--ant-color-text-secondary)}
+  .crumb b{color:var(--ant-color-text);font-weight:500}
+  .hd-right{margin-left:auto;display:flex;gap:10px;align-items:center}
+  .ico{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--ant-color-text-secondary);font-size:13px}
+  .ico:hover{background:var(--ant-color-fill-secondary);color:var(--ant-color-text)}
+  .av{width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#14b8a6,#0d9488);display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:600}
+  .sb{background:var(--ant-color-bg-base);border-right:1px solid var(--ant-color-border);padding:10px 0;display:flex;flex-direction:column;align-items:center;gap:4px;overflow:hidden;position:relative}
+  .sb::after{content:"64 PX";position:absolute;left:50%;bottom:14px;transform:translateX(-50%);font-size:8px;letter-spacing:.18em;color:var(--ant-color-text-quaternary);font-family:'JetBrains Mono',ui-monospace,monospace}
+  .ic{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--ant-color-text-secondary);cursor:default;position:relative;transition:all .12s}
+  .ic:hover{background:var(--ant-color-fill-secondary);color:var(--ant-color-text)}
+  .ic.on{background:var(--ant-color-primary-bg);color:var(--ant-color-primary-text);box-shadow:inset 0 0 0 1px var(--ant-color-primary-border)}
+  .ic .tip{position:absolute;left:calc(100% + 14px);top:50%;transform:translateY(-50%);background:var(--ant-color-bg-elevated);border:1px solid var(--ant-color-border);padding:5px 10px;font-size:12px;border-radius:6px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s;box-shadow:var(--xe-shadow-2);z-index:10;display:flex;align-items:center;gap:8px;color:var(--ant-color-text)}
+  .ic .tip::before{content:"";position:absolute;left:-4px;top:50%;transform:translateY(-50%) rotate(45deg);width:8px;height:8px;background:var(--ant-color-bg-elevated);border-left:1px solid var(--ant-color-border);border-bottom:1px solid var(--ant-color-border)}
+  .ic:hover .tip{opacity:1}
+  .ic .tip .k{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:10px;color:var(--ant-color-text-tertiary);padding:1px 5px;background:var(--ant-color-fill-secondary);border-radius:3px}
+  .ic .cnt{position:absolute;top:4px;right:4px;min-width:14px;height:14px;background:var(--ant-color-error);color:#fff;border-radius:100px;font-size:9px;font-weight:600;display:flex;align-items:center;justify-content:center;padding:0 3px}
+  .ic .dot{position:absolute;bottom:6px;right:6px;width:6px;height:6px;border-radius:50%;background:var(--ant-color-primary);box-shadow:0 0 6px var(--ant-color-primary)}
+  .div{width:28px;height:1px;background:var(--ant-color-border);margin:6px 0}
+  .body{background:var(--ant-color-bg-layout);position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
+  .body::before{content:"";position:absolute;inset:0;background-image:var(--xe-bg-grid);background-size:48px 48px;opacity:.35}
+  .body::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,#14b8a614 0%,transparent 60%)}
+  .demo{position:relative;z-index:2;background:var(--ant-color-bg-elevated);border:1px solid var(--ant-color-border);border-radius:14px;padding:32px 40px;box-shadow:var(--xe-shadow-3);text-align:center;max-width:520px}
+  .demo .eyebrow{display:inline-flex;align-items:center;gap:10px;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--ant-color-primary-text);margin-bottom:14px}
+  .demo .eyebrow .d{width:22px;height:1px;background:var(--ant-color-primary-text);opacity:.7}
+  .demo h1{font-size:32px;font-weight:600;letter-spacing:-.01em;margin-bottom:14px}
+  .demo p{font-size:14px;line-height:1.7;color:var(--ant-color-text-secondary);margin-bottom:18px}
+  .demo .preview{background:var(--ant-color-bg-base);border:1px solid var(--ant-color-border);border-radius:8px;padding:14px 16px;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;color:var(--ant-color-text-tertiary);line-height:1.7;margin-bottom:14px;text-align:left}
+  .demo .preview b{color:var(--ant-color-primary-text)}
+  .demo .keys{display:flex;gap:8px;justify-content:center;align-items:center}
+  .kbd{padding:3px 9px;background:var(--ant-color-fill-secondary);border:1px solid var(--ant-color-border);border-radius:4px;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:11px;color:var(--ant-color-text)}
+</style></head><body>
+<div class="app">
+  <div class="hd">
+    <div class="brand"><span class="dot"></span>XENICA</div>
+    <div class="crumb">工作区 <span style="color:var(--ant-color-text-quaternary);margin:0 4px">/</span> 节点画布</div>
+    <div class="hd-right">
+      <div class="ico">⌕</div><div class="ico">🔔</div><div class="ico">⚙</div>
+      <div class="av">XL</div>
+    </div>
+  </div>
+  <div class="sb">
+    <div class="ic on">◉<span class="tip">节点画布 <span class="k">⌘ 1</span></span><span class="dot"></span></div>
+    <div class="ic">▤<span class="tip">每日日记 <span class="k">⌘ 2</span></span><span class="cnt">3</span></div>
+    <div class="ic">⌗<span class="tip">研究项目 <span class="k">⌘ 3</span></span></div>
+    <div class="ic">▦<span class="tip">阅读清单 <span class="k">⌘ 4</span></span></div>
+    <div class="ic">⊟<span class="tip">归档 <span class="k">⌘ 5</span></span></div>
+    <div class="div"></div>
+    <div class="ic">⌕<span class="tip">全局搜索 <span class="k">⌘ F</span></span></div>
+    <div class="ic">✎<span class="tip">新建节点 <span class="k">N</span></span></div>
+    <div class="ic">⊕<span class="tip">新建连接 <span class="k">⌘ L</span></span></div>
+    <div class="ic">⚙<span class="tip">设置 <span class="k">⌘ ,</span></span></div>
+  </div>
+  <div class="body">
+    <div class="demo">
+      <div class="eyebrow"><span class="d"></span><span>SIDEBAR · COLLAPSED</span></div>
+      <h1>悬停图标查看提示</h1>
+      <p>折叠态下侧栏只显示图标与状态点。将鼠标悬停在任一图标上，会在右侧弹出带快捷键提示的 tooltip。</p>
+      <div class="preview">
+        <b>·</b> 当前选中：节点画布 <br>
+        <b>·</b> 节点画布上有未读红点（3 条入边更新）<br>
+        <b>·</b> 按 <span style="color:var(--ant-color-primary-text)">⌘ \\</span> 展开完整侧栏
+      </div>
+      <div class="keys">
+        <span class="kbd">⌘</span><span class="kbd">\\</span>
+        <span style="font-size:12px;color:var(--ant-color-text-secondary)">切换展开 / 折叠</span>
+      </div>
+    </div>
+  </div>
+</div>
+</body></html>

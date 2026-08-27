@@ -1,0 +1,10 @@
+{
+  "id": "page-home",
+  "title": "Home · 首页 (antd 6 darkAlgorithm, ESM CDN mount)",
+  "type": "page",
+  "width": 1600,
+  "height": 1000,
+  "createdAt": 1784010000000,
+  "designSystem": "antd-6-darkAlgorithm",
+  "components": ["ConfigProvider", "Layout/Sider", "Layout/Header", "Layout/Content", "Layout/Footer", "Menu", "Segmented", "Tabs", "Tag", "Switch", "Tooltip", "Button", "Divider", "NodeIndexOutlined icon"]
+}

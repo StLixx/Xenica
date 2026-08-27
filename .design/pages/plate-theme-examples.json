@@ -1,0 +1,11 @@
+{
+  "id": "plate-theme-examples",
+  "type": "page",
+  "title": "Plate IV–V · Theme Examples",
+  "html": "pages/plate-theme-examples.html",
+  "width": 1600,
+  "height": 2400,
+  "designSystem": "antd-xenica-token",
+  "modes": ["dark", "light"],
+  "tags": ["theme", "antd", "tokens", "config-provider"]
+}

@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>数据库 · 画廊视图 · Xenica</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#000;color:var(--ant-color-text);font-family:var(--ant-font-family);-webkit-font-smoothing:antialiased;min-height:100vh}
+  .stage{padding:40px;background:radial-gradient(circle at 50% 0%,#14b8a608 0%,transparent 60%);min-height:100vh}
+  .db-shell{background:var(--ant-color-bg-container);border:1px solid var(--ant-color-border);border-radius:14px;overflow:hidden;box-shadow:0 30px 80px -30px #00000080}
+  .db-head{padding:18px 24px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--ant-color-border);background:var(--ant-color-bg-elevated)}
+  .db-head .left{display:flex;align-items:center;gap:14px}
+  .db-head .ico{width:40px;height:40px;border-radius:10px;background:#14b8a620;color:var(--ant-color-primary-text);display:flex;align-items:center;justify-content:center;font-size:18px}
+  .db-head h2{font-size:18px;font-weight:600}
+  .db-head .meta{font-size:11px;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace;margin-top:2px}
+  .view-tabs{display:flex;gap:0;border-bottom:1px solid var(--ant-color-border);background:var(--ant-color-bg-base);padding:0 16px}
+  .vt{padding:11px 14px;font-size:12px;color:var(--ant-color-text-secondary);border-bottom:2px solid transparent;cursor:default;display:flex;align-items:center;gap:6px}
+  .vt.on{color:var(--ant-color-primary-text);border-bottom-color:var(--ant-color-primary)}
+  .gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px;padding:24px;background:var(--ant-color-bg-base)}
+  .gcard{background:var(--ant-color-bg-container);border:1px solid var(--ant-color-border);border-radius:14px;overflow:hidden;transition:all .2s;cursor:default;display:flex;flex-direction:column;position:relative}
+  .gcard:hover{border-color:var(--ant-color-primary-border);transform:translateY(-2px);box-shadow:0 20px 40px -12px #00000080}
+  .gcard.cover-1{--hue: 168deg}
+  .gcard.cover-2{--hue: 220deg}
+  .gcard.cover-3{--hue: 280deg}
+  .gcard.cover-4{--hue: 35deg}
+  .gcard.cover-5{--hue: 145deg}
+  .gcard.cover-6{--hue: 320deg}
+  .gc-cover{height:120px;background:linear-gradient(135deg,hsl(var(--hue),60%,28%) 0%,hsl(var(--hue),40%,12%) 100%);position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden}
+  .gc-cover::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 30% 30%,hsla(var(--hue),80%,60%,.4) 0%,transparent 60%)}
+  .gc-cover .glyph{position:relative;font-size:42px;color:hsl(var(--hue),80%,80%);font-weight:200;line-height:1;text-shadow:0 4px 16px hsla(var(--hue),80%,50%,.5)}
+  .gc-cover .status-tag{position:absolute;top:10px;right:10px;font-size:10px;padding:3px 8px;border-radius:5px;background:rgba(0,0,0,.5);backdrop-filter:blur(8px);font-family:ui-monospace,monospace;letter-spacing:.04em}
+  .gc-cover .priority-tag{position:absolute;top:10px;left:10px;display:flex;gap:1px;padding:4px 6px;border-radius:5px;background:rgba(0,0,0,.5);backdrop-filter:blur(8px)}
+  .gc-cover .priority-tag i{width:3px;height:10px;background:var(--ant-color-text-quaternary);border-radius:1px}
+  .gc-cover .priority-tag i.on{background:hsl(var(--hue),80%,75%)}
+  .gc-body{padding:14px 16px 16px;flex:1;display:flex;flex-direction:column;gap:8px}
+  .gc-body h4{font-size:14px;font-weight:600;color:var(--ant-color-text);line-height:1.4}
+  .gc-body .desc{font-size:12px;color:var(--ant-color-text-secondary);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .gc-meta{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace;margin-top:auto;padding-top:8px;border-top:1px solid var(--ant-color-border-secondary)}
+  .gc-meta .date{display:inline-flex;align-items:center;gap:3px}
+  .gc-meta .date.warn{color:var(--ant-color-warning)}
+  .gc-meta .date.overdue{color:var(--ant-color-error)}
+  .gc-meta .av-cell{margin-left:auto;display:flex;align-items:center}
+  .gc-meta .av{width:22px;height:22px;font-size:9px;border:2px solid var(--ant-color-bg-container)}
+  .gc-tags{display:flex;flex-wrap:wrap;gap:4px}
+  .gc-tag{padding:2px 6px;font-size:10px;background:var(--ant-color-fill-secondary);color:var(--ant-color-text-tertiary);border-radius:3px;font-family:ui-monospace,monospace}
+  .gc-tag.primary{background:var(--ant-color-primary-bg);color:var(--ant-color-primary-text)}
+  .gc-tag.warn{background:#d8961420;color:#ffc53d}
+  .gc-tag.error{background:#2a1215;color:#ff7875}
+</style></head><body>
+<div class="stage">
+  <div class="db-shell">
+    <div class="db-head">
+      <div class="left">
+        <div class="ico">▦</div>
+        <div><h2>项目看板 · v5.0.0</h2><div class="meta">视图：<b>画廊</b> · 按状态着色 · 12 项</div></div>
+      </div>
+      <div class="right" style="display:flex;gap:6px"><button class="btn btn-default btn-sm">⊞ 配置</button><button class="btn btn-primary btn-sm">+ 新建</button></div>
+    </div>
+    <div class="view-tabs">
+      <div class="vt">▦ 表格</div>
+      <div class="vt">▤ 看板</div>
+      <div class="vt">▤ 日历</div>
+      <div class="vt on">▦ 画廊</div>
+      <div class="vt">▬ 时间线</div>
+    </div>
+    <div class="gallery">
+      <div class="gcard cover-1">
+        <div class="gc-cover">
+          <div class="glyph">▦</div>
+          <div class="status-tag" style="color:var(--ant-color-primary-text)">● 进行中</div>
+          <div class="priority-tag"><i class="on"></i><i class="on"></i><i class="on"></i></div>
+        </div>
+        <div class="gc-body">
+          <h4>输出 100 页全量页面设计</h4>
+          <div class="desc">页 1-60 完成 · 当前批次 61-80 · 重点节点画布与设置页</div>
+          <div class="gc-tags"><span class="gc-tag primary">核心</span><span class="gc-tag">设计</span></div>
+          <div class="gc-meta"><span class="date warn">今天 18:00</span><div class="av-cell"><div class="av">XL</div><div class="av" style="background:linear-gradient(135deg,#4096ff,#1677ff);margin-left:-4px">LQ</div></div></div>
+        </div>
+      </div>
+
+      <div class="gcard cover-2">
+        <div class="gc-cover">
+          <div class="glyph">▤</div>
+          <div class="status-tag" style="color:#4096ff">● 评审</div>
+          <div class="priority-tag"><i class="on"></i><i class="on"></i><i class="on"></i></div>
+        </div>
+        <div class="gc-body">
+          <h4>Antd 6 darkAlgorithm 适配</h4>
+          <div class="desc">使用 darkAlgorithm + token.brandColor 注入品牌色，避免破坏整体观感。</div>
+          <div class="gc-tags"><span class="gc-tag primary">设计系统</span></div>
+          <div class="gc-meta"><span class="date">今天</span><div class="av-cell"><div class="av">XL</div></div></div>
+        </div>
+      </div>
+
+      <div class="gcard cover-3">
+        <div class="gc-cover">
+          <div class="glyph">▤</div>
+          <div class="status-tag" style="color:var(--ant-color-primary-text)">● 进行中</div>
+          <div class="priority-tag"><i class="on"></i><i class="on"></i><i></i></div>
+        </div>
+        <div class="gc-body">
+          <h4>用户引导流程设计</h4>
+          <div class="desc">首次启动 · 选择场景 · 创建第一个节点 · 完成教学 4 步</div>
+          <div class="gc-tags"><span class="gc-tag">UX</span></div>
+          <div class="gc-meta"><span class="date">07-19</span><div class="av-cell"><div class="av">XL</div></div></div>
+        </div>
+      </div>
+
+      <div class="gcard cover-4">
+        <div class="gc-cover">
+          <div class="glyph">▤</div>
+          <div class="status-tag" style="color:var(--ant-color-success)">● 完成</div>
+          <div class="priority-tag"><i class="on"></i><i class="on"></i><i class="on"></i></div>
+        </div>
+        <div class="gc-body">
+          <h4>锁定 v5.0.0 范围</h4>
+          <div class="desc">设计系统 + 100 页标准页面 · 不含自动渲染引擎</div>
+          <div class="gc-tags"><span class="gc-tag">v5.0.0</span></div>
+          <div class="gc-meta"><span class="date">07-15</span><div class="av-cell"><div class="av">XL</div></div></div>
+        </div>
+      </div>
+
+      <div class="gcard cover-5">
+        <div class="gc-cover">
+          <div class="glyph">▤</div>
+          <div class="status-tag" style="color:var(--ant-color-text-tertiary)">○ 待办</div>
+          <div class="priority-tag"><i class="on"></i><i class="on"></i><i></i></div>
+        </div>
+        <div class="gc-body">
+          <h4>建立 .design manifest 与节点注册</h4>
+          <div class="desc">将 100 页 HTML 全部注册为 .design page nodes · 同步校验</div>
+          <div class="gc-tags"><span class="gc-tag">工程</span></div>
+          <div class="gc-meta"><span class="date">07-20</span><div class="av-cell"><div class="av">XL</div></div></div>
+        </div>
+      </div>
+
+      <div class="gcard cover-6">
+        <div class="gc-cover">
+          <div class="glyph">▤</div>
+          <div class="status-tag" style="color:var(--ant-color-error)">⚠ 阻塞</div>
+          <div class="priority-tag"><i class="on"></i><i class="on"></i><i class="on"></i></div>
+        </div>
+        <div class="gc-body">
+          <h4>导入 Notion 历史笔记回归测试</h4>
+          <div class="desc">Notion 导出 zip → 解析为节点 + 块 · 边界用例：嵌套引用</div>
+          <div class="gc-tags"><span class="gc-tag error">P0</span></div>
+          <div class="gc-meta"><span class="date overdue">逾期 3 天</span><div class="av-cell"><div class="av" style="background:linear-gradient(135deg,#4096ff,#1677ff)">LQ</div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body></html>

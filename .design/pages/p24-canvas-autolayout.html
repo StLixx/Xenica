@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>画布 · 自动排版动画 · Xenica</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#000;color:var(--ant-color-text);font-family:var(--ant-font-family);-webkit-font-smoothing:antialiased;height:100vh;overflow:hidden}
+  .app{height:100vh;display:grid;grid-template-rows:36px 1fr 28px}
+  .hd{background:var(--ant-color-bg-elevated);border-bottom:1px solid var(--ant-color-border);padding:0 16px;display:flex;align-items:center;gap:12px;font-size:12px}
+  .hd .brand{font-weight:700;letter-spacing:.14em}
+  .hd .brand .dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--ant-color-primary);box-shadow:0 0 6px var(--ant-color-primary);margin-right:8px;vertical-align:middle}
+  .hd .right{margin-left:auto;display:flex;align-items:center;gap:10px;font-size:11px;color:var(--ant-color-text-tertiary)}
+  .mid{background:var(--ant-color-bg-layout);position:relative;overflow:hidden}
+  .canvas-bg{position:absolute;inset:0;background-image:var(--xe-bg-grid);background-size:40px 40px;opacity:.4}
+  .glow-trail{position:absolute;width:60px;height:60px;border-radius:50%;background:radial-gradient(circle,#14b8a640,transparent 70%);filter:blur(8px);animation:trailMove 2.4s ease-in-out infinite;pointer-events:none}
+  @keyframes trailMove{
+    0%{left:200px;top:300px;opacity:1}
+    50%{left:520px;top:120px;opacity:.5}
+    100%{left:760px;top:380px;opacity:0}
+  }
+  .node{position:absolute;background:var(--ant-color-bg-elevated);border:1px solid var(--ant-color-border);border-radius:10px;padding:12px 16px;min-width:140px;font-size:12px;box-shadow:0 4px 12px #00000060;animation:layoutIn 1s ease-out backwards}
+  .node h4{font-size:12px;font-weight:600;margin-bottom:2px}
+  .node .meta{font-size:10px;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace}
+  @keyframes layoutIn{
+    0%{opacity:0;transform:scale(.85) translateY(20px);box-shadow:0 0 0 0 #14b8a640}
+    50%{opacity:1;transform:scale(1.05) translateY(-4px);box-shadow:0 0 30px 0 #14b8a660}
+    100%{opacity:1;transform:scale(1) translateY(0);box-shadow:0 4px 12px #00000060}
+  }
+  .node.n1{left:160px;top:280px;animation-delay:.0s}
+  .node.n2{left:280px;top:200px;animation-delay:.15s}
+  .node.n3{left:400px;top:280px;animation-delay:.3s}
+  .node.n4{left:520px;top:120px;animation-delay:.45s}
+  .node.n5{left:640px;top:200px;animation-delay:.6s}
+  .node.n6{left:760px;top:120px;animation-delay:.75s}
+  .node.n7{left:760px;top:280px;animation-delay:.9s}
+  .node.n8{left:880px;top:200px;animation-delay:1.05s}
+  .node.n9{left:160px;top:440px;animation-delay:1.2s}
+  .node.n10{left:400px;top:440px;animation-delay:1.35s}
+  .node.n11{left:640px;top:440px;animation-delay:1.5s}
+  .node.n12{left:880px;top:440px;animation-delay:1.65s}
+  .edge-anim{stroke:var(--ant-color-border);stroke-width:1.5;fill:none;stroke-dasharray:6,4;animation:edgeDraw 1s ease-out backwards}
+  @keyframes edgeDraw{from{stroke-dasharray:6,4;stroke-dashoffset:200;opacity:0}to{stroke-dashoffset:0;opacity:1}}
+  .e1{animation-delay:.3s}.e2{animation-delay:.45s}.e3{animation-delay:.6s}.e4{animation-delay:.75s}.e5{animation-delay:.9s}
+  .e6{animation-delay:1.05s}.e7{animation-delay:1.2s}.e8{animation-delay:1.35s}.e9{animation-delay:1.5s}.e10{animation-delay:1.65s}.e11{animation-delay:1.8s}
+  .progress-overlay{position:absolute;left:50%;top:30px;transform:translateX(-50%);background:var(--ant-color-bg-elevated);border:1px solid var(--ant-color-primary-border);border-radius:999px;padding:8px 18px;display:flex;align-items:center;gap:14px;box-shadow:0 12px 30px #00000080;z-index:20;font-size:12px;color:var(--ant-color-text)}
+  .progress-overlay .ico{color:var(--ant-color-primary);font-size:14px}
+  .progress-overlay .spin{display:inline-block;width:12px;height:12px;border:2px solid var(--ant-color-primary);border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .progress-overlay .step{font-family:ui-monospace,monospace;font-size:11px;color:var(--ant-color-text-tertiary)}
+  .progress-overlay .step b{color:var(--ant-color-primary-text)}
+  .ft{background:var(--ant-color-bg-elevated);border-top:1px solid var(--ant-color-border);padding:0 16px;display:flex;align-items:center;font-size:11px;color:var(--ant-color-text-secondary)}
+  .ft .right{margin-left:auto}
+  .ft .on{color:var(--ant-color-primary-text);font-weight:500}
+</style></head><body>
+<div class="app">
+  <div class="hd">
+    <div class="brand"><span class="dot"></span>XENICA</div>
+    <div class="crumbs">· 工作区 · <b>节点画布</b> · 自动布局</div>
+    <div class="right"><span class="on">✥ 自动布局中</span><span class="spin" style="display:inline-block;width:10px;height:10px;border:1.5px solid var(--ant-color-primary);border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite"></span><span>≈ 0.8s</span><div class="av" style="width:22px;height:22px;font-size:10px">XL</div></div>
+  </div>
+  <div class="mid">
+    <div class="canvas-bg"></div>
+    <div class="glow-trail"></div>
+    <svg style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none">
+      <path d="M 240 300 Q 320 240 380 220" class="edge-anim e1"/>
+      <path d="M 380 220 Q 460 250 500 300" class="edge-anim e2"/>
+      <path d="M 500 300 Q 540 200 580 140" class="edge-anim e3"/>
+      <path d="M 580 140 Q 640 170 680 220" class="edge-anim e4"/>
+      <path d="M 680 220 Q 740 170 800 140" class="edge-anim e5"/>
+      <path d="M 800 140 Q 840 220 820 300" class="edge-anim e6"/>
+      <path d="M 240 460 Q 320 420 440 460" class="edge-anim e7"/>
+      <path d="M 500 460 Q 580 480 680 460" class="edge-anim e8"/>
+      <path d="M 740 460 Q 820 440 900 460" class="edge-anim e9"/>
+      <path d="M 240 300 Q 200 380 200 460" class="edge-anim e10"/>
+      <path d="M 500 300 Q 480 380 460 460" class="edge-anim e11"/>
+    </svg>
+    <div class="node n1"><h4>晨间笔记</h4><div class="meta">日记</div></div>
+    <div class="node n2"><h4>本周目标</h4><div class="meta">任务</div></div>
+    <div class="node n3"><h4>本月 OKR</h4><div class="meta">OKR</div></div>
+    <div class="node n4"><h4>Antd 6 调研</h4><div class="meta">文档</div></div>
+    <div class="node n5"><h4>节点布局 v2</h4><div class="meta">ADR</div></div>
+    <div class="node n6"><h4>设计原则 v3</h4><div class="meta">核心</div></div>
+    <div class="node n7"><h4>团队周会</h4><div class="meta">会议</div></div>
+    <div class="node n8"><h4>读书笔记</h4><div class="meta">阅读</div></div>
+    <div class="node n9"><h4>用户访谈</h4><div class="meta">访谈</div></div>
+    <div class="node n10"><h4>归档·旧实验</h4><div class="meta">归档</div></div>
+    <div class="node n11"><h4>同步日志</h4><div class="meta">系统</div></div>
+    <div class="node n12"><h4>Changelog</h4><div class="meta">系统</div></div>
+    <div class="progress-overlay">
+      <span class="spin"></span>
+      <span class="step">正在 <b>应用自动布局</b> · 第 <b>2 / 3</b> 阶段 · 节点重定位</span>
+    </div>
+  </div>
+  <div class="ft"><span class="on">✥ 自动布局中</span><span>·</span><span>12 节点 · 11 连接 · 算法：力导向 (d3-force)</span><span class="right">ESC 取消 · ≈ 0.8s 完成</span></div>
+</div>
+</body></html>

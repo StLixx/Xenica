@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>块编辑器 · 列表与待办 · Xenica</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#000;color:var(--ant-color-text);font-family:var(--ant-font-family);-webkit-font-smoothing:antialiased;min-height:100vh}
+  .stage{padding:60px;background:radial-gradient(circle at 50% 0%,#14b8a608 0%,transparent 60%);min-height:100vh;max-width:920px;margin:0 auto}
+  .eyebrow{font-family:ui-monospace,monospace;font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--ant-color-primary-text);margin-bottom:16px;display:flex;align-items:center;gap:10px}
+  .eyebrow .d{width:24px;height:1px;background:var(--ant-color-primary-text);opacity:.6}
+  h1{font-size:42px;font-weight:600;line-height:1.1;letter-spacing:-.01em;margin-bottom:14px}
+  p.lede{font-size:14px;color:var(--ant-color-text-secondary);line-height:1.7;margin-bottom:40px;max-width:680px}
+  .doc{background:var(--ant-color-bg-container);border:1px solid var(--ant-color-border);border-radius:14px;padding:48px 56px;box-shadow:0 30px 80px -30px #00000080}
+  .sec{margin:18px 0}
+  .sec h3{font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace;margin-bottom:10px;font-weight:600}
+  ul.lst{list-style:none;padding:0;margin:0}
+  ul.lst li{padding:8px 0 8px 28px;position:relative;font-size:15px;line-height:1.5}
+  ul.lst li::before{content:"•";position:absolute;left:14px;color:var(--ant-color-text-tertiary);font-size:18px;line-height:1}
+  ul.lst li:hover::before{color:var(--ant-color-primary-text)}
+  .todo{display:flex;gap:10px;padding:8px 0;align-items:flex-start;font-size:15px;line-height:1.5}
+  .todo .box{width:18px;height:18px;border-radius:5px;border:1.5px solid var(--ant-color-border);flex:none;display:flex;align-items:center;justify-content:center;margin-top:1px;cursor:default;transition:all .15s}
+  .todo .box:hover{border-color:var(--ant-color-primary)}
+  .todo .box.on{background:var(--ant-color-success);border-color:var(--ant-color-success);color:#fff;font-size:11px;font-weight:600}
+  .todo .text{flex:1}
+  .todo.done .text{text-decoration:line-through;color:var(--ant-color-text-tertiary)}
+  .todo .due{font-size:11px;color:var(--ant-color-text-tertiary);margin-top:2px;font-family:ui-monospace,monospace}
+  .todo .due.warn{color:var(--ant-color-warning)}
+  .todo .due.overdue{color:var(--ant-color-error)}
+  .todo .assignee{margin-left:auto;display:flex;gap:-4px}
+  .todo .assignee .av{width:22px;height:22px;font-size:9px;border:2px solid var(--ant-color-bg-container);margin-left:-6px}
+  .ordered{padding-left:0;list-style:none;counter-reset:item}
+  .ordered li{padding:8px 0 8px 32px;position:relative;font-size:15px;line-height:1.5;counter-increment:item}
+  .ordered li::before{content:counter(item);position:absolute;left:8px;top:8px;width:18px;height:18px;border-radius:5px;background:var(--ant-color-fill-secondary);color:var(--ant-color-text-secondary);font-size:11px;font-family:ui-monospace,monospace;display:flex;align-items:center;justify-content:center;font-weight:600}
+  .nested{padding-left:24px;border-left:1px solid var(--ant-color-border-secondary);margin:8px 0}
+  .nested li::before{content:"◦";font-size:18px}
+</style></head><body>
+<div class="stage">
+  <div class="eyebrow"><span class="d"></span>BLOCK · 列表 · 待办 · 多级嵌套</div>
+  <h1>列表与待办</h1>
+  <p class="lede">三种列表：无序（·）、有序（1. 2. 3.）、待办（☑）。支持任意级嵌套与跨级拖拽。待办项可附加日期、负责人、优先级。</p>
+  <div class="doc">
+    <div class="sec"><h3>· 无序列表</h3>
+      <ul class="lst">
+        <li>Antd 6 darkAlgorithm 适配</li>
+        <li>节点画布自动布局算法</li>
+        <li>命令面板快捷键体系
+          <ul class="nested">
+            <li>全局搜索 ⌘K</li>
+            <li>新建节点 ⌘N</li>
+            <li>自动布局 ⌘⇧L</li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+    <div class="sec"><h3>1. 有序列表</h3>
+      <ol class="ordered">
+        <li>锁定 v5.0.0 范围（设计系统 + 标准页面）</li>
+        <li>输出 100 页全量页面设计</li>
+        <li>通过 Playwright 截图回归验证</li>
+        <li>建立 .design manifest 与节点注册</li>
+      </ol>
+    </div>
+    <div class="sec"><h3>☑ 待办列表（带详情）</h3>
+      <div class="todo done">
+        <div class="box on">✓</div>
+        <div class="text">完成 v5.0.0 设计稿与 ADR 序列
+          <div class="due">截止 2026-07-15 · 已完成 7-14</div>
+        </div>
+        <div class="assignee"><div class="av av-sm">XL</div></div>
+      </div>
+      <div class="todo done">
+        <div class="box on">✓</div>
+        <div class="text">锁定 Antd 6 + darkAlgorithm 设计系统
+          <div class="due">截止 2026-07-16 · 已完成 7-16</div>
+        </div>
+        <div class="assignee"><div class="av av-sm">XL</div></div>
+      </div>
+      <div class="todo">
+        <div class="box"></div>
+        <div class="text">输出 100 页全量页面设计
+          <div class="due warn">截止 今天 18:00 · 还剩 6 小时</div>
+        </div>
+        <div class="assignee"><div class="av av-sm">XL</div><div class="av av-sm" style="background:linear-gradient(135deg,#4096ff,#1677ff)">LQ</div></div>
+      </div>
+      <div class="todo">
+        <div class="box"></div>
+        <div class="text">建立 .design manifest 与节点注册
+          <div class="due">截止 2026-07-20</div>
+        </div>
+        <div class="assignee"><div class="av av-sm">XL</div></div>
+      </div>
+      <div class="todo">
+        <div class="box"></div>
+        <div class="text">导入 Notion 历史笔记回归测试
+          <div class="due overdue">截止 2026-07-14 · 已逾期 3 天</div>
+        </div>
+        <div class="assignee"><div class="av av-sm" style="background:linear-gradient(135deg,#4096ff,#1677ff)">LQ</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+</body></html>

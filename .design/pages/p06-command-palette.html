@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>命令面板 ⌘K · Xenica</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#000;color:var(--ant-color-text);font-family:var(--ant-font-family);-webkit-font-smoothing:antialiased;height:100vh;overflow:hidden}
+  .app{height:100vh;position:relative;background:linear-gradient(180deg,#0a0a0a,#000)}
+  .app::before{content:"";position:absolute;inset:0;background-image:var(--xe-bg-grid);background-size:48px 48px;opacity:.3}
+  .hd{height:48px;display:flex;align-items:center;padding:0 16px;gap:14px;background:var(--ant-color-bg-elevated);border-bottom:1px solid var(--ant-color-border);position:relative;z-index:2}
+  .brand{font-weight:700;font-size:13px;letter-spacing:.14em;color:var(--ant-color-primary-text);display:flex;align-items:center;gap:8px}
+  .brand .dot{width:6px;height:6px;border-radius:50%;background:var(--ant-color-primary);box-shadow:0 0 6px var(--ant-color-primary)}
+  .crumb{font-size:12px;color:var(--ant-color-text-secondary)}
+  .crumb b{color:var(--ant-color-text);font-weight:500}
+  .crumb .sep{color:var(--ant-color-text-quaternary);margin:0 4px}
+  .hd-right{margin-left:auto;display:flex;gap:10px;align-items:center}
+  .ico-btn{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--ant-color-text-secondary);font-size:13px}
+  .ico-btn:hover{background:var(--ant-color-fill-secondary);color:var(--ant-color-text)}
+  .scrim{position:absolute;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(6px);z-index:50}
+  .palette{position:absolute;left:50%;top:14%;transform:translateX(-50%);width:640px;background:var(--ant-color-bg-elevated);border:1px solid var(--ant-color-border);border-radius:14px;box-shadow:var(--xe-shadow-3);overflow:hidden;z-index:51}
+  .palette-search{display:flex;align-items:center;gap:10px;padding:16px 18px;border-bottom:1px solid var(--ant-color-border)}
+  .palette-search .ic{font-size:16px;color:var(--ant-color-text-tertiary)}
+  .palette-search input{flex:1;background:transparent;border:none;outline:none;color:var(--ant-color-text);font-size:15px;font-family:inherit}
+  .palette-search input::placeholder{color:var(--ant-color-text-tertiary)}
+  .palette-search .esc{padding:2px 8px;background:var(--ant-color-fill-secondary);border-radius:4px;font-size:10px;color:var(--ant-color-text-secondary);font-family:'JetBrains Mono',ui-monospace,monospace;letter-spacing:.06em}
+  .palette-body{max-height:480px;overflow-y:auto;padding:6px 0}
+  .grp{padding:8px 0 4px}
+  .grp-title{padding:6px 18px;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--ant-color-text-tertiary);font-family:'JetBrains Mono',ui-monospace,monospace;display:flex;justify-content:space-between}
+  .cmd{display:flex;align-items:center;gap:12px;padding:9px 18px;cursor:default;font-size:13.5px;color:var(--ant-color-text)}
+  .cmd.active{background:var(--ant-color-primary-bg);color:var(--ant-color-primary-text)}
+  .cmd:not(.active):hover{background:var(--ant-color-fill-secondary)}
+  .cmd .ico{width:24px;height:24px;border-radius:6px;background:var(--ant-color-fill-secondary);color:var(--ant-color-text-secondary);display:flex;align-items:center;justify-content:center;font-size:12px;flex:none}
+  .cmd.active .ico{background:var(--ant-color-primary);color:#fff}
+  .cmd .meta{margin-left:auto;display:flex;gap:6px;align-items:center}
+  .kbd{padding:1px 6px;background:var(--ant-color-fill-tertiary);border:1px solid var(--ant-color-border);border-radius:4px;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:10.5px;color:var(--ant-color-text-secondary);min-width:18px;text-align:center}
+  .cmd.active .kbd{background:var(--ant-color-bg-elevated);color:var(--ant-color-primary-text);border-color:var(--ant-color-primary-border)}
+  .palette-foot{padding:10px 18px;border-top:1px solid var(--ant-color-border);background:var(--ant-color-bg-container);display:flex;gap:18px;font-size:11px;color:var(--ant-color-text-secondary)}
+  .palette-foot .group{display:flex;align-items:center;gap:6px}
+  .recent{display:flex;align-items:center;gap:8px;padding:7px 18px;cursor:default;font-size:12.5px;color:var(--ant-color-text-secondary)}
+  .recent .dot{width:4px;height:4px;border-radius:50%;background:var(--ant-color-text-quaternary)}
+  .recent .time{margin-left:auto;font-size:10.5px;color:var(--ant-color-text-tertiary);font-family:'JetBrains Mono',ui-monospace,monospace}
+  .bg-canvas{position:absolute;inset:48px 0 0 0;opacity:.6}
+  .bg-canvas .node{position:absolute;background:var(--ant-color-bg-elevated);border:1px solid var(--ant-color-border-secondary);border-radius:8px;padding:10px 14px;font-size:12px;width:170px}
+  .bg-canvas .node h5{font-size:12px;font-weight:600;margin-bottom:3px}
+  .bg-canvas .node p{font-size:10.5px;color:var(--ant-color-text-tertiary);line-height:1.4}
+</style></head><body>
+<div class="app">
+  <div class="hd">
+    <div class="brand"><span class="dot"></span>XENICA</div>
+    <div class="crumb">工作区 <span class="sep">/</span> 节点画布 <span class="sep">/</span> <b>未命名</b></div>
+    <div class="hd-right">
+      <div class="ico-btn">⌕</div>
+      <div class="ico-btn">🔔</div>
+      <div class="ico-btn">⚙</div>
+      <div class="av" style="width:24px;height:24px;font-size:10px">XL</div>
+    </div>
+  </div>
+  <div class="bg-canvas">
+    <svg style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none">
+      <path d="M 200 200 Q 320 140 460 220" stroke="#ffffff30" stroke-width="1.5" fill="none"/>
+      <path d="M 460 220 Q 600 300 740 240" stroke="#ffffff30" stroke-width="1.5" fill="none" stroke-dasharray="3,3"/>
+      <path d="M 200 200 Q 140 320 180 460" stroke="#14b8a6" stroke-width="2" fill="none"/>
+    </svg>
+    <div class="node" style="left:120px;top:160px"><h5>晨间笔记</h5><p>今日待办</p></div>
+    <div class="node" style="left:380px;top:180px"><h5>设计原则 v3</h5><p>正在编辑</p></div>
+    <div class="node" style="left:660px;top:200px"><h5>Antd 6 适配</h5><p>已完成</p></div>
+    <div class="node" style="left:100px;top:420px"><h5>本周回顾</h5><p>进行中</p></div>
+    <div class="node" style="left:380px;top:440px"><h5>节点画布 ADR</h5><p>v3 待审</p></div>
+  </div>
+  <div class="scrim"></div>
+  <div class="palette">
+    <div class="palette-search">
+      <span class="ic">⌕</span>
+      <input placeholder="搜索命令、节点、设置…" autofocus value="新建">
+      <span class="esc">ESC</span>
+    </div>
+    <div class="palette-body">
+      <div class="grp">
+        <div class="grp-title"><span>最近使用</span><span>2 小时前</span></div>
+        <div class="recent"><span class="dot"></span>新建子节点 <span style="margin-left:8px;color:var(--ant-color-text-tertiary)">设计原则 v3 / 子级</span><span class="time">⌘ ⇧ N</span></div>
+        <div class="recent"><span class="dot"></span>切换到专注模式 <span class="time">⌘ .</span></div>
+      </div>
+      <div class="grp">
+        <div class="grp-title"><span>节点操作</span><span>NODE</span></div>
+        <div class="cmd active"><span class="ico">+</span>新建节点<span class="meta"><span class="kbd">N</span></span></div>
+        <div class="cmd"><span class="ico">⌥</span>新建子节点<span class="meta"><span class="kbd">⌘</span><span class="kbd">⇧</span><span class="kbd">N</span></span></div>
+        <div class="cmd"><span class="ico">↪</span>创建连接<span class="meta"><span class="kbd">⌘</span><span class="kbd">L</span></span></div>
+        <div class="cmd"><span class="ico">⌫</span>删除选中节点<span class="meta"><span class="kbd">⌫</span></span></div>
+        <div class="cmd"><span class="ico">⎘</span>复制节点引用<span class="meta"><span class="kbd">⌘</span><span class="kbd">C</span></span></div>
+      </div>
+      <div class="grp">
+        <div class="grp-title"><span>导航</span><span>NAVIGATION</span></div>
+        <div class="cmd"><span class="ico">↗</span>跳转到节点画布<span class="meta"><span class="kbd">⌘</span><span class="kbd">1</span></span></div>
+        <div class="cmd"><span class="ico">▤</span>跳转到每日日记<span class="meta"><span class="kbd">⌘</span><span class="kbd">2</span></span></div>
+        <div class="cmd"><span class="ico">⌗</span>跳转到研究项目<span class="meta"><span class="kbd">⌘</span><span class="kbd">3</span></span></div>
+      </div>
+      <div class="grp">
+        <div class="grp-title"><span>视图</span><span>VIEW</span></div>
+        <div class="cmd"><span class="ico">✥</span>进入专注模式<span class="meta"><span class="kbd">⌘</span><span class="kbd">.</span></span></div>
+        <div class="cmd"><span class="ico">⊞</span>切换左右栏<span class="meta"><span class="kbd">⌘</span><span class="kbd">\\</span></span></div>
+        <div class="cmd"><span class="ico">◐</span>切换主题<span class="meta"><span class="kbd">⌘</span><span class="kbd">⇧</span><span class="kbd">L</span></span></div>
+      </div>
+    </div>
+    <div class="palette-foot">
+      <div class="group"><span class="kbd">↑</span><span class="kbd">↓</span><span>导航</span></div>
+      <div class="group"><span class="kbd">↵</span><span>执行</span></div>
+      <div class="group"><span class="kbd">⌘</span><span class="kbd">↵</span><span>在新面板打开</span></div>
+      <div class="group" style="margin-left:auto;color:var(--ant-color-text-tertiary)">Xenica · 7 个结果</div>
+    </div>
+  </div>
+</div>
+</body></html>

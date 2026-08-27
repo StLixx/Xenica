@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>数据库 · 视图切换加载中 · Xenica</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#000;color:var(--ant-color-text);font-family:var(--ant-font-family);-webkit-font-smoothing:antialiased;min-height:100vh}
+  .stage{padding:40px;background:radial-gradient(circle at 50% 0%,#14b8a608 0%,transparent 60%);min-height:100vh}
+  .db-shell{background:var(--ant-color-bg-container);border:1px solid var(--ant-color-border);border-radius:14px;overflow:hidden;box-shadow:0 30px 80px -30px #00000080}
+  .db-head{padding:18px 24px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--ant-color-border);background:var(--ant-color-bg-elevated)}
+  .db-head .left{display:flex;align-items:center;gap:14px}
+  .db-head .ico{width:40px;height:40px;border-radius:10px;background:#14b8a620;color:var(--ant-color-primary-text);display:flex;align-items:center;justify-content:center;font-size:18px}
+  .db-head h2{font-size:18px;font-weight:600}
+  .view-tabs{display:flex;gap:0;border-bottom:1px solid var(--ant-color-border);background:var(--ant-color-bg-base);padding:0 16px}
+  .vt{padding:11px 14px;font-size:12px;color:var(--ant-color-text-secondary);border-bottom:2px solid transparent;cursor:default;display:flex;align-items:center;gap:6px}
+  .vt.on{color:var(--ant-color-primary-text);border-bottom-color:var(--ant-color-primary)}
+  .vt.loading{color:var(--ant-color-primary-text);background:var(--ant-color-primary-bg);position:relative}
+  .vt.loading::after{content:"";position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--ant-color-primary),transparent);background-size:50% 100%;background-repeat:no-repeat;animation:loadingBar 1.2s ease-in-out infinite}
+  @keyframes loadingBar{0%{background-position:-50% 0}100%{background-position:150% 0}}
+  .vt .spin{display:inline-block;width:10px;height:10px;border:1.5px solid var(--ant-color-primary);border-top-color:transparent;border-radius:50%;animation:spin 0.8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .loading-area{padding:120px 24px;background:var(--ant-color-bg-base);min-height:560px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px}
+  .loader-stack{position:relative;width:80px;height:80px}
+  .loader-stack i{position:absolute;inset:0;border:2px solid transparent;border-radius:50%;animation:spin 1.5s linear infinite}
+  .loader-stack i:nth-child(1){border-top-color:var(--ant-color-primary);animation-duration:1.2s}
+  .loader-stack i:nth-child(2){inset:10px;border-top-color:#5eead4;animation-duration:1.6s;animation-direction:reverse}
+  .loader-stack i:nth-child(3){inset:20px;border-top-color:#99f6e4;animation-duration:2s}
+  .loader-stack i:nth-child(4){inset:30px;background:#14b8a608;border-top-color:transparent;border-radius:50%;animation:none;display:flex;align-items:center;justify-content:center}
+  .loader-stack i:nth-child(4)::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--ant-color-primary);box-shadow:0 0 12px var(--ant-color-primary)}
+  .progress-info{text-align:center;font-family:ui-monospace,monospace;color:var(--ant-color-text-secondary);font-size:12px;letter-spacing:.06em}
+  .progress-info .stage{font-size:14px;color:var(--ant-color-text);margin-bottom:8px;letter-spacing:0;font-family:inherit}
+  .progress-info .step{font-size:11px;color:var(--ant-color-text-tertiary)}
+  .progress-info .step b{color:var(--ant-color-primary-text)}
+  .progress-bar{width:280px;height:3px;background:var(--ant-color-fill-secondary);border-radius:100px;overflow:hidden;position:relative}
+  .progress-bar>i{display:block;height:100%;width:35%;background:linear-gradient(90deg,transparent,var(--ant-color-primary),transparent);background-size:50% 100%;background-repeat:no-repeat;animation:loadingBar 1.5s ease-in-out infinite}
+  .skeleton-list{margin-top:48px;width:100%;max-width:560px;display:flex;flex-direction:column;gap:10px;opacity:.3;animation:fadeOut 4s ease-out forwards}
+  @keyframes fadeOut{0%{opacity:.3}100%{opacity:0}}
+  .skeleton{display:flex;align-items:center;gap:14px;padding:14px;background:var(--ant-color-bg-container);border:1px solid var(--ant-color-border);border-radius:8px}
+  .skel-ico{width:24px;height:24px;border-radius:5px;background:var(--ant-color-fill-secondary);flex:none}
+  .skel-line{flex:1;height:10px;background:var(--ant-color-fill-secondary);border-radius:4px;position:relative;overflow:hidden}
+  .skel-line::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,var(--ant-color-fill-tertiary),transparent);animation:shimmer 1.5s infinite}
+  @keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+  .skel-line.short{width:40%}
+  .skel-line.med{width:60%}
+  .skel-tag{width:60px;height:18px;background:var(--ant-color-fill-secondary);border-radius:4px}
+  .skel-av{width:24px;height:24px;border-radius:50%;background:var(--ant-color-fill-secondary)}
+</style></head><body>
+<div class="stage">
+  <div class="db-shell">
+    <div class="db-head">
+      <div class="left">
+        <div class="ico">▦</div>
+        <div><h2>项目看板 · v5.0.0</h2><div class="meta" style="font-size:11px;color:var(--ant-color-text-tertiary);font-family:ui-monospace,monospace;margin-top:2px">视图切换中 · <b style="color:var(--ant-color-primary-text)">表格</b> → <b style="color:var(--ant-color-primary-text)">看板</b></div></div>
+      </div>
+      <div class="right" style="display:flex;gap:6px"><button class="btn btn-default btn-sm">⊞ 配置</button><button class="btn btn-default btn-sm">+ 新建</button></div>
+    </div>
+    <div class="view-tabs">
+      <div class="vt">▦ 表格</div>
+      <div class="vt loading"><span class="spin"></span>看板</div>
+      <div class="vt">▤ 日历</div>
+      <div class="vt">▦ 画廊</div>
+      <div class="vt">▬ 时间线</div>
+    </div>
+    <div class="loading-area">
+      <div class="loader-stack"><i></i><i></i><i></i><i></i></div>
+      <div class="progress-info">
+        <div class="stage">正在切换到「看板」视图</div>
+        <div class="step"><b>第 2 / 3</b> 阶段 · 重组卡片布局 · 估算剩余 <b>0.6s</b></div>
+      </div>
+      <div class="progress-bar"><i></i></div>
+      <div class="skeleton-list">
+        <div class="skeleton"><div class="skel-ico"></div><div class="skel-line med"></div><div class="skel-tag"></div><div class="skel-av"></div></div>
+        <div class="skeleton"><div class="skel-ico"></div><div class="skel-line short"></div><div class="skel-tag"></div><div class="skel-av"></div></div>
+        <div class="skeleton"><div class="skel-ico"></div><div class="skel-line"></div><div class="skel-tag"></div><div class="skel-av"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+</body></html>

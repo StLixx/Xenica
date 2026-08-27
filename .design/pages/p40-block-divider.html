@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>块编辑器 · 分隔线 · Xenica</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#000;color:var(--ant-color-text);font-family:var(--ant-font-family);-webkit-font-smoothing:antialiased;min-height:100vh}
+  .stage{padding:60px;background:radial-gradient(circle at 50% 0%,#14b8a608 0%,transparent 60%);min-height:100vh;max-width:920px;margin:0 auto}
+  .eyebrow{font-family:ui-monospace,monospace;font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--ant-color-primary-text);margin-bottom:16px;display:flex;align-items:center;gap:10px}
+  .eyebrow .d{width:24px;height:1px;background:var(--ant-color-primary-text);opacity:.6}
+  h1{font-size:42px;font-weight:600;line-height:1.1;letter-spacing:-.01em;margin-bottom:14px}
+  p.lede{font-size:14px;color:var(--ant-color-text-secondary);line-height:1.7;margin-bottom:40px;max-width:680px}
+  .doc{background:var(--ant-color-bg-container);border:1px solid var(--ant-color-border);border-radius:14px;padding:48px 56px;box-shadow:0 30px 80px -30px #00000080}
+  .b-text{font-size:15px;line-height:1.75;color:var(--ant-color-text);margin:8px 0}
+  .b-h{font-size:24px;font-weight:600;line-height:1.2;color:var(--ant-color-text);margin:18px 0 12px;padding:6px 0}
+  .div{margin:28px 0;position:relative;text-align:center;border:0;border-top:1px solid var(--ant-color-border)}
+  .div.simple::before{content:"";position:absolute;left:0;right:0;top:50%;border-top:1px solid var(--ant-color-border);transform:translateY(-.5px)}
+  .div.dots{height:30px;display:flex;align-items:center;justify-content:center;gap:8px;border:0;color:var(--ant-color-text-tertiary);font-size:18px;letter-spacing:.6em}
+  .div.dots i{width:5px;height:5px;border-radius:50%;background:var(--ant-color-text-tertiary)}
+  .div.dashed{border-top:1px dashed var(--ant-color-border-secondary);height:1px}
+  .div.double{border:0;height:6px;border-top:1px solid var(--ant-color-border);border-bottom:1px solid var(--ant-color-border)}
+  .div.gradient{height:1px;border:0;background:linear-gradient(90deg,transparent,var(--ant-color-primary-border),transparent);position:relative}
+  .div.gradient::after{content:"";position:absolute;left:50%;top:-3px;width:6px;height:6px;background:var(--ant-color-primary);border-radius:50%;transform:translateX(-50%);box-shadow:0 0 8px var(--ant-color-primary)}
+  .div.label{padding:14px 24px;border:1px dashed var(--ant-color-border);background:var(--ant-color-bg-elevated);border-radius:8px;color:var(--ant-color-text-tertiary);font-size:12px;letter-spacing:.18em;text-transform:uppercase;font-family:ui-monospace,monospace;margin:24px 0}
+  .div.label b{color:var(--ant-color-primary-text);font-weight:500}
+  .div.icon{display:flex;align-items:center;gap:14px;color:var(--ant-color-text-tertiary);font-size:12px;letter-spacing:.18em;text-transform:uppercase;font-family:ui-monospace,monospace;border:0;height:30px;justify-content:center}
+  .div.icon::before,.div.icon::after{content:"";flex:1;height:1px;background:var(--ant-color-border);max-width:200px}
+  .div.icon span{display:inline-flex;align-items:center;gap:6px}
+  .div.icon span i{font-size:14px;color:var(--ant-color-primary-text)}
+</style></head><body>
+<div class="stage">
+  <div class="eyebrow"><span class="d"></span>BLOCK · 分隔线 · 6 种变体</div>
+  <h1>分隔线 · 视觉节奏</h1>
+  <p class="lede">分隔线不只"一条线"——6 种变体承载不同的章节语义。简单虚线、装饰点、渐变 + 高亮、品牌色徽章、双线、图标分隔。</p>
+  <div class="doc">
+    <div class="b-h">设计原则 v3</div>
+    <div class="b-text">分隔线是文档节奏的骨架。从轻量的"段落切换"到强语义的"章节切换"，用不同的视觉权重传达层级关系。</div>
+
+    <div class="div simple"></div>
+
+    <div class="b-h">段落切换</div>
+    <div class="b-text">轻量分隔，仅作为段落切换标识。</div>
+
+    <div class="div dots"><i></i><i></i><i></i></div>
+
+    <div class="b-h">章节切换 · 渐变</div>
+    <div class="b-text">带 teal 高亮点的渐变线，强调新章节的开始。</div>
+
+    <div class="div gradient"></div>
+
+    <div class="b-h">章节切换 · 标签</div>
+    <div class="b-text">包含章节标题的语义分隔，类似书籍分章。</div>
+
+    <div class="div label">CHAPTER 02 · <b>关于"自动布局"</b></div>
+
+    <div class="b-h">章节切换 · 双线</div>
+    <div class="b-text">正式文档风格，分章用双线分隔。</div>
+
+    <div class="div double"></div>
+
+    <div class="b-h">图标分隔 · ⌬</div>
+    <div class="b-text">居中放一个品牌符号 + 两侧延伸线。</div>
+
+    <div class="div icon"><span><i>⌬</i> 节点视图</span></div>
+
+    <div class="b-h">虚线分隔</div>
+    <div class="b-text">柔性的"未完成 / 占位"语义。</div>
+
+    <div class="div dashed"></div>
+
+    <div class="b-text">可继续向下书写。</div>
+  </div>
+</div>
+</body></html>
