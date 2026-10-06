@@ -1,0 +1,79 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "insert into edges (id, source, target, kind) values ($1, $2, $3, $4)\n               returning id, source, target, kind, created_at",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "edges",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "source",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "edges",
+            "name": "source"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "target",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "edges",
+            "name": "target"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "kind",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "edges",
+            "name": "kind"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "created_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "edges",
+            "name": "created_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "bc4a9187653e64614206a40db79405399326ec0afe2e38a497f8dae99e23b2eb"
+}

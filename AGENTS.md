@@ -1,32 +1,97 @@
-# AGENTS.md
+# Xenica
 
-Xenica 是一个个人信息管理软件。当前阶段是 Phase 1，目标是 Demo 1：在 Web 上用一张可编辑的依赖图管理任务。
+个人知识系统：把资料（PDF、笔记、题目……）拆成节点，用关系连起来，在图上导航、在面板里阅读和编辑。
 
-## 会话开始
+**以代码为事实。** 本文件只写代码里看不出来的东西；为什么这样设计见 `docs/adr/`。
 
-1. 读本文件，再读 `docs/tasks.md`。
-2. 选任务：用户指定了就做指定的；没指定就选第一个「状态：待做」且依赖全部「完成」的任务。**一个会话只做一个任务。**
-3. 只读 `docs/architecture.md` 和任务卡「上下文」里列出的文件。不要通读整个仓库，不要翻 archive 分支。
-4. 动手前用 3～5 句话向用户复述：要做什么、改哪些目录、怎么验收。用户确认后再开始。
+## 目录
 
-## 会话结束
+```
+crates/core     领域模型：原语 + 规则。不依赖数据库/网络/运行时（scripts/check-arch.sh 检查）
+crates/store    PostgreSQL 存储。migrations/ 是唯一的表结构来源；每次写入同事务写一条痕迹
+crates/server   HTTP：JSON API（OpenAPI 由代码生成）+ 托管 web/dist。二进制名 xenica
+web/src/ui      设计变量与基础组件（叶子层，不 import 别的层）
+web/src/api     唯一能请求后端的地方。schema.d.ts 是生成的
+web/src/shell   工作台外壳：停靠面板、侧栏、命令面板、状态栏。对视图只开放 shell/api.ts
+web/src/views   视图，一个目录一个，互相不 import
+deploy/         compose.yaml + .env.example
+docs/adr/       设计决策
+```
 
-1. 运行 `pnpm check`（T-01 完成前运行任务卡里的验收命令）。全部通过才算完成。
-2. 更新 `docs/tasks.md`：改状态，在「交接」里写 1～3 行，说明做了什么、留了什么坑。
-3. 在分支 `t-XX-简短名` 上提交，提交信息以 `T-XX:` 开头，然后开 PR。PR 由用户合并。
-4. 没做完时，状态改为「进行中」，在交接里写清楚停在哪里、下一步做什么。
+## 命令
+
+需要：Rust（版本见 rust-toolchain.toml）、Node 24、pnpm、PostgreSQL 18（或 `docker compose -f deploy/compose.yaml up -d db`）。
+
+```sh
+export DATABASE_URL=postgres://xenica:密码@localhost:5432/xenica
+cargo run -p xenica-server            # 后端 :8080，启动时自动迁移
+pnpm -C web install && pnpm -C web dev # 前端 :5173，/api 转到 :8080
+pnpm -C web storybook                  # 组件 :6006
+```
+
+提交前，CI 跑的就是这些：
+
+```sh
+cargo fmt --all && cargo clippy --workspace --all-targets -- -D warnings && cargo test --workspace
+bash scripts/check-arch.sh
+cd web && pnpm format && pnpm lint && pnpm typecheck && pnpm test && pnpm arch && pnpm build
+pnpm e2e   # 需要后端在 :8080 运行（XENICA_WEB_DIST=web/dist）
+```
 
 ## 规则
 
-- **范围**：只改任务卡「范围」里列出的目录。需要改别处，先停下来问用户。
-- **不可变层**：数据库 migration、`contracts/openapi.yaml`、`docs/architecture.md` 的「不变量」，只能新增，不能修改或删除已有内容。确实需要破坏性变更时，停下来在 PR 描述里提出方案，由用户决定，并在 `docs/decisions.md` 追加一条记录。
-- **文档**：不新建文档文件。仓库里只有 `AGENTS.md`、`docs/architecture.md`、`docs/decisions.md`、`docs/tasks.md` 四份文档。能用代码、类型和测试表达的，就不写文档。用户的思考记录在 Notion，不在仓库。
-- **验证**：不让用户当测试员。每个改动都要有自动化测试。改界面时要写 Playwright 测试并保存截图，自己看过截图再交付。
-- **依赖**：优先选成熟、维护活跃的库。新增依赖要在 PR 描述里写一句理由。
-- **拆分**：任务预计一个会话做不完时，先把它拆成更小的任务卡写进 `docs/tasks.md`，经用户确认后再做第一张。
-- **旧代码**：`archive/*` 和 `deprecated-v1` 分支只作参考，不要从中复制代码。
+1. 原始数据不可变，派生数据可重算。
+2. AI 只提议，人裁决。
+3. 结构是视图，不是存储：存的是节点和关系，树、图、列表都是看法。
+4. ID 全局唯一、可离线生成（UUID v7）。
+5. 核心只认原语；内置功能也走和插件一样的接口。
+6. 插件先声明（manifest）再加载。
+7. 配置也是知识：设置项是节点，有来源、版本和痕迹。
+8. 每个设置都带预览或示例，并说明会影响什么。
+9. 密钥不进图，只进密钥库。
 
-## 常用命令（T-01 完成后生效）
+写代码时的约束：
 
-- `pnpm dev`：启动 PostgreSQL（docker compose）、后端和 Web
-- `pnpm check`：运行全部检查，包括格式、lint、类型、单元测试、集成测试和 e2e
+- 只做暗色。颜色只用 `web/src/ui/theme.css` 里的变量（lint 禁止写死十六进制颜色）。
+- 写入一律经过 `Store`，它负责记痕迹；不要绕过它直接写表。
+- 改表只加新迁移，不改已有迁移。改了 SQL 要更新 `.sqlx/`（见下）。
+- 不写大段说明文档。理由写进 ADR，一条决策一个文件，短。
+- 文案用中文，词汇：节点、关系、锚点、位置、痕迹、视图、处理器。
+
+## 配方
+
+**加接口**：照 `crates/server/src/routes/nodes.rs` 写 handler（带 `#[utoipa::path]`）→ 在 `lib.rs` 的 `api_router()` 注册 → 在 `crates/server/tests/api.rs` 加测试 → 重新生成前端类型：
+
+```sh
+cargo run -p xenica-server -- openapi > web/src/api/openapi.json && pnpm -C web api
+```
+
+**改 SQL**：新建 `crates/store/migrations/<时间戳>_<名字>.sql` → `cargo sqlx migrate run --source crates/store/migrations` → `cargo sqlx prepare --workspace`，提交 `.sqlx/`。
+
+**加视图**：新建 `web/src/views/<名字>/index.ts`，用 `defineView` 定义（参考 `views/node`）→ 加进 `views/index.ts`。视图只能 import `shell/api.ts`、`api/`、`ui/`；跳到别的视图用 `useWorkbench().openView(id, params)`。
+
+**加命令**：写在视图定义的 `commands` 里，命令面板（Ctrl K）自动收录。
+
+**加组件**：放 `web/src/ui/`，写一个 `*.stories.tsx`，从 `ui/index.ts` 导出。
+
+## 部署
+
+```
+浏览器 → xenica.truebigsand.top（Cloudflare DNS，仅 DNS 不代理）
+       → hikari（1Panel + OpenResty，反代 + 证书，用户手动配）
+       → Tailscale → core-server 100.100.1.103:8080（Docker：app + postgres）
+```
+
+在 core-server 上：
+
+```sh
+cd deploy && cp .env.example .env   # 填 POSTGRES_PASSWORD；XENICA_BIND=100.100.1.103
+docker compose pull && docker compose up -d
+docker compose ps                   # app 显示 healthy
+```
+
+master 每次合并后 CI 推送 `ghcr.io/stlixx/xenica:latest` 和 `:<commit>`。回滚：`.env` 里把 `XENICA_IMAGE` 改成旧 commit 的标签再 `up -d`。
+
+DNS：用环境变量 `CLOUDFLARE_API_TOKEN`（只给 truebigsand.top 的 DNS 编辑权限），A 记录 `xenica` → hikari 公网 IP，关闭代理。token 不写进仓库、不贴进聊天。
+
+备份：`docker compose exec db pg_dump -U xenica xenica > backup.sql`。

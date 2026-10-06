@@ -1,0 +1,10 @@
+.git
+.github
+target
+docs
+**/node_modules
+web/dist
+web/storybook-static
+web/test-results
+web/playwright-report
+deploy/.env

@@ -1,9 +1,9 @@
 # Xenica
 
-个人信息管理软件。当前在做 Demo 1：Web 上的任务依赖图。
+个人知识系统：资料拆成节点，关系连成图；图用来导航，阅读和编辑在可停靠的面板里。
 
-- 给 AI Agent：先读 [AGENTS.md](AGENTS.md)
-- 架构：[docs/architecture.md](docs/architecture.md)
-- 任务：[docs/tasks.md](docs/tasks.md)
+现在是骨架：节点、关系、痕迹的增删改查，工作台外壳，图视图占位。
 
-开新会话时，对 Agent 说：「读 AGENTS.md，开始下一个任务。」
+- 开发：见 [AGENTS.md](AGENTS.md)
+- 设计决策：[docs/adr](docs/adr)
+- 部署：`deploy/compose.yaml`
