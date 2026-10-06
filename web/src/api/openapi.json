@@ -1,0 +1,591 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Xenica API",
+    "description": "Xenica 的 HTTP 接口。由代码生成，不要手改。",
+    "license": {
+      "name": ""
+    },
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/api/edges": {
+      "get": {
+        "tags": ["edges"],
+        "summary": "列出关系。",
+        "operationId": "list_edges",
+        "parameters": [
+          {
+            "name": "node",
+            "in": "query",
+            "description": "只返回与这个节点相连的关系。",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/NodeId"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "默认 2000，上限 5000。",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Edge"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["edges"],
+        "summary": "新建关系。",
+        "operationId": "create_edge",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewEdge"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Edge"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/edges/{id}": {
+      "delete": {
+        "tags": ["edges"],
+        "summary": "删除关系。",
+        "operationId": "delete_edge",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {},
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/health": {
+      "get": {
+        "tags": ["system"],
+        "summary": "健康检查：数据库可用时返回 200。",
+        "operationId": "health",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            }
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/nodes": {
+      "get": {
+        "tags": ["nodes"],
+        "summary": "列出节点（最近更新的在前）。",
+        "operationId": "list_nodes",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "最多返回多少条，默认 200，上限 1000。",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Node"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["nodes"],
+        "summary": "新建节点。",
+        "operationId": "create_node",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewNode"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Node"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/nodes/{id}": {
+      "get": {
+        "tags": ["nodes"],
+        "summary": "读取一个节点。",
+        "operationId": "get_node",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Node"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["nodes"],
+        "summary": "删除节点及其关系。痕迹保留。",
+        "operationId": "delete_node",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {},
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": ["nodes"],
+        "summary": "修改节点（只改给出的字段）。",
+        "operationId": "update_node",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NodePatch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Node"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/nodes/{id}/traces": {
+      "get": {
+        "tags": ["nodes"],
+        "summary": "节点的痕迹（谁、何时、做了什么）。",
+        "operationId": "list_node_traces",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Trace"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Actor": {
+        "oneOf": [
+          {
+            "type": "object",
+            "description": "用户本人。",
+            "required": ["type"],
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": ["user"]
+              }
+            }
+          },
+          {
+            "type": "object",
+            "description": "处理器（插件），带版本，便于以后重跑。",
+            "required": ["id", "version", "type"],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string",
+                "enum": ["processor"]
+              },
+              "version": {
+                "type": "string"
+              }
+            }
+          }
+        ],
+        "description": "谁做的。规则 2：AI 和处理器只提议，人裁决——所以永远要分得清是谁写的。"
+      },
+      "Edge": {
+        "type": "object",
+        "description": "关系：两个节点之间有类型、有方向的连接。",
+        "required": ["id", "source", "target", "kind", "created_at"],
+        "properties": {
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "id": {
+            "$ref": "#/components/schemas/EdgeId"
+          },
+          "kind": {
+            "type": "string",
+            "description": "关系类型键，例如 `related`。以后关系类型本身也会成为节点。"
+          },
+          "source": {
+            "$ref": "#/components/schemas/NodeId"
+          },
+          "target": {
+            "$ref": "#/components/schemas/NodeId"
+          }
+        }
+      },
+      "EdgeId": {
+        "type": "string",
+        "format": "uuid",
+        "description": "关系 ID。"
+      },
+      "ErrorBody": {
+        "type": "object",
+        "description": "所有接口统一的错误格式。",
+        "required": ["error", "message"],
+        "properties": {
+          "error": {
+            "type": "string",
+            "description": "机器可读：`invalid`、`not_found`、`conflict`、`internal`。"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "Health": {
+        "type": "object",
+        "required": ["status", "version"],
+        "properties": {
+          "status": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          }
+        }
+      },
+      "NewEdge": {
+        "type": "object",
+        "required": ["source", "target"],
+        "properties": {
+          "kind": {
+            "type": ["string", "null"],
+            "description": "省略时为 `related`。"
+          },
+          "source": {
+            "$ref": "#/components/schemas/NodeId"
+          },
+          "target": {
+            "$ref": "#/components/schemas/NodeId"
+          }
+        }
+      },
+      "NewNode": {
+        "type": "object",
+        "description": "新建节点的输入。",
+        "required": ["title"],
+        "properties": {
+          "body": {
+            "type": ["object", "null"]
+          },
+          "kind": {
+            "type": ["string", "null"],
+            "description": "省略时为 `note`。"
+          },
+          "title": {
+            "type": "string"
+          }
+        }
+      },
+      "Node": {
+        "type": "object",
+        "description": "节点：一切有身份的东西（知识点、文件、任务、设置……）。",
+        "required": ["id", "kind", "title", "body", "created_at", "updated_at"],
+        "properties": {
+          "body": {
+            "type": "object",
+            "description": "节点内容。结构由类型决定，核心不解释它。"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "id": {
+            "$ref": "#/components/schemas/NodeId"
+          },
+          "kind": {
+            "type": "string",
+            "description": "类型键，例如 `note`。以后类型本身也会成为节点，这里先用字符串。"
+          },
+          "title": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "NodeId": {
+        "type": "string",
+        "format": "uuid",
+        "description": "节点 ID。身份只看 ID，不看名字。"
+      },
+      "NodePatch": {
+        "type": "object",
+        "description": "修改节点的输入。只改给出的字段。",
+        "properties": {
+          "body": {
+            "type": ["object", "null"]
+          },
+          "title": {
+            "type": ["string", "null"]
+          }
+        }
+      },
+      "Trace": {
+        "type": "object",
+        "description": "痕迹：只增不改的事件记录（数据库触发器保证不能改、不能删）。",
+        "required": ["id", "at", "actor", "action", "subject", "detail"],
+        "properties": {
+          "action": {
+            "type": "string",
+            "description": "例如 `node.created`、`edge.deleted`。"
+          },
+          "actor": {
+            "$ref": "#/components/schemas/Actor"
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "detail": {
+            "type": "object"
+          },
+          "id": {
+            "$ref": "#/components/schemas/TraceId"
+          },
+          "subject": {
+            "type": "string",
+            "format": "uuid",
+            "description": "被操作的节点或关系的 ID。"
+          }
+        }
+      },
+      "TraceId": {
+        "type": "string",
+        "format": "uuid",
+        "description": "痕迹 ID。"
+      }
+    }
+  }
+}

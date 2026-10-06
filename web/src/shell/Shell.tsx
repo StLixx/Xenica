@@ -1,0 +1,57 @@
+import type { DockviewApi } from 'dockview-react';
+import { useMemo, useRef, useState } from 'react';
+
+import { views } from '../views';
+import { WorkbenchContext, type ViewParams, type Workbench as WorkbenchApi } from './api';
+import { CommandPalette } from './CommandPalette';
+import { collectCommands, panelId } from './commands';
+import { Sidebar } from './Sidebar';
+import { StatusBar } from './StatusBar';
+import { Workbench } from './Workbench';
+
+export function Shell() {
+  const dock = useRef<DockviewApi | null>(null);
+  const [paletteOpen, setPaletteOpen] = useState(false);
+
+  const wb = useMemo<WorkbenchApi>(
+    () => ({
+      openView(viewId: string, params?: ViewParams) {
+        const api = dock.current;
+        const view = views.find((v) => v.id === viewId);
+        if (!api || !view) return;
+        const id = panelId(view, params);
+        const existing = api.getPanel(id);
+        if (existing) {
+          existing.api.setActive();
+          return;
+        }
+        api.addPanel({ id, component: viewId, title: view.title, params: params ?? {} });
+      },
+      closeView(viewId: string, params?: ViewParams) {
+        const view = views.find((v) => v.id === viewId);
+        if (!view) return;
+        dock.current?.getPanel(panelId(view, params))?.api.close();
+      },
+    }),
+    [],
+  );
+  const commands = useMemo(() => collectCommands(views), []);
+
+  return (
+    <WorkbenchContext value={wb}>
+      <div className="grid h-full grid-cols-[auto_1fr] grid-rows-[1fr_auto]">
+        <Sidebar views={views} onOpenPalette={() => setPaletteOpen(true)} />
+        <main className="min-h-0 min-w-0">
+          <Workbench views={views} defaultView="nodes" onReady={(api) => (dock.current = api)} />
+        </main>
+        <StatusBar />
+      </div>
+      <CommandPalette
+        open={paletteOpen}
+        onOpenChange={setPaletteOpen}
+        commands={commands}
+        workbench={wb}
+      />
+    </WorkbenchContext>
+  );
+}

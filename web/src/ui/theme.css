@@ -1,0 +1,140 @@
+/*
+ * 设计变量——界面上所有颜色、尺寸、圆角、字体的唯一来源。
+ * 组件只能用这里的变量（Tailwind 类名如 bg-raised、text-fg-2，或 var(--x-*)）。
+ * 来源：AI Drafts「设计语言 v0」。只有暗色。
+ */
+@import 'tailwindcss';
+@import 'dockview-react/dist/styles/dockview.css';
+
+@custom-variant comfortable (&:where([data-density='comfortable'], [data-density='comfortable'] *));
+
+:root {
+  color-scheme: dark;
+  /* —— 用户可改（以后由设置节点驱动）—— */
+  --x-accent: #4fb9a8;
+  --x-font-doc: var(--font-sans);
+  /* —— 密度 —— */
+  --x-row: 28px;
+  --x-gap: 6px;
+  --x-fs: 14px;
+  /* —— 节点类型的标记色 —— */
+  --x-kind-default: #9aa0a6;
+  --x-kind-note: #9aa0a6;
+  --x-kind-knowledge: #bf8eda;
+  --x-kind-question: #de9255;
+  --x-kind-video: #df84a8;
+  --x-kind-book: #eac26b;
+  --x-kind-podcast: #72bc8f;
+  --x-kind-embed: #9aa0a6;
+  --x-kind-task: #5e9fe8;
+}
+
+[data-density='comfortable'] {
+  --x-row: 34px;
+  --x-gap: 12px;
+  --x-fs: 15px;
+}
+
+@theme {
+  --color-bg: #191919;
+  --color-side: #202020;
+  --color-raised: #252525;
+  --color-pop: #2a2a2a;
+  --color-fg: rgb(255 255 255 / 0.92);
+  --color-fg-2: rgb(255 255 255 / 0.62);
+  --color-fg-3: rgb(255 255 255 / 0.4);
+  --color-line: rgb(255 255 255 / 0.08);
+  --color-hover: rgb(255 255 255 / 0.055);
+  --color-press: rgb(255 255 255 / 0.09);
+  --color-accent: var(--x-accent);
+  --color-accent-soft: color-mix(in srgb, var(--x-accent) 16%, transparent);
+  --color-on-accent: #0b1f1c;
+  --color-danger: #e97366;
+
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC',
+    sans-serif;
+  --font-mono: ui-monospace, Menlo, Consolas, 'Noto Sans Mono CJK SC', monospace;
+
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  --shadow-pop: 0 12px 40px rgb(0 0 0 / 0.5), 0 0 0 1px rgb(255 255 255 / 0.08);
+}
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+    margin: 0;
+  }
+  body {
+    background: var(--color-bg);
+    color: var(--color-fg);
+    font: var(--x-fs) / 1.5 var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  /* 统一的键盘焦点样式 */
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 1px;
+    border-radius: var(--radius-sm);
+  }
+  ::selection {
+    background: var(--color-accent-soft);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      transition: none !important;
+      animation: none !important;
+    }
+  }
+}
+
+/* —— 工作台（dockview）配色映射到设计变量 —— */
+.dockview-theme-xenica {
+  --dv-group-view-background-color: var(--color-bg);
+  --dv-tabs-and-actions-container-background-color: var(--color-side);
+  --dv-tabs-and-actions-container-height: 36px;
+  --dv-tabs-and-actions-container-font-size: 13px;
+  --dv-activegroup-visiblepanel-tab-background-color: var(--color-bg);
+  --dv-activegroup-hiddenpanel-tab-background-color: var(--color-side);
+  --dv-inactivegroup-visiblepanel-tab-background-color: var(--color-bg);
+  --dv-inactivegroup-hiddenpanel-tab-background-color: var(--color-side);
+  --dv-activegroup-visiblepanel-tab-color: var(--color-fg);
+  --dv-activegroup-hiddenpanel-tab-color: var(--color-fg-3);
+  --dv-inactivegroup-visiblepanel-tab-color: var(--color-fg-2);
+  --dv-inactivegroup-hiddenpanel-tab-color: var(--color-fg-3);
+  --dv-tab-divider-color: transparent;
+  --dv-separator-border: var(--color-line);
+  --dv-paneview-header-border-color: var(--color-line);
+  --dv-paneview-active-outline-color: var(--color-accent);
+  --dv-drag-over-background-color: var(--color-accent-soft);
+  --dv-drag-over-border-color: var(--color-accent);
+  --dv-edge-dock-indicator-color: var(--color-accent);
+  --dv-icon-hover-background-color: var(--color-hover);
+  --dv-sash-color: transparent;
+  --dv-active-sash-color: var(--color-accent);
+  --dv-scrollbar-background-color: var(--color-press);
+  --dv-context-menu-background-color: var(--color-pop);
+  --dv-context-menu-color: var(--color-fg);
+  --dv-floating-box-shadow: var(--shadow-pop);
+}
+
+/* —— 图（React Flow）配色 —— */
+.xenica-graph .react-flow {
+  --xy-background-color: var(--color-bg);
+  --xy-edge-stroke: rgb(255 255 255 / 0.22);
+  --xy-edge-label-background-color: var(--color-bg);
+  --xy-edge-label-color: var(--color-fg-3);
+  --xy-node-background-color: transparent;
+  --xy-node-border: none;
+}
+.xenica-graph .react-flow__node {
+  padding: 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+}
