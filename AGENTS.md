@@ -74,24 +74,42 @@ cargo run -p xenica-server -- openapi > web/src/api/openapi.json && pnpm -C web 
 
 **加组件**：放 `web/src/ui/`，写一个 `*.stories.tsx`，从 `ui/index.ts` 导出。
 
+## 仓库设置（一次性）
+
+`bash scripts/setup-github.sh`：只允许 squash 合并；master 必须走 PR、CI（rust/web/e2e/docker）必须通过、禁止强推和删除。需要 `gh` 已登录且有管理员权限。可重复运行。
+
+依赖更新用 Renovate（`renovate.json`）。安装 GitHub App 必须由用户在浏览器里点：https://github.com/apps/renovate → Install → 只选 Xenica。
+
 ## 部署
 
 ```
-浏览器 → xenica.truebigsand.top（Cloudflare DNS，仅 DNS 不代理）
-       → hikari（1Panel + OpenResty，反代 + 证书，用户手动配）
+浏览器 → xenica.truebigsand.top（Cloudflare，仅 DNS 不代理）
+       → hikari（1Panel + OpenResty：证书 + 反代）
        → Tailscale → core-server 100.100.1.103:8080（Docker：app + postgres）
 ```
 
-在 core-server 上：
+部署 Agent 需要：SSH 到 core-server；环境变量 `CLOUDFLARE_API_TOKEN`（只有 truebigsand.top 的 DNS 编辑权限）；1Panel 的 API 密钥（1Panel 面板 → 设置 → API 接口，开启并把 Agent 所在机器的 IP 加白名单）。这些都不写进仓库、不贴进聊天。
 
-```sh
-cd deploy && cp .env.example .env   # 填 POSTGRES_PASSWORD；XENICA_BIND=100.100.1.103
-docker compose pull && docker compose up -d
-docker compose ps                   # app 显示 healthy
-```
+1. **应用**（core-server）：
 
-master 每次合并后 CI 推送 `ghcr.io/stlixx/xenica:latest` 和 `:<commit>`。回滚：`.env` 里把 `XENICA_IMAGE` 改成旧 commit 的标签再 `up -d`。
+   ```sh
+   cd deploy && cp .env.example .env   # POSTGRES_PASSWORD=$(openssl rand -hex 24)；XENICA_BIND=100.100.1.103
+   docker compose pull && docker compose up -d
+   docker compose ps                   # app 显示 healthy
+   curl -s http://100.100.1.103:8080/api/health
+   ```
 
-DNS：用环境变量 `CLOUDFLARE_API_TOKEN`（只给 truebigsand.top 的 DNS 编辑权限），A 记录 `xenica` → hikari 公网 IP，关闭代理。token 不写进仓库、不贴进聊天。
+   拉不到镜像就在 GitHub 把 ghcr 包 `xenica` 设为公开，或者 `docker compose build` 本地构建。
+
+2. **DNS**：用 Cloudflare API 建（或更新）A 记录 `xenica.truebigsand.top` → hikari 公网 IP，`proxied: false`。
+
+3. **证书和反代**（hikari，走 1Panel API，不要手改 OpenResty 配置，否则 1Panel 会覆盖）：
+   - 证书：用 Cloudflare DNS 账户（同一个 token）申请 `xenica.truebigsand.top` 的 Let's Encrypt 证书，开自动续期。
+   - 网站：反向代理到 `http://100.100.1.103:8080`，绑定上面的证书，开 HTTPS 和 HTTP→HTTPS 跳转。
+   - 接口以 1Panel 自带的 API 文档为准（面板里 API 接口页有链接），版本不同路径不同。
+
+4. **验收**：`curl -s https://xenica.truebigsand.top/api/health` 返回 ok，浏览器打开能看到工作台。
+
+更新：master 合并后 CI 推送 `ghcr.io/stlixx/xenica:latest` 和 `:<commit>`，在 core-server `docker compose pull && docker compose up -d`。回滚：`.env` 里 `XENICA_IMAGE` 改成旧 commit 的标签再 `up -d`。
 
 备份：`docker compose exec db pg_dump -U xenica xenica > backup.sql`。
