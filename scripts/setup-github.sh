@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # 一次性仓库设置，可重复运行。需要 gh 已登录且对仓库有管理员权限。
-# 只允许 squash；master：必须走 PR、CI 必须通过、禁止强推和删除。
+# 只允许 squash；master：必须走 PR、CI 和验收门必须通过、禁止强推和删除。
 set -euo pipefail
 repo=${1:-StLixx/Xenica}
 
@@ -27,7 +27,8 @@ ruleset='{
     { "type": "required_status_checks", "parameters": {
         "strict_required_status_checks_policy": false,
         "required_status_checks": [
-          { "context": "rust" }, { "context": "web" }, { "context": "e2e" }, { "context": "docker" } ] } }
+          { "context": "rust" }, { "context": "web" }, { "context": "e2e" }, { "context": "docker" },
+          { "context": "screenshots" }, { "context": "验收" } ] } }
   ]
 }'
 

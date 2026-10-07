@@ -465,6 +465,10 @@
         "type": "object",
         "required": ["status", "version"],
         "properties": {
+          "commit": {
+            "type": ["string", "null"],
+            "description": "构建时的 git commit（镜像里由 CI 写入 `XENICA_COMMIT`），本地开发时为空。"
+          },
           "status": {
             "type": "string"
           },

@@ -8,3 +8,5 @@ web/storybook-static
 web/test-results
 web/playwright-report
 deploy/.env
+web/screenshots/__baseline__
+web/screenshots/__results__

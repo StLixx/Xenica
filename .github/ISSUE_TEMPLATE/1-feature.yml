@@ -1,0 +1,26 @@
+name: 功能
+description: 想要一个新功能或改进
+labels: [功能]
+body:
+  - type: textarea
+    id: intent
+    attributes:
+      label: 意图
+      description: 想做到什么、为什么。粗糙也行。
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: 验收标准
+      description: 怎样算做好了。最好是能截图或能测试的句子，例如「缩放时节点和文字一起变化」。不写的话由分诊补。
+  - type: input
+    id: modules
+    attributes:
+      label: 影响的模块
+      description: 可选，例如 web/src/views/graph、crates/store
+  - type: textarea
+    id: refs
+    attributes:
+      label: 参考
+      description: 截图、链接、别的软件的做法

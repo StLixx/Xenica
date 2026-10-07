@@ -1,0 +1,22 @@
+name: project
+
+# 新 Issue 进看板「收件」，关闭的进「完成」。其余阶段由 ci/approve 的验收门和分诊 Agent 推进。
+on:
+  issues:
+    types: [opened, reopened, closed]
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/github-script@v8
+        with:
+          github-token: ${{ secrets.PROJECT_TOKEN }}
+          script: |
+            const project = require('./.github/scripts/project.cjs');
+            const stage = context.payload.action === 'closed' ? '完成' : '收件';
+            await project({ github, core, ...context.repo, contentIds: [context.payload.issue.node_id], stage });

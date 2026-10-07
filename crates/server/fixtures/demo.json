@@ -1,0 +1,416 @@
+{
+  "nodes": [
+    {
+      "key": "goal_teach",
+      "kind": "goal",
+      "title": "成为能把知识讲清楚的人"
+    },
+    {
+      "key": "goal_xenica",
+      "kind": "goal",
+      "title": "Xenica · make it work"
+    },
+    {
+      "key": "area_history",
+      "kind": "area",
+      "title": "历史"
+    },
+    {
+      "key": "area_math",
+      "kind": "area",
+      "title": "数学"
+    },
+    {
+      "key": "area_tools",
+      "kind": "area",
+      "title": "工具与配置"
+    },
+    {
+      "key": "area_body",
+      "kind": "area",
+      "title": "身体与运动"
+    },
+    {
+      "key": "qin",
+      "kind": "knowledge",
+      "title": "秦统一六国"
+    },
+    {
+      "key": "junxian",
+      "kind": "knowledge",
+      "title": "郡县制"
+    },
+    {
+      "key": "shangyang",
+      "kind": "knowledge",
+      "title": "商鞅变法"
+    },
+    {
+      "key": "changping",
+      "kind": "knowledge",
+      "title": "长平之战"
+    },
+    {
+      "key": "hancheng",
+      "kind": "knowledge",
+      "title": "汉承秦制"
+    },
+    {
+      "key": "book_hist",
+      "kind": "book",
+      "title": "必修上 · 第 3 课"
+    },
+    {
+      "key": "video_hist",
+      "kind": "video",
+      "title": "第 3 讲 · 战国到秦"
+    },
+    {
+      "key": "pod_hist",
+      "kind": "podcast",
+      "title": "读史播客 第 42 期"
+    },
+    {
+      "key": "q2024",
+      "kind": "question",
+      "title": "2024 某卷 第 5 题",
+      "body": {
+        "note": "做错 1 次"
+      }
+    },
+    {
+      "key": "prep_qin",
+      "kind": "task",
+      "title": "备课：秦统一六国",
+      "body": {
+        "note": "45 分钟"
+      }
+    },
+    {
+      "key": "eigen",
+      "kind": "knowledge",
+      "title": "特征值与特征向量"
+    },
+    {
+      "key": "fourier",
+      "kind": "knowledge",
+      "title": "傅里叶变换"
+    },
+    {
+      "key": "group",
+      "kind": "knowledge",
+      "title": "群论"
+    },
+    {
+      "key": "v3b1b",
+      "kind": "video",
+      "title": "3Blue1Brown · 特征向量"
+    },
+    {
+      "key": "q_la",
+      "kind": "question",
+      "title": "线代习题 4.2"
+    },
+    {
+      "key": "pg",
+      "kind": "tool",
+      "title": "PostgreSQL 18"
+    },
+    {
+      "key": "gh",
+      "kind": "tool",
+      "title": "GitHub"
+    },
+    {
+      "key": "vscode",
+      "kind": "tool",
+      "title": "VS Code"
+    },
+    {
+      "key": "set_shared",
+      "kind": "setting",
+      "title": "shared_buffers"
+    },
+    {
+      "key": "set_ci",
+      "kind": "setting",
+      "title": "PR 必须通过 CI 才能合并"
+    },
+    {
+      "key": "task_skeleton",
+      "kind": "task",
+      "title": "行走骨架",
+      "body": {
+        "note": "已完成"
+      }
+    },
+    {
+      "key": "task_deploy",
+      "kind": "task",
+      "title": "部署到 core-server",
+      "body": {
+        "note": "已完成"
+      }
+    },
+    {
+      "key": "cycling",
+      "kind": "task",
+      "title": "每周骑行 3 次",
+      "body": {
+        "note": "本周 1 / 3"
+      }
+    },
+    {
+      "key": "zijin",
+      "kind": "log",
+      "title": "紫金山骑行"
+    },
+    {
+      "key": "hr",
+      "kind": "knowledge",
+      "title": "心率区间"
+    }
+  ],
+  "edges": [
+    {
+      "source": "qin",
+      "target": "area_history",
+      "kind": "part_of"
+    },
+    {
+      "source": "junxian",
+      "target": "area_history",
+      "kind": "part_of"
+    },
+    {
+      "source": "shangyang",
+      "target": "area_history",
+      "kind": "part_of"
+    },
+    {
+      "source": "changping",
+      "target": "area_history",
+      "kind": "part_of"
+    },
+    {
+      "source": "hancheng",
+      "target": "area_history",
+      "kind": "part_of"
+    },
+    {
+      "source": "book_hist",
+      "target": "area_history",
+      "kind": "part_of"
+    },
+    {
+      "source": "video_hist",
+      "target": "area_history",
+      "kind": "part_of"
+    },
+    {
+      "source": "pod_hist",
+      "target": "area_history",
+      "kind": "part_of"
+    },
+    {
+      "source": "q2024",
+      "target": "area_history",
+      "kind": "part_of"
+    },
+    {
+      "source": "book_hist",
+      "target": "qin",
+      "kind": "mentions"
+    },
+    {
+      "source": "video_hist",
+      "target": "qin",
+      "kind": "mentions"
+    },
+    {
+      "source": "video_hist",
+      "target": "changping",
+      "kind": "mentions"
+    },
+    {
+      "source": "pod_hist",
+      "target": "shangyang",
+      "kind": "mentions"
+    },
+    {
+      "source": "qin",
+      "target": "junxian",
+      "kind": "related"
+    },
+    {
+      "source": "shangyang",
+      "target": "qin",
+      "kind": "related"
+    },
+    {
+      "source": "changping",
+      "target": "qin",
+      "kind": "related"
+    },
+    {
+      "source": "hancheng",
+      "target": "junxian",
+      "kind": "related"
+    },
+    {
+      "source": "q2024",
+      "target": "qin",
+      "kind": "tests"
+    },
+    {
+      "source": "q2024",
+      "target": "junxian",
+      "kind": "tests"
+    },
+    {
+      "source": "prep_qin",
+      "target": "qin",
+      "kind": "cites"
+    },
+    {
+      "source": "prep_qin",
+      "target": "q2024",
+      "kind": "cites"
+    },
+    {
+      "source": "prep_qin",
+      "target": "book_hist",
+      "kind": "cites"
+    },
+    {
+      "source": "prep_qin",
+      "target": "goal_teach",
+      "kind": "serves"
+    },
+    {
+      "source": "eigen",
+      "target": "area_math",
+      "kind": "part_of"
+    },
+    {
+      "source": "fourier",
+      "target": "area_math",
+      "kind": "part_of"
+    },
+    {
+      "source": "group",
+      "target": "area_math",
+      "kind": "part_of"
+    },
+    {
+      "source": "v3b1b",
+      "target": "area_math",
+      "kind": "part_of"
+    },
+    {
+      "source": "q_la",
+      "target": "area_math",
+      "kind": "part_of"
+    },
+    {
+      "source": "v3b1b",
+      "target": "eigen",
+      "kind": "mentions"
+    },
+    {
+      "source": "q_la",
+      "target": "eigen",
+      "kind": "tests"
+    },
+    {
+      "source": "fourier",
+      "target": "eigen",
+      "kind": "related"
+    },
+    {
+      "source": "eigen",
+      "target": "goal_teach",
+      "kind": "serves"
+    },
+    {
+      "source": "pg",
+      "target": "area_tools",
+      "kind": "part_of"
+    },
+    {
+      "source": "gh",
+      "target": "area_tools",
+      "kind": "part_of"
+    },
+    {
+      "source": "vscode",
+      "target": "area_tools",
+      "kind": "part_of"
+    },
+    {
+      "source": "set_shared",
+      "target": "area_tools",
+      "kind": "part_of"
+    },
+    {
+      "source": "set_ci",
+      "target": "area_tools",
+      "kind": "part_of"
+    },
+    {
+      "source": "set_shared",
+      "target": "pg",
+      "kind": "part_of"
+    },
+    {
+      "source": "set_ci",
+      "target": "gh",
+      "kind": "part_of"
+    },
+    {
+      "source": "task_skeleton",
+      "target": "goal_xenica",
+      "kind": "serves"
+    },
+    {
+      "source": "task_deploy",
+      "target": "goal_xenica",
+      "kind": "serves"
+    },
+    {
+      "source": "task_skeleton",
+      "target": "pg",
+      "kind": "cites"
+    },
+    {
+      "source": "task_deploy",
+      "target": "set_ci",
+      "kind": "cites"
+    },
+    {
+      "source": "cycling",
+      "target": "area_body",
+      "kind": "part_of"
+    },
+    {
+      "source": "zijin",
+      "target": "area_body",
+      "kind": "part_of"
+    },
+    {
+      "source": "hr",
+      "target": "area_body",
+      "kind": "part_of"
+    },
+    {
+      "source": "zijin",
+      "target": "cycling",
+      "kind": "derived"
+    },
+    {
+      "source": "cycling",
+      "target": "hr",
+      "kind": "cites"
+    }
+  ]
+}

@@ -148,6 +148,8 @@ export interface components {
       message: string;
     };
     Health: {
+      /** @description 构建时的 git commit（镜像里由 CI 写入 `XENICA_COMMIT`），本地开发时为空。 */
+      commit?: string | null;
       status: string;
       version: string;
     };

@@ -19,7 +19,8 @@
     "arch": "depcruise src --config .dependency-cruiser.cjs",
     "api": "openapi-typescript src/api/openapi.json -o src/api/schema.d.ts && prettier --write src/api/schema.d.ts src/api/openapi.json",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build -o storybook-static"
+    "build-storybook": "storybook build -o storybook-static",
+    "screenshots": "playwright test -c playwright.screenshots.config.ts"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.104.1",

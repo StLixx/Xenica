@@ -27,6 +27,11 @@
   --x-kind-podcast: #72bc8f;
   --x-kind-embed: #9aa0a6;
   --x-kind-task: #5e9fe8;
+  --x-kind-goal: #5fb8a6;
+  --x-kind-area: #8fa3a0;
+  --x-kind-tool: #9aa0a6;
+  --x-kind-setting: #8f9bb3;
+  --x-kind-log: #a6c96a;
 }
 
 [data-density='comfortable'] {

@@ -1,5 +1,7 @@
-# 部署：cp .env.example .env，填好后 docker compose up -d
-# 数据库不对外暴露；应用端口只绑到 XENICA_BIND（生产填 Tailscale IP）。
+# 一个 Xenica 实例 = 应用 + 数据库。正式站和每个 PR 预览都用这一份，只是环境变量不同：
+#   正式站：docker compose -p xenica --env-file .env up -d
+#   预览：  部署器（deployer/deploy.sh）自动用 -p xenica-pr-N 起停
+# 对外入口是 edge/compose.yaml 里的 Traefik，按域名把请求分给各实例；这里不映射任何端口。
 name: xenica
 
 services:
@@ -20,17 +22,26 @@ services:
 
   app:
     image: ${XENICA_IMAGE:-ghcr.io/stlixx/xenica:latest}
-    build:
-      context: ..
     restart: unless-stopped
     depends_on:
       db:
         condition: service_healthy
     environment:
       DATABASE_URL: postgres://xenica:${POSTGRES_PASSWORD}@db:5432/xenica
+      XENICA_SEED: ${XENICA_SEED:-}
       RUST_LOG: ${RUST_LOG:-info}
-    ports:
-      - "${XENICA_BIND:-127.0.0.1}:${XENICA_PORT:-8080}:8080"
+    networks: [default, edge]
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=xenica-edge"
+      - "traefik.http.routers.${XENICA_NAME:-prod}.rule=Host(`${XENICA_HOST:-xenica.truebigsand.top}`)"
+      - "traefik.http.routers.${XENICA_NAME:-prod}.entrypoints=web"
+      - "traefik.http.services.${XENICA_NAME:-prod}.loadbalancer.server.port=8080"
 
 volumes:
   db:
+
+networks:
+  edge:
+    name: xenica-edge
+    external: true

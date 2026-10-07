@@ -2,7 +2,24 @@
 
 个人知识系统：把资料（PDF、笔记、题目……）拆成节点，用关系连起来，在图上导航、在面板里阅读和编辑。
 
-**以代码为事实。** 本文件只写代码里看不出来的东西；为什么这样设计见 `docs/adr/`。
+**以代码为事实，以仓库为唯一标准。** 本文件只写代码里看不出来的东西；理由见 `docs/adr/`（流程见 0006）。
+
+## 接到任务时（所有 Agent 先读）
+
+开场白通常只有一句「处理 #<号>」。按顺序做：
+
+1. **读 Issue。** 意图或验收标准不清 → 在 Issue 里提具体问题，然后停下，不要猜。
+2. **看锁。** 已经有关联这个 Issue 的打开 PR → 别人在做，停下。
+3. **定规模。** 小（一个组件、一个缺陷、文案）：直接做。中（一个视图、前后端都动）：先提规格 PR，只含 `specs/<号>-<名>/spec.md`（行为 + 可截图/可测试的验收标准），等用户 `/通过` 后再实现。大（新原语、跨模块）：规格 + ADR，拆成子 Issue。
+4. **认领 = 立刻开草稿 PR**：分支 `<号>-<短名>`，正文按模板，写 `Closes #<号>`。
+5. **实现。** 缺陷先写一个会失败的测试再修。改了外观要加或更新 story。
+6. **自检。** 本地跑「命令」里的检查；改了外观就 `pnpm -C web build-storybook && pnpm -C web screenshots --update-snapshots=all`，**亲眼看** `web/screenshots/__baseline__/` 里的图。
+7. **填「沉淀」，转为 Ready for review。** 之后交给 CI：全绿且无需验收就自动合并；否则 PR 里会出现预览链接，等用户验收。
+8. **被退回**：按 PR 评论修改，推到同一分支。
+
+禁止：评论 `/通过`（那是用户的验收）、自己合并、直接推 master、改 `.github/` 来绕过检查。
+
+提 Issue 时用 `.github/ISSUE_TEMPLATE/` 的格式，类型四选一：试样、功能、缺陷、流程。
 
 ## 目录
 
@@ -14,13 +31,15 @@ web/src/ui      设计变量与基础组件（叶子层，不 import 别的层�
 web/src/api     唯一能请求后端的地方。schema.d.ts 是生成的
 web/src/shell   工作台外壳：停靠面板、侧栏、命令面板、状态栏。对视图只开放 shell/api.ts
 web/src/views   视图，一个目录一个，互相不 import
-deploy/         compose.yaml + .env.example
+deploy/         compose.yaml（一个实例）、edge/（Traefik）、deployer/（core-server 上的部署器）
+specs/          中/大规模任务的规格
+.github/        CI、验收门（scripts/gate.cjs）、看板同步、Issue/PR 模板
 docs/adr/       设计决策
 ```
 
 ## 命令
 
-需要：Rust（版本见 rust-toolchain.toml）、Node 24、pnpm、PostgreSQL 18（或 `docker compose -f deploy/compose.yaml up -d db`）。
+需要：Rust（版本见 rust-toolchain.toml）、Node 24、pnpm、PostgreSQL 18。`XENICA_SEED=demo` 会在空库里导入示例数据（`crates/server/fixtures/demo.json`，预览站也用它）。
 
 ```sh
 export DATABASE_URL=postgres://xenica:密码@localhost:5432/xenica
@@ -35,7 +54,8 @@ pnpm -C web storybook                  # 组件 :6006
 cargo fmt --all && cargo clippy --workspace --all-targets -- -D warnings && cargo test --workspace
 bash scripts/check-arch.sh
 cd web && pnpm format && pnpm lint && pnpm typecheck && pnpm test && pnpm arch && pnpm build
-pnpm e2e   # 需要后端在 :8080 运行（XENICA_WEB_DIST=web/dist）
+pnpm e2e           # 需要后端在 :8080 运行（XENICA_WEB_DIST=web/dist）
+pnpm screenshots   # 先 pnpm build-storybook；基准以 CI 容器里 master 的截图为准
 ```
 
 ## 规则
@@ -76,40 +96,30 @@ cargo run -p xenica-server -- openapi > web/src/api/openapi.json && pnpm -C web 
 
 ## 仓库设置（一次性）
 
-`bash scripts/setup-github.sh`：只允许 squash 合并；master 必须走 PR、CI（rust/web/e2e/docker）必须通过、禁止强推和删除。需要 `gh` 已登录且有管理员权限。可重复运行。
+`bash scripts/setup-github.sh`：只允许 squash；master 必须走 PR，`rust/web/e2e/docker/screenshots/验收` 必须通过，禁止强推和删除。需要 `gh` 以管理员登录。验收门本身坏了导致无法合并时，用户在仓库 Settings → Rules 临时停用规则集再修。
 
-依赖更新用 Renovate（`renovate.json`）。安装 GitHub App 必须由用户在浏览器里点：https://github.com/apps/renovate → Install → 只选 Xenica。
+Secrets：`PROJECT_TOKEN`（Projects 读写，看板同步用）。
 
 ## 部署
 
 ```
-浏览器 → xenica.truebigsand.top（Cloudflare，仅 DNS 不代理）
-       → hikari（1Panel + OpenResty：证书 + 反代）
-       → Tailscale → core-server 100.100.1.103:8080（Docker：app + postgres）
+浏览器 → *.xenica.truebigsand.top（Cloudflare，仅 DNS）→ hikari（1Panel：证书 + 反代，保留 Host 头）
+       → Tailscale → core-server 100.100.1.103:8080 → Traefik（deploy/edge）
+           ├─ xenica.truebigsand.top → 正式站（compose 项目 xenica）
+           └─ pr-<号>.xenica.truebigsand.top → PR 预览（compose 项目 xenica-pr-<号>，示例数据）
 ```
 
-部署 Agent 需要：SSH 到 core-server；环境变量 `CLOUDFLARE_API_TOKEN`（只有 truebigsand.top 的 DNS 编辑权限）；1Panel 的 API 密钥（1Panel 面板 → 设置 → API 接口，开启并把 Agent 所在机器的 IP 加白名单）。这些都不写进仓库、不贴进聊天。
+core-server 上，仓库 checkout 在 `/opt/xenica`，部署器由 systemd timer 每 2 分钟运行：
 
-1. **应用**（core-server）：
+```sh
+cd /opt/xenica/deploy && cp .env.example .env     # 填 POSTGRES_PASSWORD；XENICA_BIND=100.100.1.103
+docker network create xenica-edge
+(cd edge && docker compose --env-file ../.env up -d)
+sudo cp deployer/xenica-deployer.{service,timer} /etc/systemd/system/
+sudo systemctl daemon-reload && sudo systemctl enable --now xenica-deployer.timer
+journalctl -u xenica-deployer -f                   # 看部署日志
+```
 
-   ```sh
-   cd deploy && cp .env.example .env   # POSTGRES_PASSWORD=$(openssl rand -hex 24)；XENICA_BIND=100.100.1.103
-   docker compose pull && docker compose up -d
-   docker compose ps                   # app 显示 healthy
-   curl -s http://100.100.1.103:8080/api/health
-   ```
+部署器只拉不推：ghcr 的 `latest` 变了就上线正式站，健康检查失败自动回滚并开缺陷 Issue（需要 `.env` 里的 `DEPLOYER_GITHUB_TOKEN`）；本仓库分支的每个打开的 PR 起一个预览，PR 关闭后连数据删掉。手动回滚：`XENICA_IMAGE=ghcr.io/stlixx/xenica:<commit> docker compose -p xenica --env-file .env up -d`。
 
-   拉不到镜像就在 GitHub 把 ghcr 包 `xenica` 设为公开，或者 `docker compose build` 本地构建。
-
-2. **DNS**：用 Cloudflare API 建（或更新）A 记录 `xenica.truebigsand.top` → hikari 公网 IP，`proxied: false`。
-
-3. **证书和反代**（hikari，走 1Panel API，不要手改 OpenResty 配置，否则 1Panel 会覆盖）：
-   - 证书：用 Cloudflare DNS 账户（同一个 token）申请 `xenica.truebigsand.top` 的 Let's Encrypt 证书，开自动续期。
-   - 网站：反向代理到 `http://100.100.1.103:8080`，绑定上面的证书，开 HTTPS 和 HTTP→HTTPS 跳转。
-   - 接口以 1Panel 自带的 API 文档为准（面板里 API 接口页有链接），版本不同路径不同。
-
-4. **验收**：`curl -s https://xenica.truebigsand.top/api/health` 返回 ok，浏览器打开能看到工作台。
-
-更新：master 合并后 CI 推送 `ghcr.io/stlixx/xenica:latest` 和 `:<commit>`，在 core-server `docker compose pull && docker compose up -d`。回滚：`.env` 里 `XENICA_IMAGE` 改成旧 commit 的标签再 `up -d`。
-
-备份：`docker compose exec db pg_dump -U xenica xenica > backup.sql`。
+备份：`docker compose -p xenica exec db pg_dump -U xenica xenica > backup.sql`。

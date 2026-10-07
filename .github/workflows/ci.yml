@@ -1,13 +1,20 @@
 name: ci
 
+# 流程见 docs/adr/0006-workflow.md：机器门（这里的各个 job）→ 预览镜像 → 验收门（gate）→ 自动合并。
 on:
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
   push:
     branches: [master]
+  # 验收门用 GITHUB_TOKEN 合并后不会触发 push，由它手动触发 master 的这条流水线。
+  workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
+
+permissions:
+  contents: read
 
 env:
   CARGO_TERM_COLOR: always
@@ -40,6 +47,8 @@ jobs:
         run: cargo test --workspace --locked
       - name: architecture
         run: bash scripts/check-arch.sh
+      - name: AGENTS.md 不超过 200 行
+        run: bash scripts/check-docs.sh
       - name: sqlx offline cache is up to date
         run: |
           cargo sqlx migrate run --source crates/store/migrations
@@ -67,7 +76,6 @@ jobs:
       - run: pnpm test
       - run: pnpm arch
       - run: pnpm build
-      - run: pnpm build-storybook --quiet
 
   # 前后端契约 + 端到端：真实数据库、真实服务、真实浏览器。
   e2e:
@@ -107,8 +115,8 @@ jobs:
         working-directory: web
       - name: start server
         run: |
-          XENICA_WEB_DIST=web/dist ./target/debug/xenica serve > server.log 2>&1 &
-          for i in $(seq 1 30); do ./target/debug/xenica healthcheck && exit 0; sleep 1; done
+          XENICA_SEED=demo XENICA_WEB_DIST=web/dist ./target/debug/xenica serve > server.log 2>&1 &
+          for _ in $(seq 1 30); do ./target/debug/xenica healthcheck && exit 0; sleep 1; done
           cat server.log; exit 1
       - run: pnpm exec playwright install --with-deps chromium
         working-directory: web
@@ -122,16 +130,85 @@ jobs:
             web/playwright-report
             server.log
 
+  # 每个 story 截图。master 上的截图就是基准；PR 和它比，有变化的列给验收门。
+  # 固定在 Playwright 官方容器里跑，保证字体渲染一致。
+  screenshots:
+    runs-on: ubuntu-latest
+    container: mcr.microsoft.com/playwright:v1.63.0-noble
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      changed: ${{ steps.compare.outputs.changed }}
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: web/package.json
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build-storybook --quiet
+      - if: github.event_name == 'pull_request'
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          workflow: ci.yml
+          branch: master
+          name: screenshot-baseline
+          path: web/screenshots/__baseline__
+          if_no_artifact_found: warn
+      - id: compare
+        name: compare
+        env:
+          HOME: /root
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = pull_request ]; then
+            pnpm screenshots || true
+            changed=$(node -e '
+              const r = require("./screenshots/__results__/report.json"), out = [];
+              const walk = (s) => { (s.suites ?? []).forEach(walk); (s.specs ?? []).forEach((t) => t.ok || out.push(t.title)); };
+              r.suites.forEach(walk);
+              console.log(JSON.stringify(out));')
+            echo "changed=$changed" >> "$GITHUB_OUTPUT"
+            echo "有变化的 story：$changed"
+          else
+            pnpm screenshots --update-snapshots=all
+            echo "changed=[]" >> "$GITHUB_OUTPUT"
+          fi
+      - if: github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshot-baseline
+          path: web/screenshots/__baseline__
+          retention-days: 90
+      - if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshot-diff
+          path: web/screenshots/__results__
+          if-no-files-found: ignore
+
+  # 应用镜像。PR（本仓库分支）推 pr-<号>，部署器据此起预览；master 推 latest，部署器上线正式站。
   docker:
     runs-on: ubuntu-latest
     needs: [rust, web, e2e]
     permissions:
       contents: read
       packages: write
+    env:
+      PUSH: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+      SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      TAG: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || 'latest' }}
     steps:
       - uses: actions/checkout@v5
       - uses: docker/setup-buildx-action@v3
-      - if: github.event_name == 'push'
+      - if: env.PUSH == 'true'
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -140,9 +217,45 @@ jobs:
       - uses: docker/build-push-action@v6
         with:
           context: .
-          push: ${{ github.event_name == 'push' }}
+          push: ${{ env.PUSH == 'true' }}
+          build-args: XENICA_COMMIT=${{ env.SHA }}
+          labels: org.opencontainers.image.revision=${{ env.SHA }}
           tags: |
-            ghcr.io/stlixx/xenica:latest
-            ghcr.io/stlixx/xenica:${{ github.sha }}
+            ghcr.io/stlixx/xenica:${{ env.TAG }}
+            ghcr.io/stlixx/xenica:${{ env.SHA }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  # 验收门：能撤回的改动直接合并；截图有变化或改动撤不回，等你评论 /通过。
+  gate:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    needs: [rust, web, e2e, screenshots, docker]
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      statuses: write
+      actions: write
+    steps:
+      - uses: actions/checkout@v5
+      - id: gate
+        uses: actions/github-script@v8
+        env:
+          CHANGED: ${{ needs.screenshots.outputs.changed }}
+        with:
+          script: |
+            const gate = require('./.github/scripts/gate.cjs');
+            await gate({ github, context, core, mode: 'ci', changed: JSON.parse(process.env.CHANGED || '[]') });
+      - name: 看板
+        if: steps.gate.outputs.issues != '[]'
+        continue-on-error: true
+        uses: actions/github-script@v8
+        env:
+          ISSUES: ${{ steps.gate.outputs.issues }}
+          STAGE: ${{ steps.gate.outputs.stage }}
+        with:
+          github-token: ${{ secrets.PROJECT_TOKEN }}
+          script: |
+            const project = require('./.github/scripts/project.cjs');
+            await project({ github, core, ...context.repo, contentIds: JSON.parse(process.env.ISSUES), stage: process.env.STAGE });

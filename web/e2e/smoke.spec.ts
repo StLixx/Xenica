@@ -36,3 +36,10 @@ test('create, rename, relate and find a node', async ({ page }) => {
   await page.keyboard.press('Enter');
   await expect(page.getByTestId('graph')).toContainText(b);
 });
+
+test('demo seed is visible', async ({ page }) => {
+  // CI 和预览站都用 XENICA_SEED=demo 启动（crates/server/fixtures/demo.json）
+  await page.goto('/');
+  await page.getByRole('tab', { name: '全部节点' }).click();
+  await expect(page.getByText('秦统一六国', { exact: true }).first()).toBeVisible();
+});

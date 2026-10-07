@@ -1,0 +1,16 @@
+name: 试样
+description: 做几个方案，看了再挑
+labels: [试样]
+body:
+  - type: textarea
+    id: question
+    attributes:
+      label: 要比较什么
+      description: 例如「节点类型标记：图标、色条、色点」。
+    validations:
+      required: true
+  - type: textarea
+    id: criteria
+    attributes:
+      label: 怎么挑
+      description: 你会看重什么，例如「统一感」「小尺寸下还能分辨」。

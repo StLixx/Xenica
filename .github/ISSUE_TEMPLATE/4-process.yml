@@ -1,0 +1,14 @@
+name: 流程
+description: 改开发流程本身
+labels: [流程]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: 现在哪里不顺
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 想怎么改
