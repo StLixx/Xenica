@@ -12,7 +12,7 @@ pub struct Health {
     pub commit: Option<String>,
 }
 
-/// 健康检查：数据库可用时返回 200。
+/// 健康检查：数据库可用时返回 200（#4 验收冒烟，可整 PR 回退）。
 #[utoipa::path(get, path = "/api/health", tag = "system",
     responses((status = 200, body = Health), (status = 500, body = crate::error::ErrorBody)))]
 pub async fn health(State(state): State<AppState>) -> Result<Json<Health>, ApiError> {
