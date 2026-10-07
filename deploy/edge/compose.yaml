@@ -1,4 +1,6 @@
 # 入口：Traefik 按域名分流到正式站和各个 PR 预览。只绑 Tailscale IP，公网经 hikari 进来。
+# ping 单独占 :8080（容器内，不对外映射）：`traefik healthcheck --ping` 探测的就是这个端口，
+# 挂在 web 入口上不但探不通，还会把 /ping 暴露到公网。
 #   docker compose --env-file ../.env up -d
 name: xenica-edge
 
@@ -11,8 +13,9 @@ services:
       - --providers.docker.exposedbydefault=false
       - --providers.docker.network=xenica-edge
       - --entrypoints.web.address=:80
+      - --entrypoints.ping.address=:8080
       - --ping=true
-      - --ping.entrypoint=web
+      - --ping.entrypoint=ping
     ports:
       - "${XENICA_BIND:-127.0.0.1}:${XENICA_PORT:-8080}:80"
     volumes:
