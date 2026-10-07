@@ -80,7 +80,7 @@ pnpm screenshots   # 先 pnpm build-storybook；基准以 CI 容器里 master �
 
 ## 配方
 
-**加接口**：照 `crates/server/src/routes/nodes.rs` 写 handler（带 `#[utoipa::path]`）→ 在 `lib.rs` 的 `api_router()` 注册 → 在 `crates/server/tests/api.rs` 加测试 → 重新生成前端类型：
+**加接口**：照 `crates/server/src/routes/nodes.rs` 写 handler（带 `#[utoipa::path]`；`/api` 默认要登录，写数据时用参数 `user: CurrentUser` 记痕迹，见 ADR 0007）→ 在 `lib.rs` 的 `api_router()` 注册 → 在 `crates/server/tests/api.rs` 加测试 → 重新生成前端类型：
 
 ```sh
 cargo run -p xenica-server -- openapi > web/src/api/openapi.json && pnpm -C web api
@@ -121,5 +121,7 @@ journalctl -u xenica-deployer -f                   # 看部署日志
 ```
 
 部署器只拉不推：ghcr 的 `latest` 变了就上线正式站，健康检查失败自动回滚并开缺陷 Issue（需要 `.env` 里的 `DEPLOYER_GITHUB_TOKEN`）；本仓库分支的每个打开的 PR 起一个预览，PR 关闭后连数据删掉。手动回滚：`XENICA_IMAGE=ghcr.io/stlixx/xenica:<commit> docker compose -p xenica --env-file .env up -d`。
+
+首次上线（库里没有账号）时，服务日志里有一次性设置码：`docker compose -p xenica logs app | grep 设置码`，打开网页用它创建账号。预览站用 `demo` / `demo` 登录。
 
 备份：`docker compose -p xenica exec db pg_dump -U xenica xenica > backup.sql`。

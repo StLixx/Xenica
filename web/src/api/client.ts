@@ -12,6 +12,8 @@ export type Trace = components['schemas']['Trace'];
 export type NewNode = components['schemas']['NewNode'];
 export type NodePatch = components['schemas']['NodePatch'];
 export type NewEdge = components['schemas']['NewEdge'];
+export type User = components['schemas']['User'];
+export type Session = components['schemas']['Session'];
 
 export const api = createClient<paths>({ baseUrl: '' });
 

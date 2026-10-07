@@ -1,12 +1,41 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
+
+// CI 和预览站都用 XENICA_SEED=demo 启动：有示例数据（crates/server/fixtures/demo.json）和示例账号 demo / demo。
+async function signIn(page: Page) {
+  await page.goto('/');
+  await expect(page.getByText('预览站示例账号：demo / demo')).toBeVisible();
+  await page.getByLabel('用户名').fill('demo');
+  await page.getByLabel('密码').fill('demo');
+  await page.getByRole('button', { name: '登录' }).click();
+  await expect(page.getByTestId('connection')).toContainText('已连接');
+}
+
+test('api and app require login', async ({ page, request }) => {
+  expect((await request.get('/api/nodes')).status()).toBe(401);
+  expect((await request.get('/api/health')).status()).toBe(200);
+
+  await page.goto('/');
+  await page.getByLabel('用户名').fill('demo');
+  await page.getByLabel('密码').fill('wrong');
+  await page.getByRole('button', { name: '登录' }).click();
+  await expect(page.getByRole('alert')).toContainText('用户名或密码不对');
+
+  await signIn(page);
+  await page.reload();
+  await expect(page.getByTestId('connection')).toContainText('已连接'); // 刷新后仍是登录状态
+
+  await page.keyboard.press('Control+k');
+  await page.getByLabel('命令', { exact: true }).fill('退出登录');
+  await page.keyboard.press('Enter');
+  await expect(page.getByRole('button', { name: '登录' })).toBeVisible();
+});
 
 test('create, rename, relate and find a node', async ({ page }) => {
   const stamp = Date.now().toString(36);
   const a = `秦统一六国 ${stamp}`;
   const b = `郡县制 ${stamp}`;
 
-  await page.goto('/');
-  await expect(page.getByTestId('connection')).toContainText('已连接');
+  await signIn(page);
 
   // 新建两个节点：列表里出现，并自动在新标签页打开
   const input = page.getByLabel('新建节点');
@@ -38,8 +67,7 @@ test('create, rename, relate and find a node', async ({ page }) => {
 });
 
 test('demo seed is visible', async ({ page }) => {
-  // CI 和预览站都用 XENICA_SEED=demo 启动（crates/server/fixtures/demo.json）
-  await page.goto('/');
+  await signIn(page);
   await page.getByRole('tab', { name: '全部节点' }).click();
   await expect(page.getByText('秦统一六国', { exact: true }).first()).toBeVisible();
 });

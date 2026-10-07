@@ -5,6 +5,7 @@ import { api, unwrap, type NewEdge, type NewNode, type NodePatch } from './clien
 
 export const keys = {
   health: ['health'] as const,
+  session: ['session'] as const,
   nodes: ['nodes'] as const,
   node: (id: string) => ['nodes', id] as const,
   traces: (id: string) => ['nodes', id, 'traces'] as const,
@@ -17,6 +18,43 @@ export function useHealth() {
     queryFn: async () => unwrap(await api.GET('/api/health')),
     refetchInterval: 15_000,
   });
+}
+
+/** 是否登录、是否需要首次设置。任何接口返回 401 时 App 会让它重新查询。 */
+export function useSession() {
+  return useQuery({
+    queryKey: keys.session,
+    queryFn: async () => unwrap(await api.GET('/api/auth/session')),
+    retry: false,
+  });
+}
+
+/** 登录、首次设置成功后：清掉旧缓存，重新查会话（界面随之切到工作台）。 */
+function useSignIn<T>(fn: (input: T) => Promise<unknown>) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: fn,
+    onSuccess: async () => {
+      qc.removeQueries({ predicate: (q) => q.queryKey[0] !== 'session' });
+      await qc.invalidateQueries({ queryKey: keys.session });
+    },
+  });
+}
+
+export function useLogin() {
+  return useSignIn(async (body: { name: string; password: string }) =>
+    unwrap(await api.POST('/api/auth/login', { body })),
+  );
+}
+
+export function useSetup() {
+  return useSignIn(async (body: { code: string; name: string; password: string }) =>
+    unwrap(await api.POST('/api/auth/setup', { body })),
+  );
+}
+
+export async function logout() {
+  unwrap(await api.POST('/api/auth/logout'));
 }
 
 export function useNodes() {
