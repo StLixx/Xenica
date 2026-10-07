@@ -4,6 +4,74 @@
  */
 
 export interface paths {
+  '/api/auth/login': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** 登录。同一用户名连续输错 5 次锁 15 分钟。 */
+    post: operations['login'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/auth/logout': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** 退出登录。没登录也返回 204。 */
+    post: operations['logout'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/auth/session': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** 当前会话（是否登录、是否需要首次设置）。 */
+    get: operations['session'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/auth/setup': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** 首次设置：库里还没有账号时，用设置码创建第一个账号并登录。 */
+    post: operations['setup'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/edges': {
     parameters: {
       query?: never;
@@ -117,6 +185,7 @@ export interface components {
     /** @description 谁做的。规则 2：AI 和处理器只提议，人裁决——所以永远要分得清是谁写的。 */
     Actor:
       | {
+          id?: components['schemas']['UserId'] | null;
           /** @enum {string} */
           type: 'user';
         }
@@ -143,7 +212,10 @@ export interface components {
     EdgeId: string;
     /** @description 所有接口统一的错误格式。 */
     ErrorBody: {
-      /** @description 机器可读：`invalid`、`not_found`、`conflict`、`internal`。 */
+      /**
+       * @description 机器可读：`invalid`、`unauthorized`（没登录）、`forbidden`、`not_found`、`conflict`、
+       *     `locked`（输错太多次）、`internal`。
+       */
       error: string;
       message: string;
     };
@@ -152,6 +224,10 @@ export interface components {
       commit?: string | null;
       status: string;
       version: string;
+    };
+    Login: {
+      name: string;
+      password: string;
     };
     NewEdge: {
       /** @description 省略时为 `related`。 */
@@ -189,6 +265,19 @@ export interface components {
       body?: Record<string, never> | null;
       title?: string | null;
     };
+    Session: {
+      /** @description 示例数据模式（预览站）：可以用 `demo` / `demo` 登录。 */
+      demo: boolean;
+      /** @description 还没有任何账号：界面显示「创建账号」，需要服务日志里的设置码。 */
+      setup_required: boolean;
+      user?: components['schemas']['User'] | null;
+    };
+    Setup: {
+      /** @description 服务启动时打印在日志里的一次性设置码。 */
+      code: string;
+      name: string;
+      password: string;
+    };
     /** @description 痕迹：只增不改的事件记录（数据库触发器保证不能改、不能删）。 */
     Trace: {
       /** @description 例如 `node.created`、`edge.deleted`。 */
@@ -209,6 +298,18 @@ export interface components {
      * @description 痕迹 ID。
      */
     TraceId: string;
+    /** @description 账号。密码哈希不在这里：它只存在 store 里，永远不出现在接口上（规则 9）。 */
+    User: {
+      /** Format: date-time */
+      created_at: string;
+      id: components['schemas']['UserId'];
+      name: string;
+    };
+    /**
+     * Format: uuid
+     * @description 账号 ID。
+     */
+    UserId: string;
   };
   responses: never;
   parameters: never;
@@ -218,6 +319,136 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+  login: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['Login'];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['User'];
+        };
+      };
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  logout: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  session: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Session'];
+        };
+      };
+    };
+  };
+  setup: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['Setup'];
+      };
+    };
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['User'];
+        };
+      };
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
   list_edges: {
     parameters: {
       query?: {

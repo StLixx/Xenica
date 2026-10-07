@@ -38,11 +38,21 @@ async fn serve() -> anyhow::Result<()> {
         let n =
             xenica_server::seed::seed_if_empty(&store, xenica_server::seed::fixture(name)?).await?;
         tracing::info!(seed = %name, nodes = n, "seed checked");
+        if name == "demo" && xenica_server::seed::ensure_demo_user(&store).await? {
+            tracing::info!("created demo user (demo / demo)");
+        }
+    }
+    let demo = config.seed.as_deref() == Some("demo");
+    let state = AppState::new(store, demo).await?;
+    if let Some(code) = state.auth.setup_code() {
+        tracing::warn!(
+            "还没有账号。打开网页，用设置码 {code} 创建第一个账号（只能用一次，重启后换新）"
+        );
     }
     if config.web_dist.is_none() {
         tracing::warn!("web assets not found; serving API only");
     }
-    let app = xenica_server::app(AppState { store }, config.web_dist.as_deref());
+    let app = xenica_server::app(state, config.web_dist.as_deref());
     let listener = tokio::net::TcpListener::bind(config.addr).await?;
     tracing::info!(addr = %config.addr, "xenica listening");
     axum::serve(listener, app)

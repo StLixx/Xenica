@@ -6,14 +6,15 @@
 //! 3. 重新生成前端类型：`cargo run -p xenica-server -- openapi > web/src/api/openapi.json`，
 //!    再 `pnpm -C web api`。CI 会检查有没有漏。
 
+pub mod auth;
 pub mod config;
 mod error;
 mod routes;
 pub mod seed;
 
-use std::path::Path;
+use std::{path::Path, sync::Arc};
 
-use axum::{Router, http::StatusCode};
+use axum::{Router, http::StatusCode, middleware};
 use tower_http::{
     services::{ServeDir, ServeFile},
     trace::TraceLayer,
@@ -22,23 +23,40 @@ use utoipa::OpenApi;
 use utoipa_axum::{router::OpenApiRouter, routes};
 use xenica_store::Store;
 
+pub use auth::Auth;
 pub use error::ApiError;
 
 #[derive(Clone)]
 pub struct AppState {
     pub store: Store,
+    pub auth: Arc<Auth>,
+}
+
+impl AppState {
+    /// 库里还没有账号时生成一次性设置码（`auth.setup_code()`），由调用方打印到日志。
+    pub async fn new(store: Store, demo: bool) -> Result<Self, xenica_store::StoreError> {
+        let code = (store.count_users().await? == 0).then(auth::new_setup_code);
+        Ok(Self {
+            store,
+            auth: Arc::new(Auth::new(code, demo)),
+        })
+    }
 }
 
 #[derive(OpenApi)]
 #[openapi(info(
     title = "Xenica API",
-    description = "Xenica 的 HTTP 接口。由代码生成，不要手改。"
+    description = "Xenica 的 HTTP 接口。由代码生成，不要手改。除 `/api/health` 和 `/api/auth/*` 外都要先登录（Cookie `xenica_session`）。"
 ))]
 struct ApiDoc;
 
 fn api_router() -> OpenApiRouter<AppState> {
     OpenApiRouter::with_openapi(ApiDoc::openapi())
         .routes(routes!(routes::health::health))
+        .routes(routes!(routes::auth::session))
+        .routes(routes!(routes::auth::login))
+        .routes(routes!(routes::auth::setup))
+        .routes(routes!(routes::auth::logout))
         .routes(routes!(
             routes::nodes::list_nodes,
             routes::nodes::create_node
@@ -62,6 +80,7 @@ pub fn openapi() -> utoipa::openapi::OpenApi {
 }
 
 /// 构建整个应用。`web_dist` 存在时托管前端，其余路径回落到 `index.html`。
+/// 鉴权中间件只包住 `/api`；静态文件不需要登录。
 pub fn app(state: AppState, web_dist: Option<&Path>) -> Router {
     let (api, _) = api_router().split_for_parts();
     let api = api
@@ -69,6 +88,7 @@ pub fn app(state: AppState, web_dist: Option<&Path>) -> Router {
             "/api/{*rest}",
             axum::routing::any(|| async { ApiError::not_found() }),
         )
+        .layer(middleware::from_fn_with_state(state.clone(), auth::guard))
         .with_state(state);
     let router = match web_dist {
         Some(dir) => api

@@ -7,9 +7,9 @@ use axum::{
 };
 use serde::Deserialize;
 use utoipa::IntoParams;
-use xenica_core::{Actor, NewNode, Node, NodeId, NodePatch, Trace};
+use xenica_core::{NewNode, Node, NodeId, NodePatch, Trace};
 
-use crate::{ApiError, AppState, error::ErrorBody};
+use crate::{ApiError, AppState, auth::CurrentUser, error::ErrorBody};
 
 #[derive(Deserialize, IntoParams)]
 #[into_params(parameter_in = Query)]
@@ -33,9 +33,10 @@ pub async fn list_nodes(
     responses((status = 201, body = Node), (status = 400, body = ErrorBody)))]
 pub async fn create_node(
     State(state): State<AppState>,
+    user: CurrentUser,
     Json(input): Json<NewNode>,
 ) -> Result<(StatusCode, Json<Node>), ApiError> {
-    let node = state.store.create_node(&Actor::User, input).await?;
+    let node = state.store.create_node(&user.actor(), input).await?;
     Ok((StatusCode::CREATED, Json(node)))
 }
 
@@ -56,11 +57,12 @@ pub async fn get_node(
     responses((status = 200, body = Node), (status = 400, body = ErrorBody), (status = 404, body = ErrorBody)))]
 pub async fn update_node(
     State(state): State<AppState>,
+    user: CurrentUser,
     Path(id): Path<NodeId>,
     Json(patch): Json<NodePatch>,
 ) -> Result<Json<Node>, ApiError> {
     Ok(Json(
-        state.store.update_node(&Actor::User, id, patch).await?,
+        state.store.update_node(&user.actor(), id, patch).await?,
     ))
 }
 
@@ -70,9 +72,10 @@ pub async fn update_node(
     responses((status = 204), (status = 404, body = ErrorBody)))]
 pub async fn delete_node(
     State(state): State<AppState>,
+    user: CurrentUser,
     Path(id): Path<NodeId>,
 ) -> Result<StatusCode, ApiError> {
-    state.store.delete_node(&Actor::User, id).await?;
+    state.store.delete_node(&user.actor(), id).await?;
     Ok(StatusCode::NO_CONTENT)
 }
 

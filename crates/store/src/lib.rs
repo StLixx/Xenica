@@ -5,6 +5,7 @@
 //! - 写：开事务 → 改数据 → `trace()` 记一条痕迹 → 提交。没有不写痕迹的写操作。
 //! - SQL 用 `sqlx::query!` 系列宏，编译期检查；改了 SQL 要运行 `cargo sqlx prepare --workspace`。
 
+mod auth;
 mod edges;
 mod error;
 mod nodes;

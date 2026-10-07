@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "delete from sessions where token_hash = $1 returning user_id",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "user_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "sessions",
+            "name": "user_id"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Bytea"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "1de688a06245c2526ecc84e4af6db65c9fd0a1beec80e8d3c138f4a1df90190b"
+}

@@ -40,6 +40,20 @@ pub fn fixture(name: &str) -> anyhow::Result<&'static str> {
     }
 }
 
+/// 示例账号 `demo` / `demo`（只在示例数据模式下创建；预览站登录用）。库里已有账号就不建，返回 false。
+pub async fn ensure_demo_user(store: &Store) -> anyhow::Result<bool> {
+    if store.count_users().await? > 0 {
+        return Ok(false);
+    }
+    let actor = Actor::Processor {
+        id: "seed".into(),
+        version: env!("CARGO_PKG_VERSION").into(),
+    };
+    let hash = crate::auth::hash_password("demo");
+    store.create_user(Some(&actor), "demo", &hash).await?;
+    Ok(true)
+}
+
 /// 库里还没有节点时导入，返回导入的节点数；已有数据就什么都不做，返回 0。
 pub async fn seed_if_empty(store: &Store, json: &str) -> anyhow::Result<usize> {
     if !store.list_nodes(1).await?.is_empty() {

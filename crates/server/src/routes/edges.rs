@@ -5,9 +5,9 @@ use axum::{
 };
 use serde::Deserialize;
 use utoipa::IntoParams;
-use xenica_core::{Actor, Edge, EdgeId, NewEdge, NodeId};
+use xenica_core::{Edge, EdgeId, NewEdge, NodeId};
 
-use crate::{ApiError, AppState, error::ErrorBody};
+use crate::{ApiError, AppState, auth::CurrentUser, error::ErrorBody};
 
 #[derive(Deserialize, IntoParams)]
 #[into_params(parameter_in = Query)]
@@ -39,9 +39,10 @@ pub async fn list_edges(
               (status = 404, body = ErrorBody), (status = 409, body = ErrorBody)))]
 pub async fn create_edge(
     State(state): State<AppState>,
+    user: CurrentUser,
     Json(input): Json<NewEdge>,
 ) -> Result<(StatusCode, Json<Edge>), ApiError> {
-    let edge = state.store.create_edge(&Actor::User, input).await?;
+    let edge = state.store.create_edge(&user.actor(), input).await?;
     Ok((StatusCode::CREATED, Json(edge)))
 }
 
@@ -51,8 +52,9 @@ pub async fn create_edge(
     responses((status = 204), (status = 404, body = ErrorBody)))]
 pub async fn delete_edge(
     State(state): State<AppState>,
+    user: CurrentUser,
     Path(id): Path<EdgeId>,
 ) -> Result<StatusCode, ApiError> {
-    state.store.delete_edge(&Actor::User, id).await?;
+    state.store.delete_edge(&user.actor(), id).await?;
     Ok(StatusCode::NO_CONTENT)
 }

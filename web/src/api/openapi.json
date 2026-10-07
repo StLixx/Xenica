@@ -2,13 +2,151 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Xenica API",
-    "description": "Xenica 的 HTTP 接口。由代码生成，不要手改。",
+    "description": "Xenica 的 HTTP 接口。由代码生成，不要手改。除 `/api/health` 和 `/api/auth/*` 外都要先登录（Cookie `xenica_session`）。",
     "license": {
       "name": ""
     },
     "version": "0.1.0"
   },
   "paths": {
+    "/api/auth/login": {
+      "post": {
+        "tags": ["auth"],
+        "summary": "登录。同一用户名连续输错 5 次锁 15 分钟。",
+        "operationId": "login",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Login"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/logout": {
+      "post": {
+        "tags": ["auth"],
+        "summary": "退出登录。没登录也返回 204。",
+        "operationId": "logout",
+        "responses": {
+          "204": {}
+        }
+      }
+    },
+    "/api/auth/session": {
+      "get": {
+        "tags": ["auth"],
+        "summary": "当前会话（是否登录、是否需要首次设置）。",
+        "operationId": "session",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Session"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/setup": {
+      "post": {
+        "tags": ["auth"],
+        "summary": "首次设置：库里还没有账号时，用设置码创建第一个账号并登录。",
+        "operationId": "setup",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Setup"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/edges": {
       "get": {
         "tags": ["edges"],
@@ -389,9 +527,19 @@
         "oneOf": [
           {
             "type": "object",
-            "description": "用户本人。",
+            "description": "某个账号。旧痕迹（鉴权之前写的）没有 `id`。",
             "required": ["type"],
             "properties": {
+              "id": {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/UserId"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
               "type": {
                 "type": "string",
                 "enum": ["user"]
@@ -454,7 +602,7 @@
         "properties": {
           "error": {
             "type": "string",
-            "description": "机器可读：`invalid`、`not_found`、`conflict`、`internal`。"
+            "description": "机器可读：`invalid`、`unauthorized`（没登录）、`forbidden`、`not_found`、`conflict`、\n`locked`（输错太多次）、`internal`。"
           },
           "message": {
             "type": "string"
@@ -473,6 +621,18 @@
             "type": "string"
           },
           "version": {
+            "type": "string"
+          }
+        }
+      },
+      "Login": {
+        "type": "object",
+        "required": ["name", "password"],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "password": {
             "type": "string"
           }
         }
@@ -556,6 +716,47 @@
           }
         }
       },
+      "Session": {
+        "type": "object",
+        "required": ["setup_required", "demo"],
+        "properties": {
+          "demo": {
+            "type": "boolean",
+            "description": "示例数据模式（预览站）：可以用 `demo` / `demo` 登录。"
+          },
+          "setup_required": {
+            "type": "boolean",
+            "description": "还没有任何账号：界面显示「创建账号」，需要服务日志里的设置码。"
+          },
+          "user": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/User",
+                "description": "当前登录的账号；没登录为空。"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      },
+      "Setup": {
+        "type": "object",
+        "required": ["code", "name", "password"],
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "服务启动时打印在日志里的一次性设置码。"
+          },
+          "name": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        }
+      },
       "Trace": {
         "type": "object",
         "description": "痕迹：只增不改的事件记录（数据库触发器保证不能改、不能删）。",
@@ -589,6 +790,28 @@
         "type": "string",
         "format": "uuid",
         "description": "痕迹 ID。"
+      },
+      "User": {
+        "type": "object",
+        "description": "账号。密码哈希不在这里：它只存在 store 里，永远不出现在接口上（规则 9）。",
+        "required": ["id", "name", "created_at"],
+        "properties": {
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "id": {
+            "$ref": "#/components/schemas/UserId"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "UserId": {
+        "type": "string",
+        "format": "uuid",
+        "description": "账号 ID。"
       }
     }
   }

@@ -11,7 +11,8 @@ use xenica_store::StoreError;
 /// 所有接口统一的错误格式。
 #[derive(Debug, Serialize, ToSchema)]
 pub struct ErrorBody {
-    /// 机器可读：`invalid`、`not_found`、`conflict`、`internal`。
+    /// 机器可读：`invalid`、`unauthorized`（没登录）、`forbidden`、`not_found`、`conflict`、
+    /// `locked`（输错太多次）、`internal`。
     pub error: &'static str,
     pub message: String,
 }
@@ -23,14 +24,42 @@ pub struct ApiError {
 }
 
 impl ApiError {
-    pub fn not_found() -> Self {
+    pub fn new(status: StatusCode, error: &'static str, message: impl Into<String>) -> Self {
         Self {
-            status: StatusCode::NOT_FOUND,
+            status,
             body: ErrorBody {
-                error: "not_found",
-                message: "not found".into(),
+                error,
+                message: message.into(),
             },
         }
+    }
+
+    pub fn not_found() -> Self {
+        Self::new(StatusCode::NOT_FOUND, "not_found", "not found")
+    }
+
+    pub fn unauthorized() -> Self {
+        Self::new(StatusCode::UNAUTHORIZED, "unauthorized", "请先登录")
+    }
+
+    pub fn forbidden(message: impl Into<String>) -> Self {
+        Self::new(StatusCode::FORBIDDEN, "forbidden", message)
+    }
+
+    pub fn locked(message: impl Into<String>) -> Self {
+        Self::new(StatusCode::TOO_MANY_REQUESTS, "locked", message)
+    }
+
+    pub fn internal() -> Self {
+        Self::new(
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "internal",
+            "internal error",
+        )
+    }
+
+    pub fn from_domain(err: DomainError) -> Self {
+        StoreError::Domain(err).into()
     }
 }
 

@@ -1,6 +1,8 @@
+import { useQueryClient } from '@tanstack/react-query';
 import type { DockviewApi } from 'dockview-react';
 import { useMemo, useRef, useState } from 'react';
 
+import { keys, logout } from '../api/queries';
 import { views } from '../views';
 import { WorkbenchContext, type ViewParams, type Workbench as WorkbenchApi } from './api';
 import { CommandPalette } from './CommandPalette';
@@ -35,7 +37,23 @@ export function Shell() {
     }),
     [],
   );
-  const commands = useMemo(() => collectCommands(views), []);
+  const qc = useQueryClient();
+  const commands = useMemo(
+    () => [
+      ...collectCommands(views),
+      {
+        id: 'auth.logout',
+        title: '退出登录',
+        keywords: ['logout', '登出', 'tuichu'],
+        run: async () => {
+          await logout();
+          qc.removeQueries({ predicate: (q) => q.queryKey[0] !== keys.session[0] });
+          await qc.invalidateQueries({ queryKey: keys.session });
+        },
+      },
+    ],
+    [qc],
+  );
 
   return (
     <WorkbenchContext value={wb}>

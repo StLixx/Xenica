@@ -49,3 +49,7 @@ id_type!(
     /// 痕迹 ID。
     TraceId
 );
+id_type!(
+    /// 账号 ID。
+    UserId
+);
