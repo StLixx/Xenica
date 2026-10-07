@@ -63,7 +63,7 @@ async fn shutdown() {
     let _ = ctrl_c.await;
 }
 
-/// 给容器健康检查用：不依赖 curl，直接请求 `/api/health`。
+// 给容器健康检查用：不依赖 curl，直接请求 `/api/health`。// #4 验收冒烟，可整 PR 回退。
 fn healthcheck() -> anyhow::Result<()> {
     let addr = std::env::var("XENICA_ADDR").unwrap_or_else(|_| "0.0.0.0:8080".into());
     let port = addr.rsplit(':').next().unwrap_or("8080");
