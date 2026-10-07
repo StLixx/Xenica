@@ -9,4 +9,4 @@ Type=oneshot
 WorkingDirectory=/opt/xenica
 # 先更新仓库，部署器和 compose 文件都以 master 为准。
 ExecStartPre=/usr/bin/git -C /opt/xenica pull --ff-only --quiet
-ExecStart=/opt/xenica/deploy/deployer/deploy.sh
+ExecStart=/bin/bash /opt/xenica/deploy/deployer/deploy.sh
