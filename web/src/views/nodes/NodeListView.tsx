@@ -42,9 +42,7 @@ export function NodeListView() {
           onChange={(e) => setTitle(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && submit()}
         />
-        {create.error && (
-          <div className="mt-1.5 text-[12px] text-danger">{create.error.message}</div>
-        )}
+        {create.error && <div className="mt-1.5 text-meta text-danger">{create.error.message}</div>}
       </div>
       <div className="min-h-0 flex-1 overflow-auto px-1.5 pb-3">
         {nodes.isPending ? (
@@ -60,11 +58,11 @@ export function NodeListView() {
                 <button
                   type="button"
                   onClick={() => wb.openView('node', { id: n.id })}
-                  className="flex h-(--x-row) w-full cursor-pointer items-center gap-2 rounded-sm px-1.5 text-left text-[14px] hover:bg-hover"
+                  className="flex h-(--x-row) w-full cursor-pointer items-center gap-2 rounded-sm px-1.5 text-left text-body hover:bg-hover"
                 >
                   <KindBadge kind={n.kind} />
                   <span className="min-w-0 flex-1 truncate">{n.title}</span>
-                  <span className="text-[12px] text-fg-3 tabular-nums">
+                  <span className="text-meta text-fg-3 tabular-nums">
                     {time.format(new Date(n.updated_at))}
                   </span>
                 </button>

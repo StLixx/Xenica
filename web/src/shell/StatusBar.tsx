@@ -4,7 +4,7 @@ export function StatusBar() {
   const health = useHealth();
   const ok = health.isSuccess;
   return (
-    <footer className="flex h-6 items-center gap-3 border-t border-line bg-side px-3 text-[12px] text-fg-3">
+    <footer className="flex h-6 items-center gap-3 border-t border-line bg-side px-3 text-meta text-fg-3">
       <span className="flex items-center gap-1.5" data-testid="connection">
         <span className={`size-1.5 rounded-full ${ok ? 'bg-accent' : 'bg-danger'}`} />
         {health.isPending

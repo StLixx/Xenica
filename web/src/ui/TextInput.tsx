@@ -10,7 +10,7 @@ export function TextInput({
       ref={ref}
       className={[
         'h-(--x-row) w-full rounded-sm bg-hover px-2.5 text-fg outline-none placeholder:text-fg-3',
-        'focus:bg-press focus-visible:outline-none focus:shadow-[0_0_0_1.5px_var(--color-accent)]',
+        'focus:bg-press focus-visible:outline-none focus:shadow-focus',
         className,
       ].join(' ')}
       {...rest}

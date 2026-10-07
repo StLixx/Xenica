@@ -20,7 +20,7 @@ type CardData = { title: string; kind: string };
 
 function Card({ data }: NodeProps<FlowNode<CardData>>) {
   return (
-    <div className="flex max-w-[220px] cursor-pointer items-center gap-2 rounded-md bg-raised px-2.5 py-1.5 text-[13px] text-fg hover:bg-pop">
+    <div className="flex max-w-55 cursor-pointer items-center gap-2 rounded-md bg-raised px-2.5 py-1.5 text-ui text-fg hover:bg-pop">
       <Handle type="target" position={Position.Left} className="!opacity-0" />
       <KindBadge kind={data.kind} />
       <span className="truncate">{data.title}</span>

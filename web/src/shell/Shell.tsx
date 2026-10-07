@@ -57,12 +57,14 @@ export function Shell() {
 
   return (
     <WorkbenchContext value={wb}>
-      <div className="grid h-full grid-cols-[auto_1fr] grid-rows-[1fr_auto]">
+      <div className="flex h-full">
         <Sidebar views={views} onOpenPalette={() => setPaletteOpen(true)} />
-        <main className="min-h-0 min-w-0">
-          <Workbench views={views} defaultView="nodes" onReady={(api) => (dock.current = api)} />
-        </main>
-        <StatusBar />
+        <div className="flex min-w-0 flex-1 flex-col">
+          <main className="min-h-0 flex-1">
+            <Workbench views={views} defaultView="nodes" onReady={(api) => (dock.current = api)} />
+          </main>
+          <StatusBar />
+        </div>
       </div>
       <CommandPalette
         open={paletteOpen}

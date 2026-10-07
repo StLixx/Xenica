@@ -72,7 +72,7 @@ pnpm screenshots   # 先 pnpm build-storybook；基准以 CI 容器里 master �
 
 写代码时的约束：
 
-- 只做暗色。颜色只用 `web/src/ui/theme.css` 里的变量（lint 禁止写死十六进制颜色）。
+- 只做暗色。颜色、字号、圆角、阴影、时长只用 `web/src/ui/theme.css` 的刻度（总览见 story「底座/设计变量」）；lint 禁止写死颜色、任意值 `text-[12px]` 和刻度外的类名 `text-sm`。可交互的一行用类名 `item`。
 - 写入一律经过 `Store`，它负责记痕迹；不要绕过它直接写表。
 - 改表只加新迁移，不改已有迁移。改了 SQL 要更新 `.sqlx/`（见下）。
 - 不写大段说明文档。理由写进 ADR，一条决策一个文件，短。

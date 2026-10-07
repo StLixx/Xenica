@@ -45,7 +45,7 @@ export function NodeView({ params, setTitle }: ViewProps<{ id: string }>) {
 
   return (
     <div className="h-full overflow-auto">
-      <article className="mx-auto max-w-[720px] px-8 pt-6 pb-16 font-(--x-font-doc)">
+      <article className="mx-auto max-w-(--x-doc) px-8 pt-6 pb-16 font-(--x-font-doc)">
         <div className="flex items-center gap-3">
           <KindBadge kind={n.kind} size="lg" />
           <input
@@ -57,10 +57,10 @@ export function NodeView({ params, setTitle }: ViewProps<{ id: string }>) {
               if (e.key === 'Enter') e.currentTarget.blur();
               if (e.key === 'Escape') setDraft(null);
             }}
-            className="min-w-0 flex-1 bg-transparent text-[28px] leading-tight font-bold outline-none focus-visible:outline-none"
+            className="min-w-0 flex-1 bg-transparent text-display outline-none focus-visible:outline-none"
           />
         </div>
-        <div className="mt-2 mb-6 flex flex-wrap gap-x-5 gap-y-1 text-[13px] text-fg-3">
+        <div className="mt-2 mb-6 flex flex-wrap gap-x-5 gap-y-1 text-ui text-fg-3">
           <span>
             类型<b className="ml-1.5 font-normal text-fg-2">{kindInfo(n.kind).label}</b>
           </span>
@@ -74,7 +74,7 @@ export function NodeView({ params, setTitle }: ViewProps<{ id: string }>) {
         <Traces id={n.id} />
         <div className="mt-10">
           {confirming ? (
-            <span className="flex items-center gap-2 text-[13px] text-fg-3">
+            <span className="flex items-center gap-2 text-ui text-fg-3">
               关系也会一起删除，痕迹保留。
               <Button
                 variant="danger"
@@ -111,14 +111,14 @@ function Relations({ id }: { id: string }) {
 
   return (
     <section aria-label="关系">
-      <h3 className="mt-6 mb-2 text-[12px] font-semibold text-fg-3">关系</h3>
+      <h3 className="mt-6 mb-2 text-label text-fg-3">关系</h3>
       <ul>
         {(edges.data ?? []).map((e) => {
           const otherId = e.source === id ? e.target : e.source;
           const other = byId.get(otherId);
           return (
-            <li key={e.id} className="group flex h-(--x-row) items-center gap-2 text-[14px]">
-              <span className="w-10 text-[12px] text-fg-3">
+            <li key={e.id} className="group flex h-(--x-row) items-center gap-2 text-body">
+              <span className="w-10 text-meta text-fg-3">
                 {e.source === id ? edgeLabel(e.kind) : `← ${edgeLabel(e.kind)}`}
               </span>
               <button
@@ -147,7 +147,7 @@ function Relations({ id }: { id: string }) {
             aria-label="关联到"
             value={target}
             onChange={(e) => setTarget(e.target.value)}
-            className="h-7 max-w-64 rounded-sm bg-hover px-2 text-[13px] text-fg-2 outline-none"
+            className="h-7 max-w-64 rounded-sm bg-hover px-2 text-ui text-fg-2 outline-none"
           >
             <option value="">关联到…</option>
             {others.map((n) => (
@@ -164,7 +164,7 @@ function Relations({ id }: { id: string }) {
           >
             添加关系
           </Button>
-          {create.error && <span className="text-[12px] text-danger">{create.error.message}</span>}
+          {create.error && <span className="text-meta text-danger">{create.error.message}</span>}
         </div>
       )}
     </section>
@@ -175,8 +175,8 @@ function Traces({ id }: { id: string }) {
   const traces = useTraces(id);
   return (
     <section aria-label="痕迹">
-      <h3 className="mt-8 mb-2 text-[12px] font-semibold text-fg-3">痕迹</h3>
-      <ul className="text-[13px] text-fg-2">
+      <h3 className="mt-8 mb-2 text-label text-fg-3">痕迹</h3>
+      <ul className="text-ui text-fg-2">
         {(traces.data ?? []).map((t) => (
           <li key={t.id} className="flex gap-3 py-0.5">
             <span className="w-28 text-fg-3 tabular-nums">{time.format(new Date(t.at))}</span>

@@ -14,18 +14,17 @@ export function Sidebar({ views, onOpenPalette }: { views: AnyView[]; onOpenPale
     localStorage.setItem(FOLD_KEY, folded ? '0' : '1');
     setFolded(!folded);
   };
-  const item =
-    'flex h-(--x-row) w-full cursor-pointer items-center gap-2 rounded-sm px-2 text-[14px] whitespace-nowrap text-fg-2 hover:bg-hover hover:text-fg';
+  const item = 'item w-full text-body';
 
   return (
     <nav
       aria-label="侧栏"
-      className={`row-span-2 flex flex-col gap-0.5 overflow-hidden bg-side px-2 py-2.5 transition-[width] duration-200 ${folded ? 'w-[52px]' : 'w-[232px]'}`}
+      className={`flex flex-none flex-col gap-0.5 overflow-hidden bg-side px-2 py-2.5 transition-all duration-base ${folded ? 'w-(--x-rail)' : 'w-(--x-sidebar)'}`}
     >
       <div
         className={`flex items-center gap-2 px-1.5 pb-2 font-semibold ${folded ? 'flex-col' : ''}`}
       >
-        <span className="grid size-[22px] flex-none place-items-center rounded-sm bg-accent text-[13px] font-bold text-on-accent">
+        <span className="grid size-5.5 flex-none place-items-center rounded-sm bg-accent text-ui font-bold text-on-accent">
           X
         </span>
         {!folded && <span>Xenica</span>}
@@ -42,11 +41,11 @@ export function Sidebar({ views, onOpenPalette }: { views: AnyView[]; onOpenPale
         <Search size={16} className="flex-none" />
         {!folded && (
           <>
-            搜索或命令<span className="ml-auto text-[12px] text-fg-3">Ctrl K</span>
+            搜索或命令<span className="ml-auto text-meta text-fg-3">Ctrl K</span>
           </>
         )}
       </button>
-      {!folded && <div className="px-2 pt-3.5 pb-1 text-[12px] font-medium text-fg-3">视图</div>}
+      {!folded && <div className="px-2 pt-3.5 pb-1 text-label text-fg-3">视图</div>}
       {views
         .filter((v) => v.sidebar)
         .map((v) => (

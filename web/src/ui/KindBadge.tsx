@@ -13,9 +13,9 @@ export function KindBadge({ kind, size = 'sm' }: { kind: string; size?: 'sm' | '
       title={label}
       style={style}
       className={[
-        'inline-grid flex-none place-items-center rounded-[5px] leading-none font-semibold',
-        'bg-[color-mix(in_srgb,var(--h)_18%,transparent)] text-(--h)',
-        size === 'sm' ? 'size-[18px] text-[11px]' : 'size-[30px] rounded-md text-[16px]',
+        'inline-grid flex-none place-items-center rounded-sm leading-none font-semibold',
+        'bg-kind-soft text-(--h)',
+        size === 'sm' ? 'size-4.5 text-meta' : 'size-7.5 rounded-md text-strong',
       ].join(' ')}
     >
       {mark}

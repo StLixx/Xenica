@@ -41,9 +41,9 @@ export function SignIn({
         aria-label={setup ? '创建账号' : '登录'}
         className="flex w-80 max-w-full flex-col gap-3 rounded-lg bg-raised p-6 shadow-pop"
       >
-        <h1 className="text-lg font-semibold text-fg">{setup ? '创建账号' : '登录 Xenica'}</h1>
+        <h1 className="text-heading text-fg">{setup ? '创建账号' : '登录 Xenica'}</h1>
         {setup && (
-          <p className="text-sm text-fg-3">还没有账号。设置码打印在服务日志里，只能用一次。</p>
+          <p className="text-ui text-fg-3">还没有账号。设置码打印在服务日志里，只能用一次。</p>
         )}
         {setup && (
           <TextInput
@@ -71,14 +71,14 @@ export function SignIn({
           {...field('password')}
         />
         {error && (
-          <p role="alert" className="text-sm text-danger">
+          <p role="alert" className="text-ui text-danger">
             {error}
           </p>
         )}
         <Button type="submit" variant="primary" disabled={pending} className="justify-center">
           {pending ? '请稍候…' : setup ? '创建并登录' : '登录'}
         </Button>
-        {demo && !setup && <p className="text-sm text-fg-3">预览站示例账号：demo / demo</p>}
+        {demo && !setup && <p className="text-ui text-fg-3">预览站示例账号：demo / demo</p>}
       </form>
     </main>
   );

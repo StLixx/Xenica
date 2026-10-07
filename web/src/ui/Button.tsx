@@ -23,7 +23,7 @@ export function Button({
     <button
       type={type}
       className={[
-        'inline-flex h-7 cursor-pointer items-center gap-1.5 rounded-sm px-2.5 text-[13px] whitespace-nowrap transition-colors',
+        'inline-flex h-7 cursor-pointer items-center gap-1.5 rounded-sm px-2.5 text-ui whitespace-nowrap transition-colors',
         'disabled:cursor-default disabled:opacity-50',
         VARIANTS[variant],
         className,
