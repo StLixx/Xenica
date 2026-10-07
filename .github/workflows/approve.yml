@@ -1,0 +1,45 @@
+name: approve
+
+# 你在 PR 里评论 /通过 = 验收通过。只认仓库所有者。
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  statuses: write
+  actions: write
+
+jobs:
+  approve:
+    if: >-
+      github.event.issue.pull_request &&
+      startsWith(github.event.comment.body, '/通过') &&
+      github.event.comment.user.login == github.repository_owner
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/github-script@v8
+        with:
+          script: |
+            await github.rest.reactions.createForIssueComment({ ...context.repo, comment_id: context.payload.comment.id, content: '+1' });
+      - id: gate
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const gate = require('./.github/scripts/gate.cjs');
+            await gate({ github, context, core, mode: 'approve' });
+      - name: 看板
+        if: steps.gate.outputs.issues != '[]'
+        continue-on-error: true
+        uses: actions/github-script@v8
+        env:
+          ISSUES: ${{ steps.gate.outputs.issues }}
+          STAGE: ${{ steps.gate.outputs.stage }}
+        with:
+          github-token: ${{ secrets.PROJECT_TOKEN }}
+          script: |
+            const project = require('./.github/scripts/project.cjs');
+            await project({ github, core, ...context.repo, contentIds: JSON.parse(process.env.ISSUES), stage: process.env.STAGE });

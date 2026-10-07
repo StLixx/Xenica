@@ -4,3 +4,5 @@ storybook-static
 test-results
 playwright-report
 *.tsbuildinfo
+screenshots/__baseline__
+screenshots/__results__

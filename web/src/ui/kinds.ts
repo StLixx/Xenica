@@ -8,10 +8,23 @@ export const KINDS: Record<string, { mark: string; label: string }> = {
   podcast: { mark: '播', label: '播客' },
   embed: { mark: '嵌', label: '嵌入' },
   task: { mark: '务', label: '任务' },
+  goal: { mark: '标', label: '目标' },
+  area: { mark: '域', label: '领域' },
+  tool: { mark: '件', label: '工具' },
+  setting: { mark: '设', label: '设置' },
+  log: { mark: '迹', label: '记录' },
 };
 
 /** 关系类型的显示名。 */
-export const EDGE_KINDS: Record<string, string> = { related: '相关' };
+export const EDGE_KINDS: Record<string, string> = {
+  related: '相关',
+  part_of: '属于',
+  mentions: '讲到',
+  tests: '考查',
+  cites: '引用',
+  serves: '服务于',
+  derived: '派生',
+};
 
 export function edgeLabel(kind: string) {
   return EDGE_KINDS[kind] ?? kind;

@@ -8,6 +8,8 @@ pub struct Config {
     pub database_url: String,
     pub addr: SocketAddr,
     pub web_dist: Option<PathBuf>,
+    /// 空库时导入的示例数据名（`XENICA_SEED`），例如 `demo`。
+    pub seed: Option<String>,
 }
 
 pub const DEFAULT_ADDR: &str = "0.0.0.0:8080";
@@ -23,10 +25,12 @@ impl Config {
             .map(PathBuf::from)
             .or_else(|| Some(PathBuf::from("web/dist")))
             .filter(|p| p.join("index.html").is_file());
+        let seed = std::env::var("XENICA_SEED").ok().filter(|s| !s.is_empty());
         Ok(Self {
             database_url,
             addr,
             web_dist,
+            seed,
         })
     }
 }

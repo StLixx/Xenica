@@ -8,6 +8,8 @@ use crate::{ApiError, AppState};
 pub struct Health {
     pub status: &'static str,
     pub version: &'static str,
+    /// 构建时的 git commit（镜像里由 CI 写入 `XENICA_COMMIT`），本地开发时为空。
+    pub commit: Option<String>,
 }
 
 /// 健康检查：数据库可用时返回 200。
@@ -18,5 +20,8 @@ pub async fn health(State(state): State<AppState>) -> Result<Json<Health>, ApiEr
     Ok(Json(Health {
         status: "ok",
         version: env!("CARGO_PKG_VERSION"),
+        commit: std::env::var("XENICA_COMMIT")
+            .ok()
+            .filter(|c| !c.is_empty()),
     }))
 }

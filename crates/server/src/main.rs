@@ -34,6 +34,11 @@ async fn serve() -> anyhow::Result<()> {
         .await
         .context("cannot connect to database")?;
     store.migrate().await.context("migration failed")?;
+    if let Some(name) = &config.seed {
+        let n =
+            xenica_server::seed::seed_if_empty(&store, xenica_server::seed::fixture(name)?).await?;
+        tracing::info!(seed = %name, nodes = n, "seed checked");
+    }
     if config.web_dist.is_none() {
         tracing::warn!("web assets not found; serving API only");
     }

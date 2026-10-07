@@ -128,3 +128,19 @@ async fn unknown_api_path_is_json_404(pool: PgPool) {
     assert_eq!(status, StatusCode::NOT_FOUND);
     assert_eq!(err["error"], "not_found");
 }
+
+#[sqlx::test(migrator = "xenica_store::MIGRATOR")]
+async fn demo_seed_loads_once(pool: PgPool) {
+    let store = Store::new(pool.clone());
+    let n = xenica_server::seed::seed_if_empty(&store, xenica_server::seed::DEMO)
+        .await
+        .unwrap();
+    assert!(n > 20, "demo seed should have a real graph, got {n}");
+    // 第二次不重复导入
+    let again = xenica_server::seed::seed_if_empty(&store, xenica_server::seed::DEMO)
+        .await
+        .unwrap();
+    assert_eq!(again, 0);
+    let (_, edges) = call(&app(pool), "GET", "/api/edges", None).await;
+    assert!(edges.as_array().unwrap().len() > 20);
+}

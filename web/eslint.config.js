@@ -11,12 +11,15 @@ export default tseslint.config(
       'test-results',
       'playwright-report',
       'src/api/schema.d.ts',
+      'screenshots/__baseline__',
+      'screenshots/__results__',
     ],
   },
   js.configs.recommended,
   ...tseslint.configs.strict,
   reactHooks.configs.flat.recommended,
   { files: ['*.cjs'], languageOptions: { globals: globals.node, sourceType: 'commonjs' } },
+  { files: ['screenshots/*.mjs'], languageOptions: { globals: globals.node } },
   {
     languageOptions: { globals: globals.browser },
     rules: {

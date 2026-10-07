@@ -3,3 +3,5 @@ storybook-static
 pnpm-lock.yaml
 test-results
 playwright-report
+screenshots/__baseline__
+screenshots/__results__

@@ -7,7 +7,8 @@ RUN npm install -g pnpm@12.9.1
 COPY web/package.json web/pnpm-lock.yaml web/pnpm-workspace.yaml ./
 RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store pnpm install --frozen-lockfile
 COPY web/ ./
-RUN pnpm build
+# 前端 + Storybook（预览站的 /storybook/ 用它看每个组件）
+RUN pnpm build && pnpm build-storybook --quiet && mv storybook-static dist/storybook
 
 FROM rust:1.99-slim-trixie AS server
 WORKDIR /src
@@ -26,8 +27,11 @@ LABEL org.opencontainers.image.source="https://github.com/StLixx/Xenica"
 WORKDIR /app
 COPY --from=server /usr/local/bin/xenica /app/xenica
 COPY --from=web /src/web/dist /app/web
+# CI 传入构建的 commit，界面和 /api/health 会显示它。
+ARG XENICA_COMMIT=
 ENV XENICA_ADDR=0.0.0.0:8080 \
     XENICA_WEB_DIST=/app/web \
+    XENICA_COMMIT=$XENICA_COMMIT \
     RUST_LOG=info
 EXPOSE 8080
 HEALTHCHECK --interval=10s --timeout=5s --start-period=10s --retries=3 CMD ["/app/xenica", "healthcheck"]

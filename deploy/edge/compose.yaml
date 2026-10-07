@@ -1,0 +1,30 @@
+# 入口：Traefik 按域名分流到正式站和各个 PR 预览。只绑 Tailscale IP，公网经 hikari 进来。
+#   docker compose --env-file ../.env up -d
+name: xenica-edge
+
+services:
+  traefik:
+    image: traefik:v3
+    restart: unless-stopped
+    command:
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --providers.docker.network=xenica-edge
+      - --entrypoints.web.address=:80
+      - --ping=true
+      - --ping.entrypoint=web
+    ports:
+      - "${XENICA_BIND:-127.0.0.1}:${XENICA_PORT:-8080}:80"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks: [edge]
+    healthcheck:
+      test: ["CMD", "traefik", "healthcheck", "--ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+networks:
+  edge:
+    name: xenica-edge
+    external: true # docker network create xenica-edge（部署器会自动建）
