@@ -5,7 +5,7 @@ use std::collections::HashMap;
 
 use anyhow::{Context, bail};
 use serde::Deserialize;
-use xenica_core::{Actor, NewEdge, NewNode};
+use xenica_core::{Actor, NewChildren, NewEdge, NewNode};
 use xenica_store::Store;
 
 pub const DEMO: &str = include_str!("../fixtures/demo.json");
@@ -13,16 +13,23 @@ pub const DEMO: &str = include_str!("../fixtures/demo.json");
 #[derive(Deserialize)]
 struct Fixture {
     nodes: Vec<FixtureNode>,
+    #[serde(default)]
     edges: Vec<FixtureEdge>,
 }
 
 #[derive(Deserialize)]
 struct FixtureNode {
     key: String,
-    kind: String,
-    title: String,
     #[serde(default)]
-    body: Option<serde_json::Value>,
+    kind: Option<String>,
+    #[serde(default)]
+    title: String,
+    /// 正文 Markdown（`body.md` 的简写）。
+    #[serde(default)]
+    md: Option<String>,
+    /// 放进哪个节点（按出现顺序排在最后）。
+    #[serde(default)]
+    parent: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -66,17 +73,35 @@ pub async fn seed_if_empty(store: &Store, json: &str) -> anyhow::Result<usize> {
     };
     let mut ids = HashMap::new();
     for n in &fixture.nodes {
-        let node = store
-            .create_node(
-                &actor,
-                NewNode {
-                    kind: Some(n.kind.clone()),
-                    title: n.title.clone(),
-                    body: n.body.clone(),
-                },
-            )
-            .await
-            .with_context(|| format!("seed node {}", n.key))?;
+        let input = NewNode {
+            id: None,
+            kind: n.kind.clone(),
+            title: n.title.clone(),
+            body: n.md.as_ref().map(|md| serde_json::json!({ "md": md })),
+        };
+        let node = match &n.parent {
+            Some(p) => {
+                let parent = *ids
+                    .get(p.as_str())
+                    .with_context(|| format!("seed node {} has unknown parent {p}", n.key))?;
+                let mut created = store
+                    .create_children(
+                        &actor,
+                        parent,
+                        NewChildren {
+                            index: None,
+                            nodes: vec![input],
+                        },
+                    )
+                    .await
+                    .with_context(|| format!("seed node {}", n.key))?;
+                created.remove(0)
+            }
+            None => store
+                .create_node(&actor, input)
+                .await
+                .with_context(|| format!("seed node {}", n.key))?,
+        };
         if ids.insert(n.key.as_str(), node.id).is_some() {
             bail!("duplicate seed key {}", n.key);
         }

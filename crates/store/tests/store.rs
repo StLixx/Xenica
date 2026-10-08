@@ -5,6 +5,7 @@ const ME: Actor = Actor::User { id: None };
 
 fn node(title: &str) -> NewNode {
     NewNode {
+        id: None,
         kind: None,
         title: title.into(),
         body: None,

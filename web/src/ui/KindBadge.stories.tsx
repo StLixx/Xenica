@@ -20,7 +20,7 @@ export const AllKinds: Story = {
         <div key={kind} className="flex items-center gap-2 text-fg-2">
           <KindBadge kind={kind} />
           {label}
-          <span className="font-mono text-[12px] text-fg-3">{kind}</span>
+          <span className="font-mono text-meta text-fg-3">{kind}</span>
         </div>
       ))}
     </div>

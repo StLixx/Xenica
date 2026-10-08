@@ -107,6 +107,40 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/files': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** 上传图片（请求体就是文件本身，`Content-Type` 写图片类型）。内容相同的文件只存一份。 */
+    post: operations['upload_file'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/files/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** 读取文件。 */
+    get: operations['get_file'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/health': {
     parameters: {
       query?: never;
@@ -159,6 +193,25 @@ export interface paths {
     head?: never;
     /** 修改节点（只改给出的字段）。 */
     patch: operations['update_node'];
+    trace?: never;
+  };
+  '/api/nodes/{id}/children': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** 按顺序列出子节点（一页里的各块）。 */
+    get: operations['list_children'];
+    /** 重排子节点：给出现有子节点的新顺序。 */
+    put: operations['reorder_children'];
+    /** 在指定位置插入一个或多个新的子节点，返回新建的节点。 */
+    post: operations['create_children'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
     trace?: never;
   };
   '/api/nodes/{id}/traces': {
@@ -219,6 +272,12 @@ export interface components {
       error: string;
       message: string;
     };
+    FileRef: {
+      /** Format: uuid */
+      id: string;
+      /** @description 在 Markdown 里引用用的地址，例如 `![](/api/files/…)`。 */
+      url: string;
+    };
     Health: {
       /** @description 构建时的 git commit（镜像里由 CI 写入 `XENICA_COMMIT`），本地开发时为空。 */
       commit?: string | null;
@@ -229,6 +288,15 @@ export interface components {
       name: string;
       password: string;
     };
+    /** @description 在某个节点里按顺序插入新的子节点（一次可以插多个，例如粘贴一整段笔记）。 */
+    NewChildren: {
+      /**
+       * Format: int32
+       * @description 插到第几个位置（从 0 开始）；省略时放到最后。
+       */
+      index?: number | null;
+      nodes: components['schemas']['NewNode'][];
+    };
     NewEdge: {
       /** @description 省略时为 `related`。 */
       kind?: string | null;
@@ -237,10 +305,17 @@ export interface components {
     };
     /** @description 新建节点的输入。 */
     NewNode: {
+      /** @description 约定：文字内容放在 `md`（Markdown），其中的 `#标记` 和 `[[名字]]` 会自动连到同名节点。 */
       body?: Record<string, never> | null;
+      /**
+       * Format: uuid
+       * @description 客户端可以自己生成 ID（UUID v7），这样不用等服务器就能接着编辑。省略时由服务器生成。
+       */
+      id?: string | null;
       /** @description 省略时为 `note`。 */
       kind?: string | null;
-      title: string;
+      /** @description 可省略。 */
+      title?: string;
     };
     /** @description 节点：一切有身份的东西（知识点、文件、任务、设置……）。 */
     Node: {
@@ -251,6 +326,7 @@ export interface components {
       id: components['schemas']['NodeId'];
       /** @description 类型键，例如 `note`。以后类型本身也会成为节点，这里先用字符串。 */
       kind: string;
+      /** @description 可以为空：没有标题时界面用正文第一行代替。 */
       title: string;
       /** Format: date-time */
       updated_at: string;
@@ -547,6 +623,66 @@ export interface operations {
       };
     };
   };
+  upload_file: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'image/*': number[];
+      };
+    };
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['FileRef'];
+        };
+      };
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  get_file: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'image/*': number[];
+        };
+      };
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
   health: {
     parameters: {
       query?: never;
@@ -704,6 +840,107 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['Node'];
+        };
+      };
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  list_children: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Node'][];
+        };
+      };
+    };
+  };
+  reorder_children: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': string[];
+      };
+    };
+    responses: {
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  create_children: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['NewChildren'];
+      };
+    };
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Node'][];
         };
       };
       400: {

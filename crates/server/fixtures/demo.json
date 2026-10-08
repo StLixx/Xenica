@@ -1,416 +1,68 @@
 {
   "nodes": [
     {
-      "key": "goal_teach",
-      "kind": "goal",
-      "title": "成为能把知识讲清楚的人"
+      "key": "lec",
+      "title": "高数 · 不定积分（第 3 讲）"
     },
     {
-      "key": "goal_xenica",
-      "kind": "goal",
-      "title": "Xenica · make it work"
+      "key": "lec_0",
+      "parent": "lec",
+      "md": "第一遍听课：重要的地方截图粘进来，时间点随手记，之后再整理。"
     },
     {
-      "key": "area_history",
-      "kind": "area",
-      "title": "历史"
+      "key": "lec_1",
+      "parent": "lec",
+      "md": "## 基本积分公式"
     },
     {
-      "key": "area_math",
-      "kind": "area",
-      "title": "数学"
+      "key": "lec_2",
+      "parent": "lec",
+      "md": "$$\\int x^\\mu\\,dx = \\frac{x^{\\mu+1}}{\\mu+1} + C \\quad (\\mu \\ne -1)$$ #必备 #积分公式"
     },
     {
-      "key": "area_tools",
-      "kind": "area",
-      "title": "工具与配置"
+      "key": "lec_3",
+      "parent": "lec",
+      "md": "$$\\int \\frac{1}{x}\\,dx = \\ln|x| + C$$ #必备 #积分公式"
     },
     {
-      "key": "area_body",
-      "kind": "area",
-      "title": "身体与运动"
+      "key": "lec_4",
+      "parent": "lec",
+      "md": "$$\\int \\sec^2 x\\,dx = \\tan x + C$$ #必备 #积分公式"
     },
     {
-      "key": "qin",
-      "kind": "knowledge",
-      "title": "秦统一六国"
+      "key": "lec_5",
+      "parent": "lec",
+      "md": "$$\\int \\sec x\\,dx = \\ln|\\sec x + \\tan x| + C$$ #考前背 #积分公式"
     },
     {
-      "key": "junxian",
-      "kind": "knowledge",
-      "title": "郡县制"
+      "key": "lec_6",
+      "parent": "lec",
+      "md": "$$\\int \\frac{dx}{a^2+x^2} = \\frac{1}{a}\\arctan\\frac{x}{a} + C$$ #考前背 #积分公式"
     },
     {
-      "key": "shangyang",
-      "kind": "knowledge",
-      "title": "商鞅变法"
+      "key": "lec_7",
+      "parent": "lec",
+      "md": "$$\\int \\frac{dx}{\\sqrt{a^2-x^2}} = \\arcsin\\frac{x}{a} + C$$ #考前背 #积分公式"
     },
     {
-      "key": "changping",
-      "kind": "knowledge",
-      "title": "长平之战"
+      "key": "lec_8",
+      "parent": "lec",
+      "md": "## 常见极限处理"
     },
     {
-      "key": "hancheng",
-      "kind": "knowledge",
-      "title": "汉承秦制"
+      "key": "lec_9",
+      "parent": "lec",
+      "md": "**等价无穷小替换**：$x\\to 0$ 时 $\\sin x \\sim \\tan x \\sim \\ln(1+x) \\sim e^x-1 \\sim x$。只能在乘除里换，加减里不能直接换。 #必备 #极限方法"
     },
     {
-      "key": "book_hist",
-      "kind": "book",
-      "title": "必修上 · 第 3 课"
+      "key": "lec_10",
+      "parent": "lec",
+      "md": "**$1^\\infty$ 型**：$\\lim u^v = e^{\\lim v(u-1)}$。触发特征：底数趋于 1、指数趋于无穷。 #极限方法"
     },
     {
-      "key": "video_hist",
-      "kind": "video",
-      "title": "第 3 讲 · 战国到秦"
-    },
-    {
-      "key": "pod_hist",
-      "kind": "podcast",
-      "title": "读史播客 第 42 期"
-    },
-    {
-      "key": "q2024",
-      "kind": "question",
-      "title": "2024 某卷 第 5 题",
-      "body": {
-        "note": "做错 1 次"
-      }
-    },
-    {
-      "key": "prep_qin",
-      "kind": "task",
-      "title": "备课：秦统一六国",
-      "body": {
-        "note": "45 分钟"
-      }
-    },
-    {
-      "key": "eigen",
-      "kind": "knowledge",
-      "title": "特征值与特征向量"
-    },
-    {
-      "key": "fourier",
-      "kind": "knowledge",
-      "title": "傅里叶变换"
-    },
-    {
-      "key": "group",
-      "kind": "knowledge",
-      "title": "群论"
-    },
-    {
-      "key": "v3b1b",
-      "kind": "video",
-      "title": "3Blue1Brown · 特征向量"
-    },
-    {
-      "key": "q_la",
-      "kind": "question",
-      "title": "线代习题 4.2"
-    },
-    {
-      "key": "pg",
-      "kind": "tool",
-      "title": "PostgreSQL 18"
-    },
-    {
-      "key": "gh",
-      "kind": "tool",
-      "title": "GitHub"
-    },
-    {
-      "key": "vscode",
-      "kind": "tool",
-      "title": "VS Code"
-    },
-    {
-      "key": "set_shared",
-      "kind": "setting",
-      "title": "shared_buffers"
-    },
-    {
-      "key": "set_ci",
-      "kind": "setting",
-      "title": "PR 必须通过 CI 才能合并"
-    },
-    {
-      "key": "task_skeleton",
-      "kind": "task",
-      "title": "行走骨架",
-      "body": {
-        "note": "已完成"
-      }
-    },
-    {
-      "key": "task_deploy",
-      "kind": "task",
-      "title": "部署到 core-server",
-      "body": {
-        "note": "已完成"
-      }
-    },
-    {
-      "key": "cycling",
-      "kind": "task",
-      "title": "每周骑行 3 次",
-      "body": {
-        "note": "本周 1 / 3"
-      }
-    },
-    {
-      "key": "zijin",
-      "kind": "log",
-      "title": "紫金山骑行"
-    },
-    {
-      "key": "hr",
-      "kind": "knowledge",
-      "title": "心率区间"
-    }
-  ],
-  "edges": [
-    {
-      "source": "qin",
-      "target": "area_history",
-      "kind": "part_of"
-    },
-    {
-      "source": "junxian",
-      "target": "area_history",
-      "kind": "part_of"
-    },
-    {
-      "source": "shangyang",
-      "target": "area_history",
-      "kind": "part_of"
-    },
-    {
-      "source": "changping",
-      "target": "area_history",
-      "kind": "part_of"
-    },
-    {
-      "source": "hancheng",
-      "target": "area_history",
-      "kind": "part_of"
-    },
-    {
-      "source": "book_hist",
-      "target": "area_history",
-      "kind": "part_of"
-    },
-    {
-      "source": "video_hist",
-      "target": "area_history",
-      "kind": "part_of"
-    },
-    {
-      "source": "pod_hist",
-      "target": "area_history",
-      "kind": "part_of"
-    },
-    {
-      "source": "q2024",
-      "target": "area_history",
-      "kind": "part_of"
-    },
-    {
-      "source": "book_hist",
-      "target": "qin",
-      "kind": "mentions"
-    },
-    {
-      "source": "video_hist",
-      "target": "qin",
-      "kind": "mentions"
-    },
-    {
-      "source": "video_hist",
-      "target": "changping",
-      "kind": "mentions"
-    },
-    {
-      "source": "pod_hist",
-      "target": "shangyang",
-      "kind": "mentions"
-    },
-    {
-      "source": "qin",
-      "target": "junxian",
-      "kind": "related"
-    },
-    {
-      "source": "shangyang",
-      "target": "qin",
-      "kind": "related"
-    },
-    {
-      "source": "changping",
-      "target": "qin",
-      "kind": "related"
-    },
-    {
-      "source": "hancheng",
-      "target": "junxian",
-      "kind": "related"
-    },
-    {
-      "source": "q2024",
-      "target": "qin",
-      "kind": "tests"
-    },
-    {
-      "source": "q2024",
-      "target": "junxian",
-      "kind": "tests"
-    },
-    {
-      "source": "prep_qin",
-      "target": "qin",
-      "kind": "cites"
-    },
-    {
-      "source": "prep_qin",
-      "target": "q2024",
-      "kind": "cites"
-    },
-    {
-      "source": "prep_qin",
-      "target": "book_hist",
-      "kind": "cites"
-    },
-    {
-      "source": "prep_qin",
-      "target": "goal_teach",
-      "kind": "serves"
-    },
-    {
-      "source": "eigen",
-      "target": "area_math",
-      "kind": "part_of"
-    },
-    {
-      "source": "fourier",
-      "target": "area_math",
-      "kind": "part_of"
-    },
-    {
-      "source": "group",
-      "target": "area_math",
-      "kind": "part_of"
-    },
-    {
-      "source": "v3b1b",
-      "target": "area_math",
-      "kind": "part_of"
-    },
-    {
-      "source": "q_la",
-      "target": "area_math",
-      "kind": "part_of"
-    },
-    {
-      "source": "v3b1b",
-      "target": "eigen",
-      "kind": "mentions"
-    },
-    {
-      "source": "q_la",
-      "target": "eigen",
-      "kind": "tests"
-    },
-    {
-      "source": "fourier",
-      "target": "eigen",
-      "kind": "related"
-    },
-    {
-      "source": "eigen",
-      "target": "goal_teach",
-      "kind": "serves"
-    },
-    {
-      "source": "pg",
-      "target": "area_tools",
-      "kind": "part_of"
-    },
-    {
-      "source": "gh",
-      "target": "area_tools",
-      "kind": "part_of"
-    },
-    {
-      "source": "vscode",
-      "target": "area_tools",
-      "kind": "part_of"
-    },
-    {
-      "source": "set_shared",
-      "target": "area_tools",
-      "kind": "part_of"
-    },
-    {
-      "source": "set_ci",
-      "target": "area_tools",
-      "kind": "part_of"
-    },
-    {
-      "source": "set_shared",
-      "target": "pg",
-      "kind": "part_of"
-    },
-    {
-      "source": "set_ci",
-      "target": "gh",
-      "kind": "part_of"
-    },
-    {
-      "source": "task_skeleton",
-      "target": "goal_xenica",
-      "kind": "serves"
-    },
-    {
-      "source": "task_deploy",
-      "target": "goal_xenica",
-      "kind": "serves"
-    },
-    {
-      "source": "task_skeleton",
-      "target": "pg",
-      "kind": "cites"
-    },
-    {
-      "source": "task_deploy",
-      "target": "set_ci",
-      "kind": "cites"
-    },
-    {
-      "source": "cycling",
-      "target": "area_body",
-      "kind": "part_of"
-    },
-    {
-      "source": "zijin",
-      "target": "area_body",
-      "kind": "part_of"
-    },
-    {
-      "source": "hr",
-      "target": "area_body",
-      "kind": "part_of"
-    },
-    {
-      "source": "zijin",
-      "target": "cycling",
-      "kind": "derived"
-    },
-    {
-      "source": "cycling",
-      "target": "hr",
-      "kind": "cites"
+      "key": "lec_11",
+      "parent": "lec",
+      "md": "12:40 老师说分部积分下节课讲，到时候回来补。"
     }
   ]
 }

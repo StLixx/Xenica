@@ -1,0 +1,18 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "insert into edges (id, source, target, kind, pos)\n           select i, $1, t, $4, p from unnest($2::uuid[], $3::uuid[], $5::int[]) as x(i, t, p)\n           on conflict (source, target, kind) do update set pos = excluded.pos",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "UuidArray",
+        "UuidArray",
+        "Text",
+        "Int4Array"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "fbd558f469e192411e93b795c1d50d4d7fbced0c9c0fe7868d7630365d8efbe9"
+}

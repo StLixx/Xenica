@@ -21,7 +21,7 @@ export function EmptyState({
         <div className={tone === 'error' ? 'text-danger' : 'text-fg-2'}>
           {tone === 'loading' ? <span className="animate-pulse">{title}</span> : title}
         </div>
-        {hint && <div className="text-[13px] text-fg-3">{hint}</div>}
+        {hint && <div className="text-ui text-fg-3">{hint}</div>}
         {action}
       </div>
     </div>

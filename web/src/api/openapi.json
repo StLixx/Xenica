@@ -6,7 +6,7 @@
     "license": {
       "name": ""
     },
-    "version": "0.1.0"
+    "version": "0.2.0"
   },
   "paths": {
     "/api/auth/login": {
@@ -272,6 +272,91 @@
         }
       }
     },
+    "/api/files": {
+      "post": {
+        "tags": ["files"],
+        "summary": "上传图片（请求体就是文件本身，`Content-Type` 写图片类型）。内容相同的文件只存一份。",
+        "operationId": "upload_file",
+        "requestBody": {
+          "content": {
+            "image/*": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "format": "int32",
+                  "minimum": 0
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileRef"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/files/{id}": {
+      "get": {
+        "tags": ["files"],
+        "summary": "读取文件。",
+        "operationId": "get_file",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "image/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/health": {
       "get": {
         "tags": ["system"],
@@ -488,6 +573,146 @@
         }
       }
     },
+    "/api/nodes/{id}/children": {
+      "get": {
+        "tags": ["nodes"],
+        "summary": "按顺序列出子节点（一页里的各块）。",
+        "operationId": "list_children",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Node"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": ["nodes"],
+        "summary": "重排子节点：给出现有子节点的新顺序。",
+        "operationId": "reorder_children",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {},
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["nodes"],
+        "summary": "在指定位置插入一个或多个新的子节点，返回新建的节点。",
+        "operationId": "create_children",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewChildren"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Node"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/nodes/{id}/traces": {
       "get": {
         "tags": ["nodes"],
@@ -609,6 +834,20 @@
           }
         }
       },
+      "FileRef": {
+        "type": "object",
+        "required": ["id", "url"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "url": {
+            "type": "string",
+            "description": "在 Markdown 里引用用的地址，例如 `![](/api/files/…)`。"
+          }
+        }
+      },
       "Health": {
         "type": "object",
         "required": ["status", "version"],
@@ -637,6 +876,25 @@
           }
         }
       },
+      "NewChildren": {
+        "type": "object",
+        "description": "在某个节点里按顺序插入新的子节点（一次可以插多个，例如粘贴一整段笔记）。",
+        "required": ["nodes"],
+        "properties": {
+          "index": {
+            "type": ["integer", "null"],
+            "format": "int32",
+            "description": "插到第几个位置（从 0 开始）；省略时放到最后。",
+            "minimum": 0
+          },
+          "nodes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NewNode"
+            }
+          }
+        }
+      },
       "NewEdge": {
         "type": "object",
         "required": ["source", "target"],
@@ -656,17 +914,23 @@
       "NewNode": {
         "type": "object",
         "description": "新建节点的输入。",
-        "required": ["title"],
         "properties": {
           "body": {
-            "type": ["object", "null"]
+            "type": ["object", "null"],
+            "description": "约定：文字内容放在 `md`（Markdown），其中的 `#标记` 和 `[[名字]]` 会自动连到同名节点。"
+          },
+          "id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "客户端可以自己生成 ID（UUID v7），这样不用等服务器就能接着编辑。省略时由服务器生成。"
           },
           "kind": {
             "type": ["string", "null"],
             "description": "省略时为 `note`。"
           },
           "title": {
-            "type": "string"
+            "type": "string",
+            "description": "可省略。"
           }
         }
       },
@@ -691,7 +955,8 @@
             "description": "类型键，例如 `note`。以后类型本身也会成为节点，这里先用字符串。"
           },
           "title": {
-            "type": "string"
+            "type": "string",
+            "description": "可以为空：没有标题时界面用正文第一行代替。"
           },
           "updated_at": {
             "type": "string",

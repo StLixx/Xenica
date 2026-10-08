@@ -13,16 +13,15 @@ import { useMemo } from 'react';
 
 import { useEdges, useNodes } from '../../api/queries';
 import { useWorkbench } from '../../shell/api';
-import { EmptyState, KindBadge } from '../../ui';
+import { EmptyState, nodeLabel } from '../../ui';
 import { circleLayout } from './layout';
 
-type CardData = { title: string; kind: string };
+type CardData = { title: string };
 
 function Card({ data }: NodeProps<FlowNode<CardData>>) {
   return (
-    <div className="flex max-w-[220px] cursor-pointer items-center gap-2 rounded-md bg-raised px-2.5 py-1.5 text-[13px] text-fg hover:bg-pop">
+    <div className="flex max-w-55 cursor-pointer items-center gap-2 rounded-md bg-raised px-2.5 py-1.5 text-ui text-fg hover:bg-pop">
       <Handle type="target" position={Position.Left} className="!opacity-0" />
-      <KindBadge kind={data.kind} />
       <span className="truncate">{data.title}</span>
       <Handle type="source" position={Position.Right} className="!opacity-0" />
     </div>
@@ -44,12 +43,13 @@ export function GraphView() {
       id: n.id,
       type: 'card',
       position: pos.get(n.id) ?? { x: 0, y: 0 },
-      data: { title: n.title, kind: n.kind },
+      data: { title: nodeLabel(n) },
     }));
     const fe: FlowEdge[] = (edges.data ?? []).map((e) => ({
       id: e.id,
       source: e.source,
       target: e.target,
+      style: e.kind === 'contains' ? { strokeDasharray: '3 4' } : undefined,
     }));
     return { fn, fe };
   }, [nodes.data, edges.data]);
@@ -57,7 +57,7 @@ export function GraphView() {
   if (nodes.isPending) return <EmptyState tone="loading" title="加载中…" />;
   if (nodes.isError) return <EmptyState tone="error" title="读取失败" hint={nodes.error.message} />;
   if (flow.fn.length === 0)
-    return <EmptyState title="图是空的" hint="先新建几个节点，再在节点页里添加关系。" />;
+    return <EmptyState title="图是空的" hint="先新建一页写点东西，用 #标记 把块连起来。" />;
 
   return (
     <div className="xenica-graph h-full" data-testid="graph">

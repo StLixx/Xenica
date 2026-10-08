@@ -53,13 +53,13 @@ function Dialog({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex justify-center bg-black/40 pt-[15vh]"
+      className="fixed inset-0 z-50 flex justify-center bg-scrim px-4 pt-(--x-palette-top)"
       onMouseDown={close}
     >
       <div
         role="dialog"
         aria-label="命令面板"
-        className="h-max w-[min(560px,92vw)] overflow-hidden rounded-lg bg-pop shadow-pop"
+        className="h-max w-(--x-palette) max-w-full overflow-hidden rounded-lg bg-pop shadow-pop"
         onMouseDown={(e) => e.stopPropagation()}
       >
         <input
@@ -67,7 +67,7 @@ function Dialog({
           value={query}
           placeholder="输入命令…"
           aria-label="命令"
-          className="h-11 w-full border-b border-line bg-transparent px-4 text-[15px] text-fg outline-none placeholder:text-fg-3 focus-visible:outline-none"
+          className="h-11 w-full border-b border-line bg-transparent px-4 text-strong font-normal text-fg outline-none placeholder:text-fg-3 focus-visible:outline-none"
           onChange={(e) => {
             setQuery(e.target.value);
             setActive(0);
@@ -80,15 +80,13 @@ function Dialog({
           }}
         />
         <ul role="listbox" className="max-h-80 overflow-auto p-1.5">
-          {results.length === 0 && (
-            <li className="px-3 py-2 text-[13px] text-fg-3">没有匹配的命令</li>
-          )}
+          {results.length === 0 && <li className="px-3 py-2 text-ui text-fg-3">没有匹配的命令</li>}
           {results.map((c, i) => (
             <li
               key={c.id}
               role="option"
               aria-selected={i === active}
-              className={`flex h-(--x-row) cursor-pointer items-center rounded-sm px-3 text-[14px] ${i === active ? 'bg-press text-fg' : 'text-fg-2'}`}
+              className="item px-3 text-body"
               onMouseEnter={() => setActive(i)}
               onClick={() => run(c)}
             >

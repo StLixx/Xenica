@@ -146,7 +146,7 @@ async fn invalid_input_is_400(pool: PgPool) {
         &signed_in(pool).await,
         "POST",
         "/api/nodes",
-        Some(json!({"title": "  "})),
+        Some(json!({"kind": "Not A Kind"})),
     )
     .await;
     assert_eq!(status, StatusCode::BAD_REQUEST);
@@ -189,7 +189,7 @@ async fn demo_seed_loads_once(pool: PgPool) {
     let n = xenica_server::seed::seed_if_empty(&store, xenica_server::seed::DEMO)
         .await
         .unwrap();
-    assert!(n > 20, "demo seed should have a real graph, got {n}");
+    assert!(n > 10, "demo seed should have a real page, got {n}");
     // 第二次不重复导入
     let again = xenica_server::seed::seed_if_empty(&store, xenica_server::seed::DEMO)
         .await
@@ -197,6 +197,170 @@ async fn demo_seed_loads_once(pool: PgPool) {
     assert_eq!(again, 0);
     let (_, edges) = call(&signed_in(pool).await, "GET", "/api/edges", None).await;
     assert!(edges.as_array().unwrap().len() > 20);
+}
+
+#[sqlx::test(migrator = "xenica_store::MIGRATOR")]
+async fn blocks_live_in_order_inside_a_page(pool: PgPool) {
+    let app = signed_in(pool).await;
+    // 没有标题也能建
+    let (status, page) = call(&app, "POST", "/api/nodes", Some(json!({}))).await;
+    assert_eq!(status, StatusCode::CREATED);
+    assert_eq!(page["title"], "");
+    let children = format!("/api/nodes/{}/children", page["id"].as_str().unwrap());
+
+    let md = |s: &str| json!({"body": {"md": s}});
+    let (status, made) = call(
+        &app,
+        "POST",
+        &children,
+        Some(json!({"nodes": [md("一"), md("三")]})),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    let (_, two) = call(
+        &app,
+        "POST",
+        &children,
+        Some(json!({"index": 1, "nodes": [md("二")]})),
+    )
+    .await;
+    let texts = |list: &Value| -> Vec<String> {
+        list.as_array()
+            .unwrap()
+            .iter()
+            .map(|n| n["body"]["md"].as_str().unwrap().to_owned())
+            .collect()
+    };
+    let (_, list) = call(&app, "GET", &children, None).await;
+    assert_eq!(texts(&list), ["一", "二", "三"]);
+
+    // 重排
+    let order = json!([made[1]["id"], two[0]["id"], made[0]["id"]]);
+    let (status, _) = call(&app, "PUT", &children, Some(order)).await;
+    assert_eq!(status, StatusCode::NO_CONTENT);
+    let (_, list) = call(&app, "GET", &children, None).await;
+    assert_eq!(texts(&list), ["三", "二", "一"]);
+    // 顺序里少了一个 = 冲突
+    let (status, _) = call(&app, "PUT", &children, Some(json!([made[0]["id"]]))).await;
+    assert_eq!(status, StatusCode::CONFLICT);
+
+    // 删页连带删块
+    let (status, _) = call(
+        &app,
+        "DELETE",
+        &format!("/api/nodes/{}", page["id"].as_str().unwrap()),
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::NO_CONTENT);
+    let (status, _) = call(
+        &app,
+        "GET",
+        &format!("/api/nodes/{}", made[0]["id"].as_str().unwrap()),
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::NOT_FOUND);
+}
+
+#[sqlx::test(migrator = "xenica_store::MIGRATOR")]
+async fn tags_in_text_become_relations(pool: PgPool) {
+    let app = signed_in(pool).await;
+    let (_, a) = call(
+        &app,
+        "POST",
+        "/api/nodes",
+        Some(json!({"body": {"md": "$\\int \\sec x$ #必备 [[积分公式表]]"}})),
+    )
+    .await;
+    let id = a["id"].as_str().unwrap();
+    let mentioned = |edges: &Value| -> usize {
+        edges
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter(|e| e["kind"] == "mentions" && e["source"] == id)
+            .count()
+    };
+    let (_, edges) = call(&app, "GET", &format!("/api/edges?node={id}"), None).await;
+    assert_eq!(mentioned(&edges), 2);
+    let (_, nodes) = call(&app, "GET", "/api/nodes", None).await;
+    let titles: Vec<&str> = nodes
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|n| n["title"].as_str().unwrap())
+        .collect();
+    assert!(titles.contains(&"必备") && titles.contains(&"积分公式表"));
+
+    // 第二个块提到同一个标记：连到已有节点，不再新建
+    call(
+        &app,
+        "POST",
+        "/api/nodes",
+        Some(json!({"body": {"md": "另一条 #必备"}})),
+    )
+    .await;
+    let (_, nodes) = call(&app, "GET", "/api/nodes", None).await;
+    let count = nodes
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter(|n| n["title"] == "必备")
+        .count();
+    assert_eq!(count, 1);
+
+    // 去掉标记，关系跟着去掉
+    call(
+        &app,
+        "PATCH",
+        &format!("/api/nodes/{id}"),
+        Some(json!({"body": {"md": "只剩 #必备"}})),
+    )
+    .await;
+    let (_, edges) = call(&app, "GET", &format!("/api/edges?node={id}"), None).await;
+    assert_eq!(mentioned(&edges), 1);
+}
+
+#[sqlx::test(migrator = "xenica_store::MIGRATOR")]
+async fn images_upload_and_dedupe(pool: PgPool) {
+    let (app, cookie) = signed_in(pool).await;
+    let png: &[u8] = b"\x89PNG\r\n\x1a\nfake";
+    let upload = |mime: &'static str| {
+        Request::builder()
+            .method("POST")
+            .uri("/api/files")
+            .header(header::COOKIE, &cookie)
+            .header(header::CONTENT_TYPE, mime)
+            .body(Body::from(png))
+            .unwrap()
+    };
+    let res = app.clone().oneshot(upload("image/png")).await.unwrap();
+    assert_eq!(res.status(), StatusCode::CREATED);
+    let a: Value =
+        serde_json::from_slice(&to_bytes(res.into_body(), 1 << 20).await.unwrap()).unwrap();
+    let res = app.clone().oneshot(upload("image/png")).await.unwrap();
+    let b: Value =
+        serde_json::from_slice(&to_bytes(res.into_body(), 1 << 20).await.unwrap()).unwrap();
+    assert_eq!(a["id"], b["id"]);
+    let res = app.clone().oneshot(upload("text/html")).await.unwrap();
+    assert_eq!(res.status(), StatusCode::BAD_REQUEST);
+
+    let url = a["url"].as_str().unwrap();
+    let res = app
+        .clone()
+        .oneshot(
+            Request::builder()
+                .uri(url)
+                .header(header::COOKIE, &cookie)
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(res.status(), StatusCode::OK);
+    assert_eq!(res.headers()[header::CONTENT_TYPE], "image/png");
+    assert_eq!(&to_bytes(res.into_body(), 1 << 20).await.unwrap()[..], png);
 }
 
 #[sqlx::test(migrator = "xenica_store::MIGRATOR")]

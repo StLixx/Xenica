@@ -30,44 +30,53 @@ test('api and app require login', async ({ page, request }) => {
   await expect(page.getByRole('button', { name: '登录' })).toBeVisible();
 });
 
-test('create, rename, relate and find a node', async ({ page }) => {
-  const stamp = Date.now().toString(36);
-  const a = `秦统一六国 ${stamp}`;
-  const b = `郡县制 ${stamp}`;
-
+test('write a page: blocks, tags, views', async ({ page }) => {
+  const tag = `方法${Date.now().toString(36)}`;
   await signIn(page);
 
-  // 新建两个节点：列表里出现，并自动在新标签页打开
-  const input = page.getByLabel('新建节点');
-  await input.fill(b);
-  await input.press('Enter');
-  await expect(page.getByLabel('标题')).toHaveValue(b);
-  await page.getByRole('tab', { name: '全部节点' }).click();
-  await input.fill(a);
-  await input.press('Enter');
-  await expect(page.getByLabel('标题')).toHaveValue(a);
+  // 新建页：光标直接在第一块里
+  await page.keyboard.press('Control+k');
+  await page.getByLabel('命令', { exact: true }).fill('新建页');
+  await page.keyboard.press('Enter');
+  const editor = page.getByRole('region', { name: '正文' });
+  await expect(editor.getByLabel('块', { exact: true })).toBeFocused();
 
-  // 关联到另一个节点
-  await page.getByLabel('关联到').selectOption({ label: b });
-  await page.getByRole('button', { name: '添加关系' }).click();
-  await expect(page.getByRole('region', { name: '关系' })).toContainText(b);
+  // 回车分块；公式里回车只换行；#标记 连到同名节点
+  await page.keyboard.type('第 5 讲 数列极限');
+  await page.keyboard.press('Enter');
+  await page.keyboard.type('$$');
+  await page.keyboard.press('Enter');
+  await page.keyboard.type('\\lim (1+1/n)^n = e');
+  await page.keyboard.press('Enter');
+  await page.keyboard.type(`$$ #${tag}`);
+  await page.keyboard.press('Escape'); // 关掉提示
+  await page.keyboard.press('Escape'); // 离开编辑，立刻保存
+  await expect(editor.locator('[data-block-id]')).toHaveCount(2);
+  await expect(editor.locator('.katex')).toBeVisible();
+  await expect(page.getByText('保存中…')).toBeHidden();
 
-  // 改标题：标签页标题跟着变，痕迹里多一条「修改」
-  const title = page.getByLabel('标题');
-  await title.fill(`${a}（改）`);
-  await title.press('Enter');
-  await expect(page.getByRole('tab', { name: `${a}（改）` })).toBeVisible();
-  await expect(page.getByRole('region', { name: '痕迹' })).toContainText('你修改');
+  // 刷新后还在，标签页标题用第一块
+  await page.reload();
+  await expect(page.getByRole('tab', { name: '第 5 讲 数列极限' })).toBeVisible();
 
-  // 命令面板打开图，图里能看到节点
+  // 点标记：打开那个节点，下面列出提到它的块，可以切成表格
+  await editor.getByText(`#${tag}`).click();
+  const mentioned = page.getByRole('region', { name: '提到它的' });
+  await expect(mentioned.locator('.katex')).toBeVisible();
+  await mentioned.getByRole('radio', { name: '表格' }).click();
+  await expect(mentioned.getByRole('table')).toContainText('第 5 讲 数列极限');
+});
+
+test('demo page and graph', async ({ page }) => {
+  await signIn(page);
+  await page.getByRole('navigation', { name: '侧栏' }).hover();
+  await page.getByRole('button', { name: '高数 · 不定积分（第 3 讲）' }).click();
+  const editor = page.getByRole('region', { name: '正文' });
+  await expect(editor.locator('.katex').first()).toBeVisible();
+  await expect(editor.getByText('#必备').first()).toBeVisible();
+
   await page.keyboard.press('Control+k');
   await page.getByLabel('命令', { exact: true }).fill('图');
   await page.keyboard.press('Enter');
-  await expect(page.getByTestId('graph')).toContainText(b);
-});
-
-test('demo seed is visible', async ({ page }) => {
-  await signIn(page);
-  await page.getByRole('tab', { name: '全部节点' }).click();
-  await expect(page.getByText('秦统一六国', { exact: true }).first()).toBeVisible();
+  await expect(page.getByTestId('graph')).toContainText('必备');
 });

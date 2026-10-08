@@ -7,7 +7,7 @@ use axum::{
 };
 use serde::Deserialize;
 use utoipa::IntoParams;
-use xenica_core::{NewNode, Node, NodeId, NodePatch, Trace};
+use xenica_core::{NewChildren, NewNode, Node, NodeId, NodePatch, Trace};
 
 use crate::{ApiError, AppState, auth::CurrentUser, error::ErrorBody};
 
@@ -88,4 +88,46 @@ pub async fn list_node_traces(
     Path(id): Path<NodeId>,
 ) -> Result<Json<Vec<Trace>>, ApiError> {
     Ok(Json(state.store.list_traces(id.0).await?))
+}
+
+/// 按顺序列出子节点（一页里的各块）。
+#[utoipa::path(get, path = "/api/nodes/{id}/children", tag = "nodes",
+    params(("id" = String, Path, format = Uuid)),
+    responses((status = 200, body = Vec<Node>)))]
+pub async fn list_children(
+    State(state): State<AppState>,
+    Path(id): Path<NodeId>,
+) -> Result<Json<Vec<Node>>, ApiError> {
+    Ok(Json(state.store.list_children(id).await?))
+}
+
+/// 在指定位置插入一个或多个新的子节点，返回新建的节点。
+#[utoipa::path(post, path = "/api/nodes/{id}/children", tag = "nodes",
+    params(("id" = String, Path, format = Uuid)), request_body = NewChildren,
+    responses((status = 201, body = Vec<Node>), (status = 400, body = ErrorBody), (status = 404, body = ErrorBody)))]
+pub async fn create_children(
+    State(state): State<AppState>,
+    user: CurrentUser,
+    Path(id): Path<NodeId>,
+    Json(input): Json<NewChildren>,
+) -> Result<(StatusCode, Json<Vec<Node>>), ApiError> {
+    let nodes = state
+        .store
+        .create_children(&user.actor(), id, input)
+        .await?;
+    Ok((StatusCode::CREATED, Json(nodes)))
+}
+
+/// 重排子节点：给出现有子节点的新顺序。
+#[utoipa::path(put, path = "/api/nodes/{id}/children", tag = "nodes",
+    params(("id" = String, Path, format = Uuid)), request_body = Vec<String>,
+    responses((status = 204), (status = 404, body = ErrorBody), (status = 409, body = ErrorBody)))]
+pub async fn reorder_children(
+    State(state): State<AppState>,
+    user: CurrentUser,
+    Path(id): Path<NodeId>,
+    Json(ids): Json<Vec<NodeId>>,
+) -> Result<StatusCode, ApiError> {
+    state.store.reorder_children(&user.actor(), id, ids).await?;
+    Ok(StatusCode::NO_CONTENT)
 }

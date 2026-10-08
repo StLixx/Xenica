@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "delete from edges where source = $1 and kind = $2 and not (target = any($3))",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "UuidArray"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "ec886656e202319111abc4e403812bd2d06c9daf2d153e659a7aafb2010f8cdd"
+}

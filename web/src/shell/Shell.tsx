@@ -2,7 +2,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import type { DockviewApi } from 'dockview-react';
 import { useMemo, useRef, useState } from 'react';
 
-import { keys, logout } from '../api/queries';
+import { newId } from '../api/id';
+import { createChildren, createNode, keys, logout, mdBody } from '../api/queries';
 import { views } from '../views';
 import { WorkbenchContext, type ViewParams, type Workbench as WorkbenchApi } from './api';
 import { CommandPalette } from './CommandPalette';
@@ -38,8 +39,24 @@ export function Shell() {
     [],
   );
   const qc = useQueryClient();
+  const newPage = useMemo(
+    () => async () => {
+      const page = await createNode({});
+      await createChildren(page.id, { nodes: [{ id: newId(), body: mdBody('') }] });
+      void qc.invalidateQueries({ queryKey: keys.nodes });
+      void qc.invalidateQueries({ queryKey: ['edges'] });
+      wb.openView('node', { id: page.id });
+    },
+    [qc, wb],
+  );
   const commands = useMemo(
     () => [
+      {
+        id: 'page.new',
+        title: '新建页',
+        keywords: ['new', 'page', 'xinjian', '新建节点'],
+        run: newPage,
+      },
       ...collectCommands(views),
       {
         id: 'auth.logout',
@@ -52,17 +69,23 @@ export function Shell() {
         },
       },
     ],
-    [qc],
+    [qc, newPage],
   );
 
   return (
     <WorkbenchContext value={wb}>
-      <div className="grid h-full grid-cols-[auto_1fr] grid-rows-[1fr_auto]">
-        <Sidebar views={views} onOpenPalette={() => setPaletteOpen(true)} />
-        <main className="min-h-0 min-w-0">
-          <Workbench views={views} defaultView="nodes" onReady={(api) => (dock.current = api)} />
-        </main>
-        <StatusBar />
+      <div className="flex h-full">
+        <Sidebar
+          views={views}
+          onOpenPalette={() => setPaletteOpen(true)}
+          onNewPage={() => void newPage()}
+        />
+        <div className="flex min-w-0 flex-1 flex-col">
+          <main className="min-h-0 flex-1">
+            <Workbench views={views} defaultView="nodes" onReady={(api) => (dock.current = api)} />
+          </main>
+          <StatusBar />
+        </div>
       </div>
       <CommandPalette
         open={paletteOpen}

@@ -1,0 +1,40 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "select mime, bytes from files where id = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "mime",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "files",
+            "name": "mime"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "bytes",
+        "type_info": "Bytea",
+        "origin": {
+          "Table": {
+            "table": "files",
+            "name": "bytes"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "be92ca92578b8e92149b4efd2a3c56930ffc47498e45ecfbfb5c1bf0550539b6"
+}
