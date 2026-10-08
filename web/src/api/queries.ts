@@ -1,5 +1,6 @@
 /** 服务端状态全部走 TanStack Query。新加接口时在这里加 hook，视图只用 hook。 */
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useCallback } from 'react';
 
 import {
   api,
@@ -192,17 +193,20 @@ export async function uploadImage(file: Blob): Promise<string> {
 /** 块的增删改之后：刷新节点列表和关系（正文里的 #标记 会新建节点、改关系）。 */
 export function useRefreshGraph() {
   const qc = useQueryClient();
-  return () => {
+  return useCallback(() => {
     void qc.invalidateQueries({ queryKey: keys.nodes, exact: true });
     void qc.invalidateQueries({ queryKey: ['edges'] });
-  };
+  }, [qc]);
 }
 
 /** 直接改缓存里的子节点列表（编辑器做乐观更新用）。 */
 export function useSetChildren(id: string) {
   const qc = useQueryClient();
-  return (fn: (list: Node[]) => Node[]) =>
-    qc.setQueryData<Node[]>(keys.children(id), (old) => fn(old ?? []));
+  return useCallback(
+    (fn: (list: Node[]) => Node[]) =>
+      qc.setQueryData<Node[]>(keys.children(id), (old) => fn(old ?? [])),
+    [qc, id],
+  );
 }
 
 /** 正文 `{ md }`。（生成的类型把任意对象写成了 Record<string, never>，这里统一转一下。） */

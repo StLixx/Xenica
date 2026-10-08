@@ -61,7 +61,7 @@ function useQueue(handlers: { onError: (e: unknown) => void; onIdle: () => void 
         }
       });
   }, []);
-  return useMemo(() => ({ run, busy }), [run, busy]);
+  return { run, busy };
 }
 
 /**
@@ -100,7 +100,7 @@ export function BlockEditor({
   const setCache = useSetChildren(parentId);
   /** 下一次读到服务器数据时用它覆盖本地（第一次打开、保存出错后）。 */
   const resync = useRef(true);
-  const queue = useQueue({
+  const { run, busy } = useQueue({
     onError: (e) => {
       setError(e instanceof Error ? e.message : String(e));
       resync.current = true;
@@ -134,6 +134,7 @@ export function BlockEditor({
     resync.current = false;
     setError(null);
     commit(() => data.map((n: Node) => ({ id: n.id, md: bodyMd(n) })));
+    saved.current = new Map(data.map((n: Node) => [n.id, bodyMd(n)]));
     // 刚新建的页：直接把光标放进去
     const only = data.length === 1 ? data[0] : undefined;
     if (only && !bodyMd(only) && Date.now() - Date.parse(only.created_at) < 10_000)
@@ -160,6 +161,21 @@ export function BlockEditor({
     return () => window.removeEventListener(REVEAL_EVENT, go);
   }, [parentId, blocks !== null]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  /** 每块上次存下的内容：正文里的 #标记 有变化才需要刷新关系。 */
+  const saved = useRef(new Map<string, string>());
+  /** 改了 #标记 才刷新节点和关系（新建节点、改「提到」），并且合并成一次。 */
+  const refreshSoon = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const refreshLater = useCallback(() => {
+    if (refreshSoon.current) clearTimeout(refreshSoon.current);
+    refreshSoon.current = setTimeout(refresh, 400);
+  }, [refresh]);
+  const refreshIfRefs = useCallback(
+    (before: string, after: string) => {
+      if (/#|\[\[/.test(before + after)) refreshLater();
+    },
+    [refreshLater],
+  );
+
   const save = useCallback(
     (id: string) => {
       const t = timers.current.get(id);
@@ -168,21 +184,28 @@ export function BlockEditor({
       const b = latest.current.find((x) => x.id === id);
       if (!b) return;
       const md = b.md;
-      queue.run(async () => {
+      if (saved.current.get(id) === md) return;
+      const before = saved.current.get(id) ?? '';
+      saved.current.set(id, md);
+      run(async () => {
         await patchNode(id, { body: mdBody(md) });
-        refresh();
+        refreshIfRefs(before, md);
       });
     },
-    [queue, refresh],
+    [run, refreshIfRefs],
   );
 
-  // 关掉或切走时，把没来得及保存的字存掉
+  // 关掉或切走时，把没来得及保存的字存掉（只在卸载时）
+  const saveRef = useRef(save);
+  useEffect(() => {
+    saveRef.current = save;
+  }, [save]);
   useEffect(() => {
     const pending = timers.current;
     return () => {
-      for (const id of [...pending.keys()]) save(id);
+      for (const id of [...pending.keys()]) saveRef.current(id);
     };
-  }, [save]);
+  }, []);
 
   const ops = useMemo(() => {
     const index = (id: string) => latest.current.findIndex((b) => b.id === id);
@@ -195,12 +218,13 @@ export function BlockEditor({
     const insert = (at: number, mds: string[]) => {
       const made = mds.map((md) => ({ id: newId(), md }));
       set((l) => [...l.slice(0, at), ...made, ...l.slice(at)]);
-      queue.run(async () => {
+      for (const b of made) saved.current.set(b.id, b.md);
+      run(async () => {
         await createChildren(parentId, {
           index: at,
           nodes: made.map((b) => ({ id: b.id, body: mdBody(b.md) })),
         });
-        refresh();
+        refreshLater();
       });
       return made;
     };
@@ -237,9 +261,9 @@ export function BlockEditor({
         cancel(id);
         set((l) => l.filter((b) => b.id !== id).map((b) => (b.id === prev.id ? { ...b, md } : b)));
         save(prev.id);
-        queue.run(async () => {
+        run(async () => {
           await deleteNode(id);
-          refresh();
+          refreshLater();
         });
         setFocus({ id: prev.id, caret: prev.md.length });
       },
@@ -247,9 +271,9 @@ export function BlockEditor({
         const at = index(id);
         cancel(id);
         set((l) => l.filter((b) => b.id !== id));
-        queue.run(async () => {
+        run(async () => {
           await deleteNode(id);
-          refresh();
+          refreshLater();
         });
         const next = latest.current[at + 1] ?? latest.current[at - 1];
         setFocus(next ? { id: next.id, caret: 'end' } : null);
@@ -264,7 +288,7 @@ export function BlockEditor({
         l.splice(to, 0, moved);
         set(() => l);
         const ids = l.map((b) => b.id);
-        queue.run(() => reorderChildren(parentId, ids));
+        run(() => reorderChildren(parentId, ids));
       },
       focusSibling(id: string, delta: -1 | 1) {
         const b = latest.current[index(id) + delta];
@@ -299,9 +323,10 @@ export function BlockEditor({
         });
         files.forEach((file, i) => {
           const id = ids[i] ?? '';
-          queue.run(async () => {
+          run(async () => {
             const url = await uploadImage(file);
             const md = `![](${url})`;
+            saved.current.set(id, md);
             set((l) => l.map((b) => (b.id === id ? { ...b, md } : b)));
             if (i === 0 && reuse) await patchNode(id, { body: mdBody(md) });
             else
@@ -319,7 +344,7 @@ export function BlockEditor({
           const i = l.findIndex((b) => b.id === lastId);
           return [...l.slice(0, i + 1), { id: blank, md: '' }, ...l.slice(i + 1)];
         });
-        queue.run(async () => {
+        run(async () => {
           const i = latest.current.findIndex((b) => b.id === blank);
           await createChildren(parentId, {
             index: i,
@@ -342,7 +367,7 @@ export function BlockEditor({
       },
       ref: onRef,
     };
-  }, [parentId, queue, refresh, save, wb, onRef, commit]);
+  }, [parentId, run, refreshLater, save, wb, onRef, commit]);
 
   if (!blocks) return null;
 
@@ -389,7 +414,7 @@ export function BlockEditor({
       <div className="h-5 text-meta text-fg-3" aria-live="polite">
         {error ? (
           <span className="text-danger">保存失败：{error}（已重新读取）</span>
-        ) : queue.busy ? (
+        ) : busy ? (
           '保存中…'
         ) : null}
       </div>
