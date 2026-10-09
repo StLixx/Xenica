@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "select target from edges where source = $1 and kind = 'contains'\n           order by pos nulls last, created_at, id",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "target",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "edges",
+            "name": "target"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "0aecb318c6e641e2e076761690d9ca9af61d1d72ab67ef37209e197c7057ae62"
+}

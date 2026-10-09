@@ -34,7 +34,8 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=xenica-edge"
-      - "traefik.http.routers.${XENICA_NAME:-prod}.rule=Host(`${XENICA_HOST:-xenica.truebigsand.top}`)"
+      # XENICA_ALIAS_RULE：部署器给「最近更新的预览」加上固定域名 preview.<域名>
+      - "traefik.http.routers.${XENICA_NAME:-prod}.rule=Host(`${XENICA_HOST:-xenica.truebigsand.top}`)${XENICA_ALIAS_RULE:-}"
       - "traefik.http.routers.${XENICA_NAME:-prod}.entrypoints=web"
       - "traefik.http.services.${XENICA_NAME:-prod}.loadbalancer.server.port=8080"
 

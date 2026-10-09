@@ -8,10 +8,12 @@
 mod auth;
 mod edges;
 mod error;
+mod files;
 mod nodes;
 mod traces;
 
 pub use error::StoreError;
+pub use files::StoredFile;
 pub use sqlx::PgPool;
 
 use sqlx::{Postgres, Transaction};

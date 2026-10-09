@@ -10,6 +10,7 @@ pub struct Node {
     pub id: NodeId,
     /// 类型键，例如 `note`。以后类型本身也会成为节点，这里先用字符串。
     pub kind: String,
+    /// 可以为空：没有标题时界面用正文第一行代替。
     pub title: String,
     /// 节点内容。结构由类型决定，核心不解释它。
     #[schema(value_type = Object)]
@@ -21,10 +22,17 @@ pub struct Node {
 /// 新建节点的输入。
 #[derive(Debug, Clone, Deserialize, ToSchema)]
 pub struct NewNode {
+    /// 客户端可以自己生成 ID（UUID v7），这样不用等服务器就能接着编辑。省略时由服务器生成。
+    #[serde(default)]
+    #[schema(value_type = Option<String>, format = Uuid)]
+    pub id: Option<NodeId>,
     /// 省略时为 `note`。
     #[serde(default)]
     pub kind: Option<String>,
+    /// 可省略。
+    #[serde(default)]
     pub title: String,
+    /// 约定：文字内容放在 `md`（Markdown），其中的 `#标记` 和 `[[名字]]` 会自动连到同名节点。
     #[serde(default)]
     #[schema(value_type = Option<Object>)]
     pub body: Option<serde_json::Value>,
@@ -38,6 +46,7 @@ impl NewNode {
         let kind = self.kind.unwrap_or_else(|| Self::DEFAULT_KIND.to_owned());
         let kind = validate_kind(&kind)?;
         Ok(NewNode {
+            id: self.id,
             kind: Some(kind),
             title: validate_title(&self.title)?,
             body: Some(self.body.unwrap_or_else(|| serde_json::json!({}))),
@@ -67,6 +76,24 @@ impl NodePatch {
     }
 }
 
+/// 节点正文里的 Markdown 文本（`body.md`），没有就是 `None`。
+pub fn md(body: &serde_json::Value) -> Option<&str> {
+    body.get("md").and_then(|v| v.as_str())
+}
+
+/// 在某个节点里按顺序插入新的子节点（一次可以插多个，例如粘贴一整段笔记）。
+#[derive(Debug, Clone, Deserialize, ToSchema)]
+pub struct NewChildren {
+    /// 插到第几个位置（从 0 开始）；省略时放到最后。
+    #[serde(default)]
+    pub index: Option<u32>,
+    pub nodes: Vec<NewNode>,
+}
+
+impl NewChildren {
+    pub const MAX: usize = 1000;
+}
+
 pub(crate) fn validate_kind(kind: &str) -> Result<String, DomainError> {
     let ok = !kind.is_empty()
         && kind.len() <= 64
@@ -84,9 +111,6 @@ pub(crate) fn validate_kind(kind: &str) -> Result<String, DomainError> {
 
 fn validate_title(title: &str) -> Result<String, DomainError> {
     let title = title.trim();
-    if title.is_empty() {
-        return Err(DomainError::Invalid("title must not be empty".into()));
-    }
     if title.chars().count() > MAX_TITLE_CHARS {
         return Err(DomainError::Invalid(format!(
             "title must be at most {MAX_TITLE_CHARS} characters"
@@ -101,6 +125,7 @@ mod tests {
 
     fn new(title: &str) -> NewNode {
         NewNode {
+            id: None,
             kind: None,
             title: title.into(),
             body: None,
@@ -116,8 +141,15 @@ mod tests {
     }
 
     #[test]
-    fn rejects_blank_and_too_long_titles() {
-        assert!(new("   ").normalize().is_err());
+    fn md_reads_text_body() {
+        let n = new("x").normalize().unwrap();
+        assert_eq!(md(n.body.as_ref().unwrap()), None);
+        assert_eq!(md(&serde_json::json!({ "md": "a #b" })), Some("a #b"));
+    }
+
+    #[test]
+    fn allows_blank_but_not_too_long_titles() {
+        assert_eq!(new("   ").normalize().unwrap().title, "");
         assert!(new(&"字".repeat(MAX_TITLE_CHARS + 1)).normalize().is_err());
         assert!(new(&"字".repeat(MAX_TITLE_CHARS)).normalize().is_ok());
     }

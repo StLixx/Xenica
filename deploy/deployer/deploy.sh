@@ -2,6 +2,7 @@
 # 部署器：在 core-server 上由 systemd timer 每 2 分钟运行一次。只从 GitHub 和 ghcr「拉」，不接受任何推送。
 #   正式站：ghcr 上的 latest 变了就换上；健康检查不过就回滚到上一个镜像，并记下这个坏版本。
 #   预览：  本仓库分支提的每个打开的 PR 一个实例（pr-<号>.<域名>，带示例数据）；PR 关了就连数据一起删掉。
+#           最近更新的那个 PR 同时挂在固定域名 preview.<域名> 上——用户只需要记这一个预览网址。
 # 需要：docker（含 compose 插件）、curl、jq、openssl。配置读 deploy/.env。
 set -euo pipefail
 
@@ -73,33 +74,40 @@ deploy_prod() {
 }
 
 deploy_preview() {
-  local n=$1 project="xenica-pr-$1" tag="$IMAGE:pr-$1" env_file="$STATE/pr-$1.env"
+  local n=$1 alias=$2 project="xenica-pr-$1" tag="$IMAGE:pr-$1" env_file="$STATE/pr-$1.env"
   docker pull -q "$tag" >/dev/null 2>&1 || return 0 # CI 还没推送镜像
-  local want have
+  local want have rule=''
   want=$(image_id "$tag")
   have=$(running_image "$project")
-  [ "$want" = "$have" ] && return 0
+  # 镜像没变、固定域名也没换主人就不动；换了主人要重建容器（Traefik 规则在容器标签上）
+  [ "$want" = "$have" ] && [ "$alias" = "$(cat "$STATE/pr-$n.alias" 2>/dev/null)" ] && return 0
   [ -f "$env_file" ] || printf 'POSTGRES_PASSWORD=%s\n' "$(openssl rand -hex 24)" >"$env_file"
-  log "preview $n: deploying $(revision "$tag" | cut -c1-7)"
-  XENICA_IMAGE="$tag" XENICA_NAME="pr-$n" XENICA_HOST="pr-$n.$DOMAIN" XENICA_SEED=demo \
-    compose -p "$project" --env-file "$env_file" up -d --wait --wait-timeout 120 ||
+  # shellcheck disable=SC2016 # 反引号是 Traefik 规则语法
+  [ "$alias" = 1 ] && rule=" || Host(\`preview.$DOMAIN\`)"
+  log "preview $n: deploying $(revision "$tag" | cut -c1-7)$([ "$alias" = 1 ] && echo " (preview.$DOMAIN)")"
+  if XENICA_IMAGE="$tag" XENICA_NAME="pr-$n" XENICA_HOST="pr-$n.$DOMAIN" XENICA_ALIAS_RULE="$rule" XENICA_SEED=demo \
+    compose -p "$project" --env-file "$env_file" up -d --wait --wait-timeout 120; then
+    echo "$alias" >"$STATE/pr-$n.alias"
+  else
     log "preview $n: not healthy"
+  fi
 }
 
 deploy_previews() {
-  local open keep project n
-  open=$(github "https://api.github.com/repos/$REPO/pulls?state=open&per_page=50" |
-    jq -r --arg r "$REPO" '[.[] | select(.head.repo.full_name == $r) | .number] | sort | reverse | .[]') ||
+  local pulls open keep latest project n
+  pulls=$(github "https://api.github.com/repos/$REPO/pulls?state=open&per_page=50") ||
     { log "github api failed"; return 0; }
+  open=$(jq -r --arg r "$REPO" '[.[] | select(.head.repo.full_name == $r) | .number] | sort | reverse | .[]' <<<"$pulls")
+  latest=$(jq -r --arg r "$REPO" '[.[] | select(.head.repo.full_name == $r)] | sort_by(.updated_at) | last | .number // empty' <<<"$pulls")
   keep=$(head -n "$MAX_PREVIEWS" <<<"$open")
-  for n in $keep; do deploy_preview "$n"; done
+  for n in $keep; do deploy_preview "$n" "$([ "$n" = "$latest" ] && echo 1 || echo 0)"; done
   for project in $(docker ps -a --format '{{.Label "com.docker.compose.project"}}' | grep -E '^xenica-pr-[0-9]+$' | sort -u); do
     n=${project#xenica-pr-}
     grep -qx "$n" <<<"$keep" && continue
     log "preview $n: removing"
     compose -p "$project" down -v --remove-orphans || true
     docker rmi "$IMAGE:pr-$n" >/dev/null 2>&1 || true
-    rm -f "$STATE/pr-$n.env"
+    rm -f "$STATE/pr-$n.env" "$STATE/pr-$n.alias"
   done
 }
 

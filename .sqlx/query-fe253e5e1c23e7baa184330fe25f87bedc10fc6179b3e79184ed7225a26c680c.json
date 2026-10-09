@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "insert into nodes (id, kind, title, body) values ($1, $2, $3, $4)\n               returning id, kind, title, body, created_at, updated_at",
+  "query": "insert into nodes (id, kind, title, body) values ($1, $2, $3, $4)\n           returning id, kind, title, body, created_at, updated_at",
   "describe": {
     "columns": [
       {
@@ -87,5 +87,5 @@
       false
     ]
   },
-  "hash": "82c453ce3782da4c482fdb48c9d8c27c15f5de382f526a73b889067bc1810fe8"
+  "hash": "fe253e5e1c23e7baa184330fe25f87bedc10fc6179b3e79184ed7225a26c680c"
 }

@@ -10,7 +10,7 @@
 - **主线**：Issue → 草稿 PR（= 认领）→ 机器门（CI）→ 预览 → 验收门 → squash 合并 → 部署器上线。步骤写在 `AGENTS.md`「接到任务时」。
 - **规模决定分层**：小改动 Issue 即规格；中等先提规格 PR（`specs/`）；大的再加 ADR、拆子 Issue。
 - **可逆性决定自动化程度**：能撤回的改动，CI 全绿就自动合并。截图有变化、或涉及 `.github/`、`deploy/`、`scripts/`、Agent 规则、改已有迁移、破坏性 SQL 的，要用户验收。规则在 `.github/scripts/gate.cjs`。
-- **验收 = 用户在 PR 里评论 `/通过`**。不用 GitHub 的 Approve：Agent 用用户的身份提 PR，GitHub 不允许给自己的 PR 点 Approve。验收结果记成 commit status「验收」，有新提交就要重新验收。
+- **验收 = 用户在 PR 里评论 `/通过`**。不用 GitHub 的 Approve：Agent 用用户的身份提 PR，GitHub 不允许给自己的 PR 点 Approve。验收结果记成 commit status「验收」，有新提交就要重新验收。 用户也可以在和执行 Agent 的对话里确认，由 Agent 代他评论 `/通过`（用户只看整体预览，Agent 负责告诉他看哪里，见 AGENTS.md「请用户验收时」）。
 - **截图基准不进仓库**：master 的 CI 在 Playwright 官方容器里给每个 story 截图，存为构件；PR 下载来比。合并即更新基准。
 - **部署只拉不推**：core-server 上的部署器每 2 分钟从 GitHub API 和 ghcr 拉取。GitHub 不需要服务器的任何权限；fork 提的 PR 推不了镜像，所以不会有预览。
 - **沉淀**：每个 PR 填「沉淀」一栏，优先变成检查和测试。`AGENTS.md` 不超过 200 行（CI 检查）。

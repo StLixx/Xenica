@@ -68,6 +68,13 @@ fn api_router() -> OpenApiRouter<AppState> {
         ))
         .routes(routes!(routes::nodes::list_node_traces))
         .routes(routes!(
+            routes::nodes::list_children,
+            routes::nodes::create_children,
+            routes::nodes::reorder_children
+        ))
+        .routes(routes!(routes::files::upload_file))
+        .routes(routes!(routes::files::get_file))
+        .routes(routes!(
             routes::edges::list_edges,
             routes::edges::create_edge
         ))
@@ -89,6 +96,7 @@ pub fn app(state: AppState, web_dist: Option<&Path>) -> Router {
             axum::routing::any(|| async { ApiError::not_found() }),
         )
         .layer(middleware::from_fn_with_state(state.clone(), auth::guard))
+        .layer(routes::files::body_limit())
         .with_state(state);
     let router = match web_dist {
         Some(dir) => api

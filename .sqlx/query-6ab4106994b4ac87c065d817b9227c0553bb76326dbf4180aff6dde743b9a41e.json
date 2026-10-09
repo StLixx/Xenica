@@ -1,0 +1,17 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "insert into edges (id, source, target, kind)\n           select i, $1, t, $4 from unnest($2::uuid[], $3::uuid[]) as x(i, t)\n           on conflict do nothing",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "UuidArray",
+        "UuidArray",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "6ab4106994b4ac87c065d817b9227c0553bb76326dbf4180aff6dde743b9a41e"
+}

@@ -1,7 +1,16 @@
 /** 服务端状态全部走 TanStack Query。新加接口时在这里加 hook，视图只用 hook。 */
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useCallback } from 'react';
 
-import { api, unwrap, type NewEdge, type NewNode, type NodePatch } from './client';
+import {
+  api,
+  unwrap,
+  type NewChildren,
+  type NewEdge,
+  type NewNode,
+  type Node,
+  type NodePatch,
+} from './client';
 
 export const keys = {
   health: ['health'] as const,
@@ -9,6 +18,7 @@ export const keys = {
   nodes: ['nodes'] as const,
   node: (id: string) => ['nodes', id] as const,
   traces: (id: string) => ['nodes', id, 'traces'] as const,
+  children: (id: string) => ['children', id] as const,
   edges: (node?: string) => ['edges', node ?? 'all'] as const,
 };
 
@@ -60,7 +70,8 @@ export async function logout() {
 export function useNodes() {
   return useQuery({
     queryKey: keys.nodes,
-    queryFn: async () => unwrap(await api.GET('/api/nodes')),
+    queryFn: async () =>
+      unwrap(await api.GET('/api/nodes', { params: { query: { limit: 1000 } } })),
   });
 }
 
@@ -83,7 +94,7 @@ export function useEdges(node?: string) {
   return useQuery({
     queryKey: keys.edges(node),
     queryFn: async () =>
-      unwrap(await api.GET('/api/edges', { params: { query: node ? { node } : {} } })),
+      unwrap(await api.GET('/api/edges', { params: { query: node ? { node } : { limit: 5000 } } })),
   });
 }
 
@@ -138,4 +149,67 @@ export function useDeleteEdge() {
       unwrap(await api.DELETE('/api/edges/{id}', { params: { path: { id } } })),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['edges'] }),
   });
+}
+
+/** 一个节点按顺序包含的子节点（一页里的各块）。 */
+export function useChildren(id: string) {
+  return useQuery({
+    queryKey: keys.children(id),
+    queryFn: async () =>
+      unwrap(await api.GET('/api/nodes/{id}/children', { params: { path: { id } } })),
+  });
+}
+
+export async function createChildren(id: string, input: NewChildren) {
+  return unwrap(
+    await api.POST('/api/nodes/{id}/children', { params: { path: { id } }, body: input }),
+  );
+}
+
+export async function reorderChildren(id: string, ids: string[]) {
+  return unwrap(await api.PUT('/api/nodes/{id}/children', { params: { path: { id } }, body: ids }));
+}
+
+export async function patchNode(id: string, patch: NodePatch) {
+  return unwrap(await api.PATCH('/api/nodes/{id}', { params: { path: { id } }, body: patch }));
+}
+
+export async function deleteNode(id: string) {
+  return unwrap(await api.DELETE('/api/nodes/{id}', { params: { path: { id } } }));
+}
+
+/** 上传图片，返回可以写进 Markdown 的地址。 */
+export async function uploadImage(file: Blob): Promise<string> {
+  const res = await fetch('/api/files', {
+    method: 'POST',
+    headers: { 'Content-Type': file.type },
+    body: file,
+  });
+  const body = (await res.json().catch(() => ({}))) as { url?: string; message?: string };
+  if (!res.ok || !body.url) throw new Error(body.message ?? res.statusText);
+  return body.url;
+}
+
+/** 块的增删改之后：刷新节点列表和关系（正文里的 #标记 会新建节点、改关系）。 */
+export function useRefreshGraph() {
+  const qc = useQueryClient();
+  return useCallback(() => {
+    void qc.invalidateQueries({ queryKey: keys.nodes, exact: true });
+    void qc.invalidateQueries({ queryKey: ['edges'] });
+  }, [qc]);
+}
+
+/** 直接改缓存里的子节点列表（编辑器做乐观更新用）。 */
+export function useSetChildren(id: string) {
+  const qc = useQueryClient();
+  return useCallback(
+    (fn: (list: Node[]) => Node[]) =>
+      qc.setQueryData<Node[]>(keys.children(id), (old) => fn(old ?? [])),
+    [qc, id],
+  );
+}
+
+/** 正文 `{ md }`。（生成的类型把任意对象写成了 Record<string, never>，这里统一转一下。） */
+export function mdBody(md: string) {
+  return { md } as unknown as Record<string, never>;
 }

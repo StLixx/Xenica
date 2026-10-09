@@ -13,6 +13,8 @@ const SENSITIVE = [
   [/^deploy\//, '部署'],
   [/^scripts\//, '仓库脚本'],
   [/^(AGENTS|CLAUDE)\.md$/, 'Agent 规则'],
+  // 界面改动一律在整体预览里看过再合并（测试和 story 本身除外，story 的变化由截图对比管）
+  [/^web\/src\/(?!.*\.(test|stories)\.tsx?$)/, '界面'],
 ];
 const DESTRUCTIVE_SQL = /\b(drop|truncate|rename|delete\s+from|alter\s+column[^;]*\btype)\b/i;
 
@@ -93,6 +95,7 @@ function previewBody({ pr, changed, why, sha }) {
   const host = `https://pr-${pr.number}.${DOMAIN}`;
   const lines = [
     `**预览**：${host} · [组件](${host}/storybook/) · commit \`${sha.slice(0, 7)}\``,
+    `（最近更新的 PR 同时在固定网址 https://preview.${DOMAIN}）`,
     '（部署器约 2 分钟内上线；页面底部显示的 commit 和这里一致就是最新的）',
     '',
   ];
@@ -104,7 +107,7 @@ function previewBody({ pr, changed, why, sha }) {
       if (changed.length > 20) lines.push(`- ……共 ${changed.length} 个`);
       lines.push('');
     }
-    lines.push('确认没问题就评论 `/通过`；有问题直接写在评论里，执行 Agent 照着改。');
+    lines.push('执行 Agent 会在对话里把要看的地方告诉你；你确认后它代你评论 `/通过`，你也可以自己评论。');
   } else {
     lines.push('无需验收，CI 全绿后自动合并。');
   }
