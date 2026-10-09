@@ -27,9 +27,12 @@ test('画一张草图，给 AI 的链接能读到画了什么', async ({ page, b
   if (!box) throw new Error('画布没有尺寸');
   await stage.click({ position: { x: 60, y: 60 } });
   await page.keyboard.press('r');
-  await page.mouse.move(box.x + 160, box.y + 120);
+  // 落在画布空白处：左边会弹出属性面板，顶上还有工具条，别拖到它们身上。
+  const startX = box.x + box.width * 0.5;
+  const startY = box.y + box.height * 0.55;
+  await page.mouse.move(startX, startY);
   await page.mouse.down();
-  await page.mouse.move(box.x + 320, box.y + 220, { steps: 8 });
+  await page.mouse.move(startX + 160, startY + 100, { steps: 8 });
   await page.mouse.up();
 
   // 停手之后自己写库
