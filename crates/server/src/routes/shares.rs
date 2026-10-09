@@ -51,7 +51,9 @@ pub struct SceneInput {
 }
 
 /// 请求落在哪个地址上。hikari 和 Traefik 都保留 Host，所以拼得出来。
-/// 本机开发是 http，域名访问是 https（`x-forwarded-proto` 优先）。
+///
+/// 协议按「不是本机就是 https」判断，**不看 `x-forwarded-proto`**：TLS 在 hikari 上就终结了，
+/// 再到应用是一段明文 HTTP，那个头会说是 http，拼出来的链接就成了 `http://域名/...`（真机上踩过）。
 fn origin(headers: &HeaderMap) -> String {
     let host = headers
         .get(header::HOST)
@@ -59,12 +61,7 @@ fn origin(headers: &HeaderMap) -> String {
         .unwrap_or("localhost");
     let local =
         host.starts_with("localhost") || host.starts_with("127.0.0.1") || host.starts_with("[::1]");
-    let scheme = headers
-        .get("x-forwarded-proto")
-        .and_then(|v| v.to_str().ok())
-        .filter(|s| *s == "http" || *s == "https")
-        .map(str::to_owned)
-        .unwrap_or_else(|| if local { "http".into() } else { "https".into() });
+    let scheme = if local { "http" } else { "https" };
     format!("{scheme}://{host}")
 }
 
@@ -317,4 +314,44 @@ pub async fn write_share(
         )
         .await?;
     Ok(Json(node))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use axum::http::HeaderValue;
+
+    fn headers(host: &str, proto: Option<&str>) -> HeaderMap {
+        let mut map = HeaderMap::new();
+        map.insert(header::HOST, HeaderValue::from_str(host).unwrap());
+        if let Some(proto) = proto {
+            map.insert("x-forwarded-proto", HeaderValue::from_str(proto).unwrap());
+        }
+        map
+    }
+
+    #[test]
+    fn 域名上一律_https() {
+        // TLS 在 hikari 上终结，转发过来是明文，那个头会说是 http——不能信它
+        assert_eq!(
+            origin(&headers("xenica.truebigsand.top", Some("http"))),
+            "https://xenica.truebigsand.top"
+        );
+        assert_eq!(
+            origin(&headers("excalidraw.xenica.truebigsand.top", None)),
+            "https://excalidraw.xenica.truebigsand.top"
+        );
+    }
+
+    #[test]
+    fn 本机开发用_http() {
+        assert_eq!(
+            origin(&headers("localhost:5173", None)),
+            "http://localhost:5173"
+        );
+        assert_eq!(
+            origin(&headers("127.0.0.1:8080", None)),
+            "http://127.0.0.1:8080"
+        );
+    }
 }

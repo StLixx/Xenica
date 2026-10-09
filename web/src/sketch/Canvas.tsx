@@ -163,6 +163,7 @@ export function Canvas({
       <Suspense fallback={<EmptyState tone="loading" title="加载画板…" />}>
         <Excalidraw
           theme="dark"
+          langCode="zh-CN"
           initialData={
             {
               elements: scene.elements ?? [],
