@@ -536,3 +536,284 @@ async fn demo_user_can_log_in(pool: PgPool) {
     .await;
     assert_eq!(status, StatusCode::OK);
 }
+
+/// 发请求，拿原始响应体（分享链接返回的是文字和图片，不是 JSON）。
+async fn send_raw(
+    app: &Router,
+    cookie: Option<&str>,
+    method: &str,
+    uri: &str,
+    body: Option<Value>,
+) -> (StatusCode, String, Vec<u8>) {
+    let mut req = Request::builder().method(method).uri(uri);
+    if let Some(c) = cookie {
+        req = req.header(header::COOKIE, c);
+    }
+    let req = match body {
+        Some(b) => req
+            .header(header::CONTENT_TYPE, "application/json")
+            .body(Body::from(b.to_string())),
+        None => req.body(Body::empty()),
+    }
+    .unwrap();
+    let res = app.clone().oneshot(req).await.unwrap();
+    let status = res.status();
+    let ctype = res
+        .headers()
+        .get(header::CONTENT_TYPE)
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("")
+        .to_owned();
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap().to_vec();
+    (status, ctype, bytes)
+}
+
+/// 一张草图：一个写着「侧栏」的框，加一张贴进去的图。
+fn sketch_body(file: &str) -> Value {
+    json!({
+        "scene": {
+            "type": "excalidraw",
+            "elements": [
+                { "id": "r1", "type": "rectangle", "x": 10.0, "y": 10.0, "width": 100.0, "height": 50.0 },
+                { "id": "t1", "type": "text", "x": 20.0, "y": 20.0, "text": "侧栏", "containerId": "r1" },
+                { "id": "i1", "type": "image", "x": 200.0, "y": 10.0, "width": 80.0, "height": 40.0,
+                  "fileId": file }
+            ]
+        }
+    })
+}
+
+async fn a_sketch(app: &(Router, String), file: &str) -> String {
+    let (status, node) = call(
+        app,
+        "POST",
+        "/api/nodes",
+        Some(json!({ "kind": "sketch", "title": "验收板", "body": sketch_body(file) })),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    node["id"].as_str().unwrap().to_owned()
+}
+
+async fn a_share(app: &(Router, String), node: &str, mode: &str) -> Value {
+    let (status, share) = call(
+        app,
+        "POST",
+        &format!("/api/nodes/{node}/shares"),
+        Some(json!({ "mode": mode })),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    share
+}
+
+#[sqlx::test(migrator = "xenica_store::MIGRATOR")]
+async fn a_share_link_is_readable_without_login(pool: PgPool) {
+    let app = signed_in(pool).await;
+    let id = a_sketch(&app, "00000000-0000-7000-8000-000000000000").await;
+    let share = a_share(&app, &id, "read").await;
+    let token = share["token"].as_str().unwrap().to_owned();
+    assert!(
+        share["url"]
+            .as_str()
+            .unwrap()
+            .ends_with(&format!("/api/share/{token}")),
+        "{share}"
+    );
+
+    // 不带 Cookie 也能读，拿到的是一段文字说明
+    let (status, ctype, bytes) =
+        send_raw(&app.0, None, "GET", &format!("/api/share/{token}"), None).await;
+    assert_eq!(status, StatusCode::OK);
+    assert!(ctype.starts_with("text/markdown"), "{ctype}");
+    let text = String::from_utf8(bytes).unwrap();
+    assert!(text.contains("# 验收板"), "{text}");
+    assert!(text.contains("框「侧栏」"), "{text}");
+    // 附件地址带上 token，AI 顺着就能取到原图
+    assert!(
+        text.contains(&format!("/api/share/{token}/files/")),
+        "{text}"
+    );
+
+    // 原始画布数据也在
+    let (status, _, bytes) = send_raw(
+        &app.0,
+        None,
+        "GET",
+        &format!("/api/share/{token}/scene.json"),
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    let scene: Value = serde_json::from_slice(&bytes).unwrap();
+    assert_eq!(scene["elements"].as_array().unwrap().len(), 3);
+}
+
+#[sqlx::test(migrator = "xenica_store::MIGRATOR")]
+async fn only_a_write_link_can_change_the_scene(pool: PgPool) {
+    let app = signed_in(pool).await;
+    let id = a_sketch(&app, "00000000-0000-7000-8000-000000000001").await;
+    let read = a_share(&app, &id, "read").await;
+    let write = a_share(&app, &id, "write").await;
+
+    let scene = json!({ "scene": { "type": "excalidraw", "elements": [
+        { "id": "e1", "type": "ellipse", "x": 0.0, "y": 0.0, "width": 10.0, "height": 10.0 }
+    ] } });
+
+    // 只读链接改不了
+    let (status, _, _) = send_raw(
+        &app.0,
+        None,
+        "PUT",
+        &format!("/api/share/{}", read["token"].as_str().unwrap()),
+        Some(scene.clone()),
+    )
+    .await;
+    assert_eq!(status, StatusCode::FORBIDDEN);
+
+    // 可写链接能改，而且不用登录
+    let (status, _, bytes) = send_raw(
+        &app.0,
+        None,
+        "PUT",
+        &format!("/api/share/{}", write["token"].as_str().unwrap()),
+        Some(scene),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    let node: Value = serde_json::from_slice(&bytes).unwrap();
+    assert_eq!(node["body"]["scene"]["elements"][0]["type"], "ellipse");
+
+    // 改完在链接上就读得到，而且 write 链接的说明里告诉 AI 怎么改
+    let (_, _, bytes) = send_raw(
+        &app.0,
+        None,
+        "GET",
+        &format!("/api/share/{}", write["token"].as_str().unwrap()),
+        None,
+    )
+    .await;
+    let text = String::from_utf8(bytes).unwrap();
+    assert!(text.contains("椭圆"), "{text}");
+    assert!(text.contains("也可以改画面"), "{text}");
+    assert!(
+        !text.contains("画面图片："),
+        "改过之后旧的图不该再给出：{text}"
+    );
+}
+
+#[sqlx::test(migrator = "xenica_store::MIGRATOR")]
+async fn a_revoked_link_is_gone(pool: PgPool) {
+    let app = signed_in(pool).await;
+    let id = a_sketch(&app, "00000000-0000-7000-8000-000000000002").await;
+    let share = a_share(&app, &id, "read").await;
+    let token = share["token"].as_str().unwrap().to_owned();
+
+    let (_, list) = call(&app, "GET", &format!("/api/nodes/{id}/shares"), None).await;
+    assert_eq!(list.as_array().unwrap().len(), 1);
+    assert_eq!(list[0]["revoked_at"], Value::Null);
+
+    let (status, _) = call(
+        &app,
+        "DELETE",
+        &format!("/api/shares/{}", share["id"].as_str().unwrap()),
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::NO_CONTENT);
+
+    let (status, _, _) = send_raw(&app.0, None, "GET", &format!("/api/share/{token}"), None).await;
+    assert_eq!(status, StatusCode::NOT_FOUND);
+
+    // 列表里还看得见，并且能看出它已经废了
+    let (_, list) = call(&app, "GET", &format!("/api/nodes/{id}/shares"), None).await;
+    assert!(list[0]["revoked_at"].is_string(), "{list}");
+}
+
+#[sqlx::test(migrator = "xenica_store::MIGRATOR")]
+async fn a_share_link_serves_the_pasted_image(pool: PgPool) {
+    let (app, cookie) = signed_in(pool).await;
+    let pair = (app.clone(), cookie.clone());
+    let png: &[u8] = b"\x89PNG\r\n\x1a\nfake";
+    let res = app
+        .clone()
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/api/files")
+                .header(header::COOKIE, &cookie)
+                .header(header::CONTENT_TYPE, "image/png")
+                .body(Body::from(png))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(res.status(), StatusCode::CREATED);
+    let file: Value =
+        serde_json::from_slice(&to_bytes(res.into_body(), 1 << 20).await.unwrap()).unwrap();
+    let file_id = file["id"].as_str().unwrap().to_owned();
+
+    let id = a_sketch(&pair, &file_id).await;
+    let share = a_share(&pair, &id, "read").await;
+    let token = share["token"].as_str().unwrap();
+
+    // 画面里用到的附件：不用登录就能取到原图，一个字节不差
+    let (status, ctype, bytes) = send_raw(
+        &pair.0,
+        None,
+        "GET",
+        &format!("/api/share/{token}/files/{file_id}"),
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(ctype, "image/png");
+    assert_eq!(bytes, png);
+
+    // 画面里没出现的文件取不到：光有 token 不能到处翻
+    let other = uuid::Uuid::now_v7();
+    let (status, _, _) = send_raw(
+        &pair.0,
+        None,
+        "GET",
+        &format!("/api/share/{token}/files/{other}"),
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::NOT_FOUND);
+}
+
+#[sqlx::test(migrator = "xenica_store::MIGRATOR")]
+async fn managing_shares_needs_login(pool: PgPool) {
+    let app = signed_in(pool).await;
+    let id = a_sketch(&app, "00000000-0000-7000-8000-000000000003").await;
+
+    let (status, _, _) = send(
+        &app.0,
+        None,
+        "POST",
+        &format!("/api/nodes/{id}/shares"),
+        Some(json!({ "mode": "read" })),
+    )
+    .await;
+    assert_eq!(status, StatusCode::UNAUTHORIZED);
+    let (status, _, _) = send(
+        &app.0,
+        None,
+        "GET",
+        &format!("/api/nodes/{id}/shares"),
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::UNAUTHORIZED);
+    // 公开的是 `/api/share/`（单数），管理用的 `/api/shares/`（复数）要登录
+    let (status, _, _) = send(
+        &app.0,
+        None,
+        "DELETE",
+        &format!("/api/shares/{}", uuid::Uuid::now_v7()),
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::UNAUTHORIZED);
+}

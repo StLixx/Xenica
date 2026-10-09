@@ -10,6 +10,7 @@ import {
   type NewNode,
   type Node,
   type NodePatch,
+  type ShareMode,
 } from './client';
 
 export const keys = {
@@ -20,6 +21,7 @@ export const keys = {
   traces: (id: string) => ['nodes', id, 'traces'] as const,
   children: (id: string) => ['children', id] as const,
   edges: (node?: string) => ['edges', node ?? 'all'] as const,
+  shares: (node: string) => ['shares', node] as const,
 };
 
 export function useHealth() {
@@ -212,4 +214,43 @@ export function useSetChildren(id: string) {
 /** 正文 `{ md }`。（生成的类型把任意对象写成了 Record<string, never>，这里统一转一下。） */
 export function mdBody(md: string) {
   return { md } as unknown as Record<string, never>;
+}
+
+/** 草图的正文：画面数据 + 整张图的图片（文件 id）。 */
+export function sketchBody(scene: unknown, image?: string) {
+  return { scene, ...(image ? { image } : {}) } as unknown as Record<string, never>;
+}
+
+/** 一个节点上的分享链接（含已作废的）。 */
+export function useShares(node: string) {
+  return useQuery({
+    queryKey: keys.shares(node),
+    queryFn: async () =>
+      unwrap(await api.GET('/api/nodes/{id}/shares', { params: { path: { id: node } } })),
+  });
+}
+
+/** 开一条分享链接：`read` 给 AI 读，`write` 给 AI 改。 */
+export function useCreateShare(node: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (mode: ShareMode) =>
+      unwrap(
+        await api.POST('/api/nodes/{id}/shares', {
+          params: { path: { id: node } },
+          body: { mode },
+        }),
+      ),
+    onSuccess: () => qc.invalidateQueries({ queryKey: keys.shares(node) }),
+  });
+}
+
+/** 作废一条分享链接。 */
+export function useRevokeShare(node: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) =>
+      unwrap(await api.DELETE('/api/shares/{id}', { params: { path: { id } } })),
+    onSuccess: () => qc.invalidateQueries({ queryKey: keys.shares(node) }),
+  });
 }

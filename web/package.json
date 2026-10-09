@@ -23,6 +23,7 @@
     "screenshots": "playwright test -c playwright.screenshots.config.ts"
   },
   "dependencies": {
+    "@excalidraw/excalidraw": "^0.18.1",
     "@tanstack/react-query": "^5.104.1",
     "@xyflow/react": "^12.12.0",
     "dockview-react": "^8.4.0",

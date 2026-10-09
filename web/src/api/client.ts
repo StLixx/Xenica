@@ -16,6 +16,8 @@ export type NewChildren = components['schemas']['NewChildren'];
 export type FileRef = components['schemas']['FileRef'];
 export type User = components['schemas']['User'];
 export type Session = components['schemas']['Session'];
+export type ShareBody = components['schemas']['ShareBody'];
+export type ShareMode = components['schemas']['ShareMode'];
 
 export const api = createClient<paths>({ baseUrl: '' });
 

@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "update shares set revoked_at = now() where id = $1 and revoked_at is null",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "8e09b336dc8ce9e5d6e64a7d8e7ac99cd2e936ebd66f6fda4b30a012be892e78"
+}

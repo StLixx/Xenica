@@ -1,0 +1,88 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "select id, node, token, mode, created_at, revoked_at from shares\n             where token = $1 and revoked_at is null",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "shares",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "node",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "shares",
+            "name": "node"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "token",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "shares",
+            "name": "token"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "mode",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "shares",
+            "name": "mode"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "created_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "shares",
+            "name": "created_at"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "revoked_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "shares",
+            "name": "revoked_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      true
+    ]
+  },
+  "hash": "ade97badb62f1af26592ed2e959b00660e45a0023233cafbf21131fb735334f3"
+}
