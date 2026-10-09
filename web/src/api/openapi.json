@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Xenica API",
-    "description": "Xenica 的 HTTP 接口。由代码生成，不要手改。除 `/api/health` 和 `/api/auth/*` 外都要先登录（Cookie `xenica_session`）。",
+    "description": "Xenica 的 HTTP 接口。由代码生成，不要手改。除 `/api/health`、`/api/auth/*` 和 `/api/share/*` 外都要先登录（Cookie `xenica_session`）。",
     "license": {
       "name": ""
     },
@@ -713,6 +713,84 @@
         }
       }
     },
+    "/api/nodes/{id}/shares": {
+      "get": {
+        "tags": ["shares"],
+        "summary": "一个节点上的分享链接（含已作废的）。",
+        "operationId": "list_shares",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ShareBody"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["shares"],
+        "summary": "给一个节点开一条分享链接。",
+        "operationId": "create_share",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewShare"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShareBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/nodes/{id}/traces": {
       "get": {
         "tags": ["nodes"],
@@ -738,6 +816,264 @@
                   "items": {
                     "$ref": "#/components/schemas/Trace"
                   }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/share/{token}": {
+      "get": {
+        "tags": ["shares"],
+        "summary": "读一张草图：返回整理好的文字说明。**不用登录**。",
+        "operationId": "read_share",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/markdown": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": ["shares"],
+        "summary": "用新画面替换。**不用登录**，但只有 write 链接可以。",
+        "operationId": "write_share",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SceneInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Node"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/share/{token}/files/{file}": {
+      "get": {
+        "tags": ["shares"],
+        "summary": "画面里用到的附件（原图，不压缩）。不用登录。",
+        "operationId": "share_file",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "file",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "image/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/share/{token}/png": {
+      "get": {
+        "tags": ["shares"],
+        "summary": "整张图的图片。不用登录。",
+        "operationId": "share_image",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "image/png": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/share/{token}/scene.json": {
+      "get": {
+        "tags": ["shares"],
+        "summary": "画布的原始数据。不用登录。",
+        "operationId": "share_scene",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/shares/{id}": {
+      "delete": {
+        "tags": ["shares"],
+        "summary": "作废一条分享链接。",
+        "operationId": "revoke_share",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {},
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
                 }
               }
             }
@@ -934,6 +1270,16 @@
           }
         }
       },
+      "NewShare": {
+        "type": "object",
+        "required": ["mode"],
+        "properties": {
+          "mode": {
+            "$ref": "#/components/schemas/ShareMode",
+            "description": "`read`（给 AI 读）或 `write`（给 AI 改）。"
+          }
+        }
+      },
       "Node": {
         "type": "object",
         "description": "节点：一切有身份的东西（知识点、文件、任务、设置……）。",
@@ -981,6 +1327,15 @@
           }
         }
       },
+      "SceneInput": {
+        "type": "object",
+        "required": ["scene"],
+        "properties": {
+          "scene": {
+            "description": "Excalidraw 的画面数据，原样存下来。"
+          }
+        }
+      },
       "Session": {
         "type": "object",
         "required": ["setup_required", "demo"],
@@ -1021,6 +1376,48 @@
             "type": "string"
           }
         }
+      },
+      "ShareBody": {
+        "type": "object",
+        "description": "一条分享链接（带好可以直接用的地址）。",
+        "required": ["id", "node", "mode", "token", "url", "image", "created_at"],
+        "properties": {
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "image": {
+            "type": "string",
+            "description": "画面图片。"
+          },
+          "mode": {
+            "$ref": "#/components/schemas/ShareMode"
+          },
+          "node": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revoked_at": {
+            "type": ["string", "null"],
+            "format": "date-time"
+          },
+          "token": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string",
+            "description": "交给 AI 的地址：打开就是文字说明；write 链接也用这个地址改画面。"
+          }
+        }
+      },
+      "ShareMode": {
+        "type": "string",
+        "description": "分享链接的用法。决定拿到这个地址的人能做什么。",
+        "enum": ["read", "write"]
       },
       "Trace": {
         "type": "object",

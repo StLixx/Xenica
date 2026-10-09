@@ -46,6 +46,7 @@ web/src/ui      设计变量与基础组件（叶子层，不 import 别的层�
 web/src/api     唯一能请求后端的地方。schema.d.ts 是生成的
 web/src/shell   工作台外壳：停靠面板、侧栏、命令面板、状态栏。对视图只开放 shell/api.ts
 web/src/views   视图，一个目录一个，互相不 import
+web/src/sketch  草图站点：独立域名那一个页面（画布 + 分享链接），只用 api/ 和 ui/
 deploy/         compose.yaml（一个实例）、edge/（Traefik）、deployer/（core-server 上的部署器）
 specs/          中/大规模任务的规格
 .github/        CI、验收门（scripts/gate.cjs）、看板同步、Issue/PR 模板
@@ -122,6 +123,8 @@ Secrets：`PROJECT_TOKEN`（Projects 读写，看板同步用）。
 浏览器 → *.xenica.truebigsand.top（Cloudflare，仅 DNS）→ hikari（1Panel：证书 + 反代，保留 Host 头）
        → Tailscale → core-server 100.100.1.103:8080 → Traefik（deploy/edge）
            ├─ xenica.truebigsand.top → 正式站（compose 项目 xenica）
+           ├─ excalidraw.xenica.truebigsand.top → 草图站点，同一个容器（ADR 0009）
+           ├─ preview.xenica.truebigsand.top → 最近更新的那个 PR 预览
            └─ pr-<号>.xenica.truebigsand.top → PR 预览（compose 项目 xenica-pr-<号>，示例数据）
 ```
 

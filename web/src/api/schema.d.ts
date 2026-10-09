@@ -214,6 +214,24 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/nodes/{id}/shares': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** 一个节点上的分享链接（含已作废的）。 */
+    get: operations['list_shares'];
+    put?: never;
+    /** 给一个节点开一条分享链接。 */
+    post: operations['create_share'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/nodes/{id}/traces': {
     parameters: {
       query?: never;
@@ -226,6 +244,92 @@ export interface paths {
     put?: never;
     post?: never;
     delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/share/{token}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** 读一张草图：返回整理好的文字说明。**不用登录**。 */
+    get: operations['read_share'];
+    /** 用新画面替换。**不用登录**，但只有 write 链接可以。 */
+    put: operations['write_share'];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/share/{token}/files/{file}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** 画面里用到的附件（原图，不压缩）。不用登录。 */
+    get: operations['share_file'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/share/{token}/png': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** 整张图的图片。不用登录。 */
+    get: operations['share_image'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/share/{token}/scene.json': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** 画布的原始数据。不用登录。 */
+    get: operations['share_scene'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/shares/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post?: never;
+    /** 作废一条分享链接。 */
+    delete: operations['revoke_share'];
     options?: never;
     head?: never;
     patch?: never;
@@ -317,6 +421,10 @@ export interface components {
       /** @description 可省略。 */
       title?: string;
     };
+    NewShare: {
+      /** @description `read`（给 AI 读）或 `write`（给 AI 改）。 */
+      mode: components['schemas']['ShareMode'];
+    };
     /** @description 节点：一切有身份的东西（知识点、文件、任务、设置……）。 */
     Node: {
       /** @description 节点内容。结构由类型决定，核心不解释它。 */
@@ -341,6 +449,10 @@ export interface components {
       body?: Record<string, never> | null;
       title?: string | null;
     };
+    SceneInput: {
+      /** @description Excalidraw 的画面数据，原样存下来。 */
+      scene: unknown;
+    };
     Session: {
       /** @description 示例数据模式（预览站）：可以用 `demo` / `demo` 登录。 */
       demo: boolean;
@@ -354,6 +466,28 @@ export interface components {
       name: string;
       password: string;
     };
+    /** @description 一条分享链接（带好可以直接用的地址）。 */
+    ShareBody: {
+      /** Format: date-time */
+      created_at: string;
+      /** Format: uuid */
+      id: string;
+      /** @description 画面图片。 */
+      image: string;
+      mode: components['schemas']['ShareMode'];
+      /** Format: uuid */
+      node: string;
+      /** Format: date-time */
+      revoked_at?: string | null;
+      token: string;
+      /** @description 交给 AI 的地址：打开就是文字说明；write 链接也用这个地址改画面。 */
+      url: string;
+    };
+    /**
+     * @description 分享链接的用法。决定拿到这个地址的人能做什么。
+     * @enum {string}
+     */
+    ShareMode: 'read' | 'write';
     /** @description 痕迹：只增不改的事件记录（数据库触发器保证不能改、不能删）。 */
     Trace: {
       /** @description 例如 `node.created`、`edge.deleted`。 */
@@ -961,6 +1095,60 @@ export interface operations {
       };
     };
   };
+  list_shares: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ShareBody'][];
+        };
+      };
+    };
+  };
+  create_share: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['NewShare'];
+      };
+    };
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ShareBody'];
+        };
+      };
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
   list_node_traces: {
     parameters: {
       query?: never;
@@ -978,6 +1166,199 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['Trace'][];
+        };
+      };
+    };
+  };
+  read_share: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        token: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'text/markdown': string;
+        };
+      };
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  write_share: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        token: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['SceneInput'];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Node'];
+        };
+      };
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  share_file: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        token: string;
+        file: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'image/*': number[];
+        };
+      };
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  share_image: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        token: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'image/png': number[];
+        };
+      };
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  share_scene: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        token: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': unknown;
+        };
+      };
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  revoke_share: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
         };
       };
     };

@@ -8,6 +8,8 @@ mod error;
 mod id;
 mod node;
 mod refs;
+mod share;
+mod sketch;
 mod trace;
 mod user;
 
@@ -16,6 +18,8 @@ pub use error::DomainError;
 pub use id::{EdgeId, NodeId, TraceId, UserId};
 pub use node::{NewChildren, NewNode, Node, NodePatch, md};
 pub use refs::extract_refs;
+pub use share::ShareMode;
+pub use sketch::{SketchLinks, describe};
 pub use trace::{Actor, Trace};
 pub use user::{MIN_PASSWORD_CHARS, User, check_password, normalize_user_name};
 
@@ -26,3 +30,6 @@ pub const MAX_TITLE_CHARS: usize = 500;
 pub const CONTAINS: &str = "contains";
 /// 关系类型：正文里用 `#标记` 或 `[[名字]]` 提到了另一个节点。由存储层根据正文自动维护。
 pub const MENTIONS: &str = "mentions";
+
+/// 节点类型：草图。画布数据放在 `body.scene`，整张图的图片放在 `body.image`（文件 id）。
+pub const SKETCH: &str = "sketch";

@@ -3,6 +3,7 @@ import { useState } from 'react';
 
 import { ApiError } from '../api/client';
 import { keys } from '../api/queries';
+import { isSketchEntry, SketchApp } from '../sketch';
 import { Gate } from './Gate';
 
 export function App() {
@@ -27,7 +28,13 @@ export function App() {
   });
   return (
     <QueryClientProvider client={client}>
-      <Gate />
+      {isSketchEntry() ? (
+        <Gate>
+          <SketchApp />
+        </Gate>
+      ) : (
+        <Gate />
+      )}
     </QueryClientProvider>
   );
 }

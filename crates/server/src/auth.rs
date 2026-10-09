@@ -167,6 +167,15 @@ pub(crate) fn token_hash(token: &str) -> Vec<u8> {
     Sha256::digest(token.as_bytes()).to_vec()
 }
 
+/// 分享链接的令牌（16 字节随机数，十六进制）。
+/// 和会话令牌不同：它存明文——要能在界面上重新显示出来。
+pub(crate) fn new_share_token() -> String {
+    random_bytes::<16>()
+        .iter()
+        .map(|b| format!("{b:02x}"))
+        .collect()
+}
+
 pub(crate) fn session_cookie(token: &str) -> HeaderValue {
     let max_age = SESSION_DAYS * 24 * 3600;
     HeaderValue::from_str(&format!(
@@ -215,7 +224,10 @@ impl<S: Send + Sync> FromRequestParts<S> for CurrentUser {
 }
 
 fn is_public(path: &str) -> bool {
-    path == "/api/health" || path.starts_with("/api/auth/")
+    path == "/api/health"
+        || path.starts_with("/api/auth/")
+        // 分享链接：知道链接就能读、能改（凭据在路径里）。见 docs/adr/0009-sketch.md。
+        || path.starts_with("/api/share/")
 }
 
 /// 跨站请求防护：会改数据的请求，如果带了 Origin，就必须和 Host 一致。
