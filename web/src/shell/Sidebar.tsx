@@ -90,7 +90,7 @@ export function Sidebar({
             ))}
           {open && (
             <div className="-mx-2 mt-2 min-h-0 flex-1 overflow-y-auto px-2">
-              <AsideGroup title="页面">
+              <AsideGroup title="页面" open={open}>
                 {pages.map((n) => (
                   <button
                     key={n.id}
@@ -104,7 +104,7 @@ export function Sidebar({
                 ))}
               </AsideGroup>
               {tags.length > 0 && (
-                <AsideGroup title="标记">
+                <AsideGroup title="标记" open={open}>
                   {tags.map((n) => (
                     <button
                       key={n.id}

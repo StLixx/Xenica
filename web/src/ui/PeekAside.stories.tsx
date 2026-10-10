@@ -29,7 +29,7 @@ export const 侧栏: StoryObj = {
             </button>
             {open && (
               <div className="-mx-2 mt-2 min-h-0 flex-1 overflow-y-auto px-2">
-                <AsideGroup title="页面">
+                <AsideGroup title="页面" open={open}>
                   <button type="button" className={asideRow}>
                     <FileText size={15} className="flex-none text-fg-3" />
                     <span className="truncate">高数 · 不定积分（第 3 讲）</span>
