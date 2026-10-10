@@ -228,6 +228,8 @@ fn is_public(path: &str) -> bool {
         || path.starts_with("/api/auth/")
         // 分享链接：知道链接就能读、能改（凭据在路径里）。见 docs/adr/0009-sketch.md。
         || path.starts_with("/api/share/")
+        // 探针：要被外部站点直接内嵌，就不能带登录。见 routes/probe.rs。
+        || path.starts_with("/api/probe/")
 }
 
 /// 跨站请求防护：会改数据的请求，如果带了 Origin，就必须和 Host 一致。

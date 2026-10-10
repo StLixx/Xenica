@@ -817,3 +817,28 @@ async fn managing_shares_needs_login(pool: PgPool) {
     .await;
     assert_eq!(status, StatusCode::UNAUTHORIZED);
 }
+
+#[sqlx::test(migrator = "xenica_store::MIGRATOR")]
+async fn probe_image_is_public_png(pool: PgPool) {
+    // 探针要给外部站点直接内嵌：不带 Cookie 也能拿到图，且必须声明成 image/png。
+    let res = app(pool)
+        .oneshot(
+            Request::builder()
+                .uri("/api/probe/png")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(res.status(), StatusCode::OK);
+    assert_eq!(
+        res.headers()
+            .get(header::CONTENT_TYPE)
+            .unwrap()
+            .to_str()
+            .unwrap(),
+        "image/png"
+    );
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    assert_eq!(&bytes[..8], b"\x89PNG\r\n\x1a\n");
+}

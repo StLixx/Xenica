@@ -249,6 +249,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/probe/png': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** 返回那张测试图。**不用登录**。 */
+    get: operations['probe_png'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/share/{token}': {
     parameters: {
       query?: never;
@@ -1166,6 +1183,25 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['Trace'][];
+        };
+      };
+    };
+  };
+  probe_png: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'image/png': number[];
         };
       };
     };
