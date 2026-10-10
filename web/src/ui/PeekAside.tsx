@@ -22,7 +22,11 @@ export function AsideGroup({
 }) {
   return (
     <section aria-label={title}>
-      <div className={`px-2 pt-3 pb-1 text-label text-fg-3 ${open ? '' : 'invisible'}`}>
+      {/* `whitespace-nowrap` 是必需的：在 52px 的收起栏里，标题会一个一个字地折成四行，
+          把占位高度撑到 80px，条目反而被压得更低（真机上量到 162 对 114）。 */}
+      <div
+        className={`px-2 pt-3 pb-1 text-label whitespace-nowrap text-fg-3 ${open ? '' : 'invisible'}`}
+      >
         {title}
       </div>
       {children}
