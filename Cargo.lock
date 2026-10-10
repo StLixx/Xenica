@@ -2030,7 +2030,7 @@ checksum = "3ad82d2a33cdc9674dc7465672f271e096168fcdbe0f799d9e6db8c5892679dc"
 
 [[package]]
 name = "xenica-core"
-version = "0.3.0"
+version = "0.2.1"
 dependencies = [
  "chrono",
  "serde",
@@ -2042,7 +2042,7 @@ dependencies = [
 
 [[package]]
 name = "xenica-server"
-version = "0.3.0"
+version = "0.2.1"
 dependencies = [
  "anyhow",
  "argon2",
@@ -2067,7 +2067,7 @@ dependencies = [
 
 [[package]]
 name = "xenica-store"
-version = "0.3.0"
+version = "0.2.1"
 dependencies = [
  "chrono",
  "serde_json",
