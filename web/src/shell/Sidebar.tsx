@@ -89,7 +89,7 @@ export function Sidebar({
               </button>
             ))}
           {open && (
-            <div className="-mx-2 mt-2 min-h-0 flex-1 overflow-y-auto px-2">
+            <div className="-mx-2 mt-2 min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-2">
               <AsideGroup title="页面" open={open}>
                 {pages.map((n) => (
                   <button

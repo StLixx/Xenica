@@ -56,7 +56,7 @@ export function SketchApp() {
             </button>
             {/* 展开和收起共用同一棵结构，只有文字和首字格子不同——否则悬停展开时
                 下面的条目会整体下移（真机上量到差 40px），鼠标底下的东西会跑掉。 */}
-            <div className="-mx-2 mt-2 min-h-0 flex-1 overflow-y-auto px-2">
+            <div className="-mx-2 mt-2 min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-2">
               {sketches.length === 0 ? (
                 open ? (
                   <p className="px-2 py-1 text-meta text-fg-3">

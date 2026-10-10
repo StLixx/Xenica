@@ -28,7 +28,7 @@ export const 侧栏: StoryObj = {
               {open && '新建页'}
             </button>
             {open && (
-              <div className="-mx-2 mt-2 min-h-0 flex-1 overflow-y-auto px-2">
+              <div className="-mx-2 mt-2 min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-2">
                 <AsideGroup title="页面" open={open}>
                   <button type="button" className={asideRow}>
                     <FileText size={15} className="flex-none text-fg-3" />
