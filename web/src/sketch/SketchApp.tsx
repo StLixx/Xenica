@@ -54,50 +54,42 @@ export function SketchApp() {
               <Plus size={16} className="flex-none" />
               {open && '新建草图'}
             </button>
-            {open ? (
-              <div className="-mx-2 mt-2 min-h-0 flex-1 overflow-y-auto px-2">
-                {sketches.length === 0 ? (
+            {/* 展开和收起共用同一棵结构，只有文字和首字格子不同——否则悬停展开时
+                下面的条目会整体下移（真机上量到差 40px），鼠标底下的东西会跑掉。 */}
+            <div className="-mx-2 mt-2 min-h-0 flex-1 overflow-y-auto px-2">
+              {sketches.length === 0 ? (
+                open ? (
                   <p className="px-2 py-1 text-meta text-fg-3">
                     还没有草图，点「新建草图」开始画。
                   </p>
-                ) : (
-                  <AsideGroup title="全部草图">
-                    {sketches.map((s) => (
+                ) : null
+              ) : (
+                <AsideGroup title="全部草图" open={open}>
+                  {sketches.map((s) => {
+                    const name = nodeLabel(s) || '无标题';
+                    return (
                       <button
                         key={s.id}
                         type="button"
                         className={asideRow}
                         aria-selected={s.id === current?.id}
-                        title={nodeLabel(s)}
+                        aria-label={name}
+                        title={name}
                         onClick={() => pick(s.id)}
                       >
-                        <span className="truncate">{nodeLabel(s) || '无标题'}</span>
+                        {open ? (
+                          <span className="truncate">{name}</span>
+                        ) : (
+                          <span className="grid size-5.5 flex-none place-items-center rounded-sm bg-hover text-ui text-fg-2">
+                            {name.slice(0, 1)}
+                          </span>
+                        )}
                       </button>
-                    ))}
-                  </AsideGroup>
-                )}
-              </div>
-            ) : (
-              // 收起时每张草图占一个格子，认得出是哪张（参考 Edge 的图标栏）。
-              sketches.map((s) => {
-                const name = nodeLabel(s) || '无标题';
-                return (
-                  <button
-                    key={s.id}
-                    type="button"
-                    className={asideRow}
-                    aria-selected={s.id === current?.id}
-                    aria-label={name}
-                    title={name}
-                    onClick={() => pick(s.id)}
-                  >
-                    <span className="grid size-5.5 flex-none place-items-center rounded-sm bg-hover text-ui text-fg-2">
-                      {name.slice(0, 1)}
-                    </span>
-                  </button>
-                );
-              })
-            )}
+                    );
+                  })}
+                </AsideGroup>
+              )}
+            </div>
           </>
         )}
       </PeekAside>

@@ -4,11 +4,27 @@ import { useRef, useState, type ReactNode } from 'react';
 /** 侧栏里的一行。可交互的一行统一用它。 */
 export const asideRow = 'item w-full text-body';
 
-/** 侧栏里的一组（带小组标题）。 */
-export function AsideGroup({ title, children }: { title: string; children: ReactNode }) {
+/**
+ * 侧栏里的一组（带小组标题）。
+ *
+ * 收起时标题用 `invisible` 占住原位、不参与朗读：**不能直接不渲染它**，
+ * 否则悬停展开的瞬间，下面所有条目会整体下移（真机上量到差 40px），
+ * 鼠标底下的东西会跑掉。
+ */
+export function AsideGroup({
+  title,
+  open,
+  children,
+}: {
+  title: string;
+  open: boolean;
+  children: ReactNode;
+}) {
   return (
     <section aria-label={title}>
-      <div className="px-2 pt-3 pb-1 text-label text-fg-3">{title}</div>
+      <div className={`px-2 pt-3 pb-1 text-label text-fg-3 ${open ? '' : 'invisible'}`}>
+        {title}
+      </div>
       {children}
     </section>
   );
