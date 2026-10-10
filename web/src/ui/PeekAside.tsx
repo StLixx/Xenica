@@ -22,11 +22,10 @@ export function AsideGroup({
 }) {
   return (
     <section aria-label={title}>
-      {/* `whitespace-nowrap` 是必需的：在 52px 的收起栏里，标题会一个一个字地折成四行，
-          把占位高度撑到 80px，条目反而被压得更低（真机上量到 162 对 114）。 */}
-      <div
-        className={`px-2 pt-3 pb-1 text-label whitespace-nowrap text-fg-3 ${open ? '' : 'invisible'}`}
-      >
+      {/* `truncate` 一次解决两件事：不换行（52px 的收起栏里「全部草图」会一个一个字折成四行，
+          占位高度撑到 80px，条目反被压低——真机上量到 162 对 114），
+          并且就地裁掉（不然它会把容器撑宽，底部多出一条横向滚动条）。 */}
+      <div className={`truncate px-2 pt-3 pb-1 text-label text-fg-3 ${open ? '' : 'invisible'}`}>
         {title}
       </div>
       {children}
