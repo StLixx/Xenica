@@ -1,8 +1,9 @@
+import { Plus } from 'lucide-react';
 import { useState } from 'react';
 
 import type { Node } from '../api/client';
 import { sketchBody, useCreateNode, useNodes, useUpdateNode } from '../api/queries';
-import { Button, EmptyState, TextInput, nodeLabel } from '../ui';
+import { AsideGroup, asideRow, Button, EmptyState, PeekAside, TextInput, nodeLabel } from '../ui';
 import { Canvas } from './Canvas';
 import { SharePanel } from './SharePanel';
 import { putSketchInPath, sketchIdFromPath } from './entry';
@@ -40,31 +41,66 @@ export function SketchApp() {
 
   return (
     <div className="flex h-full">
-      <aside className="flex w-(--x-sidebar) shrink-0 flex-col gap-1 border-r border-line bg-side p-2">
-        <div className="flex items-center justify-between px-1 pb-1">
-          <span className="text-label text-fg-2">草图</span>
-          <Button variant="ghost" onClick={() => void add()} disabled={create.isPending}>
-            新建
-          </Button>
-        </div>
-        <div className="min-h-0 flex-1 overflow-y-auto">
-          {sketches.map((s) => (
+      <PeekAside label="草图" title="草图" badge="草" storageKey="xenica.sketch.pinned">
+        {(open) => (
+          <>
             <button
-              key={s.id}
               type="button"
-              className="item w-full text-ui"
-              aria-selected={s.id === current?.id}
-              title={nodeLabel(s)}
-              onClick={() => pick(s.id)}
+              className={asideRow}
+              onClick={() => void add()}
+              disabled={create.isPending}
+              title="新建草图"
             >
-              <span className="truncate">{nodeLabel(s) || '无标题'}</span>
+              <Plus size={16} className="flex-none" />
+              {open && '新建草图'}
             </button>
-          ))}
-          {sketches.length === 0 ? (
-            <p className="px-2 py-1 text-meta text-fg-3">还没有草图，点「新建」开始画。</p>
-          ) : null}
-        </div>
-      </aside>
+            {open ? (
+              <div className="-mx-2 mt-2 min-h-0 flex-1 overflow-y-auto px-2">
+                {sketches.length === 0 ? (
+                  <p className="px-2 py-1 text-meta text-fg-3">
+                    还没有草图，点「新建草图」开始画。
+                  </p>
+                ) : (
+                  <AsideGroup title="全部草图">
+                    {sketches.map((s) => (
+                      <button
+                        key={s.id}
+                        type="button"
+                        className={asideRow}
+                        aria-selected={s.id === current?.id}
+                        title={nodeLabel(s)}
+                        onClick={() => pick(s.id)}
+                      >
+                        <span className="truncate">{nodeLabel(s) || '无标题'}</span>
+                      </button>
+                    ))}
+                  </AsideGroup>
+                )}
+              </div>
+            ) : (
+              // 收起时每张草图占一个格子，认得出是哪张（参考 Edge 的图标栏）。
+              sketches.map((s) => {
+                const name = nodeLabel(s) || '无标题';
+                return (
+                  <button
+                    key={s.id}
+                    type="button"
+                    className={asideRow}
+                    aria-selected={s.id === current?.id}
+                    aria-label={name}
+                    title={name}
+                    onClick={() => pick(s.id)}
+                  >
+                    <span className="grid size-5.5 flex-none place-items-center rounded-sm bg-hover text-ui text-fg-2">
+                      {name.slice(0, 1)}
+                    </span>
+                  </button>
+                );
+              })
+            )}
+          </>
+        )}
+      </PeekAside>
       {current ? (
         <Workspace key={current.id} node={current} />
       ) : (

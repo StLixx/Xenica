@@ -25,10 +25,11 @@ test('画一张草图，给 AI 的链接能读到画了什么', async ({ page, b
   await expect(stage).toBeVisible({ timeout: 30_000 });
   const box = await stage.boundingBox();
   if (!box) throw new Error('画布没有尺寸');
-  await stage.click({ position: { x: 60, y: 60 } });
+  await stage.click({ position: { x: 400, y: 200 } });
   await page.keyboard.press('r');
-  // 落在画布空白处：左边会弹出属性面板，顶上还有工具条，别拖到它们身上。
-  const startX = box.x + box.width * 0.5;
+  // 落在画布空白处：左边会弹出属性面板，顶上还有工具条，别拖到它们身上；
+  // 侧栏默认收起、悬停时会浮出来盖住左侧约 232px，所以起点要再往右。
+  const startX = box.x + box.width * 0.55;
   const startY = box.y + box.height * 0.55;
   await page.mouse.move(startX, startY);
   await page.mouse.down();
