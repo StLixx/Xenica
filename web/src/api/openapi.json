@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Xenica API",
-    "description": "Xenica 的 HTTP 接口。由代码生成，不要手改。除 `/api/health`、`/api/auth/*` 和 `/api/share/*` 外都要先登录（Cookie `xenica_session`）。",
+    "description": "Xenica 的 HTTP 接口。由代码生成，不要手改。除 `/api/health`、`/api/auth/*`、`/api/share/*` 和 `/api/probe/*` 外都要先登录（Cookie `xenica_session`）。",
     "license": {
       "name": ""
     },
@@ -815,6 +815,29 @@
                   "type": "array",
                   "items": {
                     "$ref": "#/components/schemas/Trace"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/probe/png": {
+      "get": {
+        "tags": ["probe"],
+        "summary": "返回那张测试图。**不用登录**。",
+        "operationId": "probe_png",
+        "responses": {
+          "200": {
+            "content": {
+              "image/png": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0
                   }
                 }
               }
