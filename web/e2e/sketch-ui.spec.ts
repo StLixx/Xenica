@@ -38,7 +38,7 @@ test('画板只有 Excalidraw，画布菜单管理名字与网址切换', async 
     const main = document.querySelector('.App-toolbar');
     const extra = document.querySelector('.xenica-tools');
     const original = document.querySelector('input[aria-label="矩形"] + .ToolIcon__icon');
-    const button = extra.querySelector('button[aria-label="嵌入内容"]');
+    const button = extra.querySelector('button[aria-label="嵌入内容"] .ToolIcon__icon');
     const read = (element) => {
       const style = getComputedStyle(element);
       return { height: element.getBoundingClientRect().height, background: style.backgroundColor,
@@ -68,7 +68,7 @@ test('画板只有 Excalidraw，画布菜单管理名字与网址切换', async 
   await page.getByRole('button', { name: '嵌入内容', exact: true }).hover();
   expect(
     await page.evaluate(
-      'getComputedStyle(document.querySelector(\'.xenica-tool[aria-label="嵌入内容"]\')).backgroundColor',
+      'getComputedStyle(document.querySelector(\'.xenica-tool[aria-label="嵌入内容"] .ToolIcon__icon\')).backgroundColor',
     ),
   ).toBe(hoverBackground);
   for (const name of ['分享给 AI', '嵌入内容', '设计上下文']) {
@@ -83,7 +83,7 @@ test('画板只有 Excalidraw，画布菜单管理名字与网址切换', async 
   );
   expect(
     await page.evaluate(
-      'getComputedStyle(document.querySelector(\'.xenica-tool[aria-label="设计上下文"]\')).backgroundColor',
+      'getComputedStyle(document.querySelector(\'.xenica-tool[aria-label="设计上下文"] .ToolIcon__icon\')).backgroundColor',
     ),
   ).toBe(selectedBackground);
   expect(errors).toEqual([]);

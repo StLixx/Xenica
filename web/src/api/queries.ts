@@ -77,6 +77,23 @@ export function useNodes() {
   });
 }
 
+export function useDevelopmentBoard(enabled: boolean) {
+  const qc = useQueryClient();
+  return useQuery({
+    queryKey: ['development-board'],
+    queryFn: async () => {
+      const board = unwrap(await api.POST('/api/development-board'));
+      qc.setQueryData<Node[]>(keys.nodes, (nodes) => [
+        board,
+        ...(nodes ?? []).filter((n) => n.id !== board.id),
+      ]);
+      return board;
+    },
+    enabled,
+    staleTime: Infinity,
+  });
+}
+
 export function useNode(id: string, refetchInterval?: number) {
   return useQuery({
     queryKey: keys.node(id),

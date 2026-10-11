@@ -68,6 +68,7 @@ fn api_router() -> OpenApiRouter<AppState> {
         ))
         .routes(routes!(routes::nodes::list_node_traces))
         .routes(routes!(routes::nodes::archive_node))
+        .routes(routes!(routes::nodes::development_board))
         .routes(routes!(
             routes::nodes::list_children,
             routes::nodes::create_children,

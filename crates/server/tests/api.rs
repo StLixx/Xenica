@@ -92,6 +92,35 @@ async fn health_is_ok(pool: PgPool) {
 }
 
 #[sqlx::test(migrator = "xenica_store::MIGRATOR")]
+async fn development_board_is_unique_persistent_and_protected(pool: PgPool) {
+    let (app, cookie) = signed_in(pool).await;
+    assert_eq!(
+        send(&app, None, "POST", "/api/development-board", None)
+            .await
+            .0,
+        StatusCode::UNAUTHORIZED
+    );
+    let (a, b) = tokio::join!(
+        send(&app, Some(&cookie), "POST", "/api/development-board", None),
+        send(&app, Some(&cookie), "POST", "/api/development-board", None),
+    );
+    assert_eq!(a.0, StatusCode::OK);
+    assert_eq!(b.0, StatusCode::OK);
+    assert_eq!(a.1["id"], b.1["id"]);
+    let id = a.1["id"].as_str().unwrap();
+    let uri = format!("/api/nodes/{id}");
+    assert_eq!(
+        send(&app, Some(&cookie), "DELETE", &uri, None).await.0,
+        StatusCode::BAD_REQUEST
+    );
+    // 返回固定画板不会修改正文、时间戳或重复记创建痕迹。
+    let (_, again, _) = send(&app, Some(&cookie), "POST", "/api/development-board", None).await;
+    assert_eq!(again, a.1);
+    let (_, traces, _) = send(&app, Some(&cookie), "GET", &format!("{uri}/traces"), None).await;
+    assert_eq!(traces.as_array().unwrap().len(), 1);
+}
+
+#[sqlx::test(migrator = "xenica_store::MIGRATOR")]
 async fn node_lifecycle(pool: PgPool) {
     let app = signed_in(pool).await;
     let (status, a) = call(

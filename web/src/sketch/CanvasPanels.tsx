@@ -2,6 +2,7 @@ import { Button, Sidebar } from '@excalidraw/excalidraw';
 import { FolderOpen, Link, NotebookPen, Share2 } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 
+import { useDevelopmentBoard } from '../api/queries';
 import { nodeLabel } from '../ui';
 import type { CanvasProps } from './types';
 import { ContextPanel } from './ContextPanel';
@@ -61,6 +62,7 @@ export function CanvasPanels({
 }
 
 function BoardManager({ node, sketches, add, pick, creating, rename }: Omit<CanvasProps, 'save'>) {
+  const development = useDevelopmentBoard(true);
   const [title, setTitle] = useState(node.title);
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
@@ -78,6 +80,12 @@ function BoardManager({ node, sketches, add, pick, creating, rename }: Omit<Canv
   return (
     <div className="xenica-panel">
       <h2>画布管理</h2>
+      <Button
+        disabled={!development.data}
+        onSelect={() => development.data && pick(development.data.id)}
+      >
+        返回开发画板
+      </Button>
       <label htmlFor="sketch-name">草图名字</label>
       <input
         id="sketch-name"

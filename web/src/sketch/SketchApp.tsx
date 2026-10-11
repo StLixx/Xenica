@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import type { Node } from '../api/client';
 import {
@@ -7,6 +7,7 @@ import {
   useNode,
   useCreateNode,
   useNodes,
+  useDevelopmentBoard,
   useUpdateNode,
 } from '../api/queries';
 import { EmptyState } from '../ui';
@@ -19,9 +20,9 @@ export function SketchApp() {
   const nodes = useNodes();
   const create = useCreateNode();
   const [picked, setPicked] = useState<string | null>(() => sketchIdFromPath());
-  const starting = useRef(false);
+  const development = useDevelopmentBoard(!picked);
   const sketches = (nodes.data ?? []).filter((n) => n.kind === 'sketch');
-  const current = picked ? sketches.find((s) => s.id === picked) : sketches[0];
+  const current = picked ? sketches.find((s) => s.id === picked) : development.data;
 
   useEffect(() => {
     const onPop = () => setPicked(sketchIdFromPath());
@@ -31,19 +32,6 @@ export function SketchApp() {
   useEffect(() => {
     if (current && !sketchIdFromPath()) putSketchInPath(current.id, true);
   }, [current]);
-  useEffect(() => {
-    if (!nodes.isSuccess || create.isError || picked || sketches.length || starting.current) return;
-    starting.current = true;
-    void create
-      .mutateAsync({ kind: 'sketch', title: '', body: sketchBody(emptyScene()) })
-      .then((node) => {
-        putSketchInPath(node.id, true);
-        setPicked(node.id);
-      })
-      .catch(() => {
-        starting.current = false;
-      });
-  }, [nodes.isSuccess, picked, sketches.length, create]);
 
   const pick = (id: string) => {
     setPicked(id);
@@ -57,13 +45,14 @@ export function SketchApp() {
     });
     pick(node.id);
   };
-  if (nodes.isPending) return <EmptyState tone="loading" title="读草图…" />;
-  if (nodes.isError || create.isError)
+  if (nodes.isPending || (!picked && development.isPending))
+    return <EmptyState tone="loading" title="读草图…" />;
+  if (nodes.isError || create.isError || (!picked && development.isError))
     return (
       <EmptyState
         tone="error"
         title="连不上后端"
-        hint={nodes.error?.message ?? create.error?.message}
+        hint={nodes.error?.message ?? create.error?.message ?? development.error?.message}
       />
     );
   if (!current)

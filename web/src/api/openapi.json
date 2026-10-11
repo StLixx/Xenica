@@ -147,6 +147,33 @@
         }
       }
     },
+    "/api/development-board": {
+      "post": {
+        "tags": ["nodes"],
+        "summary": "打开唯一持久开发画板；首次调用创建，后续调用不改变内容。",
+        "operationId": "development_board",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Node"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/edges": {
       "get": {
         "tags": ["edges"],

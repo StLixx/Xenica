@@ -21,6 +21,7 @@ import { dataURLtoBlob, fileIdsOf, sceneOf, signature } from './scene';
 
 import './canvas.css';
 import type { CanvasProps } from './types';
+import { NativeToolButton } from './upstream/ToolButton';
 
 type ExcalidrawProps = React.ComponentProps<typeof Excalidraw>;
 type Editor = Parameters<NonNullable<ExcalidrawProps['excalidrawAPI']>>[0];
@@ -123,6 +124,7 @@ export default function CanvasSurface({ node, save, ...management }: CanvasProps
       ...sketchBody({ type: 'excalidraw', version: 2, source: 'xenica', elements }),
     } as Record<string, never>;
     delete body.image;
+    delete body.purpose; // 冲突草稿保留内容，不复制唯一开发画板身份。
     await createNode({ kind: 'sketch', title: `${node.title || '草图'} · 冲突草稿`, body });
     setDraftSaved(true);
   };
@@ -382,21 +384,21 @@ export default function CanvasSurface({ node, save, ...management }: CanvasProps
         )}
         renderTopRightUI={() => (
           <div
-            className="xenica-tools sidebar-trigger Island"
+            className="xenica-tools sidebar-trigger Island App-toolbar-container"
             role="toolbar"
             aria-label="画布扩展工具"
           >
             {activeEmbed ? (
-              <Button
+              <NativeToolButton
                 className="xenica-tool"
                 title="返回画布"
                 aria-label="返回画布"
                 onSelect={exitEmbed}
               >
                 <ArrowLeft />
-              </Button>
+              </NativeToolButton>
             ) : (
-              <Button
+              <NativeToolButton
                 className="xenica-tool"
                 title="操作选中卡片"
                 aria-label="操作选中卡片"
@@ -412,9 +414,9 @@ export default function CanvasSurface({ node, save, ...management }: CanvasProps
                 }}
               >
                 <MousePointer2 />
-              </Button>
+              </NativeToolButton>
             )}
-            <Button
+            <NativeToolButton
               className="xenica-tool"
               selected={sidebarTab === 'embed'}
               title="嵌入内容"
@@ -422,8 +424,8 @@ export default function CanvasSurface({ node, save, ...management }: CanvasProps
               onSelect={() => togglePanel('embed')}
             >
               <Link />
-            </Button>
-            <Button
+            </NativeToolButton>
+            <NativeToolButton
               className="xenica-tool"
               selected={sidebarTab === 'share'}
               title="分享给 AI"
@@ -431,8 +433,8 @@ export default function CanvasSurface({ node, save, ...management }: CanvasProps
               onSelect={() => togglePanel('share')}
             >
               <Share2 />
-            </Button>
-            <Button
+            </NativeToolButton>
+            <NativeToolButton
               className="xenica-tool"
               selected={sidebarTab === 'context'}
               title="设计上下文"
@@ -440,8 +442,8 @@ export default function CanvasSurface({ node, save, ...management }: CanvasProps
               onSelect={() => togglePanel('context')}
             >
               <NotebookPen />
-            </Button>
-            <Button
+            </NativeToolButton>
+            <NativeToolButton
               className="xenica-tool"
               selected={sidebarTab === 'boards'}
               title="画布管理"
@@ -449,7 +451,7 @@ export default function CanvasSurface({ node, save, ...management }: CanvasProps
               onSelect={() => togglePanel('boards')}
             >
               <FolderOpen />
-            </Button>
+            </NativeToolButton>
           </div>
         )}
       >

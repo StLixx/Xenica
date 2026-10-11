@@ -23,34 +23,6 @@
   stroke-width: 1.5;
 }
 
-.excalidraw .xenica-tool.excalidraw-button {
-  width: var(--lg-button-size);
-  height: var(--lg-button-size);
-  padding: 0;
-  border-color: transparent;
-  background: transparent;
-  color: var(--icon-fill-color);
-}
-
-.excalidraw .xenica-tool.excalidraw-button:hover {
-  border-color: transparent;
-  background: var(--button-hover-bg);
-}
-
-.excalidraw .xenica-tool.excalidraw-button.selected,
-.excalidraw .xenica-tool.excalidraw-button.selected:hover {
-  border-color: transparent;
-  background: var(--color-surface-primary-container);
-  color: var(--color-on-primary-container);
-}
-
-.excalidraw .xenica-tool.excalidraw-button:disabled,
-.excalidraw .xenica-tool.excalidraw-button:disabled:hover {
-  background: transparent;
-  color: var(--color-disabled);
-  cursor: default;
-}
-
 .excalidraw .xenica-panel {
   display: flex;
   flex-direction: column;

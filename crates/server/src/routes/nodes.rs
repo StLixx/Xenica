@@ -18,6 +18,16 @@ pub struct ListParams {
     pub limit: Option<i64>,
 }
 
+/// 打开唯一持久开发画板；首次调用创建，后续调用不改变内容。
+#[utoipa::path(post, path = "/api/development-board", tag = "nodes",
+    responses((status = 200, body = Node), (status = 401, body = ErrorBody)))]
+pub async fn development_board(
+    State(state): State<AppState>,
+    user: CurrentUser,
+) -> Result<Json<Node>, ApiError> {
+    Ok(Json(state.store.development_board(&user.actor()).await?))
+}
+
 /// 列出节点（最近更新的在前）。
 #[utoipa::path(get, path = "/api/nodes", tag = "nodes", params(ListParams),
     responses((status = 200, body = Vec<Node>)))]
