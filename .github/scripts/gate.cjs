@@ -6,6 +6,7 @@
 const STATUS = '验收';
 const REQUIRED_CHECKS = ['rust', 'web', 'e2e', 'docker', 'screenshots'];
 const DOMAIN = 'xenica.truebigsand.top';
+const { latestChecks } = require('./candidate.cjs');
 
 // 撤不回、或会改变规则本身的改动，永远要你验收。
 const SENSITIVE = [
@@ -72,7 +73,8 @@ async function setStatus({ github, owner, repo, sha }, state, description) {
 
 async function ciPassed({ github, owner, repo, sha }) {
   const runs = await github.paginate(github.rest.checks.listForRef, { owner, repo, ref: sha });
-  return REQUIRED_CHECKS.every((name) => runs.some((r) => r.name === name && r.conclusion === 'success'));
+  const latest = latestChecks(runs);
+  return REQUIRED_CHECKS.every((name) => latest.get(name)?.conclusion === 'success');
 }
 
 async function linkedIssues({ github, owner, repo, number }) {
@@ -115,6 +117,11 @@ function previewBody({ pr, changed, why, sha }) {
 }
 
 async function merge({ github, owner, repo, pr }) {
+  // 严格主线检查仍由平台执行；再次读取不作为原子锁。
+  const fresh = (await github.rest.pulls.get({ owner, repo, pull_number: pr.number })).data;
+  if (fresh.head.sha !== pr.head.sha || (pr.base && fresh.base?.sha !== pr.base.sha)) {
+    throw new Error('合并前成果或主线已更新，需要重新检查');
+  }
   await github.rest.pulls.merge({
     owner,
     repo,
@@ -144,8 +151,19 @@ module.exports = async function gate({ github, context, core, mode, changed = []
 
   if (pr.state !== 'open') return result('完成');
 
+  if (mode === 'ci' && context.payload.pull_request.head.sha !== sha) {
+    core.info('流水线对应的头提交已过时，不记录验收或尝试合并。');
+    return result('进行中');
+  }
+
   if (mode === 'approve') {
-    await setStatus(ctx, 'success', '已验收（/通过）');
+    // 由 Agent 根据用户实际体验的成果代写；普通命令不能推断验收了当前新提交。
+    const accepted = context.payload.comment?.body?.trim().match(/^\/(?:验收|通过)\s+([a-f0-9]{40})(?:\s|$)/)?.[1];
+    if (accepted !== sha) {
+      core.info('未提供对应成果身份或成果已更新，保留未验收状态。');
+      return result('待验收');
+    }
+    await setStatus(ctx, 'success', '已验收（对应成果）');
     if (pr.draft || !(await ciPassed(ctx))) {
       core.info('CI 还没全绿或仍是草稿，CI 结束时会自动合并。');
       return result('待验收');
@@ -165,6 +183,10 @@ module.exports = async function gate({ github, context, core, mode, changed = []
   if (!approved) await setStatus(ctx, 'success', '无需验收');
   if (pr.draft) {
     core.info('草稿 PR 不合并；标记为 Ready for review 后自动合并。');
+    return result('进行中');
+  }
+  if (!(await ciPassed(ctx))) {
+    core.info('当前必需检查未全绿，不能自动合并。');
     return result('进行中');
   }
   await merge({ github, owner, repo, pr });

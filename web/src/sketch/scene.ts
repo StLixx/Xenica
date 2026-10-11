@@ -47,5 +47,9 @@ export function signature(
 
 /** 图片的 dataURL 转成能上传的 blob。 */
 export async function dataURLtoBlob(dataURL: string): Promise<Blob> {
-  return await (await fetch(dataURL)).blob();
+  const match = /^data:(image\/[a-z0-9.+-]+);base64,([a-z0-9+/=\s]*)$/i.exec(dataURL);
+  if (!match?.[1] || match[2] === undefined) throw new Error('不是有效的图片 dataURL');
+  const decoded = atob(match[2]);
+  const bytes = Uint8Array.from(decoded, (char) => char.charCodeAt(0));
+  return new Blob([bytes], { type: match[1] });
 }

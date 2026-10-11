@@ -213,6 +213,13 @@ export async function uploadImage(file: Blob): Promise<string> {
   return body.url;
 }
 
+/** 原图也经由 API 层读取。 */
+export async function readImage(id: string): Promise<Blob> {
+  const res = await fetch(`/api/files/${encodeURIComponent(id)}`);
+  if (!res.ok) throw new Error('原图读取失败');
+  return res.blob();
+}
+
 /** 块的增删改之后：刷新节点列表和关系（正文里的 #标记 会新建节点、改关系）。 */
 export function useRefreshGraph() {
   const qc = useQueryClient();

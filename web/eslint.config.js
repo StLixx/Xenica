@@ -42,6 +42,28 @@ const designTokens = {
         };
       },
     },
+    'backend-boundary': {
+      meta: { type: 'problem', schema: [] },
+      create(context) {
+        if (/[\\/]src[\\/]api[\\/]/.test(context.filename)) return {};
+        const forbidden = new Set(['fetch', 'XMLHttpRequest', 'WebSocket']);
+        const check = (node) => {
+          const callee = node.callee;
+          if (
+            (callee.type === 'Identifier' && forbidden.has(callee.name)) ||
+            (callee.type === 'MemberExpression' &&
+              callee.property.type === 'Identifier' &&
+              forbidden.has(callee.property.name))
+          ) {
+            context.report({
+              node,
+              message: '网络请求只能位于 src/api/，视图和画布通过 API 层访问。',
+            });
+          }
+        };
+        return { CallExpression: check, NewExpression: check };
+      },
+    },
   },
 };
 
@@ -65,7 +87,7 @@ export default tseslint.config(
   {
     files: ['src/**/*.{ts,tsx}'],
     plugins: { design: designTokens },
-    rules: { 'design/class-names': 'error' },
+    rules: { 'design/class-names': 'error', 'design/backend-boundary': 'error' },
   },
   {
     languageOptions: { globals: globals.browser },

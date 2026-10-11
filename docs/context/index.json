@@ -1,0 +1,51 @@
+{
+  "schema": 1,
+  "version": "v0.2.5",
+  "scope": "specs/54-delivery-system/spec.md",
+  "decisions": [
+    {
+      "id": "user-definition-and-acceptance",
+      "status": "confirmed",
+      "summary": "用户只负责开始前范围定义与完成后的交互体验验收；Agent 处理中间过程。开始不能代替成果验收。",
+      "origin": "2026-10-11 用户会话确认",
+      "references": ["AGENTS.md", "docs/adr/0006-workflow.md", "specs/54-delivery-system/spec.md"]
+    },
+    {
+      "id": "one-persistent-development-board",
+      "status": "confirmed",
+      "summary": "唯一固定开发画板长期承载组件、Features 和各版本设计；临时预览不拥有长期事实。",
+      "origin": "2026-10-11 用户补充固定入口定义",
+      "references": ["specs/54-delivery-system/spec.md", "crates/server/src/archive.rs"],
+      "task": 57,
+      "implementation": "pending"
+    },
+    {
+      "id": "candidate-bound-evidence",
+      "status": "confirmed",
+      "summary": "成果身份关联源码、产物、部署、规则与检查；产品验收与工程合并资格分离。",
+      "origin": "2026-10-11 已复述并确认实施的 v0.2.5 范围",
+      "references": ["docs/adr/0010-delivery-candidate.md", ".github/scripts/candidate.cjs", ".github/scripts/tests/candidate.test.cjs"],
+      "task": 56,
+      "implementation": "in-progress"
+    },
+    {
+      "id": "infra-only-development",
+      "status": "confirmed",
+      "summary": "构建、编译、测试与重型环境只在 Infra；Windows 用于编辑、SSH 和查看。",
+      "origin": "用户长期偏好与 2026-10-11 项目指令",
+      "references": ["AGENTS.md", "specs/54-delivery-system/spec.md"]
+    },
+    {
+      "id": "managed-excalidraw-source",
+      "status": "confirmed",
+      "summary": "深入分析和改进 Excalidraw 原生体验，必要源码改造及依据须在同一仓库可复现。维护方式由 Agent 调研。",
+      "origin": "2026-10-11 用户补充",
+      "references": ["specs/54-delivery-system/spec.md"],
+      "task": 58,
+      "implementation": "pending"
+    }
+  ],
+  "references": [
+    { "url": "https://chatgpt.com/share/6acb4939-b648-83ea-93b3-1921eb904284", "kind": "brainstorm", "status": "reference", "note": "命名与具体实现建议不自动视为用户决定；合并前读取主线不是原子锁。" }
+  ]
+}

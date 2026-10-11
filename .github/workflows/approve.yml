@@ -16,7 +16,7 @@ jobs:
   approve:
     if: >-
       github.event.issue.pull_request &&
-      startsWith(github.event.comment.body, '/通过') &&
+      (startsWith(github.event.comment.body, '/通过 ') || startsWith(github.event.comment.body, '/验收 ')) &&
       github.event.comment.user.login == github.repository_owner
     runs-on: ubuntu-latest
     steps:

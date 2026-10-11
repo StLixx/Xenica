@@ -4,7 +4,14 @@ import { ArrowLeft, FolderOpen, Link, MousePointer2, NotebookPen, Share2 } from 
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { ApiError } from '../api/client';
-import { sketchBody, createNode, readSketch, uploadImage, useHealth } from '../api/queries';
+import {
+  sketchBody,
+  createNode,
+  readSketch,
+  readImage,
+  uploadImage,
+  useHealth,
+} from '../api/queries';
 import { EmptyState } from '../ui';
 import { CanvasPanels } from './CanvasPanels';
 import { EmbedCard } from './EmbedCard';
@@ -175,9 +182,7 @@ export default function CanvasSurface({ node, save, ...management }: CanvasProps
       const out: Record<string, LoadedFile> = {};
       for (const id of fileIdsOf(scene)) {
         try {
-          const res = await fetch(`/api/files/${id}`);
-          if (!res.ok) continue;
-          const blob = await res.blob();
+          const blob = await readImage(id);
           out[id] = {
             id,
             mimeType: blob.type || 'image/png',

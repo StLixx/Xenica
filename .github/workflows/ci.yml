@@ -49,6 +49,13 @@ jobs:
         run: bash scripts/check-arch.sh
       - name: AGENTS.md 不超过 200 行
         run: bash scripts/check-docs.sh
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - name: 门禁负向回归
+        run: node --test .github/scripts/tests/*.test.cjs
+      - name: 接续索引完整性
+        run: node scripts/check-context.cjs
       - name: sqlx offline cache is up to date
         run: |
           cargo sqlx migrate run --source crates/store/migrations
