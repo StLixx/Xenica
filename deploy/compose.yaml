@@ -29,6 +29,7 @@ services:
     environment:
       DATABASE_URL: postgres://xenica:${POSTGRES_PASSWORD}@db:5432/xenica
       XENICA_SEED: ${XENICA_SEED:-}
+      XENICA_ARTIFACT: ${XENICA_ARTIFACT:-}
       RUST_LOG: ${RUST_LOG:-info}
     networks: [default, edge]
     labels:

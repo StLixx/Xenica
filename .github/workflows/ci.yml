@@ -266,6 +266,10 @@ jobs:
       EXPECTED_SOURCE: ${{ github.event.pull_request.head.sha }}
     steps:
       - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v4
+        with:
+          name: delivery-candidate-${{ github.run_attempt }}
+          path: .delivery
       - uses: pnpm/action-setup@v4
         with:
           package_json_file: web/package.json
@@ -276,9 +280,11 @@ jobs:
           cache-dependency-path: web/pnpm-lock.yaml
       - name: 等待对应成果实际上线
         run: |
+          expected_artifact=$(jq -r '.artifact' .delivery/delivery-candidate.json)
           for _ in $(seq 1 60); do
-            actual=$(curl -fsS --max-time 10 "$XENICA_URL/api/health" | jq -r '.commit // empty') || actual=''
-            [ "$actual" = "$EXPECTED_SOURCE" ] && exit 0
+            health=$(curl -fsS --max-time 10 "$XENICA_URL/api/health") || health='{}'
+            if [ "$(jq -r '.commit // empty' <<<"$health")" = "$EXPECTED_SOURCE" ] &&
+               [ "$(jq -r '.artifact // empty' <<<"$health")" = "$expected_artifact" ]; then exit 0; fi
             sleep 10
           done
           echo '::error::预览没有部署对应成果，不能交付验收'; exit 1
@@ -290,7 +296,10 @@ jobs:
         run: pnpm e2e --workers=1
         working-directory: web
       - name: 测试结束再次核对成果
-        run: test "$(curl -fsS --max-time 10 "$XENICA_URL/api/health" | jq -r '.commit')" = "$EXPECTED_SOURCE"
+        run: |
+          health=$(curl -fsS --max-time 10 "$XENICA_URL/api/health")
+          test "$(jq -r '.commit' <<<"$health")" = "$EXPECTED_SOURCE"
+          test "$(jq -r '.artifact' <<<"$health")" = "$(jq -r '.artifact' .delivery/delivery-candidate.json)"
       - if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -313,6 +322,10 @@ jobs:
       actions: write
     steps:
       - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v4
+        with:
+          name: delivery-candidate-${{ github.run_attempt }}
+          path: .delivery
       - id: gate
         uses: actions/github-script@v8
         env:

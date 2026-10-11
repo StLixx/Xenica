@@ -1,11 +1,11 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { createHash } = require('node:crypto');
-const { candidateId } = require('./candidate.cjs');
+const { candidateId, productId } = require('./candidate.cjs');
 
 function policyHash(root) {
   const files = [
-    '.github/scripts/candidate.cjs', '.github/scripts/readiness.cjs', '.github/scripts/gate.cjs', '.github/scripts/build-candidate.cjs',
+    '.github/scripts/candidate.cjs', '.github/scripts/readiness.cjs', '.github/scripts/verify-delivery.cjs', '.github/scripts/gate.cjs', '.github/scripts/build-candidate.cjs',
     '.github/workflows/ci.yml', '.github/workflows/approve.yml',
     'web/.dependency-cruiser.cjs', 'web/eslint.config.js',
     'scripts/check-arch.sh', 'scripts/check-context.cjs', 'scripts/setup-github.sh',
@@ -25,5 +25,6 @@ module.exports = function buildCandidate({ root, source, base, artifact, number,
     preview: `https://pr-${number}.xenica.truebigsand.top`,
     policy: policyHash(root), run, attempt,
   };
-  return { ...candidate, id: candidateId(candidate) };
+  return { ...candidate, id: candidateId(candidate), product: productId(candidate) };
 };
+module.exports.policyHash = policyHash;

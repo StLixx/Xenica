@@ -27,10 +27,17 @@ log() { echo "[deployer] $*"; }
 compose() { docker compose -f "$DEPLOY/compose.yaml" "$@"; }
 image_id() { docker image inspect -f '{{.Id}}' "$1" 2>/dev/null || true; }
 revision() { docker image inspect -f '{{index .Config.Labels "org.opencontainers.image.revision"}}' "$1" 2>/dev/null || true; }
+artifact() { docker image inspect -f '{{range .RepoDigests}}{{println .}}{{end}}' "$1" | grep -F "$IMAGE@" | head -n 1 | cut -d@ -f2; }
 running_image() {
   local cid
   cid=$(compose -p "$1" ps -q app 2>/dev/null | head -n 1)
   [ -n "$cid" ] && docker inspect -f '{{.Image}}' "$cid" 2>/dev/null || true
+}
+running_artifact() {
+  local cid
+  cid=$(compose -p "$1" ps -q app 2>/dev/null | head -n 1)
+  [ -n "$cid" ] && docker inspect -f '{{json .Config.Env}}' "$cid" |
+    jq -r '.[] | select(startswith("XENICA_ARTIFACT=")) | sub("^XENICA_ARTIFACT="; "")' || true
 }
 github() {
   local auth=()
@@ -59,7 +66,7 @@ deploy_prod() {
   rev=$(revision "$IMAGE:latest")
   log "prod: deploying ${rev:0:7}"
   [ -n "$have" ] && docker tag "$have" "$IMAGE:previous"
-  if XENICA_IMAGE="$IMAGE:latest" compose -p xenica --env-file "$ENV_FILE" up -d --wait --wait-timeout 120; then
+  if XENICA_IMAGE="$IMAGE:latest" XENICA_ARTIFACT="$(artifact "$IMAGE:latest")" compose -p xenica --env-file "$ENV_FILE" up -d --wait --wait-timeout 120; then
     log "prod: ${rev:0:7} is live"
     rm -f "$STATE/prod.bad"
     return 0
@@ -68,7 +75,7 @@ deploy_prod() {
   logs=$(compose -p xenica logs --tail 40 app 2>&1 || true)
   echo "$want" >"$STATE/prod.bad"
   if [ -n "$have" ]; then
-    XENICA_IMAGE="$IMAGE:previous" compose -p xenica --env-file "$ENV_FILE" up -d --wait --wait-timeout 120 || log "prod: rollback also failed"
+    XENICA_IMAGE="$IMAGE:previous" XENICA_ARTIFACT="$(artifact "$IMAGE:previous")" compose -p xenica --env-file "$ENV_FILE" up -d --wait --wait-timeout 120 || log "prod: rollback also failed"
   fi
   report_failure "$rev" "$logs"
 }
@@ -80,12 +87,13 @@ deploy_preview() {
   want=$(image_id "$tag")
   have=$(running_image "$project")
   # 镜像没变、固定域名也没换主人就不动；换了主人要重建容器（Traefik 规则在容器标签上）
-  [ "$want" = "$have" ] && [ "$alias" = "$(cat "$STATE/pr-$n.alias" 2>/dev/null)" ] && return 0
+  [ "$want" = "$have" ] && [ "$alias" = "$(cat "$STATE/pr-$n.alias" 2>/dev/null)" ] &&
+    [ "$(running_artifact "$project")" = "$(artifact "$tag")" ] && return 0
   [ -f "$env_file" ] || printf 'POSTGRES_PASSWORD=%s\n' "$(openssl rand -hex 24)" >"$env_file"
   # shellcheck disable=SC2016 # 反引号是 Traefik 规则语法
   [ "$alias" = 1 ] && rule=" || Host(\`preview.$DOMAIN\`)"
   log "preview $n: deploying $(revision "$tag" | cut -c1-7)$([ "$alias" = 1 ] && echo " (preview.$DOMAIN)")"
-  if XENICA_IMAGE="$tag" XENICA_NAME="pr-$n" XENICA_HOST="pr-$n.$DOMAIN" XENICA_ALIAS_RULE="$rule" XENICA_SEED=demo \
+  if XENICA_IMAGE="$tag" XENICA_ARTIFACT="$(artifact "$tag")" XENICA_NAME="pr-$n" XENICA_HOST="pr-$n.$DOMAIN" XENICA_ALIAS_RULE="$rule" XENICA_SEED=demo \
     compose -p "$project" --env-file "$env_file" up -d --wait --wait-timeout 120; then
     echo "$alias" >"$STATE/pr-$n.alias"
   else
@@ -112,6 +120,11 @@ deploy_previews() {
 }
 
 docker network inspect xenica-edge >/dev/null 2>&1 || docker network create xenica-edge >/dev/null
+if [ -n "${XENICA_ONLY_PREVIEW:-}" ]; then
+  [[ "$XENICA_ONLY_PREVIEW" =~ ^[1-9][0-9]*$ ]] || { log 'invalid preview number'; exit 1; }
+  deploy_preview "$XENICA_ONLY_PREVIEW" "$(cat "$STATE/pr-$XENICA_ONLY_PREVIEW.alias" 2>/dev/null || echo 0)"
+  exit 0
+fi
 deploy_prod
 deploy_previews
 docker image prune -f >/dev/null 2>&1 || true

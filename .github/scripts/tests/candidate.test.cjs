@@ -1,6 +1,6 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { candidateId, evaluate, latestChecks } = require('../candidate.cjs');
+const { candidateId, productId, evaluate, latestChecks } = require('../candidate.cjs');
 
 const candidate = {
   schema: 1,
@@ -13,17 +13,22 @@ const candidate = {
   attempt: 2,
 };
 const current = { source: candidate.source, base: candidate.base, policy: candidate.policy };
-const checks = ['rust', 'web', 'e2e', 'docker', 'screenshots'].map((name, i) => ({
+const checks = ['rust', 'web', 'e2e', 'docker', 'screenshots', 'preview'].map((name, i) => ({
   name, id: i + 1, conclusion: 'success', run: 100, attempt: 2,
 }));
 const evidence = { checks, deployed: { source: candidate.source, artifact: candidate.artifact } };
-const acceptance = { candidate: candidateId(candidate), actor: 'owner', outcome: 'accepted' };
+const acceptance = { candidate: productId(candidate), actor: 'owner', outcome: 'accepted' };
 
 test('候选身份包括运行产物、主线、规则和检查尝试', () => {
   for (const [key, value] of Object.entries({
     artifact: `sha256:${'e'.repeat(64)}`, base: 'e'.repeat(40), policy: 'e'.repeat(64), attempt: 3,
   })) assert.notEqual(candidateId({ ...candidate, [key]: value }), candidateId(candidate));
   assert.equal(candidateId({ ...candidate }), candidateId(candidate));
+});
+
+test('相同产品重跑工程检查保留体验身份，产物变化使体验过时', () => {
+  assert.equal(productId({ ...candidate, run: 200, attempt: 3, base: 'e'.repeat(40), policy: 'f'.repeat(64) }), productId(candidate));
+  assert.notEqual(productId({ ...candidate, artifact: `sha256:${'e'.repeat(64)}` }), productId(candidate));
 });
 test('同名检查的新失败不能由旧成功掩盖', () => {
   assert.equal(latestChecks([

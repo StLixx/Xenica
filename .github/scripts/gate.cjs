@@ -8,6 +8,7 @@ const REQUIRED_CHECKS = ['rust', 'web', 'e2e', 'docker', 'screenshots', 'preview
 const DOMAIN = 'xenica.truebigsand.top';
 const { latestChecks } = require('./candidate.cjs');
 const { readReport } = require('./readiness.cjs');
+const verifyDelivery = require('./verify-delivery.cjs');
 
 // 撤不回、或会改变规则本身的改动，永远要你验收。
 const SENSITIVE = [
@@ -136,7 +137,7 @@ async function merge({ github, owner, repo, pr }) {
 }
 
 /** 返回 { stage, issues }，给 project.cjs 更新看板。 */
-module.exports = async function gate({ github, context, core, mode, changed = [] }) {
+module.exports = async function gate({ github, context, core, mode, changed = [], verify = verifyDelivery }) {
   const { owner, repo } = context.repo;
   const number = context.payload.pull_request?.number ?? context.payload.issue.number;
   const pr = (await github.rest.pulls.get({ owner, repo, pull_number: number })).data;
@@ -168,15 +169,30 @@ module.exports = async function gate({ github, context, core, mode, changed = []
     await setStatus(ctx, 'pending', `Agent 自检未完成：${reason}`);
     return result('进行中');
   }
+  let delivery;
+  try {
+    delivery = await verify({ github, owner, repo, pr });
+  } catch {
+    delivery = { ready: false, reasons: ['候选或部署证据无法核验'] };
+  }
+  if (!delivery.ready) {
+    await setStatus(ctx, 'pending', `交付核验未完成：${delivery.reasons.join('；')}`);
+    return result('进行中');
+  }
+
+  if (selfTest.report.artifact !== delivery.candidate.artifact) {
+    await setStatus(ctx, 'pending', 'Agent 实测对应其他构建产物');
+    return result('进行中');
+  }
 
   if (mode === 'approve') {
     // 由 Agent 根据用户实际体验的成果代写；普通命令不能推断验收了当前新提交。
-    const accepted = context.payload.comment?.body?.trim().match(/^\/(?:验收|通过)\s+([a-f0-9]{40})(?:\s|$)/)?.[1];
-    if (accepted !== sha) {
+    const accepted = context.payload.comment?.body?.trim().match(/^\/(?:验收|通过)\s+([a-f0-9]{40})\s+(product-[a-f0-9]{64})$/);
+    if (context.payload.comment?.user?.login !== owner || accepted?.[1] !== sha || accepted?.[2] !== delivery.product) {
       core.info('未提供对应成果身份或成果已更新，保留未验收状态。');
       return result('待验收');
     }
-    await setStatus(ctx, 'success', '已验收（对应成果）');
+    await setStatus(ctx, 'success', `已验收 ${delivery.product}`);
     if (pr.draft || !(await ciPassed(ctx))) {
       core.info('当前必需检查还没全绿或仍是草稿，保持未合并。');
       return result('待验收');
@@ -185,7 +201,7 @@ module.exports = async function gate({ github, context, core, mode, changed = []
     return result('完成');
   }
 
-  const approved = (await status(ctx))?.description?.startsWith('已验收');
+  const approved = (await status(ctx))?.description === `已验收 ${delivery.product}`;
   await comment({ github, owner, repo, pr, body: previewBody({ pr, changed, why, sha }) });
 
   if (why.length && !approved) {

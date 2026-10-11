@@ -9,6 +9,6 @@
 
 ## Agent 自检报告
 
-Agent 通过仓库所有者身份在关联 PR 写 `/自检 <完整提交 SHA>`，下一行是 JSON；这是内部记录，不要求用户使用命令。字段：`schema: 1`、`source`、`preview`、`scope: {confirmed: true, reference}`、`scenarios: [{name, result: "passed", evidence: [https链接]}]`、`visual: {result: "passed", evidence: [https链接]}`、`unresolved: []`。非交互成果不要求 visual。链接指向 CI 测试记录、截图构件或已有复现材料；不记录分享令牌、密码。
+Agent 通过仓库所有者身份在关联 PR 写 `/自检 <完整提交 SHA>`，下一行是 JSON；这是内部记录，不要求用户使用命令。字段：`schema: 1`、`source`、`artifact`（实际产物摘要）、`preview`、`scope: {confirmed: true, reference}`、`scenarios: [{name, result: "passed", evidence: [https链接]}]`、`visual: {result: "passed", evidence: [https链接]}`、`unresolved: []`。非交互成果不要求 visual。链接指向 CI 测试记录、截图构件或已有复现材料；不记录分享令牌、密码。
 
 报告是 Agent 的可追溯实测声明，不是机器能证明“看过截图”的凭证；门禁只能机械核对身份、字段、检查结论与声明。不得伪造执行结果或把声明冒充自动测试。真实部署 `preview` 检查自动等待对应提交上线再运行浏览器回归；失败、超时或缺失不能交付。最新失败报告使旧成功报告失效。

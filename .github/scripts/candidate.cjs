@@ -1,6 +1,6 @@
 // 纯函数门禁：不访问网络，不依据 Agent 的判断推断证据。调用方负责证据来源认证。
 const { createHash } = require('node:crypto');
-const REQUIRED = ['rust', 'web', 'e2e', 'docker', 'screenshots'];
+const REQUIRED = ['rust', 'web', 'e2e', 'docker', 'screenshots', 'preview'];
 const SHA = /^[a-f0-9]{40}$/;
 const HASH = /^[a-f0-9]{64}$/;
 
@@ -18,6 +18,14 @@ function candidateId(candidate) {
   const identity = ['schema', 'source', 'base', 'artifact', 'preview', 'policy', 'run', 'attempt']
     .map(key => [key, candidate[key]]);
   return `dc-${createHash('sha256').update(JSON.stringify(identity)).digest('hex')}`;
+}
+
+// 产品身份与工程检查身份分离：相同产物重跑检查，不改写用户的历史体验判断。
+function productId(candidate) {
+  if (!valid(candidate)) throw new Error('交付候选格式无效');
+  return `product-${createHash('sha256').update(JSON.stringify(
+    ['source', 'artifact', 'preview'].map(key => [key, candidate[key]]),
+  )).digest('hex')}`;
 }
 
 function latestChecks(checks) {
@@ -45,11 +53,11 @@ function evaluate({ candidate, current = {}, evidence = {}, acceptance, interact
       reasons.push(`${name} 证据缺失、失败或不属于当前运行`);
     }
   }
-  if (interactive && (acceptance?.candidate !== candidateId(candidate) ||
+  if (interactive && (acceptance?.candidate !== productId(candidate) ||
       acceptance.outcome !== 'accepted' || typeof acceptance.actor !== 'string' || !acceptance.actor.trim())) {
     reasons.push('缺少对应成果的人工验收');
   }
   return { mergeable: reasons.length === 0, reasons };
 }
 
-module.exports = { candidateId, evaluate, latestChecks };
+module.exports = { candidateId, productId, evaluate, latestChecks, REQUIRED };

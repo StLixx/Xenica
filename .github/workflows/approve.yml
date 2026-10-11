@@ -21,6 +21,25 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+      - id: candidate
+        name: 查找当前成果的最新流水线尝试
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const { data: pr } = await github.rest.pulls.get({ ...context.repo, pull_number: context.issue.number });
+            const runs = await github.paginate(github.rest.actions.listWorkflowRuns, {
+              ...context.repo, workflow_id: 'ci.yml', head_sha: pr.head.sha, event: 'pull_request',
+            });
+            const latest = runs.filter(r => r.head_sha === pr.head.sha && r.head_branch === pr.head.ref).sort((a,b) => b.id-a.id)[0];
+            if (!latest) throw new Error('没有对应成果的流水线证据');
+            core.setOutput('run', latest.id);
+            core.setOutput('attempt', latest.run_attempt);
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ steps.candidate.outputs.run }}
+          name: delivery-candidate-${{ steps.candidate.outputs.attempt }}
+          path: .delivery
       - uses: actions/github-script@v8
         with:
           script: |

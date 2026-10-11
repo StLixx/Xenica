@@ -432,6 +432,8 @@ export interface components {
       url: string;
     };
     Health: {
+      /** @description 部署器从实际运行的镜像获取的 registry digest；开发环境可为空。 */
+      artifact?: string | null;
       /** @description 构建时的 git commit（镜像里由 CI 写入 `XENICA_COMMIT`），本地开发时为空。 */
       commit?: string | null;
       status: string;

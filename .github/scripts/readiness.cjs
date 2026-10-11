@@ -10,6 +10,7 @@ function readReport(comments, { owner, sha, preview, interactive }) {
   try {
     const report = JSON.parse(comment.body.slice(comment.body.indexOf('\n') + 1));
     if (report.schema !== 1 || report.source !== sha || report.preview !== preview ||
+        !/^sha256:[a-f0-9]{64}$/.test(report.artifact ?? '') ||
         report.scope?.confirmed !== true || typeof report.scope.reference !== 'string' ||
         !report.scope.reference.trim() || !Array.isArray(report.scenarios) || !report.scenarios.length ||
         !Array.isArray(report.unresolved) || report.unresolved.length) {

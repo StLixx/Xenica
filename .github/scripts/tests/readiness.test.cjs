@@ -5,7 +5,7 @@ const sha = 'a'.repeat(40);
 const preview = 'https://pr-55.xenica.truebigsand.top';
 const args = { owner: 'owner', sha, preview, interactive: true };
 const report = {
-  schema: 1, source: sha, preview, scope: { confirmed: true, reference: '对话确认开始' },
+  schema: 1, source: sha, preview, artifact: `sha256:${'c'.repeat(64)}`, scope: { confirmed: true, reference: '对话确认开始' },
   scenarios: [{ name: '刷新后仍存在', result: 'passed', evidence: ['https://github.com/test/actions/runs/1'] }],
   visual: { result: 'passed', evidence: ['https://github.com/test/actions/runs/1/artifacts/1'] }, unresolved: [],
 };
