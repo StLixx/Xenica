@@ -3,7 +3,15 @@ import { useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { bridgeRuntime, startVersion, useRuntime } from '../api/development';
 
-export function RuntimeCard({ version, active, exit }: { version: string; active: boolean; exit: () => void }) {
+export function RuntimeCard({
+  version,
+  active,
+  exit,
+}: {
+  version: string;
+  active: boolean;
+  exit: () => void;
+}) {
   const queries = useQueryClient();
   const [id, setId] = useState<string | null>(null);
   const [url, setURL] = useState('');
@@ -25,7 +33,10 @@ export function RuntimeCard({ version, active, exit }: { version: string; active
     let alive = true;
     void startVersion(version)
       .then((r) => {
-        if (alive) { queries.setQueryData(['development-runtime', r.id], r); setId(r.id); }
+        if (alive) {
+          queries.setQueryData(['development-runtime', r.id], r);
+          setId(r.id);
+        }
       })
       .catch((e) => {
         if (alive) setError(e instanceof Error ? e.message : '启动失败');
@@ -37,8 +48,14 @@ export function RuntimeCard({ version, active, exit }: { version: string; active
   useEffect(() => {
     if (!active || !url) return;
     const receive = (event: MessageEvent) => {
-      if (event.origin === new URL(url).origin && event.data === 'xenica:return-to-canvas' &&
-          event.source === document.querySelector<HTMLIFrameElement>(`iframe[title="历史体验 ${version}"]`)?.contentWindow) exit();
+      if (
+        event.origin === new URL(url).origin &&
+        event.data === 'xenica:return-to-canvas' &&
+        event.source ===
+          document.querySelector<HTMLIFrameElement>(`iframe[title="历史体验 ${version}"]`)
+            ?.contentWindow
+      )
+        exit();
     };
     window.addEventListener('message', receive);
     return () => window.removeEventListener('message', receive);

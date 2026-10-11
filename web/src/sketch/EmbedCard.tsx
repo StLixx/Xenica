@@ -58,11 +58,7 @@ export function EmbedCard({
       </div>
       <footer className="flex shrink-0 items-center gap-2 border-t border-line px-2 py-1 text-meta text-fg-3">
         <span className="min-w-0 flex-1 truncate" title={source?.source ?? source?.url}>
-          {source?.kind === 'react'
-            ? '真实组件'
-            : source
-              ? '未显示？可打开原页'
-              : '无可用来源'}
+          {source?.kind === 'react' ? '真实组件' : source ? '未显示？可打开原页' : '无可用来源'}
         </span>
         {source?.kind === 'page' ? (
           <a href={source.url} target="_blank" rel="noopener noreferrer" className="text-accent">
