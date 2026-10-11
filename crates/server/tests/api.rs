@@ -17,23 +17,63 @@ const CODE: &str = "TEST-CODE";
 async fn historical_api_requires_login_and_only_bridges_running_instances(pool: PgPool) {
     let store = Store::new(pool.clone());
     let (app, cookie) = signed_in(pool).await;
-    let runtime = store.start_runtime(&xenica_core::Actor::User { id: None }, "test", "image", "snapshot").await.unwrap();
+    let runtime = store
+        .start_runtime(
+            &xenica_core::Actor::User { id: None },
+            "test",
+            "image",
+            "snapshot",
+        )
+        .await
+        .unwrap();
     for (method, path) in [
         ("GET", "/api/development/versions".to_owned()),
         ("GET", "/api/development/versions/missing".to_owned()),
         ("POST", "/api/development/versions/missing/start".to_owned()),
         ("GET", format!("/api/development/runtimes/{}", runtime.id)),
-        ("POST", format!("/api/development/runtimes/{}/bridge", runtime.id)),
+        (
+            "POST",
+            format!("/api/development/runtimes/{}/bridge", runtime.id),
+        ),
     ] {
-        assert_eq!(send(&app, None, method, &path, None).await.0, StatusCode::UNAUTHORIZED);
+        assert_eq!(
+            send(&app, None, method, &path, None).await.0,
+            StatusCode::UNAUTHORIZED
+        );
     }
     let bridge = format!("/api/development/runtimes/{}/bridge", runtime.id);
-    assert_ne!(send(&app, Some(&cookie), "POST", &bridge, None).await.0, StatusCode::OK);
-    store.runtime_state(&xenica_core::Actor::User { id: None }, runtime.id, runtime.generation, "running", "").await.unwrap();
+    assert_ne!(
+        send(&app, Some(&cookie), "POST", &bridge, None).await.0,
+        StatusCode::OK
+    );
+    store
+        .runtime_state(
+            &xenica_core::Actor::User { id: None },
+            runtime.id,
+            runtime.generation,
+            "running",
+            "",
+        )
+        .await
+        .unwrap();
     let (status, body, _) = send(&app, Some(&cookie), "POST", &bridge, None).await;
     assert_eq!(status, StatusCode::OK);
-    assert!(body["url"].as_str().unwrap().starts_with(&format!("https://history-{}.xenica.truebigsand.top/__bridge?ticket=", runtime.id)));
-    assert_eq!(send(&app, Some(&cookie), "POST", "/api/development/versions/missing/start", None).await.0, StatusCode::NOT_FOUND);
+    assert!(body["url"].as_str().unwrap().starts_with(&format!(
+        "https://history-{}.xenica.truebigsand.top/__bridge?ticket=",
+        runtime.id
+    )));
+    assert_eq!(
+        send(
+            &app,
+            Some(&cookie),
+            "POST",
+            "/api/development/versions/missing/start",
+            None
+        )
+        .await
+        .0,
+        StatusCode::NOT_FOUND
+    );
     assert_eq!(store.development_runtimes().await.unwrap().len(), 1);
 }
 
