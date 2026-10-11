@@ -254,7 +254,22 @@ pub async fn import(store: &Store, archive: Archive) -> anyhow::Result<Node> {
         ids.insert(file.id.to_string(), id.to_string());
     }
     let mut body = archive.node.body;
-    body["archiveHistory"] = json!(archive.history);
+    let mut history = body
+        .get("archiveHistory")
+        .and_then(Value::as_array)
+        .cloned()
+        .unwrap_or_default();
+    history.extend(archive.history);
+    body["archiveHistory"] = json!(history);
+    let mut origins = body
+        .get("archiveOrigins")
+        .and_then(Value::as_array)
+        .cloned()
+        .unwrap_or_default();
+    if let Some(origin) = body.get("archiveOrigin") {
+        origins.push(origin.clone());
+    }
+    body["archiveOrigins"] = json!(origins);
     body["archiveOrigin"] = json!({"revision":archive.node.updated_at,"node":archive.node.id});
     remap(&mut body, &ids);
     Ok(store

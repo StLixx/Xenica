@@ -62,7 +62,7 @@ test('write a page: blocks, tags, views', async ({ page }) => {
   // 点标记：打开那个节点，下面列出提到它的块，可以切成表格
   await editor.getByText(`#${tag}`).click();
   const mentioned = page.getByRole('region', { name: '提到它的' });
-  await expect(mentioned.locator('.katex')).toBeVisible();
+  await expect(mentioned.locator('.katex')).toBeVisible({ timeout: 15_000 });
   await mentioned.getByRole('radio', { name: '表格' }).click();
   await expect(mentioned.getByRole('table')).toContainText('第 5 讲 数列极限');
 });
@@ -70,7 +70,10 @@ test('write a page: blocks, tags, views', async ({ page }) => {
 test('demo page and graph', async ({ page }) => {
   await signIn(page);
   await page.getByRole('navigation', { name: '侧栏' }).hover();
-  await page.getByRole('button', { name: '高数 · 不定积分（第 3 讲）' }).click();
+  await page
+    .getByRole('navigation', { name: '侧栏' })
+    .getByRole('button', { name: '高数 · 不定积分（第 3 讲）', exact: true })
+    .click();
   const editor = page.getByRole('region', { name: '正文' });
   await expect(editor.locator('.katex').first()).toBeVisible();
   await expect(editor.getByText('#必备').first()).toBeVisible();

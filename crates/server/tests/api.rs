@@ -1049,6 +1049,14 @@ async fn archive_preserves_history_and_files_without_share_credentials(pool: PgP
         .await
         .unwrap();
     assert_eq!(current.files[0].bytes, b"archive-png");
+    let mut repeated: xenica_server::archive::Archive =
+        serde_json::from_value(serde_json::to_value(&current).unwrap()).unwrap();
+    repeated.node.id = xenica_core::NodeId::new();
+    let repeated = xenica_server::archive::import(&store, repeated)
+        .await
+        .unwrap();
+    assert_eq!(repeated.body["archiveHistory"].as_array().unwrap().len(), 1);
+    assert_eq!(repeated.body["archiveOrigins"].as_array().unwrap().len(), 1);
     assert!(
         xenica_server::archive::import(&store, current)
             .await
