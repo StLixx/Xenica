@@ -109,7 +109,7 @@ function previewBody({ pr, changed, why, sha }) {
       if (changed.length > 20) lines.push(`- ……共 ${changed.length} 个`);
       lines.push('');
     }
-    lines.push('执行 Agent 会在对话里把要看的地方告诉你；你确认后它代你评论 `/通过`，你也可以自己评论。');
+    lines.push('执行 Agent 会在对话里把要看的地方告诉你；你确认体验后，它记录已体验的成果身份。无需你打开 GitHub 或再次确认。');
   } else {
     lines.push('无需验收，CI 全绿后自动合并。');
   }
@@ -165,7 +165,7 @@ module.exports = async function gate({ github, context, core, mode, changed = []
     }
     await setStatus(ctx, 'success', '已验收（对应成果）');
     if (pr.draft || !(await ciPassed(ctx))) {
-      core.info('CI 还没全绿或仍是草稿，CI 结束时会自动合并。');
+    core.info('当前必需检查还没全绿或仍是草稿，保持未合并。');
       return result('待验收');
     }
     await merge({ github, owner, repo, pr });
