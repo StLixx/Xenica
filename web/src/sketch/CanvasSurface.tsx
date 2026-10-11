@@ -268,7 +268,8 @@ export default function CanvasSurface({ node, save, ...management }: CanvasProps
             const url = await uploadImage(await dataURLtoBlob(file.dataURL));
             uploaded.current[editorId] = url.split('/').pop() ?? '';
           } catch {
-            // 单张图传不上去不影响画面保存
+            // 原图缺失时保留本地画面，不保存一个无法完整恢复的档案。
+            throw new Error('原图上传未完成，请重试保存');
           }
         }
         const elements: SceneElement[] = snapshot.map((element) => {

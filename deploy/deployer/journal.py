@@ -3,6 +3,7 @@ import base64
 import hashlib
 import json
 import os
+import re
 import urllib.error
 import urllib.request
 
@@ -22,8 +23,10 @@ def publish_archive(metadata, token):
             raise
         except Exception:
             raise RuntimeError('archive publication transport failed') from None
-    record={'schema':1,'type':'archive','source':metadata['source'],'archive':metadata,'recovery':'xenica-history://snapshots/'+metadata['snapshot']}
+    record={'schema':1,'type':'archive','source':metadata['source'],'archive':metadata,'recovery':metadata.get('recovery','xenica-history://snapshots/'+metadata['snapshot'])}
     text=json.dumps(record,ensure_ascii=False,separators=(',',':'))
+    if re.search(r'/api/share/|[?&](?:token|ticket|password|secret|api.?key)=|postgres://',text,re.I):
+        raise RuntimeError('private credential in archive metadata')
     digest=hashlib.sha256(text.encode()).hexdigest()
     path='records/'+digest+'.json'
     for _ in range(5):

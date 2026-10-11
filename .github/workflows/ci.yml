@@ -336,6 +336,8 @@ jobs:
       - run: pnpm exec playwright install --with-deps chromium
         working-directory: web
       - name: 实际预览完整浏览器回归
+        env:
+          XENICA_REQUIRE_HISTORY: '1'
         run: pnpm e2e --workers=1
         working-directory: web
       - name: 测试结束再次核对成果

@@ -144,6 +144,7 @@ deploy_previews() {
     chmod 600 "$backup/database.sql"
     sha256sum "$backup/database.sql" >"$backup/checksums"
     running_artifact "$project" >"$backup/artifact"
+    DEPLOYER_GITHUB_TOKEN="$TOKEN" python3 "$DEPLOY/deployer/archive-preview-data.py" "$backup" "$project" || { log "preview $n: design archive publication failed; keeping data"; continue; }
     DEPLOYER_GITHUB_TOKEN="$TOKEN" python3 "$DEPLOY/deployer/archive-version.py" "$project" || { log "preview $n: archive failed; keeping data"; continue; }
     log "preview $n: removing"
     compose -p "$project" down -v --remove-orphans || true

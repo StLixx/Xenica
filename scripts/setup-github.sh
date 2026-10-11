@@ -38,4 +38,12 @@ if [ -n "$id" ]; then
 else
   gh api -X POST "repos/$repo/rulesets" --input - <<<"$ruleset" >/dev/null
 fi
+
+journal_rules='{"name":"delivery-records","target":"branch","enforcement":"active","bypass_actors":[],"conditions":{"ref_name":{"include":["refs/heads/delivery-records"],"exclude":[]}},"rules":[{"type":"deletion"},{"type":"non_fast_forward"}]}'
+journal_id=$(gh api "repos/$repo/rulesets" --jq '.[] | select(.name == "delivery-records") | .id')
+if [ -n "$journal_id" ]; then
+  gh api -X PUT "repos/$repo/rulesets/$journal_id" --input - <<<"$journal_rules" >/dev/null
+else
+  gh api -X POST "repos/$repo/rulesets" --input - <<<"$journal_rules" >/dev/null
+fi
 echo "done: https://github.com/$repo/settings/rules"
