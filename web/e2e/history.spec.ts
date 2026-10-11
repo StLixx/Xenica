@@ -7,7 +7,7 @@ test('历史版本从兼容快照恢复，单次登录桥接、幂等启动与�
   page,
   browser,
 }, info) => {
-  test.setTimeout(180_000);
+  test.setTimeout(300_000);
   await page.goto('/');
   await page.getByLabel('用户名').fill('demo');
   await page.getByLabel('密码').fill('demo');
@@ -45,15 +45,39 @@ test('历史版本从兼容快照恢复，单次登录桥接、幂等启动与�
   expect((await anonymous.request.get(`${origin}/api/development/versions`)).status()).toBe(403);
   const isolated = await (await anonymous.request.get(`${origin}/api/health`)).json();
   expect(isolated.commit).toBe(version.source);
-  expect(isolated.artifact).toBe(version.image.split('@')[1]);
+  // 旧版本尚未提供摘要字段；不可变镜像身份由真实恢复部署器核验。
+  if (isolated.artifact) expect(isolated.artifact).toBe(version.image.split('@')[1]);
   await anonymous.close();
   const outsider = await browser.newContext();
   expect((await outsider.request.get(`${origin}/api/nodes`)).status()).toBe(401);
   await outsider.close();
+  const second = versions[1];
+  const restored = await (
+    await page.request.post(`/api/development/versions/${second.id}/start`)
+  ).json();
+  await expect
+    .poll(
+      async () =>
+        (await (await page.request.get(`/api/development/runtimes/${restored.id}`)).json()).state,
+      { timeout: 120_000 },
+    )
+    .toBe('running');
+  const secondBridge = await (
+    await page.request.post(`/api/development/runtimes/${restored.id}/bridge`)
+  ).json();
+  const secondContext = await browser.newContext();
+  expect((await secondContext.request.get(secondBridge.url)).ok()).toBeTruthy();
+  const secondHealth = await (
+    await secondContext.request.get(new URL('/api/health', secondBridge.url).href)
+  ).json();
+  expect(secondHealth.commit).toBe(second.source);
+  await secondContext.close();
   await page.goto('/sketch');
   await page.getByRole('button', { name: '画布管理', exact: true }).click();
   await page.getByRole('button', { name: '新建草图', exact: true }).click();
+  await expect(page).toHaveURL(/\/sketch\/[a-f0-9-]+$/);
   const sketch = page.url();
+  await page.goto(sketch);
   await page.getByRole('button', { name: '画布管理', exact: true }).click();
   await page.getByRole('button', { name: version.title, exact: true }).click();
   await page.getByRole('button', { name: '操作选中卡片', exact: true }).click();

@@ -148,6 +148,18 @@ export default function CanvasSurface({ node, save, ...management }: CanvasProps
       setError('请输入不含登录凭据或分享令牌的 HTTPS 网页地址。');
       return;
     }
+    const existing = live.getSceneElements().find((element) => {
+      const source = embedSource(element);
+      return (
+        source?.kind === kind && source.url === link && source.revision === health.data?.commit
+      );
+    });
+    if (existing) {
+      live.scrollToContent(existing);
+      live.updateScene({ appState: { selectedElementIds: { [existing.id]: true } } });
+      live.toggleSidebar({ name: 'xenica', force: false });
+      return;
+    }
     const { convertToExcalidrawElements } = await import('@excalidraw/excalidraw');
     const appState = live.getAppState();
     const offset =

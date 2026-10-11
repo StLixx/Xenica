@@ -112,7 +112,8 @@ deploy_preview() {
   have=$(running_image "$project")
   # 镜像没变、固定域名也没换主人就不动；换了主人要重建容器（Traefik 规则在容器标签上）
   [ "$want" = "$have" ] && [ "$alias" = "$(cat "$STATE/pr-$n.alias" 2>/dev/null)" ] &&
-    [ "$(running_artifact "$project")" = "$digest" ] && return 0
+    [ "$(running_artifact "$project")" = "$digest" ] &&
+    docker inspect "$project-app-1" --format '{{range .Mounts}}{{println .Destination}}{{end}}' | grep -qx '/run/xenica-versions' && return 0
   [ -f "$env_file" ] || printf 'POSTGRES_PASSWORD=%s\n' "$(openssl rand -hex 24)" >"$env_file"
   # shellcheck disable=SC2016 # 反引号是 Traefik 规则语法
   [ "$alias" = 1 ] && rule=" || Host(\`preview.$DOMAIN\`)"

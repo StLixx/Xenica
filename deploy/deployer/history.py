@@ -12,8 +12,11 @@ import uuid
 
 ROOT = Path(os.environ.get('XENICA_HISTORY_ROOT', '/var/lib/xenica-history'))
 CATALOG = ROOT / 'catalog' / 'catalog.json'
+LAST_COMMAND = ()
 
 def run(*args, data=None):
+    global LAST_COMMAND
+    LAST_COMMAND = args[:3]
     return subprocess.check_output(args, input=data, stderr=subprocess.PIPE).decode().strip()
 
 def validate(version, root=ROOT):
@@ -79,7 +82,7 @@ def start(parent,runtime,version):
         if subprocess.run(['docker','exec',name+'-app','/app/xenica','healthcheck'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL).returncode==0: break
         time.sleep(1)
     else: raise RuntimeError('历史页面未就绪')
-    run('docker','run','-d','--name',name+'-gateway','--network',name,'--label','xenica.history=gateway',
+    run('docker','create','--name',name+'-gateway','--network',name,'--label','xenica.history=gateway',
         '--label','traefik.enable=true','--label','traefik.docker.network=xenica-edge',
         '--label',f'traefik.http.routers.history-{runtime["id"]}.rule=Host(`history-{runtime["id"]}.xenica.truebigsand.top`)',
         '--label',f'traefik.http.routers.history-{runtime["id"]}.entrypoints=web',
@@ -89,6 +92,7 @@ def start(parent,runtime,version):
         '-e','XENICA_RUNTIME_UPSTREAM=http://'+name+'-app:8080',image,'runtime-proxy')
     run('docker','network','connect',parent_net,name+'-gateway')
     run('docker','network','connect','xenica-edge',name+'-gateway')
+    run('docker','start',name+'-gateway')
     for _ in range(30):
         if subprocess.run(['docker','exec',name+'-gateway','/app/xenica','runtime-healthcheck'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL).returncode==0:break
         time.sleep(1)
@@ -104,9 +108,18 @@ def reconcile(parent):
             elif runtime['state']=='preparing': start(parent,runtime,versions[runtime['version']])
             elif runtime['state']=='running':
                 run('docker','exec',names(runtime)+'-gateway','/app/xenica','runtime-healthcheck')
-        except Exception:
+        except Exception as error:
             # 异常原文可能含 docker env 或私密地址，不公开。
             name=names(runtime)
+            diagnostic=(getattr(error,'stderr',b'') or b'').decode(errors='replace')[:8000]
+            logs=subprocess.run(['docker','logs','--tail','20',name+'-gateway'],capture_output=True,text=True,check=False)
+            diagnostic+='\n'+logs.stdout+logs.stderr
+            diagnostic=re.sub(r'postgres(?:ql)?://\S+','postgres://[redacted]',diagnostic)
+            folder=ROOT/'runtime'/name
+            folder.mkdir(parents=True,exist_ok=True,mode=0o700)
+            path=folder/'failure.json'
+            path.write_text(json.dumps({'error':type(error).__name__,'operation':LAST_COMMAND,'detail':diagnostic},ensure_ascii=False))
+            path.chmod(0o600)
             for service in ('gateway','app','db'):
                 subprocess.run(['docker','rm','-f',name+'-'+service],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,check=False)
             state(parent,runtime,'failed','历史版本启动失败，档案已保留')

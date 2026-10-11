@@ -22,7 +22,8 @@ elif a[:2] == ['image', 'inspect']:
     elif 'revision' in a[3]: print('a' * 40)
     else: print('ghcr.io/stlixx/xenica@' + os.environ['MOCK_RUNNING'])
 elif a and a[0] == 'inspect':
-    if '.Image' in a[2]: print('sha256:same-runtime')
+    if '.Mounts' in a[3]: print('' if os.getenv('MOCK_MISSING_CATALOG')=='1' else '/run/xenica-versions')
+    elif '.Image' in a[2]: print('sha256:same-runtime')
     else: print(json.dumps(['XENICA_ARTIFACT=' + os.environ['MOCK_RUNNING']]))
 elif 'compose' in a:
     if 'ps' in a: print('test-container')
@@ -33,7 +34,7 @@ elif a[:2] == ['ps', '-a']: pass
 
 
 class DeployerTests(unittest.TestCase):
-    def run_deployer(self, digest=NEW, running=OLD, production=False, rollback=False, archive_failure=False):
+    def run_deployer(self, digest=NEW, running=OLD, production=False, rollback=False, archive_failure=False, missing_catalog=False):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             deploy = root / 'deploy'
@@ -58,6 +59,7 @@ class DeployerTests(unittest.TestCase):
             env = {**os.environ, 'PATH': str(binary) + ':' + os.environ['PATH'],
                    'XENICA_STATE': str(state), 'XENICA_ONLY_PREVIEW': '' if production else '55',
                    'MOCK_LOG': str(log), 'MOCK_DIGEST': digest, 'MOCK_RUNNING': running,
+                   'MOCK_MISSING_CATALOG': '1' if missing_catalog else '0',
                    'MOCK_ROLLBACK': '1' if rollback else '0'}
             env.update(ARCHIVE_COUNT=str(root/'archive-count'), ARCHIVE_FAILURE='1' if archive_failure else '0')
             result = subprocess.run(['bash', str(script)], env=env, capture_output=True, text=True, timeout=30)
@@ -76,6 +78,10 @@ class DeployerTests(unittest.TestCase):
     def test_already_running_exact_digest_is_not_recreated(self):
         calls = self.run_deployer(running=NEW)
         self.assertFalse(any('up' in c['args'] for c in calls))
+
+    def test_same_digest_with_missing_archive_mount_is_repaired(self):
+        calls = self.run_deployer(running=NEW, missing_catalog=True)
+        self.assertTrue(any('up' in c['args'] for c in calls))
 
     def test_invalid_registry_identity_never_deploys(self):
         calls = self.run_deployer(digest='invalid')
