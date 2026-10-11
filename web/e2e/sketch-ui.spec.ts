@@ -88,6 +88,18 @@ test('画板只有 Excalidraw，画布菜单管理名字与网址切换', async 
   ).toBe(selectedBackground);
   expect(errors).toEqual([]);
   await page.screenshot({ path: testInfo.outputPath('desktop-context.png') });
+  await page.locator('.sidebar').getByRole('button', { name: '关闭', exact: true }).click();
+  await page.locator('canvas.interactive').click({ position: { x: 400, y: 300 } });
+  await page.keyboard.press('Alt+z');
+  await expect(page.locator('.App-toolbar')).toHaveClass(/zen-mode/);
+  await page.locator('.main-menu-trigger').click();
+  await page
+    .locator('.dropdown-menu')
+    .getByRole('button', { name: '设计上下文', exact: true })
+    .click();
+  await expect(page.getByLabel('设计说明', { exact: true })).toBeVisible();
+  await page.screenshot({ path: testInfo.outputPath('zen-context.png') });
+  await page.keyboard.press('Alt+z');
 });
 
 test('窄屏通过画布菜单访问扩展，原生面板可关闭且不横向溢出', async ({ page }, testInfo) => {
