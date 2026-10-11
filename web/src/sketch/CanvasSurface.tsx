@@ -210,10 +210,13 @@ export default function CanvasSurface({ node, save, ...management }: CanvasProps
     async function persist() {
       const live = editor.current;
       if (!live || busy.current || conflicted.current) return;
-      busy.current = true;
-      const expected = revision.current;
       const snapshot = live.getSceneElements();
       const snapshotSig = signature(snapshot, Object.keys(live.getFiles()).length);
+      if (snapshotSig === lastSaved.current) return;
+      if (timer.current !== null) window.clearTimeout(timer.current);
+      timer.current = null;
+      busy.current = true;
+      const expected = revision.current;
       let succeeded = false;
       setState('saving');
       try {

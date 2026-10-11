@@ -282,6 +282,39 @@ test('旧画布不覆盖 AI 写回，冲突双方可保留', async ({ page }, te
     .toBeGreaterThan(550);
 });
 
+test('保存过程中切换面板不会重复写入同一画面', async ({ page }) => {
+  const id = await openSketch(page);
+  let writes = 0;
+  let release!: () => void;
+  let arrived!: () => void;
+  const responseGate = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  const firstWrite = new Promise<void>((resolve) => {
+    arrived = resolve;
+  });
+  await page.route(`**/api/nodes/${id}`, async (route) => {
+    if (route.request().method() !== 'PATCH') return route.continue();
+    writes += 1;
+    const response = await route.fetch();
+    if (writes === 1) {
+      arrived();
+      await responseGate;
+    }
+    await route.fulfill({ response });
+  });
+  await page.getByRole('button', { name: '嵌入内容', exact: true }).click();
+  await page.getByRole('button', { name: '共享侧栏组件', exact: true }).click();
+  await firstWrite;
+  await page.getByRole('button', { name: '设计上下文', exact: true }).click();
+  await expect(page.getByLabel('设计说明', { exact: true })).toBeVisible();
+  release();
+  await expect(page.getByText('已保存', { exact: true })).toBeVisible();
+  // 跨过保存防抖窗口，确认排队的面板状态变化不会再发同一份内容。
+  await page.waitForTimeout(1200);
+  expect(writes).toBe(1);
+});
+
 test('空闲画布自动读取新版，设计说明及真实截图进入主摘要和档案', async ({ page }, testInfo) => {
   const id = await openSketch(page);
   await page.getByRole('button', { name: '嵌入内容', exact: true }).click();

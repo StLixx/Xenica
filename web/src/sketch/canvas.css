@@ -75,4 +75,11 @@
 .excalidraw .xenica-save-state {
   font: inherit;
   color: var(--color-on-surface);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.excalidraw .footer-center .excalidraw-button {
+  white-space: nowrap;
+  flex-shrink: 0;
 }
