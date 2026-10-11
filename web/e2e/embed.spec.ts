@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { writeFile } from 'node:fs/promises';
 
 import type { SceneElement } from '../src/sketch/scene';
 
@@ -17,7 +18,10 @@ async function openSketch(page: Page) {
   return page.url().split('/sketch/')[1] as string;
 }
 
-test('真实侧栏可交互，保存和分享保留组件身份，AI 可编辑卡片', async ({ page, browser }) => {
+test('真实侧栏可交互，保存和分享保留组件身份，AI 可编辑卡片', async ({
+  page,
+  browser,
+}, testInfo) => {
   const id = await openSketch(page);
   await page.getByRole('button', { name: '嵌入内容', exact: true }).click();
   await page.getByRole('button', { name: '共享侧栏组件', exact: true }).click();
@@ -33,6 +37,9 @@ test('真实侧栏可交互，保存和分享保留组件身份，AI 可编辑�
   await expect(card).toHaveAttribute('data-interactive', 'false');
   await expect(page.getByText('已保存', { exact: true })).toBeVisible({ timeout: 20_000 });
   const original = await (await page.request.get(`/api/nodes/${id}`)).json();
+  expect(original.body.image).toBeTruthy();
+  const png = await page.request.get(`/api/files/${original.body.image}`);
+  await writeFile(testInfo.outputPath('structure-export.png'), await png.body());
   const element = original.body.scene.elements.find(
     (el: { type: string }) => el.type === 'embeddable',
   );
@@ -92,7 +99,9 @@ test('真实侧栏可交互，保存和分享保留组件身份，AI 可编辑�
   scene.elements[0].x += 80;
   scene.elements[0].width = 560;
   scene.elements[0].version += 1;
-  const edit = await anon.request.put(`/api/share/${share.token}`, { data: { scene } });
+  const edit = await anon.request.put(`/api/share/${share.token}`, {
+    data: { scene, expected_revision: scene._revision },
+  });
   expect(edit.ok()).toBeTruthy();
   await page.reload();
   await expect(card).toBeVisible({ timeout: 30_000 });
@@ -180,7 +189,9 @@ test('混合卡片编排与多卡片验证', async ({ page }, testInfo) => {
           }
         : {}),
     }));
+    const current = await (await page.request.get(`/api/nodes/${id}`)).json();
     const update = await page.request.patch(`/api/nodes/${id}`, {
+      headers: { 'If-Match': `"${current.updated_at}"` },
       data: { body: { scene: { ...original.body.scene, elements } } },
     });
     expect(update.ok()).toBeTruthy();
@@ -219,4 +230,111 @@ test('混合卡片编排与多卡片验证', async ({ page }, testInfo) => {
     contentType: 'application/json',
   });
   console.log('卡片验证记录', JSON.stringify(measurements));
+});
+
+test('旧画布不覆盖 AI 写回，冲突双方可保留', async ({ page }, testInfo) => {
+  const id = await openSketch(page);
+  await page.getByRole('button', { name: '嵌入内容', exact: true }).click();
+  await page.getByRole('button', { name: '共享侧栏组件', exact: true }).click();
+  await expect(page.getByText('已保存', { exact: true })).toBeVisible();
+  const original = await (await page.request.get(`/api/nodes/${id}`)).json();
+  // 模拟后台轮询还没有发现新版本的旧页面，写入保护仍必须成立。
+  await page.route(`**/api/nodes/${id}`, (route) =>
+    route.request().method() === 'GET' ? route.fulfill({ json: original }) : route.continue(),
+  );
+  const share = await (
+    await page.request.post(`/api/nodes/${id}/shares`, { data: { mode: 'write' } })
+  ).json();
+  const scene = structuredClone(original.body.scene);
+  scene.elements[0].width = 560;
+  scene.elements[0].version += 1;
+  const written = await page.request.put(`/api/share/${share.token}`, {
+    data: { scene, expected_revision: original.updated_at },
+  });
+  expect(written.ok()).toBeTruthy();
+  await page.getByRole('button', { name: '嵌入内容', exact: true }).click();
+  await page.getByRole('button', { name: '共享侧栏组件', exact: true }).click();
+  await expect(page.getByRole('alert')).toContainText('本次修改未覆盖新版');
+  const remote = await (await page.request.get(`/api/nodes/${id}`)).json();
+  expect(remote.body.scene.elements[0].width).toBe(560);
+  await page.getByRole('button', { name: '另存我的草稿', exact: true }).click();
+  await expect(page.getByRole('button', { name: '草稿已另存', exact: true })).toBeVisible();
+  const nodes = await (await page.request.get('/api/nodes?limit=1000')).json();
+  const draft = nodes.find((n: { title: string }) => n.title.endsWith('· 冲突草稿'));
+  expect(draft.body.scene.elements).toHaveLength(2);
+  expect(draft.body.scene.elements[0].width).toBe(480);
+  await page.screenshot({ path: testInfo.outputPath('conflict-preserved.png') });
+  await page.unroute(`**/api/nodes/${id}`);
+  await page.getByRole('button', { name: '加载新版', exact: true }).click();
+  await expect
+    .poll(async () =>
+      page
+        .getByRole('region', { name: '嵌入卡片：共享侧栏', exact: true })
+        .boundingBox()
+        .then((b) => b?.width),
+    )
+    .toBeGreaterThan(550);
+});
+
+test('空闲画布自动读取新版，设计说明及真实截图进入主摘要和档案', async ({ page }, testInfo) => {
+  const id = await openSketch(page);
+  await page.getByRole('button', { name: '嵌入内容', exact: true }).click();
+  await page.getByRole('button', { name: '共享侧栏组件', exact: true }).click();
+  await expect(page.getByText('已保存', { exact: true })).toBeVisible();
+  const original = await (await page.request.get(`/api/nodes/${id}`)).json();
+  const scene = structuredClone(original.body.scene);
+  scene.elements[0].width = 560;
+  scene.elements[0].version += 1;
+  const share = await (
+    await page.request.post(`/api/nodes/${id}/shares`, { data: { mode: 'write' } })
+  ).json();
+  expect(
+    (
+      await page.request.put(`/api/share/${share.token}`, {
+        data: { scene, expected_revision: original.updated_at },
+      })
+    ).ok(),
+  ).toBeTruthy();
+  await expect
+    .poll(async () =>
+      page
+        .getByRole('region', { name: '嵌入卡片：共享侧栏', exact: true })
+        .boundingBox()
+        .then((b) => b?.width),
+    )
+    .toBeGreaterThan(550);
+  const screenshot = await page.screenshot();
+  await page.getByRole('button', { name: '设计上下文', exact: true }).click();
+  await page
+    .getByLabel('设计说明', { exact: true })
+    .fill('已确认：复用共享侧栏。待确认：宽度。下一步：验收交互。');
+  await page.getByText('截图来源与版本', { exact: true }).click();
+  await page.getByLabel('截图关联元素 ID').fill(scene.elements[0].id);
+  await page
+    .getByLabel('真实截图', { exact: true })
+    .setInputFiles({ name: '真实草图.png', mimeType: 'image/png', buffer: screenshot });
+  await page.getByRole('button', { name: '保存设计上下文', exact: true }).click();
+  await expect(page.getByRole('status')).toContainText('设计说明与截图已保存');
+  const markdown = await (await page.request.get(`/api/share/${share.token}`)).text();
+  for (const text of [
+    'PeekAside',
+    'web/src/ui/PeekAside.tsx',
+    'elementId',
+    '真实截图证据',
+    '复用共享侧栏',
+    'expected_revision',
+  ])
+    expect(markdown).toContain(text);
+  const archive = await (await page.request.get(`/api/nodes/${id}/archive`)).json();
+  expect(archive.files.length).toBeGreaterThan(0);
+  expect(archive.history.length).toBeGreaterThan(0);
+  expect(JSON.stringify(archive)).not.toContain(share.token);
+  const evidence = archive.node.body.evidence[0];
+  const fetched = await page.request.get(`/api/share/${share.token}/files/${evidence.file}`);
+  expect(await fetched.body()).toEqual(screenshot);
+  await page.screenshot({ path: testInfo.outputPath('context-evidence.png') });
+  await page.request.delete(`/api/shares/${share.id}`);
+  expect(
+    (await page.request.get(`/api/share/${share.token}/files/${evidence.file}`)).status(),
+  ).toBe(404);
 });

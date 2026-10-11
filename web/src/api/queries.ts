@@ -77,10 +77,11 @@ export function useNodes() {
   });
 }
 
-export function useNode(id: string) {
+export function useNode(id: string, refetchInterval?: number) {
   return useQuery({
     queryKey: keys.node(id),
     queryFn: async () => unwrap(await api.GET('/api/nodes/{id}', { params: { path: { id } } })),
+    refetchInterval,
   });
 }
 
@@ -112,16 +113,36 @@ export function useCreateNode() {
   });
 }
 
-export function useUpdateNode(id: string) {
+export function useUpdateNode(id: string, revision?: string) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (patch: NodePatch) =>
-      unwrap(await api.PATCH('/api/nodes/{id}', { params: { path: { id } }, body: patch })),
+      unwrap(
+        await api.PATCH('/api/nodes/{id}', {
+          params: { path: { id } },
+          body: patch,
+          headers: revision ? { 'If-Match': `"${revision}"` } : undefined,
+        }),
+      ),
     onSuccess: (node) => {
       qc.setQueryData(keys.node(id), node);
       void qc.invalidateQueries({ queryKey: keys.nodes });
     },
   });
+}
+
+export async function saveSketch(id: string, body: Record<string, never>, revision: string) {
+  return unwrap(
+    await api.PATCH('/api/nodes/{id}', {
+      params: { path: { id } },
+      body: { body },
+      headers: { 'If-Match': `"${revision}"` },
+    }),
+  );
+}
+
+export async function readSketch(id: string) {
+  return unwrap(await api.GET('/api/nodes/{id}', { params: { path: { id } } }));
 }
 
 export function useDeleteNode() {

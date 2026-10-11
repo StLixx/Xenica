@@ -16,6 +16,24 @@ async fn main() -> anyhow::Result<()> {
             Ok(())
         }
         Some("healthcheck") => healthcheck(),
+        Some("archive-export") => {
+            let id = std::env::args().nth(2).context("缺少草图 ID")?.parse()?;
+            let store = Store::connect(&std::env::var("DATABASE_URL")?).await?;
+            println!(
+                "{}",
+                serde_json::to_string(
+                    &xenica_server::archive::export(&store, xenica_core::NodeId(id)).await?
+                )?
+            );
+            Ok(())
+        }
+        Some("archive-import") => {
+            let store = Store::connect(&std::env::var("DATABASE_URL")?).await?;
+            let archive = serde_json::from_reader(std::io::stdin().take(128 * 1024 * 1024))?;
+            let node = xenica_server::archive::import(&store, archive).await?;
+            println!("{}", node.id);
+            Ok(())
+        }
         Some(_) => {
             eprintln!("{USAGE}");
             std::process::exit(2)

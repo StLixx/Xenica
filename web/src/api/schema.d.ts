@@ -195,6 +195,22 @@ export interface paths {
     patch: operations['update_node'];
     trace?: never;
   };
+  '/api/nodes/{id}/archive': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['archive_node'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/nodes/{id}/children': {
     parameters: {
       query?: never;
@@ -276,6 +292,22 @@ export interface paths {
     };
     /** 画面里用到的附件（原图，不压缩）。不用登录。 */
     get: operations['share_file'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/share/{token}/history.json': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['share_history'];
     put?: never;
     post?: never;
     delete?: never;
@@ -450,6 +482,11 @@ export interface components {
       title?: string | null;
     };
     SceneInput: {
+      /**
+       * Format: date-time
+       * @description 从摘要 sceneRevision 或 scene.json 的 _revision 读取；拒绝旧版本与无版本写入。
+       */
+      expected_revision?: string | null;
       /** @description Excalidraw 的画面数据，原样存下来。 */
       scene: unknown;
     };
@@ -956,7 +993,10 @@ export interface operations {
   update_node: {
     parameters: {
       query?: never;
-      header?: never;
+      header?: {
+        /** @description 草图正文必需：读取到的 updated_at，用双引号包围 */
+        'If-Match'?: string | null;
+      };
       path: {
         id: string;
       };
@@ -990,6 +1030,35 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  archive_node: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': unknown;
         };
       };
     };
@@ -1266,6 +1335,35 @@ export interface operations {
         };
         content: {
           'image/*': number[];
+        };
+      };
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  share_history: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        token: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': unknown;
         };
       };
       404: {

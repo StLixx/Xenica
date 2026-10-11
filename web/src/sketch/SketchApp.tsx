@@ -2,9 +2,17 @@ import { Plus } from 'lucide-react';
 import { useState } from 'react';
 
 import type { Node } from '../api/client';
-import { sketchBody, useCreateNode, useNodes, useUpdateNode } from '../api/queries';
+import {
+  sketchBody,
+  saveSketch,
+  useNode,
+  useCreateNode,
+  useNodes,
+  useUpdateNode,
+} from '../api/queries';
 import { AsideGroup, asideRow, Button, EmptyState, PeekAside, TextInput, nodeLabel } from '../ui';
 import { Canvas } from './Canvas';
+import { ContextPanel } from './ContextPanel';
 import { SharePanel } from './SharePanel';
 import { putSketchInPath, sketchIdFromPath } from './entry';
 import { emptyScene } from './scene';
@@ -103,9 +111,12 @@ export function SketchApp() {
 }
 
 function Workspace({ node }: { node: Node }) {
-  const update = useUpdateNode(node.id);
+  const current = useNode(node.id, 2000);
+  const fresh = current.data ?? node;
+  const update = useUpdateNode(node.id, fresh.updated_at);
   const [title, setTitle] = useState(node.title);
   const [open, setOpen] = useState(false);
+  const [contextOpen, setContextOpen] = useState(false);
 
   const nameIt = () => {
     const next = title.trim();
@@ -129,12 +140,18 @@ function Workspace({ node }: { node: Node }) {
         <Button variant={open ? 'primary' : 'default'} onClick={() => setOpen((v) => !v)}>
           分享给 AI
         </Button>
+        <Button onClick={() => setContextOpen((v) => !v)}>设计上下文</Button>
       </header>
       <div className="relative min-h-0 flex-1">
-        <Canvas node={node} save={(body) => update.mutateAsync({ body })} />
+        <Canvas node={fresh} save={(body, revision) => saveSketch(node.id, body, revision)} />
         {open ? (
           <div className="absolute top-2 right-2 z-10">
             <SharePanel node={node.id} />
+          </div>
+        ) : null}
+        {contextOpen ? (
+          <div className="absolute top-2 right-2 z-10">
+            <ContextPanel node={fresh} close={() => setContextOpen(false)} />
           </div>
         ) : null}
       </div>

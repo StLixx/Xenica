@@ -626,7 +626,7 @@ async fn a_share_link_is_readable_without_login(pool: PgPool) {
         send_raw(&app.0, None, "GET", &format!("/api/share/{token}"), None).await;
     assert_eq!(status, StatusCode::OK);
     assert!(ctype.starts_with("text/markdown"), "{ctype}");
-    let text = String::from_utf8(bytes).unwrap();
+    let text = String::from_utf8(bytes.to_vec()).unwrap();
     assert!(text.contains("# 验收板"), "{text}");
     assert!(text.contains("框「侧栏」"), "{text}");
     // 附件地址带上 token，AI 顺着就能取到原图
@@ -656,7 +656,8 @@ async fn only_a_write_link_can_change_the_scene(pool: PgPool) {
     let read = a_share(&app, &id, "read").await;
     let write = a_share(&app, &id, "write").await;
 
-    let scene = json!({ "scene": { "type": "excalidraw", "elements": [
+    let (_, original) = call(&app, "GET", &format!("/api/nodes/{id}"), None).await;
+    let scene = json!({ "expected_revision": original["updated_at"], "scene": { "type": "excalidraw", "elements": [
         { "id": "e1", "type": "ellipse", "x": 0.0, "y": 0.0, "width": 10.0, "height": 10.0 }
     ] } });
 
@@ -693,7 +694,7 @@ async fn only_a_write_link_can_change_the_scene(pool: PgPool) {
         None,
     )
     .await;
-    let text = String::from_utf8(bytes).unwrap();
+    let text = String::from_utf8(bytes.to_vec()).unwrap();
     assert!(text.contains("椭圆"), "{text}");
     assert!(text.contains("也可以改画面"), "{text}");
     assert!(
@@ -816,4 +817,156 @@ async fn managing_shares_needs_login(pool: PgPool) {
     )
     .await;
     assert_eq!(status, StatusCode::UNAUTHORIZED);
+}
+
+#[sqlx::test(migrator = "xenica_store::MIGRATOR")]
+async fn stale_sketch_writes_cannot_erase_external_changes(pool: PgPool) {
+    let app = signed_in(pool).await;
+    let id = a_sketch(&app, "00000000-0000-7000-8000-000000000001").await;
+    let (_, original) = call(&app, "GET", &format!("/api/nodes/{id}"), None).await;
+    let share = a_share(&app, &id, "write").await;
+    let uri = format!("/api/share/{}", share["token"].as_str().unwrap());
+    let changed = json!({"elements": [{"id":"b","type":"text","text":"AI 新批注"}]});
+    let payload = json!({"scene": changed, "expected_revision": original["updated_at"]});
+    assert_eq!(
+        send(&app.0, None, "PUT", &uri, Some(payload.clone()))
+            .await
+            .0,
+        StatusCode::OK
+    );
+    assert_eq!(
+        send(&app.0, None, "PUT", &uri, Some(payload)).await.0,
+        StatusCode::CONFLICT
+    );
+    assert_eq!(
+        send(
+            &app.0,
+            None,
+            "PUT",
+            &uri,
+            Some(json!({"scene":{"elements":[]}}))
+        )
+        .await
+        .0,
+        StatusCode::CONFLICT
+    );
+    assert_eq!(
+        call(
+            &app,
+            "PATCH",
+            &format!("/api/nodes/{id}"),
+            Some(json!({"body": original["body"]}))
+        )
+        .await
+        .0,
+        StatusCode::CONFLICT
+    );
+    let req = Request::builder()
+        .method("PATCH")
+        .uri(format!("/api/nodes/{id}"))
+        .header(header::COOKIE, &app.1)
+        .header(header::CONTENT_TYPE, "application/json")
+        .header(
+            header::IF_MATCH,
+            format!("\"{}\"", original["updated_at"].as_str().unwrap()),
+        )
+        .body(Body::from(json!({"body": original["body"]}).to_string()))
+        .unwrap();
+    assert_eq!(
+        app.0.clone().oneshot(req).await.unwrap().status(),
+        StatusCode::CONFLICT
+    );
+    let (_, latest) = call(&app, "GET", &format!("/api/nodes/{id}"), None).await;
+    assert_eq!(latest["body"]["scene"], changed);
+    let (status, history, _) =
+        send(&app.0, None, "GET", &format!("{uri}/history.json"), None).await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(history[0]["body"]["scene"], original["body"]["scene"]);
+    let res = app
+        .0
+        .clone()
+        .oneshot(Request::builder().uri(&uri).body(Body::empty()).unwrap())
+        .await
+        .unwrap();
+    assert_eq!(res.headers()[header::CACHE_CONTROL], "no-store");
+    let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
+    let text = String::from_utf8(bytes.to_vec()).unwrap();
+    assert!(text.contains("sceneRevision"));
+    assert!(text.contains("expected_revision"));
+    assert!(text.contains("未生成"));
+}
+
+#[sqlx::test(migrator = "xenica_store::MIGRATOR")]
+async fn archive_preserves_history_and_files_without_share_credentials(pool: PgPool) {
+    let store = Store::new(pool.clone());
+    let app = signed_in(pool).await;
+    let res = app
+        .0
+        .clone()
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/api/files")
+                .header(header::COOKIE, &app.1)
+                .header(header::CONTENT_TYPE, "image/png")
+                .body(Body::from(b"archive-png".as_slice()))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    let file: Value =
+        serde_json::from_slice(&to_bytes(res.into_body(), 1 << 20).await.unwrap()).unwrap();
+    let id = a_sketch(&app, file["id"].as_str().unwrap()).await;
+    let share = a_share(&app, &id, "write").await;
+    let (_, original) = call(&app, "GET", &format!("/api/nodes/{id}"), None).await;
+    let uri = format!("/api/share/{}", share["token"].as_str().unwrap());
+    assert_eq!(
+        send(
+            &app.0,
+            None,
+            "PUT",
+            &uri,
+            Some(json!({"scene":{"elements":[]},"expected_revision":original["updated_at"]}))
+        )
+        .await
+        .0,
+        StatusCode::OK
+    );
+    let (status, archive) = call(&app, "GET", &format!("/api/nodes/{id}/archive"), None).await;
+    assert_eq!(status, StatusCode::OK);
+    assert!(archive["history"].as_array().unwrap().len() == 1);
+    assert!(
+        !archive
+            .to_string()
+            .contains(share["token"].as_str().unwrap())
+    );
+    let mut bundle: xenica_server::archive::Archive = serde_json::from_value(archive).unwrap();
+    bundle.node.id = xenica_core::NodeId::new();
+    let new_id = bundle.node.id;
+    let imported = xenica_server::archive::import(&store, bundle)
+        .await
+        .unwrap();
+    assert_eq!(imported.body["scene"]["elements"], json!([]));
+    assert_eq!(
+        imported.body["archiveHistory"][0]["body"]["scene"],
+        original["body"]["scene"]
+    );
+    let new_share = a_share(&app, &new_id.to_string(), "read").await;
+    let current = xenica_server::archive::export(&store, new_id)
+        .await
+        .unwrap();
+    assert_eq!(current.files[0].bytes, b"archive-png");
+    assert!(
+        xenica_server::archive::import(&store, current)
+            .await
+            .is_err()
+    );
+    let endpoint = format!(
+        "/api/share/{}/history.json",
+        new_share["token"].as_str().unwrap()
+    );
+    assert_eq!(
+        send(&app.0, None, "GET", &endpoint, None).await.1[0]["body"]["scene"],
+        original["body"]["scene"]
+    );
 }

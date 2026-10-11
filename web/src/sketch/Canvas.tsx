@@ -1,7 +1,7 @@
 import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react';
 
-import type { Node } from '../api/client';
-import { sketchBody, uploadImage, useHealth } from '../api/queries';
+import { ApiError, type Node } from '../api/client';
+import { sketchBody, createNode, readSketch, uploadImage, useHealth } from '../api/queries';
 import { Button, EmptyState, TextInput } from '../ui';
 import { EmbedCard } from './EmbedCard';
 import { ASIDE_URL, embedSource, pageURL, type EmbedSource } from './embed';
@@ -42,7 +42,7 @@ export function Canvas({
   save,
 }: {
   node: Node;
-  save: (body: Record<string, never>) => Promise<unknown>;
+  save: (body: Record<string, never>, revision: string) => Promise<Node>;
 }) {
   const scene = sceneOf(node);
   const editor = useRef<Editor | null>(null);
@@ -51,6 +51,14 @@ export function Canvas({
   const lastSaved = useRef('');
   const armed = useRef(false);
   const timer = useRef<number | null>(null);
+  const revision = useRef(node.updated_at);
+  const [visibleRevision, setVisibleRevision] = useState(node.updated_at);
+  const bodyRef = useRef(node.body);
+  const busy = useRef(false);
+  const dirty = useRef(false);
+  const conflicted = useRef(false);
+  const [conflict, setConflict] = useState(false);
+  const [draftSaved, setDraftSaved] = useState(false);
   const [files, setFiles] = useState<Record<string, LoadedFile> | null>(null);
   const [state, setState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const health = useHealth();
@@ -59,6 +67,52 @@ export function Canvas({
   const [error, setError] = useState('');
   const [selectedEmbed, setSelectedEmbed] = useState<string | null>(null);
   const [activeEmbed, setActiveEmbed] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (
+      node.updated_at === revision.current ||
+      Date.parse(node.updated_at) < Date.parse(revision.current) ||
+      busy.current ||
+      !editor.current
+    )
+      return;
+    if (dirty.current) {
+      conflicted.current = true;
+      setConflict(true);
+      if (timer.current !== null) window.clearTimeout(timer.current);
+      return;
+    }
+    revision.current = node.updated_at;
+    setVisibleRevision(node.updated_at);
+    bodyRef.current = node.body;
+    const elements = sceneOf(node).elements ?? [];
+    lastSaved.current = signature(elements, Object.keys(editor.current.getFiles()).length);
+    editor.current.updateScene({
+      elements: elements as unknown as Parameters<Editor['updateScene']>[0]['elements'],
+    });
+  }, [node]);
+
+  const keepDraft = async () => {
+    const live = editor.current;
+    if (!live) return;
+    for (const [id, file] of Object.entries(live.getFiles())) {
+      if (!uploaded.current[id])
+        uploaded.current[id] =
+          (await uploadImage(await dataURLtoBlob(file.dataURL))).split('/').pop() ?? '';
+    }
+    const elements = live.getSceneElements().map((element) => {
+      const next = { ...element } as unknown as SceneElement;
+      if (next.fileId) next.fileId = uploaded.current[next.fileId] ?? next.fileId;
+      return next;
+    });
+    const body = {
+      ...bodyRef.current,
+      ...sketchBody({ type: 'excalidraw', version: 2, source: 'xenica', elements }),
+    } as Record<string, never>;
+    delete body.image;
+    await createNode({ kind: 'sketch', title: `${node.title || '草图'} · 冲突草稿`, body });
+    setDraftSaved(true);
+  };
 
   const exitEmbed = () => {
     editor.current?.updateScene({ appState: { activeEmbeddable: null } });
@@ -128,65 +182,125 @@ export function Canvas({
           // 取不到就少一张图，不影响继续画
         }
       }
-      if (alive) setFiles(out);
+      if (alive) {
+        for (const id of Object.keys(out)) uploaded.current[id] = id;
+        const live = editor.current;
+        if (live && !dirty.current && !conflicted.current) {
+          lastSaved.current = signature(
+            live.getSceneElements(),
+            new Set([...Object.keys(live.getFiles()), ...Object.keys(out)]).size,
+          );
+          live.addFiles(Object.values(out) as unknown as Parameters<Editor['addFiles']>[0]);
+        }
+        setFiles(out);
+      }
     })();
     return () => {
       alive = false;
     };
   }, [scene]);
 
-  const run = useCallback(async () => {
-    const live = editor.current;
-    if (!live) return;
-    setState('saving');
-    try {
-      const live_files = live.getFiles();
-      for (const [editorId, file] of Object.entries(live_files)) {
-        if (uploaded.current[editorId]) continue;
-        try {
-          const url = await uploadImage(await dataURLtoBlob(file.dataURL));
-          uploaded.current[editorId] = url.split('/').pop() ?? '';
-        } catch {
-          // 单张图传不上去不影响画面保存
-        }
-      }
-      const elements: SceneElement[] = live.getSceneElements().map((element) => {
-        const source = element as unknown as SceneElement;
-        const next: SceneElement = { ...source };
-        if (source.fileId && uploaded.current[source.fileId]) {
-          next.fileId = uploaded.current[source.fileId];
-        }
-        if (source.fileIds) {
-          next.fileIds = Object.fromEntries(
-            Object.entries(source.fileIds).map(([key, id]) => [key, uploaded.current[id] ?? id]),
-          );
-        }
-        return next;
-      });
-      let image = savedImage.current;
+  const run = useCallback(
+    async function persist() {
+      const live = editor.current;
+      if (!live || busy.current || conflicted.current) return;
+      busy.current = true;
+      const expected = revision.current;
+      const snapshot = live.getSceneElements();
+      const snapshotSig = signature(snapshot, Object.keys(live.getFiles()).length);
+      let succeeded = false;
+      setState('saving');
       try {
-        const { exportToBlob } = await import('@excalidraw/excalidraw');
-        const blob = await exportToBlob({
-          elements: live.getSceneElements(),
-          appState: { ...live.getAppState(), exportBackground: true },
-          files: live_files,
-          mimeType: 'image/png',
-          exportPadding: 16,
+        const live_files = live.getFiles();
+        for (const [editorId, file] of Object.entries(live_files)) {
+          if (uploaded.current[editorId]) continue;
+          try {
+            const url = await uploadImage(await dataURLtoBlob(file.dataURL));
+            uploaded.current[editorId] = url.split('/').pop() ?? '';
+          } catch {
+            // 单张图传不上去不影响画面保存
+          }
+        }
+        const elements: SceneElement[] = snapshot.map((element) => {
+          const source = element as unknown as SceneElement;
+          const next: SceneElement = { ...source };
+          if (source.fileId && uploaded.current[source.fileId]) {
+            next.fileId = uploaded.current[source.fileId];
+          }
+          if (source.fileIds) {
+            next.fileIds = Object.fromEntries(
+              Object.entries(source.fileIds).map(([key, id]) => [key, uploaded.current[id] ?? id]),
+            );
+          }
+          return next;
         });
-        const url = await uploadImage(new File([blob], 'sketch.png', { type: 'image/png' }));
-        image = url.split('/').pop();
-      } catch {
-        // 导不出图就沿用上一张
+        let image: string | undefined;
+        try {
+          const { exportToBlob, convertToExcalidrawElements } =
+            await import('@excalidraw/excalidraw');
+          const structure = snapshot.flatMap((element) => {
+            if (element.type !== 'embeddable') return [element];
+            const source = embedSource(element);
+            return convertToExcalidrawElements(
+              [
+                {
+                  ...element,
+                  type: 'rectangle',
+                  link: null,
+                  label: {
+                    text: `结构占位：${source?.title ?? '未知嵌入'}\n类型：${source?.kind ?? '未知'}\n来源：${source?.source ?? source?.url ?? '未标记'}\n元素：${element.id}\n版本：${source?.revision ?? '未标记'}\n真实内容请读取独立截图证据`,
+                  },
+                },
+              ],
+              { regenerateIds: false },
+            );
+          });
+          const blob = await exportToBlob({
+            elements: structure,
+            appState: { ...live.getAppState(), exportBackground: true },
+            files: live_files,
+            mimeType: 'image/png',
+            exportPadding: 16,
+          });
+          const url = await uploadImage(new File([blob], 'sketch.png', { type: 'image/png' }));
+          image = url.split('/').pop();
+        } catch {
+          // 新画面导不出图时明确保留上一版，不能假装是当前图片。
+        }
+        const next: Scene = { type: 'excalidraw', version: 2, source: 'xenica', elements };
+        const body = { ...bodyRef.current, ...sketchBody(next, image) } as Record<string, never>;
+        if (!image) {
+          delete body.image;
+          const previous = savedImage.current ?? (bodyRef.current as { image?: string }).image;
+          if (previous)
+            Object.assign(body, { previousImage: { file: previous, revision: expected } });
+        }
+        const saved = await save(body, expected);
+        revision.current = saved.updated_at;
+        setVisibleRevision(saved.updated_at);
+        bodyRef.current = saved.body;
+        savedImage.current = image;
+        lastSaved.current = snapshotSig;
+        dirty.current =
+          signature(live.getSceneElements(), Object.keys(live.getFiles()).length) !== snapshotSig;
+        succeeded = true;
+        setState('saved');
+      } catch (error) {
+        if (error instanceof ApiError && error.code === 'conflict') {
+          conflicted.current = true;
+          setConflict(true);
+        }
+        setState('error');
+      } finally {
+        busy.current = false;
+        if (succeeded && dirty.current && !conflicted.current) {
+          if (timer.current !== null) window.clearTimeout(timer.current);
+          timer.current = window.setTimeout(() => void persist(), SAVE_DELAY);
+        }
       }
-      const next: Scene = { type: 'excalidraw', version: 2, source: 'xenica', elements };
-      await save(sketchBody(next, image));
-      savedImage.current = image;
-      lastSaved.current = signature(live.getSceneElements(), Object.keys(live_files).length);
-      setState('saved');
-    } catch {
-      setState('error');
-    }
-  }, [save]);
+    },
+    [save],
+  );
 
   const change = useCallback<NonNullable<ExcalidrawProps['onChange']>>(
     (elements, appState, fileMap) => {
@@ -205,6 +319,8 @@ export function Canvas({
         return;
       }
       if (sig === lastSaved.current) return;
+      dirty.current = true;
+      if (conflicted.current) return;
       setState('idle');
       if (timer.current !== null) window.clearTimeout(timer.current);
       timer.current = window.setTimeout(() => void run(), SAVE_DELAY);
@@ -318,10 +434,40 @@ export function Canvas({
           </Button>
         </div>
       ) : null}
+      {conflict ? (
+        <div
+          role="alert"
+          className="absolute top-16 right-3 z-40 flex w-80 flex-col gap-2 rounded-lg border border-line bg-pop p-3 shadow-pop"
+        >
+          <p className="text-strong">画布已被更新，本次修改未覆盖新版</p>
+          <p className="text-meta text-fg-2">
+            你的画面仍在这里。先另存草稿，再加载服务端的新画面进行比较。
+          </p>
+          <Button
+            onClick={() => void keepDraft().catch(() => setState('error'))}
+            disabled={draftSaved}
+          >
+            {draftSaved ? '草稿已另存' : '另存我的草稿'}
+          </Button>
+          <Button
+            disabled={!draftSaved}
+            onClick={() => void readSketch(node.id).then(() => window.location.reload())}
+          >
+            加载新版
+          </Button>
+        </div>
+      ) : null}
       <span className="pointer-events-none absolute right-3 bottom-2 text-meta text-fg-3">
-        {state === 'saving' ? '保存中…' : null}
-        {state === 'saved' ? '已保存' : null}
-        {state === 'error' ? '保存失败，接着画还会再试' : null}
+        <span>
+          {state === 'saving'
+            ? '保存中…'
+            : state === 'saved'
+              ? '已保存'
+              : state === 'error' && !conflict
+                ? '保存失败，接着画还会再试'
+                : null}
+        </span>
+        {` · 版本 ${visibleRevision}`}
       </span>
     </div>
   );

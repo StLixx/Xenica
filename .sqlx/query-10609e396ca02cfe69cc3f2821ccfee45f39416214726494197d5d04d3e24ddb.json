@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "update nodes set title = coalesce($2, title), body = coalesce($3, body), updated_at = now()\n               where id = $1\n               returning id, kind, title, body, created_at, updated_at",
+  "query": "update nodes set title = coalesce($2, title), body = coalesce($3, body), updated_at = clock_timestamp()\n               where id = $1\n               returning id, kind, title, body, created_at, updated_at",
   "describe": {
     "columns": [
       {
@@ -86,5 +86,5 @@
       false
     ]
   },
-  "hash": "b92b30acdeb3b1514466147392f72d1ec8706214f5fde978ad63d5f1612ad0c8"
+  "hash": "10609e396ca02cfe69cc3f2821ccfee45f39416214726494197d5d04d3e24ddb"
 }

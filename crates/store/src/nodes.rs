@@ -141,11 +141,42 @@ impl Store {
         id: NodeId,
         patch: NodePatch,
     ) -> Result<Node, StoreError> {
+        self.update_node_checked(actor, id, patch, None).await
+    }
+
+    /// 草图正文必须基于读到的版本；行锁使检查、快照和写入在同一事务内。
+    pub async fn update_node_checked(
+        &self,
+        actor: &Actor,
+        id: NodeId,
+        patch: NodePatch,
+        expected: Option<DateTime<Utc>>,
+    ) -> Result<Node, StoreError> {
         let patch = patch.normalize()?;
         let mut tx = self.pool.begin().await?;
+        let previous = sqlx::query!(
+            "select kind, updated_at from nodes where id = $1 for update",
+            id.0
+        )
+        .fetch_optional(&mut *tx)
+        .await?
+        .ok_or(DomainError::NotFound)?;
+        let revision = previous.updated_at;
+        let sketch = previous.kind == "sketch";
+        if (expected.is_some() && expected != Some(revision))
+            || (sketch && patch.body.is_some() && expected.is_none())
+        {
+            return Err(StoreError::Conflict(
+                "画布已更新或缺少版本，请先读取当前版本；本次修改未写入".into(),
+            ));
+        }
+        if sketch {
+            sqlx::query!("insert into sketch_versions (node, revision, title, body) select id, updated_at, title, body from nodes where id = $1 on conflict do nothing", id.0)
+                .execute(&mut *tx).await?;
+        }
         let node: Node = sqlx::query_as!(
             NodeRow,
-            r#"update nodes set title = coalesce($2, title), body = coalesce($3, body), updated_at = now()
+            r#"update nodes set title = coalesce($2, title), body = coalesce($3, body), updated_at = clock_timestamp()
                where id = $1
                returning id, kind, title, body, created_at, updated_at"#,
             id.0,
@@ -169,6 +200,11 @@ impl Store {
         }
         tx.commit().await?;
         Ok(node)
+    }
+
+    pub async fn sketch_history(&self, id: NodeId) -> Result<Vec<serde_json::Value>, StoreError> {
+        Ok(sqlx::query!(r#"select jsonb_build_object('revision', revision, 'title', title, 'body', body) as "snapshot!" from sketch_versions where node = $1 order by revision desc"#, id.0)
+            .fetch_all(&self.pool).await?.into_iter().map(|row| row.snapshot).collect())
     }
 
     /// 删除节点和它包含的所有子孙节点，连带删除它们的关系。痕迹保留。

@@ -530,6 +530,15 @@
               "type": "string",
               "format": "uuid"
             }
+          },
+          {
+            "name": "If-Match",
+            "in": "header",
+            "description": "草图正文必需：读取到的 updated_at，用双引号包围",
+            "required": false,
+            "schema": {
+              "type": ["string", "null"]
+            }
           }
         ],
         "requestBody": {
@@ -567,6 +576,41 @@
                 "schema": {
                   "$ref": "#/components/schemas/ErrorBody"
                 }
+              }
+            }
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/nodes/{id}/archive": {
+      "get": {
+        "tags": ["nodes"],
+        "operationId": "archive_node",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
               }
             }
           }
@@ -974,6 +1018,40 @@
         }
       }
     },
+    "/api/share/{token}/history.json": {
+      "get": {
+        "tags": ["shares"],
+        "operationId": "share_history",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/share/{token}/png": {
       "get": {
         "tags": ["shares"],
@@ -1331,6 +1409,11 @@
         "type": "object",
         "required": ["scene"],
         "properties": {
+          "expected_revision": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "从摘要 sceneRevision 或 scene.json 的 _revision 读取；拒绝旧版本与无版本写入。"
+          },
           "scene": {
             "description": "Excalidraw 的画面数据，原样存下来。"
           }
