@@ -55,12 +55,24 @@ test('write a page: blocks, tags, views', async ({ page }) => {
   await expect(editor.locator('.katex')).toBeVisible();
   await expect(page.getByText('保存中…')).toBeHidden();
 
-  // 刷新后还在，标签页标题用第一块
-  await page.reload();
-  await expect(page.getByRole('tab', { name: '第 5 讲 数列极限' })).toBeVisible();
-
-  // 点标记：打开那个节点，下面列出提到它的块，可以切成表格
-  await editor.getByText(`#${tag}`).click();
+  // 正文先到、全局节点索引后到时，点击标记也必须完成导航，不能丢掉这次点击。
+  let releaseNodes!: () => void;
+  const nodesReady = new Promise<void>((resolve) => {
+    releaseNodes = resolve;
+  });
+  await page.route('**/api/nodes?limit=1000', async (route) => {
+    await nodesReady;
+    await route.continue();
+  });
+  try {
+    await page.reload();
+    await expect(page.getByRole('tab', { name: '第 5 讲 数列极限' })).toBeVisible();
+    await expect(editor.locator('.katex')).toBeVisible();
+    await editor.getByText(`#${tag}`).click();
+  } finally {
+    releaseNodes();
+  }
+  await expect(page.getByRole('tab', { name: tag, exact: true })).toBeVisible();
   const mentioned = page.getByRole('region', { name: '提到它的' });
   await expect(mentioned.locator('.katex')).toBeVisible({ timeout: 15_000 });
   await mentioned.getByRole('radio', { name: '表格' }).click();

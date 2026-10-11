@@ -39,6 +39,7 @@ export function NodeView({ params, setTitle }: ViewProps<{ id: string }>) {
   const update = useUpdateNode(params.id);
   const children = useChildren(params.id);
   const index = useGraphIndex();
+  const { refetch: readNodes } = useNodes();
   const wb = useWorkbench();
   const [draft, setDraft] = useState<string | null>(null);
   const [mode, setMode] = useMode(`children.${params.id}`, 'doc');
@@ -58,11 +59,16 @@ export function NodeView({ params, setTitle }: ViewProps<{ id: string }>) {
     [index],
   );
   const openRef = useCallback(
-    (name: string) => {
-      const target = index.byTitle(name);
+    async (name: string) => {
+      // 正文可先于全局索引呈现。保留这次点击，等待正在读取的节点，不要求用户重试。
+      const target =
+        index.byTitle(name) ??
+        (await readNodes({ cancelRefetch: false })).data
+          ?.filter((node) => node.title === name)
+          .sort((a, b) => a.created_at.localeCompare(b.created_at))[0];
       if (target) wb.openView('node', { id: target.id });
     },
-    [index, wb],
+    [index, wb, readNodes],
   );
   const openItem = useCallback(
     (item: Node) => {
