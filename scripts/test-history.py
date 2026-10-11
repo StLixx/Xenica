@@ -3,12 +3,52 @@ from pathlib import Path
 import tempfile
 import hashlib
 import unittest
+import os
+import shutil
+import subprocess
+import json
 from unittest.mock import patch
 
 spec=importlib.util.spec_from_file_location('history',Path(__file__).resolve().parents[1]/'deploy/deployer/history.py')
 history=importlib.util.module_from_spec(spec);spec.loader.exec_module(history)
+identity_spec=importlib.util.spec_from_file_location('archive_identity',Path(__file__).resolve().parents[1]/'deploy/deployer/archive_identity.py')
+identity=importlib.util.module_from_spec(identity_spec);identity_spec.loader.exec_module(identity)
 
 class HistoryTests(unittest.TestCase):
+    def test_archiver_retains_same_source_different_builds(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root=Path(folder);bin_dir=root/'bin';bin_dir.mkdir();deployer=root/'deployer';deployer.mkdir()
+            source=Path(__file__).resolve().parents[1]/'deploy/deployer'
+            for name in ('archive-version.py','archive_identity.py'):shutil.copyfile(source/name,deployer/name)
+            (deployer/'journal.py').write_text('def publish_archive(*args): pass\n')
+            docker=bin_dir/'docker'
+            docker.write_text('''#!/usr/bin/env python3
+import json,os,sys
+a=sys.argv[1:];digest=os.environ['TEST_DIGEST']
+if a[0]=='inspect':print(json.dumps([{'Config':{'Image':'image@'+digest,'Env':['XENICA_ARTIFACT='+digest]}}]))
+elif a[:2]==['image','inspect']:print(json.dumps([{'Config':{'Labels':{'org.opencontainers.image.revision':'a'*40}}}]))
+elif a[0]=='run':print(json.dumps({'commit':'a'*40,'version':'0.2.5'}))
+elif a[0]=='exec':print('compatible snapshot')
+else:raise SystemExit(1)
+''');docker.chmod(0o755)
+            env={**os.environ,'PATH':str(bin_dir)+':'+os.environ['PATH'],'XENICA_HISTORY_ROOT':str(root/'archive')}
+            for digest in ('b'*64,'c'*64,'c'*64):
+                result=subprocess.run(['python3',str(deployer/'archive-version.py'),'xenica-pr-55'],env={**env,'TEST_DIGEST':'sha256:'+digest},capture_output=True,text=True)
+                self.assertEqual(result.returncode,0,result.stderr)
+            catalog=json.loads((root/'archive/catalog/catalog.json').read_text())['versions']
+            self.assertEqual(len(catalog),2)
+            self.assertEqual(len({v['snapshot'] for v in catalog}),2)
+            for version in catalog:self.assertTrue((root/'archive/snapshots'/version['snapshot']).is_file())
+
+    def test_rebuilt_preview_has_separate_immutable_archive(self):
+        source='a'*40
+        first=identity.archive_id('v0.2.5','xenica-pr-55',source,'sha256:'+'b'*64)
+        again=identity.archive_id('v0.2.5','xenica-pr-55',source,'sha256:'+'b'*64)
+        rebuilt=identity.archive_id('v0.2.5','xenica-pr-55',source,'sha256:'+'c'*64)
+        self.assertEqual(first,again)
+        self.assertNotEqual(first,rebuilt)
+        self.assertEqual(identity.archive_id('v0.2.5','xenica',source,'sha256:'+'b'*64),'v0.2.5')
+
     def test_gateway_starts_only_after_parent_and_edge_networks(self):
         with tempfile.TemporaryDirectory() as folder:
             root=Path(folder);snapshot=root/'snapshot.sql';snapshot.write_bytes(b'archive')

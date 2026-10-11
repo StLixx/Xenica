@@ -10,6 +10,7 @@ import sys
 import tempfile
 import fcntl
 from journal import publish_archive
+from archive_identity import archive_id
 
 root=Path(os.environ.get('XENICA_HISTORY_ROOT','/var/lib/xenica-history'))
 root.mkdir(parents=True,exist_ok=True,mode=0o700)
@@ -33,7 +34,7 @@ assert health['commit']==source
 version='v'+health['version']
 assert re.fullmatch(r'v[0-9]+\.[0-9]+\.[0-9]+',version)
 # 预览中同版本的不同产物必须各自有名称，不能冒充已发布版本。
-if project!='xenica':version+='-'+source[:12]
+version=archive_id(version,project,source,digest)
 assert re.fullmatch(r'sha256:[a-f0-9]{64}',digest)
 with (root/'archive.lock').open('w') as lock:
     fcntl.flock(lock,fcntl.LOCK_EX)
@@ -51,7 +52,8 @@ with (root/'archive.lock').open('w') as lock:
     snapshot=root/'snapshots'/f'{version}.sql'
     with snapshot.open('xb') as out:out.write(raw)
     snapshot.chmod(0o600)
-    record={'id':version,'title':version.split('-')[0],'changes':['已保存当时的真实运行镜像与数据副本'],'source':source,'image':'ghcr.io/stlixx/xenica@'+digest,
+    title=version.split('-')[0]+(' 试样（未发布）' if project!='xenica' else '')
+    record={'id':version,'title':title,'changes':['已保存当时的真实运行镜像与数据副本'],'source':source,'image':'ghcr.io/stlixx/xenica@'+digest,
       'snapshot':snapshot.name,'snapshot_sha256':hashlib.sha256(raw).hexdigest(),'available':True,'reason':''}
     index['versions'].append(record)
     temp=catalog.with_suffix('.tmp');temp.write_text(json.dumps(index,ensure_ascii=False,indent=2)+'\n');temp.chmod(0o644);temp.replace(catalog)
