@@ -256,11 +256,55 @@ jobs:
           path: delivery-candidate.json
           if-no-files-found: error
 
-  # 验收门：能撤回的改动直接合并；截图有变化或改动撤不回，等你评论 /通过。
+  # 测试实际交付的预览，不能拿测试服务器上的成功代替部署验证。
+  preview:
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    needs: [docker]
+    env:
+      XENICA_URL: https://pr-${{ github.event.pull_request.number }}.xenica.truebigsand.top
+      EXPECTED_SOURCE: ${{ github.event.pull_request.head.sha }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: web/package.json
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
+      - name: 等待对应成果实际上线
+        run: |
+          for _ in $(seq 1 60); do
+            actual=$(curl -fsS --max-time 10 "$XENICA_URL/api/health" | jq -r '.commit // empty') || actual=''
+            [ "$actual" = "$EXPECTED_SOURCE" ] && exit 0
+            sleep 10
+          done
+          echo '::error::预览没有部署对应成果，不能交付验收'; exit 1
+      - run: pnpm install --frozen-lockfile
+        working-directory: web
+      - run: pnpm exec playwright install --with-deps chromium
+        working-directory: web
+      - name: 实际预览完整浏览器回归
+        run: pnpm e2e --workers=1
+        working-directory: web
+      - name: 测试结束再次核对成果
+        run: test "$(curl -fsS --max-time 10 "$XENICA_URL/api/health" | jq -r '.commit')" = "$EXPECTED_SOURCE"
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: preview-agent-tests-${{ github.run_attempt }}
+          path: |
+            web/playwright-report
+            web/test-results
+          if-no-files-found: error
+
+  # Agent 全面自检完成后才可进入用户体验验收。
   gate:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
-    needs: [rust, web, e2e, screenshots, docker]
+    needs: [rust, web, e2e, screenshots, docker, preview]
     permissions:
       contents: write
       pull-requests: write

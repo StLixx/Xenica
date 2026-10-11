@@ -28,7 +28,7 @@ ruleset='{
         "strict_required_status_checks_policy": true,
         "required_status_checks": [
           { "context": "rust" }, { "context": "web" }, { "context": "e2e" }, { "context": "docker" },
-          { "context": "screenshots" }, { "context": "验收" } ] } }
+          { "context": "screenshots" }, { "context": "preview" }, { "context": "验收" } ] } }
   ]
 }'
 

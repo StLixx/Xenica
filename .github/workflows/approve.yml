@@ -16,7 +16,7 @@ jobs:
   approve:
     if: >-
       github.event.issue.pull_request &&
-      (startsWith(github.event.comment.body, '/通过 ') || startsWith(github.event.comment.body, '/验收 ')) &&
+      (startsWith(github.event.comment.body, '/通过 ') || startsWith(github.event.comment.body, '/验收 ') || startsWith(github.event.comment.body, '/自检 ')) &&
       github.event.comment.user.login == github.repository_owner
     runs-on: ubuntu-latest
     steps:
@@ -30,7 +30,7 @@ jobs:
         with:
           script: |
             const gate = require('./.github/scripts/gate.cjs');
-            await gate({ github, context, core, mode: 'approve' });
+            await gate({ github, context, core, mode: context.payload.comment.body.startsWith('/自检 ') ? 'selftest' : 'approve' });
       - name: 看板
         if: steps.gate.outputs.issues != '[]'
         continue-on-error: true

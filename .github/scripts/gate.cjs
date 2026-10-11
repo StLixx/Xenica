@@ -4,9 +4,10 @@
 // 「验收」这个 commit status 就是验收记录：它挂在具体的 commit 上，PR 有新提交就要重新验收。
 
 const STATUS = '验收';
-const REQUIRED_CHECKS = ['rust', 'web', 'e2e', 'docker', 'screenshots'];
+const REQUIRED_CHECKS = ['rust', 'web', 'e2e', 'docker', 'screenshots', 'preview'];
 const DOMAIN = 'xenica.truebigsand.top';
 const { latestChecks } = require('./candidate.cjs');
+const { readReport } = require('./readiness.cjs');
 
 // 撤不回、或会改变规则本身的改动，永远要你验收。
 const SENSITIVE = [
@@ -156,6 +157,18 @@ module.exports = async function gate({ github, context, core, mode, changed = []
     return result('进行中');
   }
 
+  const why = await reasons({ github, owner, repo, pr, changed });
+  const checksReady = await ciPassed(ctx);
+  const selfTest = readReport(await github.paginate(github.rest.issues.listComments, {
+    owner, repo, issue_number: number,
+  }), { owner, sha, preview: `https://pr-${number}.${DOMAIN}`, interactive: why.length > 0 });
+  if (!checksReady || !selfTest.ready) {
+    const reason = !checksReady ? '当前工程或真实预览测试未全部通过' : selfTest.reason;
+    core.info(reason);
+    await setStatus(ctx, 'pending', `Agent 自检未完成：${reason}`);
+    return result('进行中');
+  }
+
   if (mode === 'approve') {
     // 由 Agent 根据用户实际体验的成果代写；普通命令不能推断验收了当前新提交。
     const accepted = context.payload.comment?.body?.trim().match(/^\/(?:验收|通过)\s+([a-f0-9]{40})(?:\s|$)/)?.[1];
@@ -165,14 +178,13 @@ module.exports = async function gate({ github, context, core, mode, changed = []
     }
     await setStatus(ctx, 'success', '已验收（对应成果）');
     if (pr.draft || !(await ciPassed(ctx))) {
-    core.info('当前必需检查还没全绿或仍是草稿，保持未合并。');
+      core.info('当前必需检查还没全绿或仍是草稿，保持未合并。');
       return result('待验收');
     }
     await merge({ github, owner, repo, pr });
     return result('完成');
   }
 
-  const why = await reasons({ github, owner, repo, pr, changed });
   const approved = (await status(ctx))?.description?.startsWith('已验收');
   await comment({ github, owner, repo, pr, body: previewBody({ pr, changed, why, sha }) });
 
