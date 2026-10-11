@@ -68,6 +68,10 @@
 
 .excalidraw .xenica-panel .excalidraw-button {
   width: 100%;
+  height: auto;
+  min-height: var(--default-button-size);
+  white-space: normal;
+  overflow-wrap: anywhere;
   flex-shrink: 0;
 }
 
