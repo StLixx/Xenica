@@ -97,6 +97,12 @@ def start(parent,runtime,version):
         if subprocess.run(['docker','exec',name+'-gateway','/app/xenica','runtime-healthcheck'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL).returncode==0:break
         time.sleep(1)
     else:raise RuntimeError('历史授权入口未就绪')
+    # Docker 内部健康不代表公网路由已经发现新实例。桥接票据只能使用一次。
+    address='https://history-'+runtime['id']+'.xenica.truebigsand.top/__health'
+    for _ in range(30):
+        if subprocess.run(['curl','--fail','--silent','--show-error','--max-time','5',address],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL).returncode==0:break
+        time.sleep(1)
+    else:raise RuntimeError('历史公网入口未就绪')
     state(parent,runtime,'running')
 
 def reconcile(parent):

@@ -28,6 +28,7 @@ class HistoryTests(unittest.TestCase):
             for network in ('parent_default','xenica-edge'):
                 self.assertLess(calls.index(('docker','network','connect',network,gateway)),start)
             self.assertFalse(any(c[:3]==('docker','run','-d') and gateway in c for c in calls))
+            self.assertTrue(any(c.args[0][0]=='curl' and c.args[0][-1].endswith('/__health') for c in command.call_args_list))
 
     def test_snapshot_identity_and_path_are_strict(self):
         with tempfile.TemporaryDirectory() as folder:
