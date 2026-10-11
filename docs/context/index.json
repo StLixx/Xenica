@@ -8,7 +8,7 @@
       "status": "confirmed",
       "summary": "用户只负责开始前范围定义与完成后的交互体验验收；Agent 处理中间过程。开始不能代替成果验收。",
       "origin": "2026-10-11 用户会话确认",
-      "references": ["AGENTS.md", "docs/adr/0006-workflow.md", "specs/54-delivery-system/spec.md"]
+      "references": ["AGENTS.md", "docs/adr/0006-workflow.md", "specs/54-delivery-system/spec.md", "docs/context/v0.2.5-input.md"]
     },
     {
       "id": "one-persistent-development-board",

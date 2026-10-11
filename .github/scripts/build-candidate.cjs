@@ -5,7 +5,7 @@ const { candidateId } = require('./candidate.cjs');
 
 function policyHash(root) {
   const files = [
-    '.github/scripts/candidate.cjs', '.github/scripts/gate.cjs',
+    '.github/scripts/candidate.cjs', '.github/scripts/gate.cjs', '.github/scripts/build-candidate.cjs',
     '.github/workflows/ci.yml', '.github/workflows/approve.yml',
     'web/.dependency-cruiser.cjs', 'web/eslint.config.js',
     'scripts/check-arch.sh', 'scripts/check-context.cjs', 'scripts/setup-github.sh',

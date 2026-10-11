@@ -2,7 +2,7 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const gate = require('../gate.cjs');
 
-async function simulate(body, checks) {
+async function simulate(body, checks, mode = 'approve') {
   const events = [];
   const head = 'b'.repeat(40);
   const github = {
@@ -23,7 +23,8 @@ async function simulate(body, checks) {
   };
   await gate({ github, context: { repo: { owner: 'owner', repo: 'repo' }, payload: {
     issue: { number: 1 }, comment: { body, user: { login: 'owner' } },
-  } }, core: { setOutput: () => {}, info: () => {} }, mode: 'approve' });
+    pull_request: { number: 1, head: { sha: 'a'.repeat(40) } },
+  } }, core: { setOutput: () => {}, info: () => {} }, mode });
   return events;
 }
 const green = ['rust', 'web', 'e2e', 'docker', 'screenshots'].map((name, index) => ({
@@ -43,4 +44,8 @@ test('较新的失败检查不能被历史成功覆盖', async () => {
 });
 test('对应提交验收及所有当前检查通过才执行合并', async () => {
   assert.equal((await simulate(`/验收 ${'b'.repeat(40)}`, green)).some(e => e.type === 'merge'), true);
+});
+test('旧流水线结束不能给新头提交记验收或合并', async () => {
+  const events = await simulate('', green, 'ci');
+  assert.equal(events.length, 0);
 });
