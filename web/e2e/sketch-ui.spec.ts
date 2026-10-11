@@ -92,6 +92,7 @@ test('画板只有 Excalidraw，画布菜单管理名字与网址切换', async 
   await page.locator('canvas.interactive').click({ position: { x: 400, y: 300 } });
   await page.keyboard.press('Alt+z');
   await expect(page.locator('.App-toolbar')).toHaveClass(/zen-mode/);
+  await expect(page.getByRole('toolbar', { name: '画布扩展工具' })).toHaveCount(0);
   await page.locator('.main-menu-trigger').click();
   await page
     .locator('.dropdown-menu')

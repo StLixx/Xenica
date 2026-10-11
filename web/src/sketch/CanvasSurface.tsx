@@ -429,78 +429,80 @@ export default function CanvasSurface({ node, save, ...management }: CanvasProps
             exit={exitEmbed}
           />
         )}
-        renderTopRightUI={() => (
-          <div
-            className="xenica-tools sidebar-trigger Island App-toolbar-container"
-            role="toolbar"
-            aria-label="画布扩展工具"
-          >
-            {activeEmbed ? (
+        renderTopRightUI={(_mobile, appState) =>
+          appState.zenModeEnabled ? null : (
+            <div
+              className="xenica-tools sidebar-trigger Island App-toolbar-container"
+              role="toolbar"
+              aria-label="画布扩展工具"
+            >
+              {activeEmbed ? (
+                <NativeToolButton
+                  className="xenica-tool"
+                  title="返回画布"
+                  aria-label="返回画布"
+                  onSelect={exitEmbed}
+                >
+                  <ArrowLeft />
+                </NativeToolButton>
+              ) : (
+                <NativeToolButton
+                  className="xenica-tool"
+                  title="操作选中卡片"
+                  aria-label="操作选中卡片"
+                  disabled={!selectedEmbed}
+                  onSelect={() => {
+                    const element = editor.current
+                      ?.getSceneElements()
+                      .find((el) => el.id === selectedEmbed);
+                    if (element)
+                      editor.current?.updateScene({
+                        appState: { activeEmbeddable: { element, state: 'active' } },
+                      });
+                  }}
+                >
+                  <MousePointer2 />
+                </NativeToolButton>
+              )}
               <NativeToolButton
                 className="xenica-tool"
-                title="返回画布"
-                aria-label="返回画布"
-                onSelect={exitEmbed}
+                selected={sidebarTab === 'embed'}
+                title="嵌入内容"
+                aria-label="嵌入内容"
+                onSelect={() => togglePanel('embed')}
               >
-                <ArrowLeft />
+                <Link />
               </NativeToolButton>
-            ) : (
               <NativeToolButton
                 className="xenica-tool"
-                title="操作选中卡片"
-                aria-label="操作选中卡片"
-                disabled={!selectedEmbed}
-                onSelect={() => {
-                  const element = editor.current
-                    ?.getSceneElements()
-                    .find((el) => el.id === selectedEmbed);
-                  if (element)
-                    editor.current?.updateScene({
-                      appState: { activeEmbeddable: { element, state: 'active' } },
-                    });
-                }}
+                selected={sidebarTab === 'share'}
+                title="分享给 AI"
+                aria-label="分享给 AI"
+                onSelect={() => togglePanel('share')}
               >
-                <MousePointer2 />
+                <Share2 />
               </NativeToolButton>
-            )}
-            <NativeToolButton
-              className="xenica-tool"
-              selected={sidebarTab === 'embed'}
-              title="嵌入内容"
-              aria-label="嵌入内容"
-              onSelect={() => togglePanel('embed')}
-            >
-              <Link />
-            </NativeToolButton>
-            <NativeToolButton
-              className="xenica-tool"
-              selected={sidebarTab === 'share'}
-              title="分享给 AI"
-              aria-label="分享给 AI"
-              onSelect={() => togglePanel('share')}
-            >
-              <Share2 />
-            </NativeToolButton>
-            <NativeToolButton
-              className="xenica-tool"
-              selected={sidebarTab === 'context'}
-              title="设计上下文"
-              aria-label="设计上下文"
-              onSelect={() => togglePanel('context')}
-            >
-              <NotebookPen />
-            </NativeToolButton>
-            <NativeToolButton
-              className="xenica-tool"
-              selected={sidebarTab === 'boards'}
-              title="画布管理"
-              aria-label="画布管理"
-              onSelect={() => togglePanel('boards')}
-            >
-              <FolderOpen />
-            </NativeToolButton>
-          </div>
-        )}
+              <NativeToolButton
+                className="xenica-tool"
+                selected={sidebarTab === 'context'}
+                title="设计上下文"
+                aria-label="设计上下文"
+                onSelect={() => togglePanel('context')}
+              >
+                <NotebookPen />
+              </NativeToolButton>
+              <NativeToolButton
+                className="xenica-tool"
+                selected={sidebarTab === 'boards'}
+                title="画布管理"
+                aria-label="画布管理"
+                onSelect={() => togglePanel('boards')}
+              >
+                <FolderOpen />
+              </NativeToolButton>
+            </div>
+          )
+        }
       >
         <MainMenu>
           <MainMenu.Item
