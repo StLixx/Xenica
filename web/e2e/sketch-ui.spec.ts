@@ -34,6 +34,43 @@ test('画板只有 Excalidraw，画布菜单管理名字与网址切换', async 
   await expect(page.getByRole('button', { name: '嵌入内容', exact: true })).toBeVisible();
   await expect(page.locator('.excalidraw')).toHaveCount(1);
   await expect(page.locator('#root > div > header')).toHaveCount(0);
+  const appearance = (await page.evaluate(`(() => {
+    const main = document.querySelector('.App-toolbar');
+    const extra = document.querySelector('.xenica-tools');
+    const original = document.querySelector('input[aria-label="矩形"] + .ToolIcon__icon');
+    const button = extra.querySelector('button[aria-label="嵌入内容"]');
+    const read = (element) => {
+      const style = getComputedStyle(element);
+      return { height: element.getBoundingClientRect().height, background: style.backgroundColor,
+        radius: style.borderRadius, padding: style.padding, shadow: style.boxShadow };
+    };
+    return { main: read(main), extra: read(extra), original: read(original), button: read(button) };
+  })()`)) as Record<
+    'main' | 'extra' | 'original' | 'button',
+    {
+      height: number;
+      background: string;
+      radius: string;
+      padding: string;
+      shadow: string;
+    }
+  >;
+  expect(appearance.extra.height).toBeCloseTo(appearance.main.height);
+  for (const property of ['background', 'radius', 'padding', 'shadow'] as const)
+    expect(appearance.extra[property]).toBe(appearance.main[property]);
+  expect(appearance.button.height).toBeCloseTo(appearance.original.height);
+  expect(appearance.button.background).toBe(appearance.original.background);
+  expect(appearance.button.radius).toBe(appearance.original.radius);
+  await page.locator('input[aria-label="矩形"] + .ToolIcon__icon').hover();
+  const hoverBackground = await page.evaluate(
+    'getComputedStyle(document.querySelector(\'input[aria-label="矩形"] + .ToolIcon__icon\')).backgroundColor',
+  );
+  await page.getByRole('button', { name: '嵌入内容', exact: true }).hover();
+  expect(
+    await page.evaluate(
+      'getComputedStyle(document.querySelector(\'.xenica-tool[aria-label="嵌入内容"]\')).backgroundColor',
+    ),
+  ).toBe(hoverBackground);
   for (const name of ['分享给 AI', '嵌入内容', '设计上下文']) {
     await page.getByRole('button', { name, exact: true }).click();
     await expect(page.locator('.excalidraw .sidebar')).toHaveCount(1);
@@ -41,6 +78,14 @@ test('画板只有 Excalidraw，画布菜单管理名字与网址切换', async 
       name === '分享给 AI' ? '给 AI 看' : name === '嵌入内容' ? '放入真实内容' : name,
     );
   }
+  const selectedBackground = await page.evaluate(
+    'getComputedStyle(document.querySelector(".ToolIcon_type_radio:checked + .ToolIcon__icon")).backgroundColor',
+  );
+  expect(
+    await page.evaluate(
+      'getComputedStyle(document.querySelector(\'.xenica-tool[aria-label="设计上下文"]\')).backgroundColor',
+    ),
+  ).toBe(selectedBackground);
   expect(errors).toEqual([]);
   await page.screenshot({ path: testInfo.outputPath('desktop-context.png') });
 });

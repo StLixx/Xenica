@@ -376,7 +376,11 @@ export default function CanvasSurface({ node, save, ...management }: CanvasProps
           />
         )}
         renderTopRightUI={() => (
-          <div className="xenica-tools sidebar-trigger" role="toolbar" aria-label="画布扩展工具">
+          <div
+            className="xenica-tools sidebar-trigger Island"
+            role="toolbar"
+            aria-label="画布扩展工具"
+          >
             {activeEmbed ? (
               <Button
                 className="xenica-tool"
