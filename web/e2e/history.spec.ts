@@ -96,6 +96,8 @@ test('历史版本从兼容快照恢复，单次登录桥接、幂等启动与�
   expect(JSON.stringify(before.body)).not.toContain('ticket=');
   await page.reload();
   expect(page.url()).toBe(sketch);
+  await expect(page.locator('[data-embed-kind="runtime"]')).toBeVisible();
+  await expect(page.getByRole('button', { name: '画布管理', exact: true })).toBeVisible();
   const after = await (await page.request.get(`/api/nodes/${id}`)).json();
   expect(after.body.scene.elements).toEqual(before.body.scene.elements);
   await page.screenshot({

@@ -25,6 +25,8 @@ test('真实侧栏可交互，保存和分享保留组件身份，AI 可编辑�
   page,
   browser,
 }, testInfo) => {
+  // 此场景包含两次刷新、真实拖动缩放和跨会话写回；公网往返计入整体预算。
+  test.setTimeout(90_000);
   const id = await openSketch(page);
   await page.getByRole('button', { name: '嵌入内容', exact: true }).click();
   await page.getByRole('button', { name: '共享侧栏组件', exact: true }).click();

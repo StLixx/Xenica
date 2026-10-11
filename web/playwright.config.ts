@@ -8,6 +8,7 @@ export default defineConfig({
   testDir: './e2e',
   timeout: 30_000,
   retries: process.env.CI ? 1 : 0,
+  failOnFlakyTests: Boolean(process.env.CI),
   reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : 'list',
   use: {
     baseURL: process.env.XENICA_URL ?? 'http://localhost:8080',
