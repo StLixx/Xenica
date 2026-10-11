@@ -10,7 +10,7 @@ function fixture({accepted=true,tree='same',attempt=1,checkId=1}={}) {
   const outputs=[];
   return {outputs,args:{root,context:{repo:{owner:'owner',repo:'repo'},sha:'d'.repeat(40)},core:{setOutput:(...v)=>outputs.push(v)},github:{
     paginate:async()=>REQUIRED.map((name,i)=>({name,id:checkId,conclusion:'success',details_url:`https://github.com/owner/repo/actions/runs/123/job/${i+1}`})),
-    rest:{repos:{getContent:async({path})=>({data:{content:Buffer.from(JSON.stringify(path==='index.json'?index:records[Number(path.match(/\d+/)[0])])).toString('base64')}}),listPullRequestsAssociatedWithCommit:async()=>({data:[{merged_at:'now',merge_commit_sha:'d'.repeat(40),base:{ref:'master'},head:{sha:c.source}}]})},git:{getCommit:async({commit_sha})=>({data:{tree:{sha:commit_sha===c.source?'same':tree}}})},actions:{getJobForWorkflowRun:async({job_id})=>({data:{head_sha:c.source,name:REQUIRED[job_id-1],conclusion:'success',run_id:123,run_attempt:attempt}})}}}}};
+    rest:{checks:{listForRef:'checks'},repos:{getContent:async({path})=>({data:{content:Buffer.from(JSON.stringify(path==='index.json'?index:records[Number(path.match(/\d+/)[0])])).toString('base64')}}),listPullRequestsAssociatedWithCommit:async()=>({data:[{merged_at:'now',merge_commit_sha:'d'.repeat(40),base:{ref:'master'},head:{sha:c.source}}]})},git:{getCommit:async({commit_sha})=>({data:{tree:{sha:commit_sha===c.source?'same':tree}}})},actions:{getJobForWorkflowRun:async({job_id})=>({data:{head_sha:c.source,name:REQUIRED[job_id-1],conclusion:'success',run_id:123,run_attempt:attempt}})}}}}};
 }
 test('源码内容相同且已验收才推广同一 digest',async()=>{const f=fixture();await promote(f.args);assert.equal(f.outputs[0][1],'sha256:'+'c'.repeat(64));});
 test('缺失验收、内容变化、尝试替换及检查替换均阻止推广',async()=>{

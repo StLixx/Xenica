@@ -352,11 +352,30 @@ jobs:
             web/test-results
           if-no-files-found: error
 
+  # 成功和失败检查都长期保存，不依赖附件保留期。
+  delivery-history:
+    if: always() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    needs: [rust, web, e2e, screenshots, docker, preview]
+    permissions:
+      contents: write
+      checks: read
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/github-script@v8
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        with:
+          script: |
+            const checks=await github.paginate(github.rest.checks.listForRef,{...context.repo,ref:context.payload.pull_request.head.sha});
+            const latest=[...require('./.github/scripts/candidate.cjs').latestChecks(checks).values()].map(({id,name,conclusion,details_url})=>({id,name,conclusion,url:details_url}));
+            await require('./.github/scripts/journal.cjs')({github,...context.repo,record:{schema:1,type:'engineering',source:context.payload.pull_request.head.sha,run:Number(process.env.GITHUB_RUN_ID),attempt:Number(process.env.GITHUB_RUN_ATTEMPT),results:JSON.parse(process.env.RESULTS),checks:latest}});
+
   # Agent 全面自检完成后才可进入用户体验验收。
   gate:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
-    needs: [rust, web, e2e, screenshots, docker, preview]
+    needs: [rust, web, e2e, screenshots, docker, preview, delivery-history]
     permissions:
       contents: write
       pull-requests: write

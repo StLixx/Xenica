@@ -13,7 +13,7 @@ const candidate = {
   attempt: 2,
 };
 const current = { source: candidate.source, base: candidate.base, policy: candidate.policy };
-const checks = ['rust', 'web', 'e2e', 'docker', 'screenshots', 'preview'].map((name, i) => ({
+const checks = ['rust', 'web', 'e2e', 'docker', 'screenshots', 'preview', 'delivery-history'].map((name, i) => ({
   name, id: i + 1, conclusion: 'success', run: 100, attempt: 2,
 }));
 const evidence = { checks, deployed: { source: candidate.source, artifact: candidate.artifact } };

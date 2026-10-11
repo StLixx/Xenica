@@ -19,7 +19,7 @@ module.exports=async function promote({github,context,core,root=process.cwd()}) 
   if(!accepted)throw new Error('未验收产物不能推广');
   const c=accepted.candidate;
   if(candidateId(c)!==c.id || productId(c)!==accepted.product || c.policy!==policyHash(root))throw new Error('验收身份或规则不匹配');
-  const engineering=records.findLast(r=>r.type==='engineering'&&r.candidate.id===c.id);
+  const engineering=records.findLast(r=>r.type==='engineering'&&r.candidate?.id===c.id);
   if(!engineering || engineering.selfTest.unresolved.length)throw new Error('工程资格记录缺失');
   const source=(await github.rest.git.getCommit({owner,repo,commit_sha:c.source})).data;
   const merged=(await github.rest.git.getCommit({owner,repo,commit_sha:context.sha})).data;

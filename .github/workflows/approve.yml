@@ -32,14 +32,23 @@ jobs:
             });
             const latest = runs.filter(r => r.head_sha === pr.head.sha && r.head_branch === pr.head.ref).sort((a,b) => b.id-a.id)[0];
             if (!latest) throw new Error('没有对应成果的流水线证据');
+            if (pr.head.repo.full_name !== `${context.repo.owner}/${context.repo.repo}`) throw new Error('只执行本仓库的交付门');
+            core.setOutput('head',pr.head.sha);
             core.setOutput('run', latest.id);
             core.setOutput('attempt', latest.run_attempt);
-      - uses: actions/download-artifact@v4
+      - uses: actions/checkout@v5
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          run-id: ${{ steps.candidate.outputs.run }}
-          name: delivery-candidate-${{ steps.candidate.outputs.attempt }}
-          path: .delivery
+          ref: ${{ steps.candidate.outputs.head }}
+      - uses: actions/github-script@v8
+        env:
+          HEAD: ${{ steps.candidate.outputs.head }}
+          RUN: ${{ steps.candidate.outputs.run }}
+          ATTEMPT: ${{ steps.candidate.outputs.attempt }}
+        with:
+          script: |
+            const candidate=await require('./.github/scripts/find-candidate.cjs')({github,...context.repo,source:process.env.HEAD,run:Number(process.env.RUN),attempt:Number(process.env.ATTEMPT)});
+            require('node:fs').mkdirSync('.delivery',{recursive:true});
+            require('node:fs').writeFileSync('.delivery/delivery-candidate.json',JSON.stringify(candidate));
       - uses: actions/github-script@v8
         with:
           script: |

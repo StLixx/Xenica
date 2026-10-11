@@ -67,6 +67,29 @@
       ],
       "task": 58,
       "implementation": "in-progress"
+    },
+    {
+      "id": "historical-versions-on-demand",
+      "status": "confirmed",
+      "summary": "历史版本使用不可变镜像和兼容快照隔离恢复；最多两个实例，空闲十五分钟释放；永久画板和档案不删除。",
+      "origin": "2026-10-11 本会话用户明确要求实施 v0.2.5 连续开发、验证与交付计划",
+      "references": ["specs/54-delivery-system/continuation.md", "docs/adr/0012-historical-runtime.md", "deploy/deployer/history.py", "crates/store/tests/runtimes.rs", "docs/context/history-archives.json"],
+      "implementation": "in-progress"
+    },
+    {
+      "id": "permanent-delivery-evidence-and-same-artifact-promotion",
+      "status": "confirmed",
+      "summary": "候选、检查、自检和验收长期保存在同仓库索引；上线推广已验收的同一产物，核验合并后的源码内容并先备份。",
+      "origin": "2026-10-11 用户明确实施的完整计划",
+      "references": ["specs/54-delivery-system/continuation.md", "docs/adr/0013-delivery-journal.md", ".github/scripts/journal.cjs", ".github/scripts/tests/promote.test.cjs"],
+      "implementation": "in-progress"
+    },
+    {
+      "id": "fresh-notion-session-verification",
+      "status": "unverified",
+      "summary": "本轮修复接口与交付体系，新 Notion 模型会话验收继续延期，尚未证明任何新会话自动具备全部访问能力。",
+      "origin": "用户选择本轮先修复接口，稍后验收 Notion；本轮计划明确延期",
+      "references": ["specs/54-delivery-system/continuation.md"]
     }
   ],
   "references": [

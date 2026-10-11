@@ -11,6 +11,7 @@ function policyHash(root) {
     'scripts/check-arch.sh', 'scripts/check-context.cjs', 'scripts/setup-github.sh',
     '.github/scripts/journal.cjs', '.github/scripts/acceptance.cjs', '.github/scripts/promote.cjs',
     '.github/scripts/read-acceptance.cjs',
+    '.github/scripts/find-candidate.cjs',
   ];
   const hash = createHash('sha256');
   for (const file of files.sort()) {

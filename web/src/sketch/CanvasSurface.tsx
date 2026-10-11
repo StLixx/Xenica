@@ -179,6 +179,18 @@ export default function CanvasSurface({ node, save, ...management }: CanvasProps
     setError('');
   };
 
+  const addNote = async (text:string,id:string,source:string) => {
+    const live=editor.current;
+    if(!live)return;
+    const existing=live.getSceneElements().find(el=>(el.customData?.xenicaContext as {id?:string}|undefined)?.id===id);
+    if(existing){live.scrollToContent(existing);return;}
+    const {convertToExcalidrawElements}=await import('@excalidraw/excalidraw');
+    const app=live.getAppState();
+    const elements=convertToExcalidrawElements([{type:'rectangle',x:-app.scrollX+app.width/app.zoom.value/2-240,y:-app.scrollY+app.height/app.zoom.value/2-180,width:480,height:180,label:{text},customData:{xenicaContext:{id,source,type:'confirmed-decision'}}}]);
+    live.updateScene({elements:[...live.getSceneElements(),...elements]});
+    live.toggleSidebar({name:'xenica',force:false});
+  };
+
   // 画面里的图存在库里，打开时按原样取回来。
   useEffect(() => {
     let alive = true;
@@ -542,7 +554,7 @@ export default function CanvasSurface({ node, save, ...management }: CanvasProps
           node={node}
           {...management}
           onTabChange={setSidebarTab}
-          directory={<DevelopmentPanel add={addEmbed} />}
+          directory={<DevelopmentPanel add={addEmbed} note={addNote} />}
           embed={
             <div className="xenica-panel">
               <h2>放入真实内容</h2>

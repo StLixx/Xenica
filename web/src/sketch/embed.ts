@@ -30,8 +30,20 @@ export function embedSource(element: {
   customData?: Record<string, unknown> | null;
 }): EmbedSource | null {
   const data = element.customData?.xenicaEmbed as Partial<EmbedSource> | undefined;
-  if (data?.schema === 1 && data.kind === 'runtime' && typeof data.version === 'string' && /^[a-zA-Z0-9][a-zA-Z0-9.-]{0,46}$/.test(data.version))
-    return {schema:1,kind:'runtime',version:data.version,title:data.title ?? data.version,url:`https://xenica.invalid/versions/${data.version}`,revision:data.revision ?? '未标记'};
+  if (
+    data?.schema === 1 &&
+    data.kind === 'runtime' &&
+    typeof data.version === 'string' &&
+    /^[a-zA-Z0-9][a-zA-Z0-9.-]{0,46}$/.test(data.version)
+  )
+    return {
+      schema: 1,
+      kind: 'runtime',
+      version: data.version,
+      title: data.title ?? data.version,
+      url: `https://xenica.invalid/versions/${data.version}`,
+      revision: data.revision ?? '未标记',
+    };
   if (data?.schema === 1 && data.kind === 'react' && data.component === 'PeekAside')
     return {
       schema: 1,

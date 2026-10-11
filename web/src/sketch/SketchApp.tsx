@@ -30,7 +30,12 @@ export function SketchApp() {
     return () => window.removeEventListener('popstate', onPop);
   }, []);
   useEffect(() => {
-    if (current && !sketchIdFromPath() && (current.body as {purpose?:string}).purpose !== 'development') putSketchInPath(current.id, true);
+    if (
+      current &&
+      !sketchIdFromPath() &&
+      (current.body as { purpose?: string }).purpose !== 'development'
+    )
+      putSketchInPath(current.id, true);
   }, [current]);
 
   const pick = (id: string) => {
@@ -89,7 +94,8 @@ function Workspace({
   const update = useUpdateNode(node.id, fresh.updated_at);
   useEffect(() => {
     document.title = `${fresh.title || '无标题'} · Xenica 草图`;
-    if ((fresh.body as {purpose?:string}).purpose === 'development') history.replaceState(null, '', '/sketch');
+    if ((fresh.body as { purpose?: string }).purpose === 'development')
+      history.replaceState(null, '', '/sketch');
     else putSketchInPath(fresh.id, true, fresh.title);
   }, [fresh.id, fresh.title, fresh.body]);
   return (

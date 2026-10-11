@@ -59,6 +59,12 @@ async fn main() -> anyhow::Result<()> {
             println!("{}", node.id);
             Ok(())
         }
+        Some("board-attach") => {
+            let source=std::env::args().nth(2).context("缺少原件节点 ID")?.parse()?;
+            let store=Store::connect(&std::env::var("DATABASE_URL")?).await?;
+            let board=xenica_server::archive::attach_to_board(&store,xenica_core::NodeId(source)).await?;
+            println!("{}",board.id);Ok(())
+        }
         Some(_) => {
             eprintln!("{USAGE}");
             std::process::exit(2)

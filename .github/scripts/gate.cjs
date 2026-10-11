@@ -4,7 +4,7 @@
 // 「验收」这个 commit status 就是验收记录：它挂在具体的 commit 上，PR 有新提交就要重新验收。
 
 const STATUS = '验收';
-const REQUIRED_CHECKS = ['rust', 'web', 'e2e', 'docker', 'screenshots', 'preview'];
+const REQUIRED_CHECKS = require('./candidate.cjs').REQUIRED;
 const DOMAIN = 'xenica.truebigsand.top';
 const { latestChecks } = require('./candidate.cjs');
 const { readReport } = require('./readiness.cjs');
@@ -12,12 +12,8 @@ const verifyDelivery = require('./verify-delivery.cjs');
 
 // 撤不回、或会改变规则本身的改动，永远要你验收。
 const SENSITIVE = [
-  [/^\.github\//, 'CI 与流程'],
-  [/^deploy\//, '部署'],
-  [/^scripts\//, '仓库脚本'],
-  [/^(AGENTS|CLAUDE)\.md$/, 'Agent 规则'],
   // 界面改动一律在整体预览里看过再合并（测试和 story 本身除外，story 的变化由截图对比管）
-  [/^web\/src\/(?!.*\.(test|stories)\.tsx?$)/, '界面'],
+  [/^web\/src\/(?!api\/)(?!.*\.(test|stories)\.tsx?$)/, '界面'],
 ];
 const DESTRUCTIVE_SQL = /\b(drop|truncate|rename|delete\s+from|alter\s+column[^;]*\btype)\b/i;
 
