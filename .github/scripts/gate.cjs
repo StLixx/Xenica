@@ -203,7 +203,7 @@ module.exports = async function gate({ github, context, core, mode, changed = []
     return result('完成');
   }
 
-  const approved = (await status(ctx))?.description === `已验收 ${delivery.product}`;
+  const approved = Boolean(await require('./read-acceptance.cjs')({github,owner,repo,source:sha,product:delivery.product}));
   await archive({github,owner,repo,record:{schema:1,type:'engineering',candidate:delivery.candidate,checks:delivery.checks,deployed:delivery.deployed,selfTest:selfTest.report,comment:selfTest.comment}});
   await comment({ github, owner, repo, pr, body: previewBody({ pr, changed, why, sha }) });
 

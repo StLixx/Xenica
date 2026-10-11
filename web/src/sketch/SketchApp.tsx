@@ -91,7 +91,7 @@ function Workspace({
     document.title = `${fresh.title || '无标题'} · Xenica 草图`;
     if ((fresh.body as {purpose?:string}).purpose === 'development') history.replaceState(null, '', '/sketch');
     else putSketchInPath(fresh.id, true, fresh.title);
-  }, [fresh.id, fresh.title]);
+  }, [fresh.id, fresh.title, fresh.body]);
   return (
     <Canvas
       node={fresh}

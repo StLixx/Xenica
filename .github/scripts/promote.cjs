@@ -28,6 +28,10 @@ module.exports=async function promote({github,context,core,root=process.cwd()}) 
   for(const name of REQUIRED) {
     const latest=checks.get(name);const saved=engineering.checks.find(j=>j.name===name);
     if(!latest||!saved||latest.id!==saved.id||latest.conclusion!=='success')throw new Error('工程检查已被替换或失败');
+    const jobId=latest.details_url?.match(/\/actions\/runs\/(\d+)\/job\/(\d+)$/);
+    if(!jobId)throw new Error('检查运行来源缺失');
+    const job=(await github.rest.actions.getJobForWorkflowRun({owner,repo,job_id:Number(jobId[2])})).data;
+    if(job.head_sha!==c.source||job.name!==name||job.conclusion!=='success'||job.run_id!==c.run||job.run_attempt!==c.attempt)throw new Error('检查运行或尝试被替换');
   }
   core.setOutput('artifact',c.artifact);core.setOutput('source',c.source);core.setOutput('candidate',JSON.stringify(c));
 };

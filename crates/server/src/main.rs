@@ -34,7 +34,7 @@ async fn main() -> anyhow::Result<()> {
             let store=Store::connect(&std::env::var("DATABASE_URL")?).await?;
             let user=match store.find_user_by_name("xenica_history_bridge").await? {
                 Some((u,_))=>u,
-                None=>store.create_user(None,"xenica_history_bridge",&xenica_server::auth::hash_password(&xenica_server::auth::new_setup_code())).await?,
+                None=>store.create_user(None,"xenica_history_bridge",&xenica_server::auth::hash_password(&xenica_server::auth::runtime_token())).await?,
             };
             let token=xenica_server::auth::runtime_token();
             use sha2::Digest;

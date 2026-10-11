@@ -25,8 +25,14 @@ async fn proxy(State(p):State<Proxy>,req:Request)->Result<Response,ApiError> {
     }
     let token=req.headers().get_all(header::COOKIE).iter().filter_map(|v|v.to_str().ok()).flat_map(|v|v.split(';'))
         .find_map(|s|s.trim().strip_prefix("xenica_runtime=")).ok_or_else(ApiError::unauthorized)?;
-    if !p.store.touch_runtime_session(p.id,&token_hash(token)).await? {return Err(ApiError::unauthorized())}
+    if !p.store.check_runtime_session(p.id,&token_hash(token)).await? {return Err(ApiError::unauthorized())}
     let path=req.uri().path_and_query().map(|v|v.as_str()).unwrap_or("/");
+    if req.uri().path()=="/__activity" {
+        if req.method()!=axum::http::Method::POST || req.headers().get(header::ORIGIN).and_then(|v|v.to_str().ok())!=Some(&format!("https://{}",p.host)) {return Err(ApiError::forbidden("活动来源不匹配"))}
+        if !p.store.touch_runtime_session(p.id,&token_hash(token)).await? {return Err(ApiError::unauthorized())}
+        return Ok(StatusCode::NO_CONTENT.into_response());
+    }
+    if req.uri().path().starts_with("/api/auth/") && req.method()!=axum::http::Method::GET {return Err(ApiError::forbidden("历史体验使用画板的限定授权"))}
     if path.starts_with("/api/development/") || path.starts_with("/__bridge") {return Err(ApiError::forbidden("此入口仅用于体验历史版本"))}
     let mut upstream=p.client.request(req.method().clone(),format!("{}{path}",p.upstream));
     for (k,v) in req.headers() {
@@ -36,6 +42,12 @@ async fn proxy(State(p):State<Proxy>,req:Request)->Result<Response,ApiError> {
     let remote=upstream.header(header::COOKIE,format!("xenica_session={}",p.cookie)).body(body).send().await.map_err(|_|ApiError::new(StatusCode::BAD_GATEWAY,"unavailable","历史版本暂时无法连接"))?;
     let status=remote.status(); let headers=remote.headers().clone();
     let data=remote.bytes().await.map_err(|_|ApiError::internal())?;
+    let data=if headers.get(header::CONTENT_TYPE).and_then(|h|h.to_str().ok()).is_some_and(|h|h.starts_with("text/html")) {
+        let html=String::from_utf8(data.to_vec()).map_err(|_|ApiError::internal())?;
+        // 自动轮询不算人在体验；只有真实输入延长运行资源的空闲期限。
+        let activity="<script>(()=>{let last=0;for(const e of ['pointerdown','wheel','keydown'])document.addEventListener(e,()=>{if(Date.now()-last<30000)return;last=Date.now();fetch('/__activity',{method:'POST',credentials:'same-origin',keepalive:true}).catch(()=>{});},{passive:true,capture:true});})();</script>";
+        html.replace("</body>",&format!("{activity}</body>")).into_bytes()
+    }else{data.to_vec()};
     let mut response=(status,Body::from(data)).into_response();
     for (k,v) in &headers {if !matches!(k.as_str(),"set-cookie"|"connection"|"transfer-encoding"|"content-length"|"location") {response.headers_mut().insert(k.clone(),v.clone());}}
     if let Some(location)=headers.get(header::LOCATION) {

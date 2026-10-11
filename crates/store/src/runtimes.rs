@@ -25,6 +25,10 @@ fn runtime(r: sqlx::postgres::PgRow) -> DevelopmentRuntime {
 }
 
 impl Store {
+    pub async fn check_runtime_session(&self,id:Uuid,hash:&[u8])->Result<bool,StoreError> {
+        Ok(sqlx::query_scalar("select exists(select 1 from runtime_grants g join development_runtimes r on r.id=g.runtime where g.runtime=$1 and g.token_hash=$2 and g.session and g.expires_at>now() and r.generation=g.generation and r.state='running')")
+            .bind(id).bind(hash).fetch_one(&self.pool).await?)
+    }
     pub async fn development_runtimes(&self) -> Result<Vec<DevelopmentRuntime>, StoreError> {
         Ok(sqlx::query("select * from development_runtimes order by version")
             .fetch_all(&self.pool).await?.into_iter().map(runtime).collect())

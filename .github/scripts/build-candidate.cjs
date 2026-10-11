@@ -10,6 +10,7 @@ function policyHash(root) {
     'web/.dependency-cruiser.cjs', 'web/eslint.config.js',
     'scripts/check-arch.sh', 'scripts/check-context.cjs', 'scripts/setup-github.sh',
     '.github/scripts/journal.cjs', '.github/scripts/acceptance.cjs', '.github/scripts/promote.cjs',
+    '.github/scripts/read-acceptance.cjs',
   ];
   const hash = createHash('sha256');
   for (const file of files.sort()) {

@@ -6,6 +6,10 @@ function encode(record) {
   if(record.schema!==1||!['candidate','engineering','acceptance','promotion'].includes(record.type)) throw new Error('invalid journal record');
   const text=JSON.stringify(record);
   if(/\/api\/share\/|[?&](token|ticket|password|secret|api.?key)=|postgres:\/\//i.test(text)) throw new Error('private credential in journal');
+  if(record.candidate) {
+    const {candidateId,productId}=require('./candidate.cjs');
+    if(candidateId(record.candidate)!==record.candidate.id || productId(record.candidate)!==record.candidate.product) throw new Error('invalid candidate identity in journal');
+  }
   return {text,sha256:hash(text),path:`records/${hash(text)}.json`};
 }
 module.exports=async function append({github,owner,repo,record}) {
