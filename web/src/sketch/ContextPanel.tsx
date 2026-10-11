@@ -9,6 +9,7 @@ export function ContextPanel({ node }: { node: Node }) {
   const body = node.body as Record<string, unknown>;
   const context = (body.context ?? {}) as Record<string, unknown>;
   const [intent, setIntent] = useState(String(context.intent ?? ''));
+  const draftRevision = useRef<string | null>(null);
   const [element, setElement] = useState('');
   const [source, setSource] = useState(`${window.location.origin}/sketch/${node.id}`);
   const [revision, setRevision] = useState(node.updated_at);
@@ -21,6 +22,8 @@ export function ContextPanel({ node }: { node: Node }) {
   const store = async () => {
     setBusy(true);
     try {
+      if (draftRevision.current && draftRevision.current !== node.updated_at)
+        throw new Error('画板已由另一方更新。你的说明草稿仍保留，请先核对新内容再保存。');
       const evidence = [...((body.evidence ?? []) as unknown[])];
       if (file) {
         const image = await createImageBitmap(file);
@@ -44,7 +47,7 @@ export function ContextPanel({ node }: { node: Node }) {
           ...body,
           context: {
             ...context,
-            intent,
+            intent: draftRevision.current ? intent : String(context.intent ?? ''),
             repo: 'https://github.com/StLixx/Xenica',
             preview: window.location.origin,
             commit: health.data?.commit ?? '',
@@ -56,6 +59,7 @@ export function ContextPanel({ node }: { node: Node }) {
       );
       setMessage('设计说明与截图已保存');
       setFile(null);
+      draftRevision.current = null;
     } catch (error) {
       setMessage(error instanceof Error ? error.message : '保存失败');
     } finally {
@@ -68,8 +72,8 @@ export function ContextPanel({ node }: { node: Node }) {
       <p className="xenica-text">保存目标、已确认决定、待确认事项和下一步，供新会话读取。</p>
       <textarea
         aria-label="设计说明"
-        value={intent}
-        onChange={(e) => setIntent(e.target.value)}
+        value={draftRevision.current ? intent : String(context.intent ?? '')}
+        onChange={(e) => { draftRevision.current ??= node.updated_at; setIntent(e.target.value); }}
         className="xenica-text"
       />
       <p className="xenica-text">真实截图与结构 PNG 分开保存。请填写截图实际对应的来源和版本。</p>
@@ -119,9 +123,11 @@ export function ContextPanel({ node }: { node: Node }) {
         长期设计保存在正式草图站；预览中的内容需先归档迁移。档案不含分享令牌。
       </p>
       {message ? (
-        <p role="status" className="xenica-text">
-          {message}
-        </p>
+        <>
+          <p role="status" className="xenica-text">{message}</p>
+          {draftRevision.current && draftRevision.current !== node.updated_at ?
+            <Button onSelect={() => { draftRevision.current = node.updated_at; setMessage('已保留草稿，可以保存'); }}>已核对，保留我的说明</Button> : null}
+        </>
       ) : null}
     </div>
   );

@@ -9,6 +9,7 @@ import subprocess
 import sys
 import tempfile
 import fcntl
+from journal import publish_archive
 
 root=Path(os.environ.get('XENICA_HISTORY_ROOT','/var/lib/xenica-history'))
 root.mkdir(parents=True,exist_ok=True,mode=0o700)
@@ -44,6 +45,7 @@ with (root/'archive.lock').open('w') as lock:
     if old:
         assert old['image']=='ghcr.io/stlixx/xenica@'+digest and old['source']==source,'existing version identity differs'
         assert hashlib.sha256((root/'snapshots'/old['snapshot']).read_bytes()).hexdigest()==old['snapshot_sha256']
+        publish_archive(old,os.environ.get('DEPLOYER_GITHUB_TOKEN',''))
         sys.exit(0)
     raw=run('docker','exec',project+'-db-1','pg_dump','--no-owner','--no-acl','-U','xenica','xenica')
     snapshot=root/'snapshots'/f'{version}.sql'
@@ -53,4 +55,5 @@ with (root/'archive.lock').open('w') as lock:
       'snapshot':snapshot.name,'snapshot_sha256':hashlib.sha256(raw).hexdigest(),'available':True,'reason':''}
     index['versions'].append(record)
     temp=catalog.with_suffix('.tmp');temp.write_text(json.dumps(index,ensure_ascii=False,indent=2)+'\n');temp.chmod(0o644);temp.replace(catalog)
+    publish_archive(record,os.environ.get('DEPLOYER_GITHUB_TOKEN',''))
     print(json.dumps(record,ensure_ascii=False)) # 不输出快照或凭据

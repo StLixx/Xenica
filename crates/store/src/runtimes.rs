@@ -65,27 +65,28 @@ impl Store {
             .await?
             .map(runtime);
         if let Some(ref r) = old
-            && matches!(r.state.as_str(), "preparing" | "running" | "stopping") {
-                if r.artifact != artifact || r.snapshot != snapshot || r.state == "stopping" {
-                    return Err(StoreError::Conflict(
-                        "版本正在释放或档案身份变化，请稍后再试".into(),
-                    ));
-                }
-                sqlx::query("update development_runtimes set touched_at=now() where id=$1")
-                    .bind(r.id)
-                    .execute(&mut *tx)
-                    .await?;
-                trace(
-                    &mut tx,
-                    actor,
-                    "runtime.touched",
-                    r.id,
-                    json!({"generation":r.generation}),
-                )
-                .await?;
-                tx.commit().await?;
-                return Ok(r.clone());
+            && matches!(r.state.as_str(), "preparing" | "running" | "stopping")
+        {
+            if r.artifact != artifact || r.snapshot != snapshot || r.state == "stopping" {
+                return Err(StoreError::Conflict(
+                    "版本正在释放或档案身份变化，请稍后再试".into(),
+                ));
             }
+            sqlx::query("update development_runtimes set touched_at=now() where id=$1")
+                .bind(r.id)
+                .execute(&mut *tx)
+                .await?;
+            trace(
+                &mut tx,
+                actor,
+                "runtime.touched",
+                r.id,
+                json!({"generation":r.generation}),
+            )
+            .await?;
+            tx.commit().await?;
+            return Ok(r.clone());
+        }
         let count: i64=sqlx::query_scalar("select count(*) from development_runtimes where state in ('preparing','running','stopping')")
             .fetch_one(&mut *tx).await?;
         if count >= 2 {

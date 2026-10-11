@@ -7,7 +7,12 @@ use xenica_store::Store;
 
 const USAGE: &str = "usage: xenica [serve | openapi | healthcheck]";
 
-fn runtime_actor()->xenica_core::Actor {xenica_core::Actor::Processor{id:"historical-runtime".into(),version:"0.2.5".into()}}
+fn runtime_actor() -> xenica_core::Actor {
+    xenica_core::Actor::Processor {
+        id: "historical-runtime".into(),
+        version: "0.2.5".into(),
+    }
+}
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -19,28 +24,63 @@ async fn main() -> anyhow::Result<()> {
         }
         Some("healthcheck") => healthcheck("/api/health"),
         Some("runtime-healthcheck") => healthcheck("/__health"),
-        Some("runtime-proxy") => xenica_server::runtime_proxy::serve(Store::connect(&std::env::var("DATABASE_URL")?).await?).await,
+        Some("runtime-proxy") => {
+            xenica_server::runtime_proxy::serve(
+                Store::connect(&std::env::var("DATABASE_URL")?).await?,
+            )
+            .await
+        }
         Some("runtime-queue") => {
-            let store=Store::connect(&std::env::var("DATABASE_URL")?).await?;
+            let store = Store::connect(&std::env::var("DATABASE_URL")?).await?;
             store.expire_runtimes(&runtime_actor()).await?;
-            println!("{}",serde_json::to_string(&store.development_runtimes().await?)?); Ok(())
+            println!(
+                "{}",
+                serde_json::to_string(&store.development_runtimes().await?)?
+            );
+            Ok(())
         }
         Some("runtime-state") => {
-            let args:Vec<String>=std::env::args().collect();
-            anyhow::ensure!(args.len()==6,"runtime-state ID GENERATION STATE MESSAGE");
-            let store=Store::connect(&std::env::var("DATABASE_URL")?).await?;
-            store.runtime_state(&runtime_actor(),args[2].parse()?,args[3].parse()?,&args[4],&args[5]).await?; Ok(())
+            let args: Vec<String> = std::env::args().collect();
+            anyhow::ensure!(args.len() == 6, "runtime-state ID GENERATION STATE MESSAGE");
+            let store = Store::connect(&std::env::var("DATABASE_URL")?).await?;
+            store
+                .runtime_state(
+                    &runtime_actor(),
+                    args[2].parse()?,
+                    args[3].parse()?,
+                    &args[4],
+                    &args[5],
+                )
+                .await?;
+            Ok(())
         }
         Some("runtime-session") => {
-            let store=Store::connect(&std::env::var("DATABASE_URL")?).await?;
-            let user=match store.find_user_by_name("xenica_history_bridge").await? {
-                Some((u,_))=>u,
-                None=>store.create_user(None,"xenica_history_bridge",&xenica_server::auth::hash_password(&xenica_server::auth::runtime_token())).await?,
+            let store = Store::connect(&std::env::var("DATABASE_URL")?).await?;
+            let user = match store.find_user_by_name("xenica_history_bridge").await? {
+                Some((u, _)) => u,
+                None => {
+                    store
+                        .create_user(
+                            None,
+                            "xenica_history_bridge",
+                            &xenica_server::auth::hash_password(
+                                &xenica_server::auth::runtime_token(),
+                            ),
+                        )
+                        .await?
+                }
             };
-            let token=xenica_server::auth::runtime_token();
+            let token = xenica_server::auth::runtime_token();
             use sha2::Digest;
-            store.create_session(user.id,&sha2::Sha256::digest(token.as_bytes()),chrono::Utc::now()+chrono::Duration::hours(24)).await?;
-            println!("{token}");Ok(())
+            store
+                .create_session(
+                    user.id,
+                    &sha2::Sha256::digest(token.as_bytes()),
+                    chrono::Utc::now() + chrono::Duration::hours(24),
+                )
+                .await?;
+            println!("{token}");
+            Ok(())
         }
         Some("archive-export") => {
             let id = std::env::args().nth(2).context("缺少草图 ID")?.parse()?;
@@ -61,10 +101,16 @@ async fn main() -> anyhow::Result<()> {
             Ok(())
         }
         Some("board-attach") => {
-            let source=std::env::args().nth(2).context("缺少原件节点 ID")?.parse()?;
-            let store=Store::connect(&std::env::var("DATABASE_URL")?).await?;
-            let board=xenica_server::archive::attach_to_board(&store,xenica_core::NodeId(source)).await?;
-            println!("{}",board.id);Ok(())
+            let source = std::env::args()
+                .nth(2)
+                .context("缺少原件节点 ID")?
+                .parse()?;
+            let store = Store::connect(&std::env::var("DATABASE_URL")?).await?;
+            let board =
+                xenica_server::archive::attach_to_board(&store, xenica_core::NodeId(source))
+                    .await?;
+            println!("{}", board.id);
+            Ok(())
         }
         Some(_) => {
             eprintln!("{USAGE}");
@@ -124,7 +170,7 @@ async fn shutdown() {
 }
 
 /// 给容器健康检查用：不依赖 curl，直接请求 `/api/health`。
-fn healthcheck(path:&str) -> anyhow::Result<()> {
+fn healthcheck(path: &str) -> anyhow::Result<()> {
     let addr = std::env::var("XENICA_ADDR").unwrap_or_else(|_| "0.0.0.0:8080".into());
     let port = addr.rsplit(':').next().unwrap_or("8080");
     let mut stream = std::net::TcpStream::connect(("127.0.0.1", port.parse::<u16>()?))?;

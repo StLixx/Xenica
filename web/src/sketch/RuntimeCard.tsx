@@ -1,8 +1,10 @@
 import { Button } from '@excalidraw/excalidraw';
 import { useEffect, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { bridgeRuntime, startVersion, useRuntime } from '../api/development';
 
-export function RuntimeCard({ version, active }: { version: string; active: boolean }) {
+export function RuntimeCard({ version, active, exit }: { version: string; active: boolean; exit: () => void }) {
+  const queries = useQueryClient();
   const [id, setId] = useState<string | null>(null);
   const [url, setURL] = useState('');
   const [error, setError] = useState('');
@@ -12,6 +14,7 @@ export function RuntimeCard({ version, active }: { version: string; active: bool
     setURL('');
     try {
       const r = await startVersion(version);
+      queries.setQueryData(['development-runtime', r.id], r);
       setId(r.id);
     } catch (e) {
       setError(e instanceof Error ? e.message : '启动失败');
@@ -22,7 +25,7 @@ export function RuntimeCard({ version, active }: { version: string; active: bool
     let alive = true;
     void startVersion(version)
       .then((r) => {
-        if (alive) setId(r.id);
+        if (alive) { queries.setQueryData(['development-runtime', r.id], r); setId(r.id); }
       })
       .catch((e) => {
         if (alive) setError(e instanceof Error ? e.message : '启动失败');
@@ -30,7 +33,16 @@ export function RuntimeCard({ version, active }: { version: string; active: bool
     return () => {
       alive = false;
     };
-  }, [active, id, version]);
+  }, [active, id, version, queries]);
+  useEffect(() => {
+    if (!active || !url) return;
+    const receive = (event: MessageEvent) => {
+      if (event.origin === new URL(url).origin && event.data === 'xenica:return-to-canvas' &&
+          event.source === document.querySelector<HTMLIFrameElement>(`iframe[title="历史体验 ${version}"]`)?.contentWindow) exit();
+    };
+    window.addEventListener('message', receive);
+    return () => window.removeEventListener('message', receive);
+  }, [active, url, version, exit]);
   useEffect(() => {
     if (!active || runtime.data?.state !== 'running' || url) return;
     let alive = true;

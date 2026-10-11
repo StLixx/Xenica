@@ -89,6 +89,86 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/development/runtimes/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['status'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/development/runtimes/{id}/bridge': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['bridge'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/development/versions': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['versions'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/development/versions/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['version'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/development/versions/{id}/start': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['start'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/edges': {
     parameters: {
       query?: never;
@@ -401,6 +481,9 @@ export interface components {
           type: 'processor';
           version: string;
         };
+    Bridge: {
+      url: string;
+    };
     /** @description 关系：两个节点之间有类型、有方向的连接。 */
     Edge: {
       /** Format: date-time */
@@ -500,6 +583,15 @@ export interface components {
       body?: Record<string, never> | null;
       title?: string | null;
     };
+    Runtime: {
+      /** Format: int64 */
+      generation: number;
+      /** Format: uuid */
+      id: string;
+      message: string;
+      state: string;
+      version: string;
+    };
     SceneInput: {
       /**
        * Format: date-time
@@ -576,6 +668,17 @@ export interface components {
      * @description 账号 ID。
      */
     UserId: string;
+    Version: {
+      available: boolean;
+      changes: string[];
+      id: string;
+      image: string;
+      reason: string;
+      snapshot: string;
+      snapshot_sha256: string;
+      source: string;
+      title: string;
+    };
   };
   responses: never;
   parameters: never;
@@ -738,6 +841,109 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  status: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Runtime'];
+        };
+      };
+    };
+  };
+  bridge: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Bridge'];
+        };
+      };
+    };
+  };
+  versions: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Version'][];
+        };
+      };
+    };
+  };
+  version: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Version'];
+        };
+      };
+    };
+  };
+  start: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Runtime'];
         };
       };
     };

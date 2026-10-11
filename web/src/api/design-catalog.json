@@ -1,6 +1,96 @@
 {
   "schema": 1,
   "themeSha256": "ca7ab874ea0b1ed60ddfe5b90cccea0d868d2e9e19502de82c38d485a7a09ac5",
+  "features": [
+    {
+      "id": "graph",
+      "title": "图",
+      "source": "web/src/views/graph/index.ts",
+      "url": "/?view=graph"
+    },
+    {
+      "id": "nodes",
+      "title": "全部节点",
+      "source": "web/src/views/nodes/index.ts",
+      "url": "/?view=nodes"
+    }
+  ],
+  "decisions": [
+    {
+      "id": "user-definition-and-acceptance",
+      "title": "用户只负责开始前范围定义与完成后的交互体验验收；Agent 处理中间过程。开始不能代替成果验收。 结束验收前，Agent 全面测试、修复全部失败，不能把未测试成果交给用户排错。",
+      "source": "docs/context/index.json",
+      "references": [
+        "AGENTS.md",
+        "docs/adr/0006-workflow.md",
+        "specs/54-delivery-system/spec.md",
+        "docs/context/v0.2.5-input.md",
+        "docs/task-lifecycle.md",
+        "docs/context/v0.2.5-canvas-original.md"
+      ]
+    },
+    {
+      "id": "one-persistent-development-board",
+      "title": "唯一固定开发画板长期承载组件、Features 和各版本设计；临时预览不拥有长期事实。",
+      "source": "docs/context/index.json",
+      "references": [
+        "specs/54-delivery-system/spec.md",
+        "crates/server/src/archive.rs",
+        "crates/store/src/nodes.rs",
+        "web/e2e/development-board.spec.ts",
+        "docs/context/v0.2.5-canvas-archive.md"
+      ]
+    },
+    {
+      "id": "candidate-bound-evidence",
+      "title": "成果身份关联源码、产物、部署、规则与检查；产品验收与工程合并资格分离。",
+      "source": "docs/context/index.json",
+      "references": [
+        "docs/adr/0010-delivery-candidate.md",
+        ".github/scripts/candidate.cjs",
+        ".github/scripts/tests/candidate.test.cjs"
+      ]
+    },
+    {
+      "id": "infra-only-development",
+      "title": "构建、编译、测试与重型环境只在 Infra；Windows 用于编辑、SSH 和查看。",
+      "source": "docs/context/index.json",
+      "references": ["AGENTS.md", "specs/54-delivery-system/spec.md"]
+    },
+    {
+      "id": "managed-excalidraw-source",
+      "title": "深入分析和改进 Excalidraw 原生体验，必要源码改造及依据须在同一仓库可复现。维护方式由 Agent 调研。",
+      "source": "docs/context/index.json",
+      "references": [
+        "specs/54-delivery-system/spec.md",
+        "docs/adr/0011-excalidraw-extension.md",
+        "web/src/sketch/upstream/ToolButton.tsx"
+      ]
+    },
+    {
+      "id": "historical-versions-on-demand",
+      "title": "历史版本使用不可变镜像和兼容快照隔离恢复；最多两个实例，空闲十五分钟释放；永久画板和档案不删除。",
+      "source": "docs/context/index.json",
+      "references": [
+        "specs/54-delivery-system/continuation.md",
+        "docs/adr/0012-historical-runtime.md",
+        "deploy/deployer/history.py",
+        "crates/store/tests/runtimes.rs",
+        "docs/context/history-archives.json"
+      ]
+    },
+    {
+      "id": "permanent-delivery-evidence-and-same-artifact-promotion",
+      "title": "候选、检查、自检和验收长期保存在同仓库索引；上线推广已验收的同一产物，核验合并后的源码内容并先备份。",
+      "source": "docs/context/index.json",
+      "references": [
+        "specs/54-delivery-system/continuation.md",
+        "docs/adr/0013-delivery-journal.md",
+        ".github/scripts/journal.cjs",
+        ".github/scripts/tests/promote.test.cjs"
+      ]
+    }
+  ],
   "components": [
     {
       "id": "外壳-登录--demo",

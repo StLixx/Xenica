@@ -10,8 +10,8 @@ pub mod auth;
 pub mod config;
 mod error;
 mod routes;
-pub mod seed;
 pub mod runtime_proxy;
+pub mod seed;
 
 use std::{path::Path, sync::Arc};
 

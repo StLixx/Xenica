@@ -3,7 +3,7 @@ const {createHash}=require('node:crypto');
 const BRANCH='delivery-records';
 const hash=s=>createHash('sha256').update(s).digest('hex');
 function encode(record) {
-  if(record.schema!==1||!['candidate','engineering','acceptance','promotion'].includes(record.type)) throw new Error('invalid journal record');
+  if(record.schema!==1||!['candidate','engineering','acceptance','promotion','archive'].includes(record.type)) throw new Error('invalid journal record');
   const text=JSON.stringify(record);
   if(/\/api\/share\/|[?&](token|ticket|password|secret|api.?key)=|postgres:\/\//i.test(text)) throw new Error('private credential in journal');
   if(record.candidate) {
@@ -26,7 +26,7 @@ module.exports=async function append({github,owner,repo,record}) {
       if(index.records.some(r=>r.sha256===item.sha256))return item;
     }
     index.records.push({path:item.path,sha256:item.sha256,type:record.type,source:record.candidate?.source ?? record.source,
-      run:record.candidate?.run,attempt:record.candidate?.attempt,previous:index.records.at(-1)?.sha256 ?? null});
+      run:record.candidate?.run ?? record.run,attempt:record.candidate?.attempt ?? record.attempt,previous:index.records.at(-1)?.sha256 ?? null});
     const tree=(await git.createTree({owner,repo,...(baseTree?{base_tree:baseTree}:{}),tree:[
       {path:item.path,mode:'100644',type:'blob',content:item.text},
       {path:'index.json',mode:'100644',type:'blob',content:JSON.stringify(index,null,2)+'\n'},

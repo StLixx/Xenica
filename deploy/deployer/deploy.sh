@@ -73,7 +73,7 @@ deploy_prod() {
   rev=$(revision "$ref")
   # 正式运行身份与原始数据先落盘；备份失败就不开始更新。
   if [ -n "$have" ]; then
-    python3 "$DEPLOY/deployer/archive-version.py" xenica || { log 'prod: archive failed; deployment blocked'; return 0; }
+    DEPLOYER_GITHUB_TOKEN="$TOKEN" python3 "$DEPLOY/deployer/archive-version.py" xenica || { log 'prod: archive failed; deployment blocked'; return 0; }
     local backup="$STATE/backups/$(date -u +%Y%m%dT%H%M%SZ)"
     mkdir -p "$backup"
     chmod 700 "$backup"
@@ -86,9 +86,12 @@ deploy_prod() {
   log "prod: deploying ${rev:0:7}"
   [ -n "$have" ] && docker tag "$have" "$IMAGE:previous"
   if XENICA_IMAGE="$ref" XENICA_ARTIFACT="$digest" compose -p xenica --env-file "$ENV_FILE" up -d --wait --wait-timeout 120; then
-    log "prod: ${rev:0:7} is live"
-    rm -f "$STATE/prod.bad"
-    return 0
+    if DEPLOYER_GITHUB_TOKEN="$TOKEN" python3 "$DEPLOY/deployer/archive-version.py" xenica; then
+      log "prod: ${rev:0:7} is live and archived"
+      rm -f "$STATE/prod.bad"
+      return 0
+    fi
+    log 'prod: new archive failed; restoring previous runtime'
   fi
   local logs
   logs=$(compose -p xenica logs --tail 40 app 2>&1 || true)
@@ -133,6 +136,15 @@ deploy_previews() {
   for project in $(docker ps -a --format '{{.Label "com.docker.compose.project"}}' | grep -E '^xenica-pr-[0-9]+$' | sort -u); do
     n=${project#xenica-pr-}
     grep -qx "$n" <<<"$keep" && continue
+    # 删除临时运行资源之前留下完整私有数据库；永久档案不跟随预览销毁。
+    local backup="$STATE/preview-archives/$project/$(date -u +%Y%m%dT%H%M%SZ)"
+    mkdir -p "$backup"
+    chmod 700 "$backup"
+    compose -p "$project" exec -T db pg_dump --no-owner --no-acl -U xenica xenica >"$backup/database.sql" || { log "preview $n: backup failed; keeping data"; continue; }
+    chmod 600 "$backup/database.sql"
+    sha256sum "$backup/database.sql" >"$backup/checksums"
+    running_artifact "$project" >"$backup/artifact"
+    DEPLOYER_GITHUB_TOKEN="$TOKEN" python3 "$DEPLOY/deployer/archive-version.py" "$project" || { log "preview $n: archive failed; keeping data"; continue; }
     log "preview $n: removing"
     compose -p "$project" down -v --remove-orphans || true
     docker rmi "$IMAGE:pr-$n" >/dev/null 2>&1 || true

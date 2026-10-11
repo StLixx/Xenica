@@ -52,11 +52,11 @@ export function Workbench({
         });
         onReady(api);
         const requested = new URLSearchParams(window.location.search).get('view');
-        const view = views.find(v => v.id === requested && v.sidebar && v.singleton);
+        const view = views.find((v) => v.id === requested && v.sidebar && v.singleton);
         if (view) {
           const panel = api.getPanel(view.id);
           if (panel) panel.api.setActive();
-          else api.addPanel({id:view.id,component:view.id,title:view.title});
+          else api.addPanel({ id: view.id, component: view.id, title: view.title });
         }
       }}
     />

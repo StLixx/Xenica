@@ -72,9 +72,10 @@ async fn proxy(State(p): State<Proxy>, req: Request) -> Result<Response, ApiErro
         return Err(ApiError::forbidden("运行入口不匹配"));
     }
     if let Some(origin) = req.headers().get(header::ORIGIN)
-        && origin.to_str().ok() != Some(&format!("https://{}", p.host)) {
-            return Err(ApiError::forbidden("跨站请求被拒绝"));
-        }
+        && origin.to_str().ok() != Some(&format!("https://{}", p.host))
+    {
+        return Err(ApiError::forbidden("跨站请求被拒绝"));
+    }
     let token = req
         .headers()
         .get_all(header::COOKIE)
@@ -112,8 +113,14 @@ async fn proxy(State(p): State<Proxy>, req: Request) -> Result<Response, ApiErro
         {
             return Err(ApiError::unauthorized());
         }
-        let mut response=StatusCode::NO_CONTENT.into_response();
-        response.headers_mut().insert(header::SET_COOKIE,HeaderValue::from_str(&format!("xenica_runtime={token}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=900")).map_err(|_|ApiError::internal())?);
+        let mut response = StatusCode::NO_CONTENT.into_response();
+        response.headers_mut().insert(
+            header::SET_COOKIE,
+            HeaderValue::from_str(&format!(
+                "xenica_runtime={token}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=900"
+            ))
+            .map_err(|_| ApiError::internal())?,
+        );
         return Ok(response);
     }
     if req.uri().path().starts_with("/api/auth/") && req.method() != axum::http::Method::GET {
@@ -166,7 +173,7 @@ async fn proxy(State(p): State<Proxy>, req: Request) -> Result<Response, ApiErro
     {
         let html = String::from_utf8(data.to_vec()).map_err(|_| ApiError::internal())?;
         // 自动轮询不算人在体验；只有真实输入延长运行资源的空闲期限。
-        let activity = "<script>(()=>{let last=0;for(const e of ['pointerdown','wheel','keydown'])document.addEventListener(e,()=>{if(Date.now()-last<30000)return;last=Date.now();fetch('/__activity',{method:'POST',credentials:'same-origin',keepalive:true}).catch(()=>{});},{passive:true,capture:true});})();</script>";
+        let activity = "<script>(()=>{let last=0;document.addEventListener('keydown',e=>{if(e.key==='Escape')parent.postMessage('xenica:return-to-canvas','*');});for(const e of ['pointerdown','wheel','keydown'])document.addEventListener(e,()=>{if(Date.now()-last<30000)return;last=Date.now();fetch('/__activity',{method:'POST',credentials:'same-origin',keepalive:true}).catch(()=>{});},{passive:true,capture:true});})();</script>";
         html.replace("</body>", &format!("{activity}</body>"))
             .into_bytes()
     } else {
@@ -185,11 +192,11 @@ async fn proxy(State(p): State<Proxy>, req: Request) -> Result<Response, ApiErro
         && location
             .to_str()
             .is_ok_and(|v| v.starts_with('/') && !v.starts_with("//"))
-        {
-            response
-                .headers_mut()
-                .insert(header::LOCATION, location.clone());
-        }
+    {
+        response
+            .headers_mut()
+            .insert(header::LOCATION, location.clone());
+    }
     response
         .headers_mut()
         .insert(header::CACHE_CONTROL, HeaderValue::from_static("no-store"));
@@ -222,7 +229,16 @@ pub async fn serve(store: Store) -> anyhow::Result<()> {
             .build()?,
     };
     let router = Router::new()
-        .route("/__health", get(|State(p):State<Proxy>|async move {p.store.ping().await.map(|_|StatusCode::OK).map_err(ApiError::from)}))
+        .route(
+            "/__health",
+            get(|State(p): State<Proxy>| async move {
+                p.store
+                    .ping()
+                    .await
+                    .map(|_| StatusCode::OK)
+                    .map_err(ApiError::from)
+            }),
+        )
         .route("/__bridge", get(bridge))
         .fallback(proxy)
         .with_state(p);

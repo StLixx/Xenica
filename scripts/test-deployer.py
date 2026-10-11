@@ -33,7 +33,7 @@ elif a[:2] == ['ps', '-a']: pass
 
 
 class DeployerTests(unittest.TestCase):
-    def run_deployer(self, digest=NEW, running=OLD, production=False, rollback=False):
+    def run_deployer(self, digest=NEW, running=OLD, production=False, rollback=False, archive_failure=False):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             deploy = root / 'deploy'
@@ -45,6 +45,7 @@ class DeployerTests(unittest.TestCase):
             source = Path(os.getenv('DEPLOYER_UNDER_TEST', ROOT / 'deploy/deployer/deploy.sh'))
             script = deploy / 'deployer/deploy.sh'
             script.write_text(source.read_text(encoding='utf-8-sig'))
+            (deploy / 'deployer/archive-version.py').write_text('import os, pathlib, sys\np=pathlib.Path(os.environ["ARCHIVE_COUNT"])\nn=int(p.read_text())+1 if p.exists() else 1\np.write_text(str(n))\nsys.exit(1 if os.environ.get("ARCHIVE_FAILURE")=="1" and n==2 else 0)\n')
             (deploy / '.env').write_text('XENICA_HOST=test.invalid\n')
             (deploy / 'compose.yaml').write_text('services: {}\n')
             binary = root / 'bin'
@@ -58,6 +59,7 @@ class DeployerTests(unittest.TestCase):
                    'XENICA_STATE': str(state), 'XENICA_ONLY_PREVIEW': '' if production else '55',
                    'MOCK_LOG': str(log), 'MOCK_DIGEST': digest, 'MOCK_RUNNING': running,
                    'MOCK_ROLLBACK': '1' if rollback else '0'}
+            env.update(ARCHIVE_COUNT=str(root/'archive-count'), ARCHIVE_FAILURE='1' if archive_failure else '0')
             result = subprocess.run(['bash', str(script)], env=env, capture_output=True, text=True, timeout=30)
             self.assertEqual(result.returncode, 0, result.stderr)
             return [json.loads(line) for line in log.read_text().splitlines()]
@@ -84,6 +86,11 @@ class DeployerTests(unittest.TestCase):
         up = [c for c in calls if 'compose' in c['args'] and 'up' in c['args']]
         self.assertEqual([c['artifact'] for c in up], [NEW, OLD])
         self.assertEqual(up[1]['image'], 'ghcr.io/stlixx/xenica:previous')
+
+    def test_missing_new_archive_rolls_back_even_after_health_passes(self):
+        calls = self.run_deployer(production=True, archive_failure=True)
+        up = [c for c in calls if 'compose' in c['args'] and 'up' in c['args']]
+        self.assertEqual([c['artifact'] for c in up], [NEW, OLD])
 
 
 if __name__ == '__main__':

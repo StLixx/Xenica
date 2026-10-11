@@ -138,7 +138,12 @@ export default function CanvasSurface({ node, save, ...management }: CanvasProps
   const addEmbed = async (kind: 'react' | 'page' | 'runtime', address?: string, title?: string) => {
     const live = editor.current;
     if (!live) return;
-    const link = kind === 'react' ? ASIDE_URL : kind === 'runtime' ? `https://xenica.invalid/versions/${address}` : pageURL(address ?? url);
+    const link =
+      kind === 'react'
+        ? ASIDE_URL
+        : kind === 'runtime'
+          ? `https://xenica.invalid/versions/${address}`
+          : pageURL(address ?? url);
     if (!link) {
       setError('请输入不含登录凭据或分享令牌的 HTTPS 网页地址。');
       return;
@@ -179,16 +184,31 @@ export default function CanvasSurface({ node, save, ...management }: CanvasProps
     setError('');
   };
 
-  const addNote = async (text:string,id:string,source:string) => {
-    const live=editor.current;
-    if(!live)return;
-    const existing=live.getSceneElements().find(el=>(el.customData?.xenicaContext as {id?:string}|undefined)?.id===id);
-    if(existing){live.scrollToContent(existing);return;}
-    const {convertToExcalidrawElements}=await import('@excalidraw/excalidraw');
-    const app=live.getAppState();
-    const elements=convertToExcalidrawElements([{type:'rectangle',x:-app.scrollX+app.width/app.zoom.value/2-240,y:-app.scrollY+app.height/app.zoom.value/2-180,width:480,height:180,label:{text},customData:{xenicaContext:{id,source,type:'confirmed-decision'}}}]);
-    live.updateScene({elements:[...live.getSceneElements(),...elements]});
-    live.toggleSidebar({name:'xenica',force:false});
+  const addNote = async (text: string, id: string, source: string) => {
+    const live = editor.current;
+    if (!live) return;
+    const existing = live
+      .getSceneElements()
+      .find((el) => (el.customData?.xenicaContext as { id?: string } | undefined)?.id === id);
+    if (existing) {
+      live.scrollToContent(existing);
+      return;
+    }
+    const { convertToExcalidrawElements } = await import('@excalidraw/excalidraw');
+    const app = live.getAppState();
+    const elements = convertToExcalidrawElements([
+      {
+        type: 'rectangle',
+        x: -app.scrollX + app.width / app.zoom.value / 2 - 240,
+        y: -app.scrollY + app.height / app.zoom.value / 2 - 180,
+        width: 480,
+        height: 180,
+        label: { text },
+        customData: { xenicaContext: { id, source, type: 'confirmed-decision' } },
+      },
+    ]);
+    live.updateScene({ elements: [...live.getSceneElements(), ...elements] });
+    live.toggleSidebar({ name: 'xenica', force: false });
   };
 
   // 画面里的图存在库里，打开时按原样取回来。

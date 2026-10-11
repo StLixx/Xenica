@@ -94,34 +94,96 @@ pub async fn export(store: &Store, id: NodeId) -> Result<Archive, StoreError> {
 }
 
 /// 在唯一画板新增原件的带来源副本，原件节点和已有画面均不修改。
-pub async fn attach_to_board(store:&Store,source:NodeId)->Result<Node,StoreError> {
-    let original=export(store,source).await?;
-    let actor=Actor::Processor{id:"board-organizer".into(),version:"0.2.5".into()};
-    let board=store.development_board(&actor).await?;
-    if board.id==source{return Ok(board)}
-    let identity=format!("{:x}",Sha256::digest(serde_json::to_vec(&original.node.body).map_err(|_|xenica_core::DomainError::Invalid("原件无法编码".into()))?));
-    let mut body=board.body.clone();
-    let mut origins=body.get("attachedArchives").and_then(Value::as_array).cloned().unwrap_or_default();
-    if origins.iter().any(|o|o["source"]==source.to_string()&&o["sha256"]==identity){return Ok(board)}
-    let existing=body["scene"]["elements"].as_array().cloned().unwrap_or_default();
-    let mut elements=original.node.body["scene"]["elements"].as_array().cloned().unwrap_or_default();
-    let map:HashMap<String,String>=elements.iter().filter_map(|e|e["id"].as_str()).map(|id|(id.to_owned(),format!("archive-{:x}",Sha256::digest(format!("{source}/{identity}/{id}"))))).collect();
-    fn remap(value:&mut Value,map:&HashMap<String,String>) {
+pub async fn attach_to_board(store: &Store, source: NodeId) -> Result<Node, StoreError> {
+    let original = export(store, source).await?;
+    let actor = Actor::Processor {
+        id: "board-organizer".into(),
+        version: "0.2.5".into(),
+    };
+    let board = store.development_board(&actor).await?;
+    if board.id == source {
+        return Ok(board);
+    }
+    let identity = format!(
+        "{:x}",
+        Sha256::digest(
+            serde_json::to_vec(&original.node.body)
+                .map_err(|_| xenica_core::DomainError::Invalid("原件无法编码".into()))?
+        )
+    );
+    let mut body = board.body.clone();
+    let mut origins = body
+        .get("attachedArchives")
+        .and_then(Value::as_array)
+        .cloned()
+        .unwrap_or_default();
+    if origins
+        .iter()
+        .any(|o| o["source"] == source.to_string() && o["sha256"] == identity)
+    {
+        return Ok(board);
+    }
+    let existing = body["scene"]["elements"]
+        .as_array()
+        .cloned()
+        .unwrap_or_default();
+    let mut elements = original.node.body["scene"]["elements"]
+        .as_array()
+        .cloned()
+        .unwrap_or_default();
+    let map: HashMap<String, String> = elements
+        .iter()
+        .filter_map(|e| e["id"].as_str())
+        .map(|id| {
+            (
+                id.to_owned(),
+                format!(
+                    "archive-{:x}",
+                    Sha256::digest(format!("{source}/{identity}/{id}"))
+                ),
+            )
+        })
+        .collect();
+    fn remap(value: &mut Value, map: &HashMap<String, String>) {
         match value {
-            Value::Object(object)=>for(key,value)in object {
-                if matches!(key.as_str(),"id"|"containerId"|"frameId"|"elementId") && let Some(next)=value.as_str().and_then(|s|map.get(s)){*value=Value::String(next.clone());}
-                else{remap(value,map)}
-            },
-            Value::Array(array)=>for value in array{remap(value,map)},
-            _=>{},
+            Value::Object(object) => {
+                for (key, value) in object {
+                    if matches!(key.as_str(), "id" | "containerId" | "frameId" | "elementId")
+                        && let Some(next) = value.as_str().and_then(|s| map.get(s))
+                    {
+                        *value = Value::String(next.clone());
+                    } else {
+                        remap(value, map)
+                    }
+                }
+            }
+            Value::Array(array) => {
+                for value in array {
+                    remap(value, map)
+                }
+            }
+            _ => {}
         }
     }
-    for element in &mut elements {remap(element,&map);}
-    let mut merged=existing;merged.extend(elements);
-    body["scene"]["elements"]=json!(merged);
+    for element in &mut elements {
+        remap(element, &map);
+    }
+    let mut merged = existing;
+    merged.extend(elements);
+    body["scene"]["elements"] = json!(merged);
     origins.push(json!({"source":source,"revision":original.node.updated_at,"sha256":identity}));
-    body["attachedArchives"]=json!(origins);
-    store.update_node_checked(&actor,board.id,xenica_core::NodePatch{title:None,body:Some(body)},Some(board.updated_at)).await
+    body["attachedArchives"] = json!(origins);
+    store
+        .update_node_checked(
+            &actor,
+            board.id,
+            xenica_core::NodePatch {
+                title: None,
+                body: Some(body),
+            },
+            Some(board.updated_at),
+        )
+        .await
 }
 
 fn remap(value: &mut Value, ids: &HashMap<String, String>) {

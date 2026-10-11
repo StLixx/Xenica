@@ -35,7 +35,7 @@ export function EmbedCard({
       </header>
       <div className="relative min-h-0 flex-1">
         {source?.kind === 'runtime' && source.version ? (
-          <RuntimeCard version={source.version} active={active} />
+          <RuntimeCard version={source.version} active={active} exit={exit} />
         ) : source?.kind === 'react' ? (
           <AsidePreview id={id} />
         ) : source ? (
@@ -59,7 +59,7 @@ export function EmbedCard({
       <footer className="flex shrink-0 items-center gap-2 border-t border-line px-2 py-1 text-meta text-fg-3">
         <span className="min-w-0 flex-1 truncate" title={source?.source ?? source?.url}>
           {source?.kind === 'react'
-            ? `真实组件 · ${source.revision.slice(0, 7)}`
+            ? '真实组件'
             : source
               ? '未显示？可打开原页'
               : '无可用来源'}

@@ -10,7 +10,7 @@ export function StatusBar() {
         {health.isPending
           ? '连接中…'
           : ok
-            ? `已连接 · v${health.data.version}${health.data.commit ? ` · ${health.data.commit.slice(0, 7)}` : ''}`
+            ? `已连接 · v${health.data.version}`
             : '后端不可用'}
       </span>
     </footer>
