@@ -8,6 +8,7 @@ function policyHash(root) {
     '.github/scripts/candidate.cjs', '.github/scripts/readiness.cjs', '.github/scripts/verify-delivery.cjs', '.github/scripts/gate.cjs', '.github/scripts/build-candidate.cjs',
     '.github/workflows/ci.yml', '.github/workflows/approve.yml',
     'web/.dependency-cruiser.cjs', 'web/eslint.config.js',
+    'web/playwright.config.ts',
     'scripts/check-arch.sh', 'scripts/check-context.cjs', 'scripts/setup-github.sh',
     '.github/scripts/journal.cjs', '.github/scripts/acceptance.cjs', '.github/scripts/promote.cjs',
     '.github/scripts/read-acceptance.cjs',
