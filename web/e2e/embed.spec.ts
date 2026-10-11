@@ -256,7 +256,8 @@ test('旧画布不覆盖 AI 写回，冲突双方可保留', async ({ page }, te
   });
   expect(written.ok()).toBeTruthy();
   await page.getByRole('button', { name: '嵌入内容', exact: true }).click();
-  await page.getByRole('button', { name: '共享侧栏组件', exact: true }).click();
+  // 重复添加同一组件现在只定位原卡片；用不同内容产生真实的本地修改。
+  await page.getByRole('button', { name: '本次 Xenica 页面', exact: true }).click();
   await expect(page.getByRole('alert')).toContainText('本次修改未覆盖新版');
   const remote = await (await page.request.get(`/api/nodes/${id}`)).json();
   expect(remote.body.scene.elements[0].width).toBe(560);

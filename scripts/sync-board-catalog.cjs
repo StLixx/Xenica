@@ -15,8 +15,9 @@ async function main(){
   if(process.env.EXPECTED_SOURCE&&health.commit!==process.env.EXPECTED_SOURCE)throw new Error('board artifact changed');
   const board=await request('/api/development-board','POST');
   const elements=board.body.scene.elements;
+  const catalogSha256=createHash('sha256').update(JSON.stringify(catalog)).digest('hex');
   const prefix='catalog-'+health.commit.slice(0,12)+'-';
-  if(elements.some(e=>e.customData?.xenicaCatalog?.source===health.commit)){console.log('board catalog already attached');return;}
+  if(board.body.catalogAttachments?.some(a=>a.catalogSha256===catalogSha256)){console.log('board catalog already attached');return;}
   const rectangle=elements.find(e=>e.type==='rectangle');const text=elements.find(e=>e.type==='text');
   if(!rectangle||!text)throw new Error('original board must be attached before catalog organization');
   const identity=s=>prefix+createHash('sha256').update(s).digest('hex').slice(0,24);
