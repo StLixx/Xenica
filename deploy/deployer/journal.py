@@ -7,6 +7,7 @@ import urllib.error
 import urllib.request
 
 def publish_archive(metadata, token):
+    token = token.strip()
     if not token:raise RuntimeError('archive publication credential is missing')
     repo=os.environ.get('XENICA_REPO','StLixx/Xenica')
     assert repo=='StLixx/Xenica'
@@ -15,7 +16,12 @@ def publish_archive(metadata, token):
         request=urllib.request.Request('https://api.github.com/repos/'+repo+'/'+path,
             data=None if data is None else json.dumps(data).encode(),method=method,
             headers={'Authorization':'Bearer '+token,'Accept':'application/vnd.github+json','User-Agent':'xenica-archive','Content-Type':'application/json'})
-        with urllib.request.urlopen(request,timeout=30) as response:return json.load(response)
+        try:
+            with urllib.request.urlopen(request,timeout=30) as response:return json.load(response)
+        except urllib.error.HTTPError:
+            raise
+        except Exception:
+            raise RuntimeError('archive publication transport failed') from None
     record={'schema':1,'type':'archive','source':metadata['source'],'archive':metadata,'recovery':'xenica-history://snapshots/'+metadata['snapshot']}
     text=json.dumps(record,ensure_ascii=False,separators=(',',':'))
     digest=hashlib.sha256(text.encode()).hexdigest()
