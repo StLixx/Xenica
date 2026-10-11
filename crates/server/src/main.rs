@@ -17,7 +17,8 @@ async fn main() -> anyhow::Result<()> {
             println!("{}", xenica_server::openapi().to_pretty_json()?);
             Ok(())
         }
-        Some("healthcheck") => healthcheck(),
+        Some("healthcheck") => healthcheck("/api/health"),
+        Some("runtime-healthcheck") => healthcheck("/__health"),
         Some("runtime-proxy") => xenica_server::runtime_proxy::serve(Store::connect(&std::env::var("DATABASE_URL")?).await?).await,
         Some("runtime-queue") => {
             let store=Store::connect(&std::env::var("DATABASE_URL")?).await?;
@@ -123,12 +124,12 @@ async fn shutdown() {
 }
 
 /// 给容器健康检查用：不依赖 curl，直接请求 `/api/health`。
-fn healthcheck() -> anyhow::Result<()> {
+fn healthcheck(path:&str) -> anyhow::Result<()> {
     let addr = std::env::var("XENICA_ADDR").unwrap_or_else(|_| "0.0.0.0:8080".into());
     let port = addr.rsplit(':').next().unwrap_or("8080");
     let mut stream = std::net::TcpStream::connect(("127.0.0.1", port.parse::<u16>()?))?;
     stream.set_read_timeout(Some(std::time::Duration::from_secs(3)))?;
-    stream.write_all(b"GET /api/health HTTP/1.0\r\nHost: localhost\r\n\r\n")?;
+    stream.write_all(format!("GET {path} HTTP/1.0\r\nHost: localhost\r\n\r\n").as_bytes())?;
     let mut buf = String::new();
     stream.read_to_string(&mut buf)?;
     if buf.starts_with("HTTP/1.0 200") || buf.starts_with("HTTP/1.1 200") {

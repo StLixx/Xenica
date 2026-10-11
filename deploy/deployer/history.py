@@ -27,7 +27,7 @@ def validate(version, root=ROOT):
     return path
 
 def state(parent, runtime, value, message=''):
-    run('docker','exec',parent,'/xenica','runtime-state',runtime['id'],str(runtime['generation']),value,message)
+    run('docker','exec',parent,'/app/xenica','runtime-state',runtime['id'],str(runtime['generation']),value,message)
 
 def names(runtime):
     rid = str(uuid.UUID(runtime['id']))
@@ -76,7 +76,7 @@ def start(parent,runtime,version):
     run('docker','run','-d','--name',name+'-app','--network',name,'--label','traefik.enable=false','--read-only','--cap-drop=ALL','--memory','512m',
         '-e','DATABASE_URL='+database,'-e','XENICA_ARTIFACT='+version['image'].split('@')[1],version['image'])
     for _ in range(90):
-        if subprocess.run(['docker','exec',name+'-app','/xenica','healthcheck'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL).returncode==0: break
+        if subprocess.run(['docker','exec',name+'-app','/app/xenica','healthcheck'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL).returncode==0: break
         time.sleep(1)
     else: raise RuntimeError('历史页面未就绪')
     run('docker','run','-d','--name',name+'-gateway','--network',name,'--label','xenica.history=gateway',
@@ -84,20 +84,26 @@ def start(parent,runtime,version):
         '--label',f'traefik.http.routers.history-{runtime["id"]}.rule=Host(`history-{runtime["id"]}.xenica.truebigsand.top`)',
         '--label',f'traefik.http.routers.history-{runtime["id"]}.entrypoints=web',
         '--label',f'traefik.http.services.history-{runtime["id"]}.loadbalancer.server.port=8080',
-        '--read-only','--cap-drop=ALL','--memory','128m','-v',str(secret)+':/run/secrets/runtime_session:ro',
+        '--read-only','--cap-drop=ALL','--no-healthcheck','--memory','128m','-v',str(secret)+':/run/secrets/runtime_session:ro',
         '-e','DATABASE_URL='+env['DATABASE_URL'],'-e','XENICA_RUNTIME_ID='+runtime['id'],
         '-e','XENICA_RUNTIME_UPSTREAM=http://'+name+'-app:8080',image,'runtime-proxy')
     run('docker','network','connect',parent_net,name+'-gateway')
     run('docker','network','connect','xenica-edge',name+'-gateway')
+    for _ in range(30):
+        if subprocess.run(['docker','exec',name+'-gateway','/app/xenica','runtime-healthcheck'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL).returncode==0:break
+        time.sleep(1)
+    else:raise RuntimeError('历史授权入口未就绪')
     state(parent,runtime,'running')
 
 def reconcile(parent):
     versions={v['id']:v for v in json.loads(CATALOG.read_text())['versions']}
-    queue=json.loads(run('docker','exec',parent,'/xenica','runtime-queue'))
+    queue=json.loads(run('docker','exec',parent,'/app/xenica','runtime-queue'))
     for runtime in queue:
         try:
             if runtime['state']=='stopping': stop(parent,runtime)
             elif runtime['state']=='preparing': start(parent,runtime,versions[runtime['version']])
+            elif runtime['state']=='running':
+                run('docker','exec',names(runtime)+'-gateway','/app/xenica','runtime-healthcheck')
         except Exception:
             # 异常原文可能含 docker env 或私密地址，不公开。
             name=names(runtime)

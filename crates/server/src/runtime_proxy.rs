@@ -222,6 +222,7 @@ pub async fn serve(store: Store) -> anyhow::Result<()> {
             .build()?,
     };
     let router = Router::new()
+        .route("/__health", get(|State(p):State<Proxy>|async move {p.store.ping().await.map(|_|StatusCode::OK).map_err(ApiError::from)}))
         .route("/__bridge", get(bridge))
         .fallback(proxy)
         .with_state(p);
