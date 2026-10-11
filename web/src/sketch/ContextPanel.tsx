@@ -2,10 +2,10 @@ import { useRef, useState } from 'react';
 
 import type { Node } from '../api/client';
 import { saveSketch, uploadImage, useHealth } from '../api/queries';
-import { Button, TextInput } from '../ui';
+import { Button } from '@excalidraw/excalidraw';
 
 /** 设计说明与真实截图属于画布数据；编辑需和画布保存一样检查版本。 */
-export function ContextPanel({ node, close }: { node: Node; close: () => void }) {
+export function ContextPanel({ node }: { node: Node }) {
   const body = node.body as Record<string, unknown>;
   const context = (body.context ?? {}) as Record<string, unknown>;
   const [intent, setIntent] = useState(String(context.intent ?? ''));
@@ -63,34 +63,33 @@ export function ContextPanel({ node, close }: { node: Node; close: () => void })
     }
   };
   return (
-    <div className="flex max-h-96 w-80 flex-col gap-2 overflow-y-auto rounded-md border border-line bg-pop p-3 shadow-pop">
+    <div className="xenica-panel">
       <p className="text-strong">设计上下文</p>
-      <p className="text-meta text-fg-2">
-        保存目标、已确认决定、待确认事项和下一步，供新会话读取。
-      </p>
+      <p className="xenica-text">保存目标、已确认决定、待确认事项和下一步，供新会话读取。</p>
       <textarea
         aria-label="设计说明"
         value={intent}
         onChange={(e) => setIntent(e.target.value)}
-        className="min-h-32 rounded-sm bg-hover p-2 text-body text-fg"
+        className="xenica-text"
       />
-      <p className="text-meta text-fg-2">
-        真实截图与结构 PNG 分开保存。请填写截图实际对应的来源和版本。
-      </p>
+      <p className="xenica-text">真实截图与结构 PNG 分开保存。请填写截图实际对应的来源和版本。</p>
       <details>
         <summary className="item">截图来源与版本</summary>
-        <TextInput
+        <input
+          className="xenica-input"
           aria-label="截图关联元素 ID"
           placeholder="元素 ID（整图可留空）"
           value={element}
           onChange={(e) => setElement(e.target.value)}
         />
-        <TextInput
+        <input
+          className="xenica-input"
           aria-label="截图来源"
           value={source}
           onChange={(e) => setSource(e.target.value)}
         />
-        <TextInput
+        <input
+          className="xenica-input"
           aria-label="截图对应版本"
           value={revision}
           onChange={(e) => setRevision(e.target.value)}
@@ -104,29 +103,26 @@ export function ContextPanel({ node, close }: { node: Node; close: () => void })
         accept="image/png,image/jpeg,image/webp"
         onChange={(e) => setFile(e.target.files?.[0] ?? null)}
       />
-      <Button onClick={() => fileInput.current?.click()}>添加真实截图</Button>
+      <Button onSelect={() => fileInput.current?.click()}>添加真实截图</Button>
       {file ? (
-        <p className="truncate text-meta text-fg-2" title={file.name}>
+        <p className="xenica-text" title={file.name}>
           {file.name}
         </p>
       ) : null}
-      <Button disabled={busy} onClick={() => void store()}>
+      <Button disabled={busy} onSelect={() => void store()}>
         保存设计上下文
       </Button>
-      <a href={`/api/nodes/${node.id}/archive`} download className="text-label text-accent">
+      <a href={`/api/nodes/${node.id}/archive`} download className="xenica-text">
         导出可迁移档案（含历史与原图）
       </a>
-      <p className="text-meta text-fg-3">
+      <p className="xenica-text">
         长期设计保存在正式草图站；预览中的内容需先归档迁移。档案不含分享令牌。
       </p>
       {message ? (
-        <p role="status" className="text-meta text-fg-2">
+        <p role="status" className="xenica-text">
           {message}
         </p>
       ) : null}
-      <Button variant="ghost" onClick={close}>
-        关闭设计上下文
-      </Button>
     </div>
   );
 }

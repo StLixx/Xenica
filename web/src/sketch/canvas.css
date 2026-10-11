@@ -1,0 +1,78 @@
+/* 扩展沿用 Excalidraw 的主题与组件尺寸，不重建另一套画板外壳。 */
+.excalidraw .xenica-tools {
+  display: flex;
+  align-items: center;
+  gap: var(--x-gap);
+}
+
+.excalidraw .xenica-tools svg,
+.excalidraw .sidebar.sidebar--xenica .sidebar-tab-trigger svg {
+  width: var(--default-icon-size, 1em);
+  height: var(--default-icon-size, 1em);
+  stroke-width: 1.5;
+}
+
+.excalidraw .xenica-tool.excalidraw-button {
+  width: var(--lg-button-size);
+  height: var(--lg-button-size);
+  padding: 0;
+}
+
+.excalidraw .xenica-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--x-gap);
+  padding: var(--x-gap);
+  color: var(--color-on-surface);
+  font: inherit;
+}
+
+.excalidraw .xenica-panel h2,
+.excalidraw .xenica-panel h3 {
+  margin: 0;
+  font: inherit;
+  font-weight: 600;
+}
+
+.excalidraw .xenica-panel p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.excalidraw .xenica-panel a {
+  color: var(--color-primary);
+}
+
+.excalidraw .xenica-panel input,
+.excalidraw .xenica-panel textarea {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: var(--x-row);
+  padding: var(--x-gap);
+  color: var(--color-on-surface);
+  background: var(--color-surface-high);
+  border: 1px solid var(--default-border-color);
+  border-radius: var(--border-radius-md);
+  font: inherit;
+}
+
+.excalidraw .xenica-panel textarea {
+  min-height: var(--x-palette-top);
+  resize: vertical;
+}
+
+.excalidraw .xenica-panel .excalidraw-button {
+  width: 100%;
+  flex-shrink: 0;
+}
+
+.excalidraw .xenica-board-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--x-gap);
+}
+
+.excalidraw .xenica-save-state {
+  font: inherit;
+  color: var(--color-on-surface);
+}

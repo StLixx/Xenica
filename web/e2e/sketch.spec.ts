@@ -16,9 +16,12 @@ test('画一张草图，给 AI 的链接能读到画了什么', async ({ page, b
 
   // 独立入口：/sketch（域名入口见 ADR 0009，同一个前端）
   await page.goto('/sketch');
-  await page.getByRole('button', { name: '新建' }).click();
+  await page.getByRole('button', { name: '画布管理', exact: true }).click();
+  const initial = page.url();
+  await page.getByRole('button', { name: '新建草图', exact: true }).click();
+  await expect.poll(() => page.url()).not.toBe(initial);
   await expect(page).toHaveURL(/\/sketch\/[0-9a-f-]{36}/);
-  const id = page.url().split('/sketch/')[1] as string;
+  const id = page.url().split('/sketch/')[1]?.split('/')[0] as string;
 
   // 画布起来了：画一个框
   const stage = page.locator('.excalidraw').first();

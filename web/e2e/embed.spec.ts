@@ -10,12 +10,15 @@ async function openSketch(page: Page) {
   await page.getByRole('button', { name: '登录', exact: true }).click();
   await expect(page.getByTestId('connection')).toContainText('已连接');
   await page.goto('/sketch');
-  await page.getByRole('button', { name: '新建', exact: false }).click();
+  await page.getByRole('button', { name: '画布管理', exact: true }).click();
+  const initial = page.url();
+  await page.getByRole('button', { name: '新建草图', exact: true }).click();
+  await expect.poll(() => page.url()).not.toBe(initial);
   await expect(page).toHaveURL(/\/sketch\/[0-9a-f-]{36}/);
   await expect(page.getByRole('button', { name: '嵌入内容', exact: true })).toBeVisible({
     timeout: 30_000,
   });
-  return page.url().split('/sketch/')[1] as string;
+  return page.url().split('/sketch/')[1]?.split('/')[0] as string;
 }
 
 test('真实侧栏可交互，保存和分享保留组件身份，AI 可编辑卡片', async ({

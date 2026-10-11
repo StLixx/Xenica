@@ -11,6 +11,8 @@ export function sketchIdFromPath(): string | null {
 }
 
 /** 选中一张草图时把 id 写进地址，方便刷新和分享。 */
-export function putSketchInPath(id: string): void {
-  history.replaceState(null, '', `/sketch/${id}`);
+export function putSketchInPath(id: string, replace = false, title = ''): void {
+  const path = `/sketch/${id}${title.trim() ? `/${encodeURIComponent(title.trim())}` : ''}`;
+  if (location.pathname === path) return;
+  history[replace ? 'replaceState' : 'pushState'](null, '', path);
 }
