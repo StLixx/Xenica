@@ -57,7 +57,9 @@ jobs:
       - name: 接续索引完整性
         run: node scripts/check-context.cjs
       - name: 原始画板迁移无损回归
-        run: python3 scripts/test-excalidraw-archive.py
+        run: |
+          python3 scripts/test-excalidraw-archive.py
+          python3 scripts/test-deployer.py
       - name: sqlx offline cache is up to date
         run: |
           cargo sqlx migrate run --source crates/store/migrations
