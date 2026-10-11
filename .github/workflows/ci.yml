@@ -221,7 +221,8 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - uses: docker/build-push-action@v6
+      - id: image
+        uses: docker/build-push-action@v6
         with:
           context: .
           push: ${{ env.PUSH == 'true' }}
@@ -232,6 +233,28 @@ jobs:
             ghcr.io/stlixx/xenica:${{ env.SHA }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+      - if: github.event_name == 'pull_request' && env.PUSH == 'true'
+        name: 生成交付候选身份
+        uses: actions/github-script@v8
+        env:
+          ARTIFACT_DIGEST: ${{ steps.image.outputs.digest }}
+        with:
+          script: |
+            const buildCandidate = require('./.github/scripts/build-candidate.cjs');
+            const candidate = buildCandidate({
+              root: process.cwd(), source: context.payload.pull_request.head.sha,
+              base: context.payload.pull_request.base.sha, artifact: process.env.ARTIFACT_DIGEST,
+              number: context.payload.pull_request.number, run: Number(process.env.GITHUB_RUN_ID),
+              attempt: Number(process.env.GITHUB_RUN_ATTEMPT),
+            });
+            require('node:fs').writeFileSync('delivery-candidate.json', JSON.stringify(candidate, null, 2));
+            core.info(`交付候选：${candidate.id}`);
+      - if: github.event_name == 'pull_request' && env.PUSH == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: delivery-candidate-${{ github.run_attempt }}
+          path: delivery-candidate.json
+          if-no-files-found: error
 
   # 验收门：能撤回的改动直接合并；截图有变化或改动撤不回，等你评论 /通过。
   gate:
