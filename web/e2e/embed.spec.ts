@@ -266,9 +266,9 @@ test('旧画布不覆盖 AI 写回，冲突双方可保留', async ({ page }, te
   await page.screenshot({ path: testInfo.outputPath('conflict-preserved.png') });
   await page.unroute(`**/api/nodes/${id}`);
   await page.getByRole('button', { name: '加载新版', exact: true }).click();
-  await expect(
-    page.getByRole('region', { name: '嵌入卡片：共享侧栏', exact: true }),
-  ).toHaveCount(1);
+  await expect(page.getByRole('region', { name: '嵌入卡片：共享侧栏', exact: true })).toHaveCount(
+    1,
+  );
   await expect
     .poll(async () =>
       page
