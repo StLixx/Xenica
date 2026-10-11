@@ -26,7 +26,8 @@
         "specs/54-delivery-system/spec.md",
         "crates/server/src/archive.rs",
         "crates/store/src/nodes.rs",
-        "web/e2e/development-board.spec.ts"
+        "web/e2e/development-board.spec.ts",
+        "docs/context/v0.2.5-canvas-archive.md"
       ],
       "task": 57,
       "implementation": "in-progress"
