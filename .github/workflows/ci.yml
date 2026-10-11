@@ -222,7 +222,17 @@ jobs:
       TAG: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || 'latest' }}
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: ${{ env.SHA }}
       - uses: docker/setup-buildx-action@v3
+      - id: retained
+        name: 相同源码重跑复用永久产物
+        if: env.PUSH == 'true'
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const artifact=await require('./.github/scripts/find-source-artifact.cjs')({github,...context.repo,source:process.env.SHA});
+            core.setOutput('artifact',artifact || '');
       - if: env.PUSH == 'true'
         uses: docker/login-action@v3
         with:
@@ -230,6 +240,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - id: image
+        if: steps.retained.outputs.artifact == ''
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -241,11 +252,23 @@ jobs:
             ghcr.io/stlixx/xenica:${{ env.SHA }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+      - if: steps.retained.outputs.artifact != ''
+        name: 核验并关联同一不可变镜像
+        env:
+          RETAINED: ${{ steps.retained.outputs.artifact }}
+        run: |
+          image="ghcr.io/stlixx/xenica@$RETAINED"
+          docker pull "$image"
+          test "$(docker image inspect "$image" --format '{{ index .Config.Labels "org.opencontainers.image.revision" }}')" = "$SHA"
+          actual=$(docker buildx imagetools inspect "$image" --format '{{json .Manifest}}' | jq -r .digest)
+          test "$actual" = "$RETAINED"
+          docker buildx imagetools create --prefer-index=false --tag "ghcr.io/stlixx/xenica:$TAG" "$image"
+          test "$(docker buildx imagetools inspect "ghcr.io/stlixx/xenica:$TAG" --format '{{json .Manifest}}' | jq -r .digest)" = "$RETAINED"
       - if: github.event_name == 'pull_request' && env.PUSH == 'true'
         name: 生成交付候选身份
         uses: actions/github-script@v8
         env:
-          ARTIFACT_DIGEST: ${{ steps.image.outputs.digest }}
+          ARTIFACT_DIGEST: ${{ steps.retained.outputs.artifact || steps.image.outputs.digest }}
         with:
           script: |
             const buildCandidate = require('./.github/scripts/build-candidate.cjs');

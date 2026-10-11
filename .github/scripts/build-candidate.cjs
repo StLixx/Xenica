@@ -13,6 +13,7 @@ function policyHash(root) {
     '.github/scripts/read-acceptance.cjs',
     '.github/scripts/find-candidate.cjs',
     '.github/scripts/append-record.cjs',
+    '.github/scripts/find-source-artifact.cjs',
   ];
   const hash = createHash('sha256');
   for (const file of files.sort()) {
