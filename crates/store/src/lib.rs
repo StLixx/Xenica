@@ -12,11 +12,13 @@ mod files;
 mod nodes;
 mod shares;
 mod traces;
+mod runtimes;
 
 pub use error::StoreError;
 pub use files::StoredFile;
 pub use shares::Share;
 pub use sqlx::PgPool;
+pub use runtimes::DevelopmentRuntime;
 
 use sqlx::{Postgres, Transaction};
 use xenica_core::{Actor, TraceId};

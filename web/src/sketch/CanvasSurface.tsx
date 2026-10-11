@@ -15,6 +15,7 @@ import {
 import { EmptyState } from '../ui';
 import { CanvasPanels } from './CanvasPanels';
 import { EmbedCard } from './EmbedCard';
+import { DevelopmentPanel } from './DevelopmentPanel';
 import { ASIDE_URL, embedSource, pageURL, type EmbedSource } from './embed';
 import type { Scene, SceneElement } from './scene';
 import { dataURLtoBlob, fileIdsOf, sceneOf, signature } from './scene';
@@ -134,10 +135,10 @@ export default function CanvasSurface({ node, save, ...management }: CanvasProps
     editor.current?.setActiveTool({ type: 'selection' });
   };
 
-  const addEmbed = async (kind: 'react' | 'page', address?: string) => {
+  const addEmbed = async (kind: 'react' | 'page' | 'runtime', address?: string, title?: string) => {
     const live = editor.current;
     if (!live) return;
-    const link = kind === 'react' ? ASIDE_URL : pageURL(address ?? url);
+    const link = kind === 'react' ? ASIDE_URL : kind === 'runtime' ? `https://xenica.invalid/versions/${address}` : pageURL(address ?? url);
     if (!link) {
       setError('请输入不含登录凭据或分享令牌的 HTTPS 网页地址。');
       return;
@@ -149,10 +150,11 @@ export default function CanvasSurface({ node, save, ...management }: CanvasProps
     const source: EmbedSource = {
       schema: 1,
       kind,
-      title: kind === 'react' ? '共享侧栏' : new URL(link).hostname,
+      title: title ?? (kind === 'react' ? '共享侧栏' : new URL(link).hostname),
       url: link,
       revision: health.data?.commit || `v${health.data?.version ?? '未标记'}`,
       ...(kind === 'react' ? { component: 'PeekAside', source: 'web/src/ui/PeekAside.tsx' } : {}),
+      ...(kind === 'runtime' ? { version: address } : {}),
     };
     const added = convertToExcalidrawElements([
       {
@@ -540,6 +542,7 @@ export default function CanvasSurface({ node, save, ...management }: CanvasProps
           node={node}
           {...management}
           onTabChange={setSidebarTab}
+          directory={<DevelopmentPanel add={addEmbed} />}
           embed={
             <div className="xenica-panel">
               <h2>放入真实内容</h2>

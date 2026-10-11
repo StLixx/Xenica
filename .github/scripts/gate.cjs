@@ -137,7 +137,7 @@ async function merge({ github, owner, repo, pr }) {
 }
 
 /** 返回 { stage, issues }，给 project.cjs 更新看板。 */
-module.exports = async function gate({ github, context, core, mode, changed = [], verify = verifyDelivery }) {
+module.exports = async function gate({ github, context, core, mode, changed = [], verify = verifyDelivery, archive = require('./journal.cjs') }) {
   const { owner, repo } = context.repo;
   const number = context.payload.pull_request?.number ?? context.payload.issue.number;
   const pr = (await github.rest.pulls.get({ owner, repo, pull_number: number })).data;
@@ -186,12 +186,14 @@ module.exports = async function gate({ github, context, core, mode, changed = []
   }
 
   if (mode === 'approve') {
+    await archive({github,owner,repo,record:{schema:1,type:'engineering',candidate:delivery.candidate,checks:delivery.checks,deployed:delivery.deployed,selfTest:selfTest.report,comment:selfTest.comment}});
     // 由 Agent 根据用户实际体验的成果代写；普通命令不能推断验收了当前新提交。
-    const accepted = context.payload.comment?.body?.trim().match(/^\/(?:验收|通过)\s+([a-f0-9]{40})\s+(product-[a-f0-9]{64})$/);
-    if (context.payload.comment?.user?.login !== owner || accepted?.[1] !== sha || accepted?.[2] !== delivery.product) {
+    const accepted = require('./acceptance.cjs').parse(context.payload.comment,{owner,source:sha,product:delivery.product});
+    if (!accepted) {
       core.info('未提供对应成果身份或成果已更新，保留未验收状态。');
       return result('待验收');
     }
+    await archive({github,owner,repo,record:{schema:1,type:'acceptance',candidate:delivery.candidate,product:delivery.product,evidence:accepted}});
     await setStatus(ctx, 'success', `已验收 ${delivery.product}`);
     if (pr.draft || !(await ciPassed(ctx))) {
       core.info('当前必需检查还没全绿或仍是草稿，保持未合并。');
@@ -202,13 +204,17 @@ module.exports = async function gate({ github, context, core, mode, changed = []
   }
 
   const approved = (await status(ctx))?.description === `已验收 ${delivery.product}`;
+  await archive({github,owner,repo,record:{schema:1,type:'engineering',candidate:delivery.candidate,checks:delivery.checks,deployed:delivery.deployed,selfTest:selfTest.report,comment:selfTest.comment}});
   await comment({ github, owner, repo, pr, body: previewBody({ pr, changed, why, sha }) });
 
   if (why.length && !approved) {
     await setStatus(ctx, 'pending', `等你验收：${why.join('；')}`);
     return result('待验收');
   }
-  if (!approved) await setStatus(ctx, 'success', '无需验收');
+  if (!approved) {
+    await archive({github,owner,repo,record:{schema:1,type:'acceptance',candidate:delivery.candidate,product:delivery.product,evidence:{type:'engineering-only',interactive:false}}});
+    await setStatus(ctx, 'success', '无需验收');
+  }
   if (pr.draft) {
     core.info('草稿 PR 不合并；标记为 Ready for review 后自动合并。');
     return result('进行中');

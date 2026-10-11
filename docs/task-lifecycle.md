@@ -12,3 +12,11 @@
 Agent 通过仓库所有者身份在关联 PR 写 `/自检 <完整提交 SHA>`，下一行是 JSON；这是内部记录，不要求用户使用命令。字段：`schema: 1`、`source`、`artifact`（实际产物摘要）、`preview`、`scope: {confirmed: true, reference}`、`scenarios: [{name, result: "passed", evidence: [https链接]}]`、`visual: {result: "passed", evidence: [https链接]}`、`unresolved: []`。非交互成果不要求 visual。链接指向 CI 测试记录、截图构件或已有复现材料；不记录分享令牌、密码。
 
 报告是 Agent 的可追溯实测声明，不是机器能证明“看过截图”的凭证；门禁只能机械核对身份、字段、检查结论与声明。不得伪造执行结果或把声明冒充自动测试。真实部署 `preview` 检查自动等待对应提交上线再运行浏览器回归；失败、超时或缺失不能交付。最新失败报告使旧成功报告失效。
+
+## 永久记录与上线
+
+`delivery-records/index.json` 串联同仓库 `records/<sha256>.json`。包含候选身份、真实检查的 run/attempt/job、部署身份、Agent 自检、用户体验验收及推广。原始设计和数据库快照在服务器持久目录中，身份、校验值与恢复入口随目录保存；原件和凭据不进公开 Git。记录写入失败即阻止放行。
+
+产品验收内部格式是 `/验收 <完整源码 SHA> <product-id>`，下一行 JSON：`{type:"product-acceptance",quote:"用户实际原话",origin:"chat:<session>/<message>",experiencedAt:"ISO时间"}`。Agent 必须从真实用户消息取原话；范围批准不属于此类型。相同产物重跑工程检查可复用产品验收，产物改变需重新体验。
+
+上线前核对合并后的 Git tree 与候选源 tree 完全相同，规则指纹和最新检查没有被替换。只推广已验收的 digest，不重新构建替换。先备份数据库与原始画板，失败恢复旧运行产物，永久档案和证据保留。历史启动从固定快照恢复隔离数据，十五分钟无活动释放实例。

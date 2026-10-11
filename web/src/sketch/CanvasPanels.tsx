@@ -12,11 +12,13 @@ export function CanvasPanels({
   node,
   embed,
   conflict,
+  directory,
   onTabChange,
   ...management
 }: Omit<CanvasProps, 'save'> & {
   embed: ReactNode;
   conflict: ReactNode;
+  directory: ReactNode;
   onTabChange: (tab: string | null) => void;
 }) {
   const [docked, setDocked] = useState(true);
@@ -47,6 +49,7 @@ export function CanvasPanels({
         </Sidebar.Header>
         {conflict}
         <Sidebar.Tab tab="boards">
+          {directory}
           <BoardManager key={node.id} node={node} {...management} />
         </Sidebar.Tab>
         <Sidebar.Tab tab="embed">{embed}</Sidebar.Tab>

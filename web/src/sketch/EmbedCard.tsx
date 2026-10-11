@@ -3,6 +3,7 @@ import { useState } from 'react';
 
 import { AsideGroup, asideRow, Button, PeekAside, TextInput } from '../ui';
 import type { EmbedSource } from './embed';
+import { RuntimeCard } from './RuntimeCard';
 
 export function EmbedCard({
   source,
@@ -33,7 +34,7 @@ export function EmbedCard({
         {active ? <Button onClick={exit}>返回画布</Button> : null}
       </header>
       <div className="relative min-h-0 flex-1">
-        {source?.kind === 'react' ? (
+        {source?.kind === 'runtime' && source.version ? <RuntimeCard version={source.version} active={active} /> : source?.kind === 'react' ? (
           <AsidePreview id={id} />
         ) : source ? (
           <iframe

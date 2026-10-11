@@ -11,6 +11,7 @@ pub mod config;
 mod error;
 mod routes;
 pub mod seed;
+pub mod runtime_proxy;
 
 use std::{path::Path, sync::Arc};
 
@@ -69,6 +70,11 @@ fn api_router() -> OpenApiRouter<AppState> {
         .routes(routes!(routes::nodes::list_node_traces))
         .routes(routes!(routes::nodes::archive_node))
         .routes(routes!(routes::nodes::development_board))
+        .routes(routes!(routes::development::versions))
+        .routes(routes!(routes::development::version))
+        .routes(routes!(routes::development::start))
+        .routes(routes!(routes::development::status))
+        .routes(routes!(routes::development::bridge))
         .routes(routes!(
             routes::nodes::list_children,
             routes::nodes::create_children,

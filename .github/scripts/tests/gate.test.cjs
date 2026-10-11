@@ -34,6 +34,7 @@ async function simulate(body, checks, mode = 'approve', selfTest = true) {
     pull_request: { number: 1, head: { sha: 'a'.repeat(40) } },
   } }, core: { setOutput: () => {}, info: () => {} }, mode,
     verify: async () => ({ ready: true, candidate: { artifact: `sha256:${'c'.repeat(64)}` }, product: `product-${'c'.repeat(64)}` }),
+    archive: async () => {},
   });
   return events;
 }
@@ -58,7 +59,8 @@ test('较新的失败检查不能被历史成功覆盖', async () => {
   assert.equal((await simulate(`/验收 ${'b'.repeat(40)} product-${'c'.repeat(64)}`, checks)).some(e => e.type === 'merge'), false);
 });
 test('对应提交验收及所有当前检查通过才执行合并', async () => {
-  assert.equal((await simulate(`/验收 ${'b'.repeat(40)} product-${'c'.repeat(64)}`, green)).some(e => e.type === 'merge'), true);
+  const provenance=JSON.stringify({type:'product-acceptance',quote:'体验通过',origin:'chat:test/message',experiencedAt:'2026-10-11T00:00:00Z'});
+  assert.equal((await simulate(`/验收 ${'b'.repeat(40)} product-${'c'.repeat(64)}\n${provenance}`, green)).some(e => e.type === 'merge'), true);
 });
 test('旧流水线结束不能给新头提交记验收或合并', async () => {
   const events = await simulate('', green, 'ci');

@@ -71,6 +71,18 @@ deploy_prod() {
   [ "$want" = "$have" ] && [ "$digest" = "$previous_artifact" ] && return 0
   [ "$want" = "$(cat "$STATE/prod.bad" 2>/dev/null)" ] && return 0
   rev=$(revision "$ref")
+  # 正式运行身份与原始数据先落盘；备份失败就不开始更新。
+  if [ -n "$have" ]; then
+    python3 "$DEPLOY/deployer/archive-version.py" xenica || { log 'prod: archive failed; deployment blocked'; return 0; }
+    local backup="$STATE/backups/$(date -u +%Y%m%dT%H%M%SZ)"
+    mkdir -p "$backup"
+    chmod 700 "$backup"
+    compose -p xenica exec -T db pg_dump --no-owner --no-acl -U xenica xenica >"$backup/database.sql" || return 0
+    chmod 600 "$backup/database.sql"
+    printf '%s\n' "$previous_artifact" >"$backup/artifact"
+    if [ -d /var/lib/xenica-design-archives ]; then cp -a /var/lib/xenica-design-archives "$backup/design-archives"; fi
+    sha256sum "$backup/database.sql" >"$backup/checksums"
+  fi
   log "prod: deploying ${rev:0:7}"
   [ -n "$have" ] && docker tag "$have" "$IMAGE:previous"
   if XENICA_IMAGE="$ref" XENICA_ARTIFACT="$digest" compose -p xenica --env-file "$ENV_FILE" up -d --wait --wait-timeout 120; then

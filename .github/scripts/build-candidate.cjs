@@ -9,6 +9,7 @@ function policyHash(root) {
     '.github/workflows/ci.yml', '.github/workflows/approve.yml',
     'web/.dependency-cruiser.cjs', 'web/eslint.config.js',
     'scripts/check-arch.sh', 'scripts/check-context.cjs', 'scripts/setup-github.sh',
+    '.github/scripts/journal.cjs', '.github/scripts/acceptance.cjs', '.github/scripts/promote.cjs',
   ];
   const hash = createHash('sha256');
   for (const file of files.sort()) {

@@ -31,6 +31,8 @@ services:
       XENICA_SEED: ${XENICA_SEED:-}
       XENICA_ARTIFACT: ${XENICA_ARTIFACT:-}
       RUST_LOG: ${RUST_LOG:-info}
+    volumes:
+      - ${XENICA_HISTORY_ROOT:-/var/lib/xenica-history}/catalog:/run/xenica-versions:ro
     networks: [default, edge]
     labels:
       - "traefik.enable=true"

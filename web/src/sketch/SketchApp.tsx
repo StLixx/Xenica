@@ -30,12 +30,13 @@ export function SketchApp() {
     return () => window.removeEventListener('popstate', onPop);
   }, []);
   useEffect(() => {
-    if (current && !sketchIdFromPath()) putSketchInPath(current.id, true);
+    if (current && !sketchIdFromPath() && (current.body as {purpose?:string}).purpose !== 'development') putSketchInPath(current.id, true);
   }, [current]);
 
   const pick = (id: string) => {
     setPicked(id);
-    putSketchInPath(id, false, sketches.find((sketch) => sketch.id === id)?.title);
+    if (id === development.data?.id) history.pushState(null, '', '/sketch');
+    else putSketchInPath(id, false, sketches.find((sketch) => sketch.id === id)?.title);
   };
   const add = async () => {
     const node = await create.mutateAsync({
@@ -88,7 +89,8 @@ function Workspace({
   const update = useUpdateNode(node.id, fresh.updated_at);
   useEffect(() => {
     document.title = `${fresh.title || '无标题'} · Xenica 草图`;
-    putSketchInPath(fresh.id, true, fresh.title);
+    if ((fresh.body as {purpose?:string}).purpose === 'development') history.replaceState(null, '', '/sketch');
+    else putSketchInPath(fresh.id, true, fresh.title);
   }, [fresh.id, fresh.title]);
   return (
     <Canvas

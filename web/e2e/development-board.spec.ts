@@ -21,6 +21,6 @@ test('固定入口不随最近编辑改变，独立草图可返回唯一开发�
   await expect(page).toHaveURL(fixed);
   const board = await (await page.request.post('/api/development-board')).json();
   expect(board.body.purpose).toBe('development');
-  expect(fixed).toContain(board.id);
+  expect(new URL(fixed).pathname).toBe('/sketch');
   expect((await page.request.delete(`/api/nodes/${board.id}`)).status()).toBe(400);
 });

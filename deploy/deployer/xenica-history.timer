@@ -1,0 +1,7 @@
+[Unit]
+Description=Reconcile Xenica historical versions
+[Timer]
+OnBootSec=30s
+OnUnitInactiveSec=15s
+[Install]
+WantedBy=timers.target

@@ -163,6 +163,9 @@ pub(crate) fn new_token() -> String {
         .collect()
 }
 
+/// 部署器只向隔离实例的密钥文件输出，不进入节点或日志。
+pub fn runtime_token() -> String { new_token() }
+
 pub(crate) fn token_hash(token: &str) -> Vec<u8> {
     Sha256::digest(token.as_bytes()).to_vec()
 }

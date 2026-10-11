@@ -28,5 +28,5 @@ module.exports = async function verifyDelivery({ github, owner, repo, pr,
   const health = await fetchHealth(`${candidate.preview}/api/health`);
   const result = evaluate({ candidate, current: { source: pr.head.sha, base: pr.base.sha, policy: policyHash(root) },
     evidence: { checks, deployed: { source: health.commit, artifact: health.artifact } }, interactive: false });
-  return { ready: result.mergeable, reasons: result.reasons, candidate, product: productId(candidate) };
+  return { ready: result.mergeable, reasons: result.reasons, candidate, product: productId(candidate), checks, deployed:health };
 };

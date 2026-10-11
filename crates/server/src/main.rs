@@ -7,6 +7,8 @@ use xenica_store::Store;
 
 const USAGE: &str = "usage: xenica [serve | openapi | healthcheck]";
 
+fn runtime_actor()->xenica_core::Actor {xenica_core::Actor::Processor{id:"historical-runtime".into(),version:"0.2.5".into()}}
+
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     match std::env::args().nth(1).as_deref() {
@@ -16,6 +18,29 @@ async fn main() -> anyhow::Result<()> {
             Ok(())
         }
         Some("healthcheck") => healthcheck(),
+        Some("runtime-proxy") => xenica_server::runtime_proxy::serve(Store::connect(&std::env::var("DATABASE_URL")?).await?).await,
+        Some("runtime-queue") => {
+            let store=Store::connect(&std::env::var("DATABASE_URL")?).await?;
+            store.expire_runtimes(&runtime_actor()).await?;
+            println!("{}",serde_json::to_string(&store.development_runtimes().await?)?); Ok(())
+        }
+        Some("runtime-state") => {
+            let args:Vec<String>=std::env::args().collect();
+            anyhow::ensure!(args.len()==6,"runtime-state ID GENERATION STATE MESSAGE");
+            let store=Store::connect(&std::env::var("DATABASE_URL")?).await?;
+            store.runtime_state(&runtime_actor(),args[2].parse()?,args[3].parse()?,&args[4],&args[5]).await?; Ok(())
+        }
+        Some("runtime-session") => {
+            let store=Store::connect(&std::env::var("DATABASE_URL")?).await?;
+            let user=match store.find_user_by_name("xenica_history_bridge").await? {
+                Some((u,_))=>u,
+                None=>store.create_user(None,"xenica_history_bridge",&xenica_server::auth::hash_password(&xenica_server::auth::new_setup_code())).await?,
+            };
+            let token=xenica_server::auth::runtime_token();
+            use sha2::Digest;
+            store.create_session(user.id,&sha2::Sha256::digest(token.as_bytes()),chrono::Utc::now()+chrono::Duration::hours(24)).await?;
+            println!("{token}");Ok(())
+        }
         Some("archive-export") => {
             let id = std::env::args().nth(2).context("缺少草图 ID")?.parse()?;
             let store = Store::connect(&std::env::var("DATABASE_URL")?).await?;
