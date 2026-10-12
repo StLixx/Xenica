@@ -74,11 +74,9 @@ test('write a page: blocks, tags, views', async ({ page }) => {
 
 test('demo page and graph', async ({ page }) => {
   await signIn(page);
-  await page.getByRole('navigation', { name: '侧栏' }).hover();
-  await page
-    .getByRole('navigation', { name: '侧栏' })
-    .getByRole('button', { name: '高数 · 不定积分（第 3 讲）', exact: true })
-    .click();
+  // test 与 demo 的侧栏快捷项彼此独立；通过共享的真实节点入口验证内容。
+  await page.getByPlaceholder('筛选：标题或正文里的字').fill('高数 · 不定积分');
+  await page.getByText('高数 · 不定积分（第 3 讲）', { exact: true }).click();
   const editor = page.getByRole('region', { name: '正文' });
   await expect(editor.locator('.katex').first()).toBeVisible();
   await expect(editor.getByText('#必备').first()).toBeVisible();
