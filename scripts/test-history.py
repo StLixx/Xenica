@@ -15,6 +15,19 @@ identity_spec=importlib.util.spec_from_file_location('archive_identity',Path(__f
 identity=importlib.util.module_from_spec(identity_spec);identity_spec.loader.exec_module(identity)
 
 class HistoryTests(unittest.TestCase):
+    def test_parent_policy_update_stops_stale_gateway(self):
+        runtime={'id':'00000000-0000-4000-8000-000000000001','generation':1,'state':'running'}
+        with tempfile.TemporaryDirectory() as folder:
+            catalog=Path(folder)/'catalog.json';catalog.write_text('{"versions":[]}')
+            def run(*args,**kwargs):
+                if args[-1]=='runtime-queue':return json.dumps([runtime])
+                if args==('docker','inspect','parent'):return '[{"Config":{"Image":"new@sha256:fixed"}}]'
+                if args[:2]==('docker','inspect'):return '[{"Config":{"Image":"old@sha256:fixed"}}]'
+                raise AssertionError('旧策略网关不能进入健康放行')
+            with patch.object(history,'CATALOG',catalog),patch.object(history,'run',side_effect=run),patch.object(history,'stop') as stop:
+                history.reconcile('parent')
+                stop.assert_called_once_with('parent',runtime)
+
     def test_archiver_retains_same_source_different_builds(self):
         with tempfile.TemporaryDirectory() as folder:
             root=Path(folder);bin_dir=root/'bin';bin_dir.mkdir();deployer=root/'deployer';deployer.mkdir()

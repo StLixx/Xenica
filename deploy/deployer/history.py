@@ -140,4 +140,6 @@ if __name__=='__main__':
     ROOT.mkdir(parents=True,exist_ok=True,mode=0o700)
     with (ROOT/'lock').open('w') as lock:
         fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
-        reconcile(os.environ.get('XENICA_HISTORY_PARENT','xenica-app-1'))
+        for parent in os.environ.get('XENICA_HISTORY_PARENT','xenica-app-1').split(','):
+            if subprocess.run(['docker','inspect',parent],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL).returncode == 0:
+                reconcile(parent)

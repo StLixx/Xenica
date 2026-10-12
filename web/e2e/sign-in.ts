@@ -28,7 +28,7 @@ export async function signIn(page: Page) {
       }
     }
     if (!authenticated) throw new Error('短期测试会话均已失效，必须重新签发');
-    await page.goto('/');
+    await page.goto('/?experience=1');
   } else {
     await page.goto('/');
     await page.getByLabel('用户名').fill('demo');
