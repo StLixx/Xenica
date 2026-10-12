@@ -15,6 +15,12 @@ identity_spec=importlib.util.spec_from_file_location('archive_identity',Path(__f
 identity=importlib.util.module_from_spec(identity_spec);identity_spec.loader.exec_module(identity)
 
 class HistoryTests(unittest.TestCase):
+    def test_policy_rotation_uses_valid_store_stop_transition(self):
+        runtime={'id':'00000000-0000-4000-8000-000000000001','generation':1,'state':'running'}
+        with patch.object(history,'state') as state,patch.object(history.subprocess,'run'):
+            history.stop('parent',runtime)
+        self.assertEqual([call.args[2] for call in state.call_args_list],['stopping','stopped'])
+
     def test_shared_capacity_waits_without_evicting_other_workspace(self):
         runtime={'id':'00000000-0000-4000-8000-000000000001','artifact':'old@sha256:fixed','snapshot':'checksum'}
         version={'image':runtime['artifact'],'snapshot_sha256':'checksum'}

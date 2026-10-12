@@ -38,6 +38,8 @@ def names(runtime):
 
 def stop(parent, runtime):
     name = names(runtime)
+    if runtime['state'] != 'stopping':
+        state(parent,runtime,'stopping')
     for service in ('gateway','app','db'):
         subprocess.run(['docker','rm','-f',name+'-'+service],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,check=False)
     subprocess.run(['docker','network','rm',name],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,check=False)
