@@ -15,6 +15,20 @@ identity_spec=importlib.util.spec_from_file_location('archive_identity',Path(__f
 identity=importlib.util.module_from_spec(identity_spec);identity_spec.loader.exec_module(identity)
 
 class HistoryTests(unittest.TestCase):
+    def test_shared_capacity_waits_without_evicting_other_workspace(self):
+        runtime={'id':'00000000-0000-4000-8000-000000000001','artifact':'old@sha256:fixed','snapshot':'checksum'}
+        version={'image':runtime['artifact'],'snapshot_sha256':'checksum'}
+        calls=[]
+        def run(*args,**kwargs):
+            calls.append(args)
+            if args[:2]==('docker','inspect'):return '[{"Config":{"Image":"parent@sha256:fixed","Env":[]},"NetworkSettings":{"Networks":{"parent_default":{}}}}]'
+            if args[:3]==('docker','ps','-a'):return 'other-a-gateway\nother-b-gateway'
+            raise AssertionError('容量忙时不能创建或删除其他工作区实例')
+        with patch.object(history,'validate',return_value=Path('/private/snapshot.sql')),patch.object(history,'run',side_effect=run),patch.object(history.subprocess,'run') as mutate:
+            history.start('parent',runtime,version)
+            mutate.assert_not_called()
+        self.assertEqual(len(calls),2)
+
     def test_parent_policy_update_stops_stale_gateway(self):
         runtime={'id':'00000000-0000-4000-8000-000000000001','generation':1,'state':'running'}
         with tempfile.TemporaryDirectory() as folder:

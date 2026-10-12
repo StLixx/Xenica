@@ -55,7 +55,8 @@ def start(parent,runtime,version):
     parent_net=next(n for n in owner['NetworkSettings']['Networks'] if n.endswith('_default'))
     count=run('docker','ps','-a','--filter','label=xenica.history=gateway','--format','{{.Names}}').splitlines()
     if len(count)>=2 and name+'-gateway' not in count:
-        raise RuntimeError('历史运行容量已占满')
+        # 多个隔离工作区共用两份运行资源；容量忙时保留准备状态，不能误报恢复失败。
+        return
     work=ROOT/'runtime'/name
     work.mkdir(parents=True,exist_ok=True,mode=0o700)
     # 失败重试不使用上一次体验后的可变数据库。
