@@ -21,6 +21,18 @@ async function simulate({ raw = checks, jobChange = {}, healthChange = {}, prCha
 test('从 GitHub job 与实际部署身份核验完整候选', async () => {
   assert.equal((await simulate()).ready, true);
 });
+
+test('标为固定画板但缺少入口身份时不放行', async () => {
+  assert.equal((await simulate({ prChange: { labels: [{ name: '固定画板' }] } })).ready, false);
+});
+
+test('固定入口未更新到本次产物时不放行', async () => {
+  const record = { ...candidate, workspace: 'https://excalidraw.xenica.truebigsand.top' };
+  const result = await verify({root,candidate:record,owner:'owner',repo:'repo',pr,
+    github:{paginate:async()=>checks,rest:{checks:{listForRef:'checks'},actions:{getJobForWorkflowRun:async({job_id})=>({data:{head_sha:candidate.source,name:checks[job_id-1].name,conclusion:'success',run_id:100,run_attempt:2}})}}},
+    fetchHealth:async url=>({commit:url.startsWith(record.workspace)?'e'.repeat(40):candidate.source,artifact:candidate.artifact})});
+  assert.equal(result.ready,false);
+});
 test('假检查、旧尝试、旧产物、旧主线、其他预览不能套用', async () => {
   for (const change of [
     { raw: checks.map(c => ({ ...c, app: { slug: 'other' } })) },

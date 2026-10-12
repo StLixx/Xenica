@@ -427,6 +427,7 @@ export default function CanvasSurface({ node, save, ...management }: CanvasProps
               appState.activeEmbeddable.state === 'active'
             }
             exit={exitEmbed}
+            openPage={management.openPage}
           />
         )}
         renderTopRightUI={(_mobile, appState) =>
@@ -589,7 +590,9 @@ export default function CanvasSurface({ node, save, ...management }: CanvasProps
           node={node}
           {...management}
           onTabChange={setSidebarTab}
-          directory={<DevelopmentPanel add={addEmbed} note={addNote} />}
+          directory={
+            <DevelopmentPanel add={addEmbed} note={addNote} openPage={management.openPage} />
+          }
           embed={
             <div className="xenica-panel">
               <h2>放入真实内容</h2>

@@ -1,27 +1,16 @@
+import { signIn } from './sign-in';
 import { expect, test, type Page } from '@playwright/test';
 
 async function expectReadableDecisions(page: Page) {
-  const decision = page.getByRole('button', { name: /用户只负责开始前范围定义/ });
-  await expect(decision).toBeVisible();
-  const contained = await page.evaluate(`(() => {
-    const button = [...document.querySelectorAll('.xenica-panel button')]
-      .find(element => element.textContent.includes('用户只负责开始前范围定义'));
-    const range = document.createRange();
-    range.selectNodeContents(button);
-    const text = range.getBoundingClientRect();
-    const box = button.getBoundingClientRect();
-    return text.top >= box.top && text.bottom <= box.bottom && text.right <= box.right;
-  })()`);
-  expect(contained, '完整要求文字必须在按钮内呈现，不能覆盖相邻内容').toBe(true);
+  await expect(page.getByRole('heading', { name: '开发画板', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: /用户只负责开始前范围定义/ })).toHaveCount(0);
+  await expect(page.getByText('--x-font-doc', { exact: true })).not.toBeVisible();
 }
 
 test('画板只有 Excalidraw，画布菜单管理名字与网址切换', async ({ page }, testInfo) => {
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
-  await page.goto('/');
-  await page.getByLabel('用户名').fill('demo');
-  await page.getByLabel('密码').fill('demo');
-  await page.getByRole('button', { name: '登录', exact: true }).click();
+  await signIn(page);
   await expect(page.getByTestId('connection')).toContainText('已连接');
   await page.goto('/sketch');
   await expect(page.getByRole('navigation', { name: '草图', exact: true })).toHaveCount(0);
@@ -121,10 +110,7 @@ test('画板只有 Excalidraw，画布菜单管理名字与网址切换', async 
 
 test('窄屏通过画布菜单访问扩展，原生面板可关闭且不横向溢出', async ({ page }, testInfo) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto('/');
-  await page.getByLabel('用户名').fill('demo');
-  await page.getByLabel('密码').fill('demo');
-  await page.getByRole('button', { name: '登录', exact: true }).click();
+  await signIn(page);
   await expect(page.getByTestId('connection')).toContainText('已连接');
   await page.goto('/sketch');
   await expect(page.locator('.excalidraw')).toBeVisible();

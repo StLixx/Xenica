@@ -16,7 +16,7 @@ import { putSketchInPath, sketchIdFromPath } from './entry';
 import { emptyScene } from './scene';
 
 /** 草图站只有画布；管理入口由 Excalidraw 自身承载。 */
-export function SketchApp() {
+export function SketchApp({ openPage }: { openPage?: (address: string, title: string) => void }) {
   const nodes = useNodes();
   const create = useCreateNode();
   const [picked, setPicked] = useState<string | null>(() => sketchIdFromPath());
@@ -75,6 +75,7 @@ export function SketchApp() {
       add={add}
       pick={pick}
       creating={create.isPending}
+      openPage={openPage}
     />
   );
 }
@@ -88,6 +89,7 @@ function Workspace({
   add: () => Promise<void>;
   pick: (id: string) => void;
   creating: boolean;
+  openPage?: (address: string, title: string) => void;
 }) {
   const current = useNode(node.id, 2000);
   const fresh = current.data ?? node;

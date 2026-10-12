@@ -1,13 +1,11 @@
+import { signIn } from './sign-in';
 import { expect, test, type Page } from '@playwright/test';
 import { writeFile } from 'node:fs/promises';
 
 import type { SceneElement } from '../src/sketch/scene';
 
 async function openSketch(page: Page) {
-  await page.goto('/');
-  await page.getByLabel('用户名').fill('demo');
-  await page.getByLabel('密码').fill('demo');
-  await page.getByRole('button', { name: '登录', exact: true }).click();
+  await signIn(page);
   await expect(page.getByTestId('connection')).toContainText('已连接');
   await page.goto('/sketch');
   await page.getByRole('button', { name: '画布管理', exact: true }).click();

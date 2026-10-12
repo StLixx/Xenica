@@ -1,10 +1,8 @@
+import { signIn } from './sign-in';
 import { expect, test } from '@playwright/test';
 
 test('固定入口不随最近编辑改变，独立草图可返回唯一开发画板', async ({ page }) => {
-  await page.goto('/');
-  await page.getByLabel('用户名').fill('demo');
-  await page.getByLabel('密码').fill('demo');
-  await page.getByRole('button', { name: '登录', exact: true }).click();
+  await signIn(page);
   await expect(page.getByTestId('connection')).toContainText('已连接');
   await page.goto('/sketch');
   await expect(page.getByRole('button', { name: '画布管理', exact: true })).toBeVisible();

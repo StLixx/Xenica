@@ -19,6 +19,12 @@ export function pageURL(input: string): string | null {
     if (/\/api\/share\//.test(url.pathname)) return null;
     if ([...url.searchParams.keys()].some((key) => /token|password|secret|api.?key/i.test(key)))
       return null;
+    if (
+      url.origin === location.origin &&
+      url.hostname.startsWith('excalidraw.') &&
+      url.pathname === '/'
+    )
+      url.searchParams.set('experience', '1');
     return url.href;
   } catch {
     return null;

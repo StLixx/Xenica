@@ -78,7 +78,7 @@ export function SignIn({
         <Button type="submit" variant="primary" disabled={pending} className="justify-center">
           {pending ? '请稍候…' : setup ? '创建并登录' : '登录'}
         </Button>
-        {demo && !setup && <p className="text-ui text-fg-3">预览站示例账号：demo / demo</p>}
+        {demo && !setup && <p className="text-ui text-fg-3">使用测试账户登录</p>}
       </form>
     </main>
   );

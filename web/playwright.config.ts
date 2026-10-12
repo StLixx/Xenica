@@ -12,8 +12,8 @@ export default defineConfig({
   reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : 'list',
   use: {
     baseURL: process.env.XENICA_URL ?? 'http://localhost:8080',
-    trace: 'retain-on-failure',
-    screenshot: 'only-on-failure',
+    trace: process.env.XENICA_E2E_SESSIONS ? 'off' : 'retain-on-failure',
+    screenshot: process.env.XENICA_E2E_SESSIONS ? 'off' : 'only-on-failure',
     colorScheme: 'dark',
     locale: 'zh-CN',
   },

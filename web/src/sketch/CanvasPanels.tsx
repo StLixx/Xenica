@@ -111,15 +111,20 @@ function BoardManager({ node, sketches, add, pick, creating, rename }: Omit<Canv
       >
         新建草图
       </Button>
-      <h3>切换画布</h3>
-      <div className="xenica-board-list">
-        {sketches.map((sketch) => (
-          <Button key={sketch.id} selected={sketch.id === node.id} onSelect={() => pick(sketch.id)}>
-            {nodeLabel(sketch) || '无标题'}
-          </Button>
-        ))}
-      </div>
-      <p>网址指向当前画布，刷新或复制网址可以再次打开。</p>
+      <details>
+        <summary>其他画布</summary>
+        <div className="xenica-board-list">
+          {sketches.map((sketch) => (
+            <Button
+              key={sketch.id}
+              selected={sketch.id === node.id}
+              onSelect={() => pick(sketch.id)}
+            >
+              {nodeLabel(sketch) || '无标题'}
+            </Button>
+          ))}
+        </div>
+      </details>
     </div>
   );
 }

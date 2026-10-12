@@ -10,12 +10,13 @@ function valid(candidate) {
     /^sha256:[a-f0-9]{64}$/.test(candidate.artifact ?? '') &&
     /^https:\/\/pr-[1-9][0-9]*\.xenica\.truebigsand\.top\/?$/.test(candidate.preview ?? '') &&
     Number.isSafeInteger(candidate.run) && candidate.run > 0 &&
-    Number.isSafeInteger(candidate.attempt) && candidate.attempt > 0;
+    Number.isSafeInteger(candidate.attempt) && candidate.attempt > 0 &&
+    (candidate.workspace === undefined || candidate.workspace === 'https://excalidraw.xenica.truebigsand.top');
 }
 
 function candidateId(candidate) {
   if (!valid(candidate)) throw new Error('交付候选格式无效');
-  const identity = ['schema', 'source', 'base', 'artifact', 'preview', 'policy', 'run', 'attempt']
+  const identity = ['schema', 'source', 'base', 'artifact', 'preview', 'policy', 'run', 'attempt', ...(candidate.workspace ? ['workspace'] : [])]
     .map(key => [key, candidate[key]]);
   return `dc-${createHash('sha256').update(JSON.stringify(identity)).digest('hex')}`;
 }
@@ -24,7 +25,7 @@ function candidateId(candidate) {
 function productId(candidate) {
   if (!valid(candidate)) throw new Error('交付候选格式无效');
   return `product-${createHash('sha256').update(JSON.stringify(
-    ['source', 'artifact', 'preview'].map(key => [key, candidate[key]]),
+    ['source', 'artifact', 'preview', ...(candidate.workspace ? ['workspace'] : [])].map(key => [key, candidate[key]]),
   )).digest('hex')}`;
 }
 

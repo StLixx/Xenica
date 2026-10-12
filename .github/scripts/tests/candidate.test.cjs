@@ -66,3 +66,10 @@ test('不完整或未知格式的候选默认拒绝', () => {
     assert.equal(evaluate({ candidate: bad, current, evidence, acceptance, interactive: true }).mergeable, false);
   }
 });
+
+test('固定入口改变产品身份，外部入口不能伪装为固定工作区', () => {
+  const workspace = { ...candidate, workspace: 'https://excalidraw.xenica.truebigsand.top' };
+  assert.notEqual(productId(workspace), productId(candidate));
+  assert.notEqual(candidateId(workspace), candidateId(candidate));
+  assert.throws(() => productId({ ...candidate, workspace: 'https://other.invalid' }));
+});

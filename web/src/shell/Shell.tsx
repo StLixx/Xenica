@@ -12,7 +12,7 @@ import { Sidebar } from './Sidebar';
 import { StatusBar } from './StatusBar';
 import { Workbench } from './Workbench';
 
-export function Shell() {
+export function Shell({ initialView }: { initialView?: string } = {}) {
   const dock = useRef<DockviewApi | null>(null);
   const [paletteOpen, setPaletteOpen] = useState(false);
 
@@ -82,7 +82,14 @@ export function Shell() {
         />
         <div className="flex min-w-0 flex-1 flex-col">
           <main className="min-h-0 flex-1">
-            <Workbench views={views} defaultView="nodes" onReady={(api) => (dock.current = api)} />
+            <Workbench
+              views={views}
+              defaultView="nodes"
+              onReady={(api) => {
+                dock.current = api;
+                if (initialView) wb.openView(initialView);
+              }}
+            />
           </main>
           <StatusBar />
         </div>

@@ -81,6 +81,17 @@
   gap: var(--x-gap);
 }
 
+.excalidraw .xenica-panel summary {
+  cursor: pointer;
+  padding: var(--x-gap);
+  border-radius: var(--border-radius-md);
+}
+
+.excalidraw .xenica-panel details[open] > summary {
+  background: var(--color-surface-high);
+  margin-bottom: var(--x-gap);
+}
+
 .excalidraw .xenica-save-state {
   font: inherit;
   color: var(--color-on-surface);

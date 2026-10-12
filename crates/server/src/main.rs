@@ -24,6 +24,66 @@ async fn main() -> anyhow::Result<()> {
         }
         Some("healthcheck") => healthcheck("/api/health"),
         Some("runtime-healthcheck") => healthcheck("/__health"),
+        Some("migrate") => {
+            Store::connect(&std::env::var("DATABASE_URL")?)
+                .await?
+                .migrate()
+                .await?;
+            Ok(())
+        }
+        Some("account-import") => {
+            let value: serde_json::Value = serde_json::from_reader(std::io::stdin().take(8192))?;
+            let name = value["name"].as_str().context("missing account")?;
+            let hash = value["hash"].as_str().context("missing credential hash")?;
+            anyhow::ensure!(
+                name == "test" && hash.starts_with("$argon2id$"),
+                "invalid account migration"
+            );
+            let store = Store::connect(&std::env::var("DATABASE_URL")?).await?;
+            if let Some((_, existing)) = store.find_user_by_name(name).await? {
+                anyhow::ensure!(
+                    existing == hash,
+                    "account differs; credentials were not changed"
+                );
+            } else {
+                store
+                    .create_user(Some(&runtime_actor()), name, hash)
+                    .await?;
+            }
+            Ok(())
+        }
+        Some("test-sessions") => {
+            use sha2::Digest;
+            let titles: Vec<String> = serde_json::from_reader(std::io::stdin().take(16384))?;
+            anyhow::ensure!(
+                titles.len() <= 50 && titles.iter().all(|s| s.len() <= 1024),
+                "invalid scenarios"
+            );
+            let store = Store::connect(&std::env::var("DATABASE_URL")?).await?;
+            let (user, _) = store
+                .find_user_by_name("test")
+                .await?
+                .context("test account missing")?;
+            let mut sessions = serde_json::Map::new();
+            for title in titles {
+                let mut tokens = Vec::new();
+                for _ in 0..4 {
+                    let token = xenica_server::auth::runtime_token();
+                    store
+                        .create_session(
+                            user.id,
+                            &sha2::Sha256::digest(token.as_bytes()),
+                            chrono::Utc::now() + chrono::Duration::hours(2),
+                        )
+                        .await?;
+                    tokens.push(serde_json::Value::String(token));
+                }
+                sessions.insert(title, serde_json::Value::Array(tokens));
+            }
+            // 仅通过私有 stdin 管道传入受控测试环境，不进入日志、仓库或页面。
+            println!("{}", serde_json::Value::Object(sessions));
+            Ok(())
+        }
         Some("runtime-proxy") => {
             xenica_server::runtime_proxy::serve(
                 Store::connect(&std::env::var("DATABASE_URL")?).await?,

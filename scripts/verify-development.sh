@@ -14,6 +14,7 @@ node scripts/check-context.cjs
 python3 scripts/test-excalidraw-archive.py
 python3 scripts/test-deployer.py
 python3 scripts/test-history.py
+python3 scripts/test-workspace.py
 pnpm -C web format:check
 pnpm -C web lint
 pnpm -C web typecheck

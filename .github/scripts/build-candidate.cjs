@@ -9,6 +9,7 @@ function policyHash(root) {
     '.github/workflows/ci.yml', '.github/workflows/approve.yml',
     'web/.dependency-cruiser.cjs', 'web/eslint.config.js',
     'web/playwright.config.ts',
+    'crates/server/src/auth.rs', 'crates/server/src/runtime_proxy.rs', 'deploy/deployer/workspace.sh', 'deploy/deployer/bootstrap-workspace.py',
     'scripts/check-arch.sh', 'scripts/check-context.cjs', 'scripts/setup-github.sh',
     '.github/scripts/journal.cjs', '.github/scripts/acceptance.cjs', '.github/scripts/promote.cjs',
     '.github/scripts/read-acceptance.cjs',
@@ -25,11 +26,12 @@ function policyHash(root) {
   return hash.digest('hex');
 }
 
-module.exports = function buildCandidate({ root, source, base, artifact, number, run, attempt }) {
+module.exports = function buildCandidate({ root, source, base, artifact, number, run, attempt, workspace }) {
   const candidate = {
     schema: 1, source, base, artifact,
     preview: `https://pr-${number}.xenica.truebigsand.top`,
     policy: policyHash(root), run, attempt,
+    ...(workspace ? {workspace} : {}),
   };
   return { ...candidate, id: candidateId(candidate), product: productId(candidate) };
 };

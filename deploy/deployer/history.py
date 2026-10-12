@@ -113,7 +113,13 @@ def reconcile(parent):
             if runtime['state']=='stopping': stop(parent,runtime)
             elif runtime['state']=='preparing': start(parent,runtime,versions[runtime['version']])
             elif runtime['state']=='running':
-                run('docker','exec',names(runtime)+'-gateway','/app/xenica','runtime-healthcheck')
+                parent_image=json.loads(run('docker','inspect',parent))[0]['Config']['Image']
+                gateway_image=json.loads(run('docker','inspect',names(runtime)+'-gateway'))[0]['Config']['Image']
+                if gateway_image != parent_image:
+                    # 桥接规则已更新时，旧网关不能继续使用过时授权；档案和批注不删除。
+                    stop(parent,runtime)
+                else:
+                    run('docker','exec',names(runtime)+'-gateway','/app/xenica','runtime-healthcheck')
         except Exception as error:
             # 异常原文可能含 docker env 或私密地址，不公开。
             name=names(runtime)

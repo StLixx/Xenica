@@ -28,6 +28,7 @@ pub(crate) const SETUP_KEY: &str = "#setup";
 
 /// 进程内的鉴权状态：一次性设置码、输错计数。重启后清空（设置码会重新生成）。
 pub struct Auth {
+    pub allowed_account: Option<String>,
     setup_code: Mutex<Option<String>>,
     failures: Mutex<HashMap<String, Failures>>,
     /// 示例数据模式（预览站）：登录页提示示例账号。
@@ -43,6 +44,9 @@ struct Failures {
 impl Auth {
     pub fn new(setup_code: Option<String>, demo: bool) -> Self {
         Self {
+            allowed_account: std::env::var("XENICA_ALLOWED_ACCOUNT")
+                .ok()
+                .filter(|s| !s.is_empty()),
             setup_code: Mutex::new(setup_code),
             failures: Mutex::default(),
             demo,
@@ -228,6 +232,12 @@ impl<S: Send + Sync> FromRequestParts<S> for CurrentUser {
     }
 }
 
+pub(crate) fn account_allowed(auth: &Auth, name: &str) -> bool {
+    auth.allowed_account
+        .as_ref()
+        .is_none_or(|allowed| allowed.eq_ignore_ascii_case(name))
+}
+
 fn is_public(path: &str) -> bool {
     path == "/api/health"
         || path.starts_with("/api/auth/")
@@ -268,11 +278,11 @@ pub async fn guard(State(state): State<AppState>, mut req: Request, next: Next) 
         return ApiError::unauthorized().into_response();
     };
     match state.store.session_user(&token_hash(token)).await {
-        Ok(Some(user)) => {
+        Ok(Some(user)) if account_allowed(&state.auth, &user.name) => {
             req.extensions_mut().insert(CurrentUser(user));
             next.run(req).await
         }
-        Ok(None) => ApiError::unauthorized().into_response(),
+        Ok(_) => ApiError::unauthorized().into_response(),
         Err(e) => ApiError::from(e).into_response(),
     }
 }
@@ -280,6 +290,15 @@ pub async fn guard(State(state): State<AppState>, mut req: Request, next: Next) 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn restricted_account_rejects_public_seed_identity() {
+        let mut auth = Auth::new(None, false);
+        auth.allowed_account = Some("test".into());
+        assert!(account_allowed(&auth, "test"));
+        assert!(account_allowed(&auth, "TEST"));
+        assert!(!account_allowed(&auth, "demo"));
+    }
 
     #[test]
     fn password_round_trip() {

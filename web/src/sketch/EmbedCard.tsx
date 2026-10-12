@@ -10,11 +10,13 @@ export function EmbedCard({
   active,
   id,
   exit,
+  openPage,
 }: {
   source: EmbedSource | null;
   active: boolean;
   id: string;
   exit: () => void;
+  openPage?: (address: string, title: string) => void;
 }) {
   return (
     <section
@@ -31,6 +33,12 @@ export function EmbedCard({
     >
       <header className="flex shrink-0 items-center gap-2 border-b border-line bg-side px-2 py-1">
         <span className="min-w-0 flex-1 truncate text-label">{source?.title ?? '无法加载'}</span>
+        {openPage &&
+        source?.kind === 'page' &&
+        new URL(source.url).origin === window.location.origin &&
+        new URL(source.url).pathname === '/' ? (
+          <Button onClick={() => openPage(source.url, source.title)}>展开体验</Button>
+        ) : null}
         {active ? <Button onClick={exit}>返回画布</Button> : null}
       </header>
       <div className="relative min-h-0 flex-1">

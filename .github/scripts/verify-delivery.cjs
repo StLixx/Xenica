@@ -11,6 +11,8 @@ module.exports = async function verifyDelivery({ github, owner, repo, pr,
   },
 }) {
   candidateId(candidate); // 验证域名与字段后才允许访问部署站点。
+  if (pr.labels?.some(label => label.name === '固定画板') && !candidate.workspace)
+    return {ready:false,reasons:['固定开发入口身份缺失']};
   if (candidate.preview !== `https://pr-${pr.number}.xenica.truebigsand.top`) {
     return { ready: false, reasons: ['候选对应其他预览'] };
   }
@@ -26,6 +28,11 @@ module.exports = async function verifyDelivery({ github, owner, repo, pr,
     return { name, id: check.id, conclusion: job.conclusion, run: job.run_id, attempt: job.run_attempt };
   }));
   const health = await fetchHealth(`${candidate.preview}/api/health`);
+  if (candidate.workspace) {
+    const workspace = await fetchHealth(`${candidate.workspace}/api/health`);
+    if (workspace.commit !== candidate.source || workspace.artifact !== candidate.artifact)
+      return {ready:false,reasons:['固定开发入口尚未运行对应成果']};
+  }
   const result = evaluate({ candidate, current: { source: pr.head.sha, base: pr.base.sha, policy: policyHash(root) },
     evidence: { checks, deployed: { source: health.commit, artifact: health.artifact } }, interactive: false });
   return { ready: result.mergeable, reasons: result.reasons, candidate, product: productId(candidate), checks, deployed:health };

@@ -27,11 +27,26 @@ struct Proxy {
 struct Ticket {
     ticket: String,
 }
+fn embedding_request(req: &Request) -> Result<(), ApiError> {
+    // 桥接 cookie 仅供嵌入体验；不能随浏览器新标签页变成独立站点的登录。
+    // Fetch Metadata 是浏览器上下文约束，不能替代下方的服务端会话校验。
+    if req
+        .headers()
+        .get("sec-fetch-dest")
+        .is_some_and(|v| v == "document")
+    {
+        return Err(ApiError::forbidden(
+            "嵌入授权不能用于独立访问，请在测试站登录",
+        ));
+    }
+    Ok(())
+}
 async fn bridge(
     State(p): State<Proxy>,
     Query(t): Query<Ticket>,
     req: Request,
 ) -> Result<Response, ApiError> {
+    embedding_request(&req)?;
     if req
         .headers()
         .get(header::HOST)
@@ -63,6 +78,7 @@ async fn bridge(
     Ok(response)
 }
 async fn proxy(State(p): State<Proxy>, req: Request) -> Result<Response, ApiError> {
+    embedding_request(&req)?;
     if req
         .headers()
         .get(header::HOST)
@@ -245,4 +261,22 @@ pub async fn serve(store: Store) -> anyhow::Result<()> {
     let listener = tokio::net::TcpListener::bind("0.0.0.0:8080").await?;
     axum::serve(listener, router).await?;
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn embedding_grant_is_not_top_level_navigation() {
+        let request = |dest| {
+            Request::builder()
+                .header("sec-fetch-dest", dest)
+                .body(Body::empty())
+                .unwrap()
+        };
+        assert!(embedding_request(&request("iframe")).is_ok());
+        assert!(embedding_request(&request("empty")).is_ok());
+        assert!(embedding_request(&request("document")).is_err());
+    }
 }

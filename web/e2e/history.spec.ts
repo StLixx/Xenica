@@ -1,3 +1,4 @@
+import { signIn } from './sign-in';
 import { expect, test } from '@playwright/test';
 
 // 历史副本可能包含真实资料；公共测试报告不采集其正文、截图或网络轨迹。
@@ -8,10 +9,7 @@ test('历史版本从兼容快照恢复，单次登录桥接、幂等启动与�
   browser,
 }, info) => {
   test.setTimeout(300_000);
-  await page.goto('/');
-  await page.getByLabel('用户名').fill('demo');
-  await page.getByLabel('密码').fill('demo');
-  await page.getByRole('button', { name: '登录', exact: true }).click();
+  await signIn(page);
   await expect(page.getByTestId('connection')).toContainText('已连接');
   const catalog = await (await page.request.get('/api/development/versions')).json();
   const versions = catalog.filter((v: { available: boolean }) => v.available);
@@ -41,6 +39,9 @@ test('历史版本从兼容快照恢复，单次登录桥接、幂等启动与�
   expect(entered.ok()).toBeTruthy();
   expect((await anonymous.request.get(bridge.url)).status()).toBe(401);
   const origin = new URL(bridge.url).origin;
+  expect(
+    (await anonymous.request.get(origin, { headers: { 'Sec-Fetch-Dest': 'document' } })).status(),
+  ).toBe(403);
   expect((await anonymous.request.post(`${origin}/api/auth/logout`)).status()).toBe(403);
   expect((await anonymous.request.get(`${origin}/api/development/versions`)).status()).toBe(403);
   const isolated = await (await anonymous.request.get(`${origin}/api/health`)).json();
@@ -79,6 +80,7 @@ test('历史版本从兼容快照恢复，单次登录桥接、幂等启动与�
   const sketch = page.url();
   await page.goto(sketch);
   await page.getByRole('button', { name: '画布管理', exact: true }).click();
+  await page.getByText('历史版本', { exact: true }).click();
   await page.getByRole('button', { name: version.title, exact: true }).click();
   await page.getByRole('button', { name: '操作选中卡片', exact: true }).click();
   const frame = page.frameLocator(`iframe[title="历史体验 ${version.id}"]`);

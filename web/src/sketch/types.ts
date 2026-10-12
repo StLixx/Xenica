@@ -8,4 +8,5 @@ export type CanvasProps = {
   pick: (id: string) => void;
   creating: boolean;
   rename: (title: string) => Promise<void>;
+  openPage?: (address: string, title: string) => void;
 };

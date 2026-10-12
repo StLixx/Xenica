@@ -89,6 +89,17 @@
         ".github/scripts/journal.cjs",
         ".github/scripts/tests/promote.test.cjs"
       ]
+    },
+    {
+      "id": "private-test-workspace",
+      "title": "固定画板沿用 test 账户；嵌入页面免重复登录，独立测试站仍须鉴权，页面不公开密码。目录精简，真实页面在同一工作区体验。",
+      "source": "docs/context/index.json",
+      "references": [
+        "docs/adr/0014-fixed-workspace.md",
+        "web/src/app/SketchWorkspace.tsx",
+        "deploy/deployer/workspace.sh",
+        "deploy/deployer/bootstrap-workspace.py"
+      ]
     }
   ],
   "components": [

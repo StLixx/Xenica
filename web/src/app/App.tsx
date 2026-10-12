@@ -3,8 +3,9 @@ import { useState } from 'react';
 
 import { ApiError } from '../api/client';
 import { keys } from '../api/queries';
-import { isSketchEntry, SketchApp } from '../sketch';
+import { isSketchEntry } from '../sketch';
 import { Gate } from './Gate';
+import { SketchWorkspace } from './SketchWorkspace';
 
 export function App() {
   const [client] = useState(() => {
@@ -30,7 +31,7 @@ export function App() {
     <QueryClientProvider client={client}>
       {isSketchEntry() ? (
         <Gate>
-          <SketchApp />
+          <SketchWorkspace />
         </Gate>
       ) : (
         <Gate />

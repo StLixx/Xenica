@@ -61,6 +61,7 @@ jobs:
           python3 scripts/test-excalidraw-archive.py
           python3 scripts/test-deployer.py
           python3 scripts/test-history.py
+          python3 scripts/test-workspace.py
       - name: sqlx offline cache is up to date
         run: |
           cargo sqlx migrate run --source crates/store/migrations
@@ -277,6 +278,7 @@ jobs:
               base: context.payload.pull_request.base.sha, artifact: process.env.ARTIFACT_DIGEST,
               number: context.payload.pull_request.number, run: Number(process.env.GITHUB_RUN_ID),
               attempt: Number(process.env.GITHUB_RUN_ATTEMPT),
+              workspace: context.payload.pull_request.labels.some(label => label.name === '固定画板') ? 'https://excalidraw.xenica.truebigsand.top' : undefined,
             });
             require('node:fs').writeFileSync('delivery-candidate.json', JSON.stringify(candidate, null, 2));
             await require('./.github/scripts/journal.cjs')({github,...context.repo,record:{schema:1,type:'candidate',candidate}});
@@ -361,6 +363,7 @@ jobs:
       - name: 实际预览完整浏览器回归
         env:
           XENICA_REQUIRE_HISTORY: '1'
+          XENICA_E2E_SESSIONS: ${{ secrets[format('XENICA_PREVIEW_SESSIONS_{0}', github.event.pull_request.number)] }}
         run: pnpm e2e --workers=1
         working-directory: web
       - name: 测试结束再次核对成果

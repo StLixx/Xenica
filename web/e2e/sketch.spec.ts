@@ -1,14 +1,7 @@
-import { expect, test, type Page } from '@playwright/test';
+import { signIn } from './sign-in';
+import { expect, test } from '@playwright/test';
 
 // 草图站点：CI 和预览站都用 XENICA_SEED=demo 启动（账号 demo / demo）。
-async function signIn(page: Page) {
-  await page.goto('/');
-  await expect(page.getByText('预览站示例账号：demo / demo')).toBeVisible();
-  await page.getByLabel('用户名').fill('demo');
-  await page.getByLabel('密码').fill('demo');
-  await page.getByRole('button', { name: '登录' }).click();
-  await expect(page.getByTestId('connection')).toContainText('已连接');
-}
 
 test('画一张草图，给 AI 的链接能读到画了什么', async ({ page, browser }) => {
   await signIn(page);
