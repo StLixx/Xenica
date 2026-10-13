@@ -3,10 +3,12 @@
 set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/../.." && pwd)
 CONFIG=${XENICA_WORKSPACE_CONFIG:-/var/lib/xenica-workspace/workspace.env}
+requested=${XENICA_WORKSPACE_TARGET:-}
 [[ -f "$CONFIG" ]] || { echo 'Workspace requires private configuration'; exit 1; }
 set -a
 source "$CONFIG"
 set +a
+[ -z "$requested" ] || export XENICA_IMAGE=$requested
 [[ "${XENICA_IMAGE:-}" =~ ^ghcr\.io/stlixx/xenica@sha256:[a-f0-9]{64}$ ]] || exit 1
 export XENICA_ARTIFACT=${XENICA_IMAGE#*@}
 export XENICA_NAME=sketch
@@ -33,4 +35,8 @@ if ! docker compose -f "$ROOT/deploy/compose.yaml" -p xenica-sketch --env-file "
     docker compose -f "$ROOT/deploy/compose.yaml" -p xenica-sketch --env-file "$CONFIG" stop app
   fi
   exit 1
+fi
+# 运行成功后才更新下一次启动的固定配置。
+if [ -n "$requested" ]; then
+  sed -i "s|^XENICA_IMAGE=.*|XENICA_IMAGE=$XENICA_IMAGE|" "$CONFIG"
 fi

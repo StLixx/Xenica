@@ -7,7 +7,7 @@ import re
 import urllib.error
 import urllib.request
 
-def publish_archive(metadata, token):
+def publish_record(record, token):
     token = token.strip()
     if not token:raise RuntimeError('archive publication credential is missing')
     repo=os.environ.get('XENICA_REPO','StLixx/Xenica')
@@ -23,7 +23,8 @@ def publish_archive(metadata, token):
             raise
         except Exception:
             raise RuntimeError('archive publication transport failed') from None
-    record={'schema':1,'type':'archive','source':metadata['source'],'archive':metadata,'recovery':metadata.get('recovery','xenica-history://snapshots/'+metadata['snapshot'])}
+    if record.get('schema')!=1 or record.get('type') not in ('archive','deployment'):
+        raise RuntimeError('invalid deployment journal record')
     text=json.dumps(record,ensure_ascii=False,separators=(',',':'))
     if re.search(r'/api/share/|[?&](?:token|ticket|password|secret|api.?key)=|postgres://',text,re.I):
         raise RuntimeError('private credential in archive metadata')
@@ -34,7 +35,7 @@ def publish_archive(metadata, token):
         commit=api('git/commits/'+head)
         index=json.loads(base64.b64decode(api('contents/index.json?ref='+head)['content']))
         if any(r['sha256']==digest for r in index['records']):return
-        index['records'].append({'path':path,'sha256':digest,'type':'archive','source':metadata['source'],'previous':index['records'][-1]['sha256'] if index['records'] else None})
+        index['records'].append({'path':path,'sha256':digest,'type':record['type'],'source':record['source'],'previous':index['records'][-1]['sha256'] if index['records'] else None})
         tree=api('git/trees','POST',{'base_tree':commit['tree']['sha'],'tree':[
             {'path':path,'mode':'100644','type':'blob','content':text},
             {'path':'index.json','mode':'100644','type':'blob','content':json.dumps(index,ensure_ascii=False,indent=2)+'\n'}]})
@@ -44,3 +45,7 @@ def publish_archive(metadata, token):
         except urllib.error.HTTPError as error:
             if error.code not in (409,422):raise
     raise RuntimeError('archive publication conflicted repeatedly')
+
+def publish_archive(metadata, token):
+    publish_record({'schema':1,'type':'archive','source':metadata['source'],'archive':metadata,
+        'recovery':metadata.get('recovery','xenica-history://snapshots/'+metadata['snapshot'])},token)

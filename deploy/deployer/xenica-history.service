@@ -4,4 +4,5 @@ After=docker.service
 [Service]
 Type=oneshot
 EnvironmentFile=-/etc/xenica-history.env
-ExecStart=/usr/bin/python3 /opt/xenica/deploy/deployer/history.py
+Environment=XENICA_HISTORY_PARENT=auto
+ExecStart=/usr/bin/python3 -S /opt/xenica/deploy/deployer/history.py

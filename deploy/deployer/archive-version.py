@@ -19,16 +19,25 @@ assert re.fullmatch(r'xenica(?:-pr-[1-9][0-9]*)?',project)
 def run(*args):return subprocess.check_output(args,stderr=subprocess.PIPE)
 app=json.loads(run('docker','inspect',project+'-app-1'))[0]
 image=app['Config']['Image']
-meta=json.loads(run('docker','image','inspect',image))[0]
+meta=json.loads(run('docker','image','inspect',app.get('Image',image)))[0]
 source=meta['Config']['Labels']['org.opencontainers.image.revision']
 env=dict(v.split('=',1) for v in app['Config']['Env'] if '=' in v)
 digest=env.get('XENICA_ARTIFACT','')
 if not re.fullmatch(r'sha256:[a-f0-9]{64}',digest):
-    manifest=json.loads(run('docker','buildx','imagetools','inspect',image,'--format','{{json .Manifest}}'))
-    digest=manifest['digest']
-    run('docker','pull','ghcr.io/stlixx/xenica@'+digest)
-    actual=json.loads(run('docker','image','inspect','ghcr.io/stlixx/xenica@'+digest))[0]
-    assert actual['Id']==meta['Id'],'tag moved since deployed; historical identity unavailable'
+    # 优先从已经固定的档案恢复身份；运行容器的 Image ID 才是本地事实，不能重解移动标签。
+    catalog_file=root/'catalog/catalog.json'
+    retained=json.loads(catalog_file.read_text())['versions'] if catalog_file.exists() else []
+    refs=[v['image'] for v in retained if v['source']==source]
+    refs+=meta.get('RepoDigests',[])
+    for ref in dict.fromkeys(refs):
+        if not re.fullmatch(r'ghcr\.io/stlixx/xenica@sha256:[a-f0-9]{64}',ref):continue
+        try:
+            run('docker','pull',ref)
+            actual=json.loads(run('docker','image','inspect',ref))[0]
+            if actual['Id']==meta['Id']:
+                digest=ref.split('@')[1];break
+        except subprocess.CalledProcessError:continue
+    assert re.fullmatch(r'sha256:[a-f0-9]{64}',digest),'running artifact identity unavailable; do not guess from a mutable tag'
 health=json.loads(run('docker','run','--rm','--network',project+'_default','curlimages/curl:8.14.1','-fsS','http://app:8080/api/health'))
 assert health['commit']==source
 version='v'+health['version']

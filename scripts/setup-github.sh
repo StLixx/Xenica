@@ -47,3 +47,5 @@ else
   gh api -X POST "repos/$repo/rulesets" --input - <<<"$journal_rules" >/dev/null
 fi
 echo "done: https://github.com/$repo/settings/rules"
+# 正式发布先建草稿和附件，再发布；发布后锁定 Tag 和资产。
+gh api -X PUT "repos/$repo/immutable-releases" >/dev/null

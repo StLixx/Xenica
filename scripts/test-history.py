@@ -15,6 +15,10 @@ identity_spec=importlib.util.spec_from_file_location('archive_identity',Path(__f
 identity=importlib.util.module_from_spec(identity_spec);identity_spec.loader.exec_module(identity)
 
 class HistoryTests(unittest.TestCase):
+    def test_auto_parents_only_discovers_xenica_apps(self):
+        with patch.object(history,'run',return_value='xenica-app-1\nxenica-sketch-app-1\nxenica-pr-61-app-1\nxenica-pr-61-db-1\nother-app-1\nxenica-history-id-gateway\n'):
+            self.assertEqual(history.parents('auto'),['xenica-app-1','xenica-pr-61-app-1','xenica-sketch-app-1'])
+        self.assertEqual(history.parents('xenica-sketch-app-1'),['xenica-sketch-app-1'])
     def test_policy_rotation_uses_valid_store_stop_transition(self):
         runtime={'id':'00000000-0000-4000-8000-000000000001','generation':1,'state':'running'}
         with patch.object(history,'state') as state,patch.object(history.subprocess,'run'):

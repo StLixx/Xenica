@@ -16,7 +16,8 @@ const STAGES = [
 async function ensureProject(github, owner, repo) {
   const q = `query($login:String!,$repo:String!){
     user(login:$login){ id projectsV2(first:50){ nodes{ id title fields(first:50){ nodes{
-      ... on ProjectV2SingleSelectField { id name options { id name } } } } } } }
+      ... on ProjectV2SingleSelectField { id name options { id name } }
+      ... on ProjectV2Field { id name dataType } } } } } }
     repository(owner:$login,name:$repo){ id } }`;
   const r = await github.graphql(q, { login: owner, repo });
   let project = r.user.projectsV2.nodes.find((p) => p.title === TITLE);
@@ -37,7 +38,7 @@ async function ensureProject(github, owner, repo) {
     );
     field = c.createProjectV2Field.projectV2Field;
   }
-  return { projectId: project.id, field };
+  return { projectId: project.id, field, fields:project.fields.nodes };
 }
 
 /** contentIds：Issue 或 PR 的 node id。 */
@@ -57,4 +58,25 @@ module.exports = async function project({ github, core, owner, repo, contentIds,
     );
     core.info(`${contentId} → ${stage}`);
   }
+};
+
+// 看板是永久发布事实的投影；任务“完成”继续指合并，不能充当版本已发布。
+module.exports.release=async function releaseProject({github,core,owner,repo,version,commit}){
+  const published=(await github.rest.repos.getReleaseByTag({owner,repo,tag:version})).data;
+  if(published.draft||!published.immutable)throw Error('project cannot mark an unpublished release');
+  const ref=(await github.rest.git.getRef({owner,repo,ref:'tags/'+version})).data;
+  if(ref.object.sha!==commit)throw Error('project release commit differs');
+  const milestone=(await github.paginate(github.rest.issues.listMilestones,{owner,repo,state:'all'})).find(m=>m.title===version);
+  if(!milestone)throw Error('release milestone missing');
+  const items=await github.paginate(github.rest.issues.listForRepo,{owner,repo,state:'all',milestone:milestone.number});
+  const {projectId,fields}=await ensureProject(github,owner,repo);
+  let versionField=fields.find(f=>f?.name==='体验版本');let stateField=fields.find(f=>f?.name==='发布状态');
+  if(!versionField){const result=await github.graphql(`mutation($p:ID!){createProjectV2Field(input:{projectId:$p,dataType:TEXT,name:"体验版本"}){projectV2Field{... on ProjectV2Field{id name}}}}`,{p:projectId});versionField=result.createProjectV2Field.projectV2Field;}
+  if(!stateField){const result=await github.graphql(`mutation($p:ID!,$opts:[ProjectV2SingleSelectFieldOptionInput!]){createProjectV2Field(input:{projectId:$p,dataType:SINGLE_SELECT,name:"发布状态",singleSelectOptions:$opts}){projectV2Field{... on ProjectV2SingleSelectField{id name options{id name}}}}}`,{p:projectId,opts:[['未发布','GRAY'],['候选','YELLOW'],['已发布','GREEN'],['已回滚','RED']].map(([name,color])=>({name,color,description:name}))});stateField=result.createProjectV2Field.projectV2Field;}
+  const option=stateField.options.find(o=>o.name==='已发布');if(!option)throw Error('project published option missing');
+  for(const issue of items){
+    const added=await github.graphql(`mutation($p:ID!,$c:ID!){addProjectV2ItemById(input:{projectId:$p,contentId:$c}){item{id}}}`,{p:projectId,c:issue.node_id});const item=added.addProjectV2ItemById.item.id;
+    await github.graphql(`mutation($p:ID!,$i:ID!,$f:ID!,$v:String!){updateProjectV2ItemFieldValue(input:{projectId:$p,itemId:$i,fieldId:$f,value:{text:$v}}){projectV2Item{id}}}`,{p:projectId,i:item,f:versionField.id,v:version});
+    await github.graphql(`mutation($p:ID!,$i:ID!,$f:ID!,$v:String!){updateProjectV2ItemFieldValue(input:{projectId:$p,itemId:$i,fieldId:$f,value:{singleSelectOptionId:$v}}){projectV2Item{id}}}`,{p:projectId,i:item,f:stateField.id,v:option.id});
+  }core.info(`${version}: ${items.length} tasks projected as published`);
 };

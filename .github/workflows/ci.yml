@@ -1,6 +1,6 @@
 name: ci
 
-# 流程见 docs/adr/0006-workflow.md：机器门（这里的各个 job）→ 预览镜像 → 验收门（gate）→ 自动合并。
+# 合并只集成并校验；正式版本推广由 release.yml 执行，见 ADR 0015。
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
@@ -56,12 +56,15 @@ jobs:
         run: node --test .github/scripts/tests/*.test.cjs
       - name: 接续索引完整性
         run: node scripts/check-context.cjs
+      - name: 前后端与发布声明版本一致
+        run: node .github/scripts/check-release.cjs
       - name: 原始画板迁移无损回归
         run: |
           python3 scripts/test-excalidraw-archive.py
           python3 scripts/test-deployer.py
           python3 scripts/test-history.py
           python3 scripts/test-workspace.py
+          python3 scripts/test-release-deployment.py
       - name: sqlx offline cache is up to date
         run: |
           cargo sqlx migrate run --source crates/store/migrations
@@ -290,41 +293,7 @@ jobs:
           path: delivery-candidate.json
           if-no-files-found: error
 
-  # 测试实际交付的预览，不能拿测试服务器上的成功代替部署验证。
-  promote:
-    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/master'
-    runs-on: ubuntu-latest
-    needs: [rust, web, e2e, screenshots]
-    permissions:
-      contents: write
-      packages: write
-      checks: read
-    steps:
-      - uses: actions/checkout@v5
-      - id: identity
-        uses: actions/github-script@v8
-        with:
-          script: await require('./.github/scripts/promote.cjs')({github,context,core});
-      - uses: docker/setup-buildx-action@v3
-      - uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - name: 推广同一产物
-        env:
-          DIGEST: ${{ steps.identity.outputs.artifact }}
-        run: |
-          docker buildx imagetools create --prefer-index=false --tag ghcr.io/stlixx/xenica:latest "ghcr.io/stlixx/xenica@$DIGEST"
-          actual=$(docker buildx imagetools inspect ghcr.io/stlixx/xenica:latest --format '{{json .Manifest}}' | jq -r .digest)
-          test "$actual" = "$DIGEST"
-      - uses: actions/github-script@v8
-        env:
-          CANDIDATE: ${{ steps.identity.outputs.candidate }}
-        with:
-          script: |
-            await require('./.github/scripts/journal.cjs')({github,...context.repo,record:{schema:1,type:'promotion',candidate:JSON.parse(process.env.CANDIDATE),merged:context.sha,run:Number(process.env.GITHUB_RUN_ID),attempt:Number(process.env.GITHUB_RUN_ATTEMPT)}});
-
+  # 测试实际交付的预览；master 合并只校验，明确 release 操作才推广。
   preview:
     if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest

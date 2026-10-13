@@ -139,10 +139,15 @@ def reconcile(parent):
                 subprocess.run(['docker','rm','-f',name+'-'+service],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,check=False)
             state(parent,runtime,'failed','历史版本启动失败，档案已保留')
 
+def parents(config):
+    if config!='auto':return config.split(',')
+    names=run('docker','ps','--format','{{.Names}}').splitlines()
+    return sorted(n for n in names if n in ('xenica-app-1','xenica-sketch-app-1') or re.fullmatch(r'xenica-pr-[1-9][0-9]*-app-1',n))
+
 if __name__=='__main__':
     ROOT.mkdir(parents=True,exist_ok=True,mode=0o700)
     with (ROOT/'lock').open('w') as lock:
         fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
-        for parent in os.environ.get('XENICA_HISTORY_PARENT','xenica-app-1').split(','):
+        for parent in parents(os.environ.get('XENICA_HISTORY_PARENT','auto')):
             if subprocess.run(['docker','inspect',parent],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL).returncode == 0:
                 reconcile(parent)

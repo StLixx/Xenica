@@ -34,7 +34,9 @@
 
 ### 版本与命名
 
-按体验切版本：`v0.2.0`、`v0.2.1`……一个版本 = 一个可以点的预览，Demo 驱动。PR 标题和提交信息用 Conventional Commits（`feat(editor): …`），名字照规则起，不另想。
+按体验切版本：`v0.2.0`、`v0.2.1`……一个体验版本可包含多个 Issue/PR，Milestone 汇总范围；Project 的任务完成指合并，发布状态单独记录。PR 标题和提交信息用 Conventional Commits。
+
+合并只集成与校验，不自动上线。用户明确要求发布后，Agent 执行 `release.yml`，核对已验收产物、最新检查、备份及两个固定入口；成功才创建不可移动的版本 Tag、清单附件和 GitHub Release。当前前后端版号、`releases/<版本>.json` 和发布说明须一致；不补造未发布的历史。详见 `docs/adr/0015-versioned-release.md` 与 `docs/task-lifecycle.md`。
 
 提 Issue 时用 `.github/ISSUE_TEMPLATE/` 的格式，类型四选一：试样、功能、缺陷、流程。
 
