@@ -4,6 +4,7 @@ import { useCallback } from 'react';
 
 import {
   api,
+  ApiError,
   unwrap,
   type NewChildren,
   type NewEdge,
@@ -37,7 +38,9 @@ export function useSession() {
   return useQuery({
     queryKey: keys.session,
     queryFn: async () => unwrap(await api.GET('/api/auth/session')),
-    retry: false,
+    // 会话读取是只读请求：短暂网络/服务故障可重试，鉴权或参数错误仍立即停止。
+    retry: (attempt, error) =>
+      attempt < 2 && (!(error instanceof ApiError) || error.code === 'internal'),
   });
 }
 
