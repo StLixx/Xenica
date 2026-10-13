@@ -1075,7 +1075,9 @@ async fn archive_preserves_history_and_files_without_share_credentials(pool: PgP
 #[sqlx::test(migrator = "xenica_store::MIGRATOR")]
 async fn probe_image_is_public_png(pool: PgPool) {
     // 探针要给外部站点直接内嵌：不带 Cookie 也能拿到图，且必须声明成 image/png。
-    let res = app(pool)
+    let router = app(pool);
+    let res = router
+        .clone()
         .oneshot(
             Request::builder()
                 .uri("/api/probe/png")
@@ -1095,4 +1097,36 @@ async fn probe_image_is_public_png(pool: PgPool) {
     );
     let bytes = to_bytes(res.into_body(), 1 << 20).await.unwrap();
     assert_eq!(&bytes[..8], b"\x89PNG\r\n\x1a\n");
+    assert_eq!(u32::from_be_bytes(bytes[16..20].try_into().unwrap()), 1200);
+    assert_eq!(u32::from_be_bytes(bytes[20..24].try_into().unwrap()), 630);
+    let head = router
+        .clone()
+        .oneshot(
+            Request::builder()
+                .method("HEAD")
+                .uri("/api/probe/png")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(head.status(), StatusCode::OK);
+    assert_eq!(head.headers()[header::CONTENT_TYPE], "image/png");
+    assert_eq!(head.headers()[header::X_CONTENT_TYPE_OPTIONS], "nosniff");
+    assert!(
+        to_bytes(head.into_body(), 1 << 20)
+            .await
+            .unwrap()
+            .is_empty()
+    );
+    let private = router
+        .oneshot(
+            Request::builder()
+                .uri("/api/probe/private")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(private.status(), StatusCode::UNAUTHORIZED);
 }

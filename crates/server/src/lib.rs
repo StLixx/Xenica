@@ -47,7 +47,7 @@ impl AppState {
 #[derive(OpenApi)]
 #[openapi(info(
     title = "Xenica API",
-    description = "Xenica 的 HTTP 接口。由代码生成，不要手改。除 `/api/health`、`/api/auth/*`、`/api/share/*` 和 `/api/probe/*` 外都要先登录（Cookie `xenica_session`）。"
+    description = "Xenica 的 HTTP 接口。由代码生成，不要手改。除 `/api/health`、`/api/auth/*`、`/api/share/*` 和 `/api/probe/png` 外都要先登录（Cookie `xenica_session`）。"
 ))]
 struct ApiDoc;
 
