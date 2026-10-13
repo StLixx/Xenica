@@ -58,6 +58,8 @@ test('直接输入的画布文字保存后刷新仍可搜索', async ({ page }) 
 });
 
 test('保存请求尚未完成时刷新不丢失画布文字', async ({ page }) => {
+  // 公网刷新包含重新鉴权与大画布包加载，保存断言从画布就绪后开始计时。
+  test.setTimeout(90_000);
   await signIn(page);
   await page.goto('/sketch');
   await page.getByRole('button', { name: '画布管理', exact: true }).click();
@@ -81,6 +83,7 @@ test('保存请求尚未完成时刷新不丢失画布文字', async ({ page }) 
   await page.mouse.click(box.x + box.width * 0.55, box.y + box.height * 0.55);
   await page.locator('textarea.excalidraw-wysiwyg').fill(marker);
   await page.reload();
+  await expect(stage).toBeVisible({ timeout: 60_000 });
   await page.unroute(`**/api/nodes/${id}`);
   await expect(page.getByText('已保存', { exact: true })).toBeVisible({ timeout: 20_000 });
   const stored = await (await page.request.get(`/api/nodes/${id}`)).json();
