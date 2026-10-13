@@ -33,6 +33,41 @@ impl From<NodeRow> for Node {
 }
 
 impl Store {
+    /// 一个实例只有一张开发画板。并发首次打开也不会创建多个。
+    pub async fn development_board(&self, actor: &Actor) -> Result<Node, StoreError> {
+        let mut tx = self.pool.begin().await?;
+        sqlx::query("select pg_advisory_xact_lock(202610110025)")
+            .execute(&mut *tx)
+            .await?;
+        let existing = sqlx::query_as!(
+            NodeRow,
+            r#"select id, kind, title, body, created_at, updated_at from nodes
+               where kind = 'sketch' and body->>'purpose' = 'development'"#,
+        )
+        .fetch_optional(&mut *tx)
+        .await?;
+        let node =
+            match existing {
+                Some(row) => row.into(),
+                None => insert_node(
+                    &mut tx,
+                    actor,
+                    NewNode {
+                        id: None,
+                        kind: Some("sketch".into()),
+                        title: "Xenica 开发画板".into(),
+                        body: Some(json!({ "purpose": "development", "scene": {
+                            "type": "excalidraw", "version": 2, "source": "xenica", "elements": []
+                        }})),
+                    },
+                    None,
+                )
+                .await?,
+            };
+        tx.commit().await?;
+        Ok(node)
+    }
+
     /// 最近更新的节点在前。
     pub async fn list_nodes(&self, limit: i64) -> Result<Vec<Node>, StoreError> {
         let rows = sqlx::query_as!(
@@ -141,11 +176,49 @@ impl Store {
         id: NodeId,
         patch: NodePatch,
     ) -> Result<Node, StoreError> {
+        self.update_node_checked(actor, id, patch, None).await
+    }
+
+    /// 草图正文必须基于读到的版本；行锁使检查、快照和写入在同一事务内。
+    pub async fn update_node_checked(
+        &self,
+        actor: &Actor,
+        id: NodeId,
+        patch: NodePatch,
+        expected: Option<DateTime<Utc>>,
+    ) -> Result<Node, StoreError> {
         let patch = patch.normalize()?;
         let mut tx = self.pool.begin().await?;
+        let previous = sqlx::query!(
+            "select kind, body, updated_at from nodes where id = $1 for update",
+            id.0
+        )
+        .fetch_optional(&mut *tx)
+        .await?
+        .ok_or(DomainError::NotFound)?;
+        let revision = previous.updated_at;
+        if previous.body.get("purpose").and_then(|v| v.as_str()) == Some("development")
+            && patch.body.as_ref().is_some_and(|body| {
+                body.get("purpose").and_then(|v| v.as_str()) != Some("development")
+            })
+        {
+            return Err(DomainError::Invalid("固定开发画板身份不能移除".into()).into());
+        }
+        let sketch = previous.kind == "sketch";
+        if (expected.is_some() && expected != Some(revision))
+            || (sketch && patch.body.is_some() && expected.is_none())
+        {
+            return Err(StoreError::Conflict(
+                "画布已更新或缺少版本，请先读取当前版本；本次修改未写入".into(),
+            ));
+        }
+        if sketch {
+            sqlx::query!("insert into sketch_versions (node, revision, title, body) select id, updated_at, title, body from nodes where id = $1 on conflict do nothing", id.0)
+                .execute(&mut *tx).await?;
+        }
         let node: Node = sqlx::query_as!(
             NodeRow,
-            r#"update nodes set title = coalesce($2, title), body = coalesce($3, body), updated_at = now()
+            r#"update nodes set title = coalesce($2, title), body = coalesce($3, body), updated_at = clock_timestamp()
                where id = $1
                returning id, kind, title, body, created_at, updated_at"#,
             id.0,
@@ -171,6 +244,11 @@ impl Store {
         Ok(node)
     }
 
+    pub async fn sketch_history(&self, id: NodeId) -> Result<Vec<serde_json::Value>, StoreError> {
+        Ok(sqlx::query!(r#"select jsonb_build_object('revision', revision, 'title', title, 'body', body) as "snapshot!" from sketch_versions where node = $1 order by revision desc"#, id.0)
+            .fetch_all(&self.pool).await?.into_iter().map(|row| row.snapshot).collect())
+    }
+
     /// 删除节点和它包含的所有子孙节点，连带删除它们的关系。痕迹保留。
     pub async fn delete_node(&self, actor: &Actor, id: NodeId) -> Result<(), StoreError> {
         let mut tx = self.pool.begin().await?;
@@ -180,11 +258,19 @@ impl Store {
                    union
                    select e.target from edges e join d on e.source = d.id where e.kind = 'contains'
                )
-               delete from nodes where id in (select id from d) returning id, title"#,
+               delete from nodes where id in (select id from d) returning id, title, body"#,
             id.0,
         )
         .fetch_all(&mut *tx)
         .await?;
+        if deleted
+            .iter()
+            .any(|r| r.body.get("purpose").and_then(|v| v.as_str()) == Some("development"))
+        {
+            return Err(
+                DomainError::Invalid("固定开发画板不能删除；请编辑内容或导出档案".into()).into(),
+            );
+        }
         if !deleted.iter().any(|r| r.id == id.0) {
             return Err(DomainError::NotFound.into());
         }

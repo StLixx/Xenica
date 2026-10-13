@@ -72,6 +72,103 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/development-board': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** 打开唯一持久开发画板；首次调用创建，后续调用不改变内容。 */
+    post: operations['development_board'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/development/runtimes/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['status'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/development/runtimes/{id}/bridge': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['bridge'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/development/versions': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['versions'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/development/versions/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['version'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/development/versions/{id}/start': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations['start'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/edges': {
     parameters: {
       query?: never;
@@ -195,6 +292,22 @@ export interface paths {
     patch: operations['update_node'];
     trace?: never;
   };
+  '/api/nodes/{id}/archive': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['archive_node'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/nodes/{id}/children': {
     parameters: {
       query?: never;
@@ -301,6 +414,22 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/share/{token}/history.json': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get: operations['share_history'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/share/{token}/png': {
     parameters: {
       query?: never;
@@ -369,6 +498,9 @@ export interface components {
           type: 'processor';
           version: string;
         };
+    Bridge: {
+      url: string;
+    };
     /** @description 关系：两个节点之间有类型、有方向的连接。 */
     Edge: {
       /** Format: date-time */
@@ -400,6 +532,8 @@ export interface components {
       url: string;
     };
     Health: {
+      /** @description 部署器从实际运行的镜像获取的 registry digest；开发环境可为空。 */
+      artifact?: string | null;
       /** @description 构建时的 git commit（镜像里由 CI 写入 `XENICA_COMMIT`），本地开发时为空。 */
       commit?: string | null;
       status: string;
@@ -466,7 +600,21 @@ export interface components {
       body?: Record<string, never> | null;
       title?: string | null;
     };
+    Runtime: {
+      /** Format: int64 */
+      generation: number;
+      /** Format: uuid */
+      id: string;
+      message: string;
+      state: string;
+      version: string;
+    };
     SceneInput: {
+      /**
+       * Format: date-time
+       * @description 从摘要 sceneRevision 或 scene.json 的 _revision 读取；拒绝旧版本与无版本写入。
+       */
+      expected_revision?: string | null;
       /** @description Excalidraw 的画面数据，原样存下来。 */
       scene: unknown;
     };
@@ -537,6 +685,17 @@ export interface components {
      * @description 账号 ID。
      */
     UserId: string;
+    Version: {
+      available: boolean;
+      changes: string[];
+      id: string;
+      image: string;
+      reason: string;
+      snapshot: string;
+      snapshot_sha256: string;
+      source: string;
+      title: string;
+    };
   };
   responses: never;
   parameters: never;
@@ -672,6 +831,136 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  development_board: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Node'];
+        };
+      };
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  status: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Runtime'];
+        };
+      };
+    };
+  };
+  bridge: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Bridge'];
+        };
+      };
+    };
+  };
+  versions: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Version'][];
+        };
+      };
+    };
+  };
+  version: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Version'];
+        };
+      };
+    };
+  };
+  start: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['Runtime'];
         };
       };
     };
@@ -973,7 +1262,10 @@ export interface operations {
   update_node: {
     parameters: {
       query?: never;
-      header?: never;
+      header?: {
+        /** @description 草图正文必需：读取到的 updated_at，用双引号包围 */
+        'If-Match'?: string | null;
+      };
       path: {
         id: string;
       };
@@ -1007,6 +1299,35 @@ export interface operations {
         };
         content: {
           'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  archive_node: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': unknown;
         };
       };
     };
@@ -1302,6 +1623,35 @@ export interface operations {
         };
         content: {
           'image/*': number[];
+        };
+      };
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ErrorBody'];
+        };
+      };
+    };
+  };
+  share_history: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        token: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': unknown;
         };
       };
       404: {

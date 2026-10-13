@@ -1,0 +1,585 @@
+{
+  "schema": 1,
+  "themeSha256": "ca7ab874ea0b1ed60ddfe5b90cccea0d868d2e9e19502de82c38d485a7a09ac5",
+  "features": [
+    {
+      "id": "graph",
+      "title": "图",
+      "source": "web/src/views/graph/index.ts",
+      "url": "/?view=graph"
+    },
+    {
+      "id": "nodes",
+      "title": "全部节点",
+      "source": "web/src/views/nodes/index.ts",
+      "url": "/?view=nodes"
+    }
+  ],
+  "decisions": [
+    {
+      "id": "user-definition-and-acceptance",
+      "title": "用户只负责开始前范围定义与完成后的交互体验验收；Agent 处理中间过程。开始不能代替成果验收。 结束验收前，Agent 全面测试、修复全部失败，不能把未测试成果交给用户排错。",
+      "source": "docs/context/index.json",
+      "references": [
+        "AGENTS.md",
+        "docs/adr/0006-workflow.md",
+        "specs/54-delivery-system/spec.md",
+        "docs/context/v0.2.5-input.md",
+        "docs/task-lifecycle.md",
+        "docs/context/v0.2.5-canvas-original.md"
+      ]
+    },
+    {
+      "id": "one-persistent-development-board",
+      "title": "唯一固定开发画板长期承载组件、Features 和各版本设计；临时预览不拥有长期事实。",
+      "source": "docs/context/index.json",
+      "references": [
+        "specs/54-delivery-system/spec.md",
+        "crates/server/src/archive.rs",
+        "crates/store/src/nodes.rs",
+        "web/e2e/development-board.spec.ts",
+        "docs/context/v0.2.5-canvas-archive.md"
+      ]
+    },
+    {
+      "id": "candidate-bound-evidence",
+      "title": "成果身份关联源码、产物、部署、规则与检查；产品验收与工程合并资格分离。",
+      "source": "docs/context/index.json",
+      "references": [
+        "docs/adr/0010-delivery-candidate.md",
+        ".github/scripts/candidate.cjs",
+        ".github/scripts/tests/candidate.test.cjs"
+      ]
+    },
+    {
+      "id": "infra-only-development",
+      "title": "构建、编译、测试与重型环境只在 Infra；Windows 用于编辑、SSH 和查看。",
+      "source": "docs/context/index.json",
+      "references": ["AGENTS.md", "specs/54-delivery-system/spec.md"]
+    },
+    {
+      "id": "managed-excalidraw-source",
+      "title": "深入分析和改进 Excalidraw 原生体验，必要源码改造及依据须在同一仓库可复现。维护方式由 Agent 调研。",
+      "source": "docs/context/index.json",
+      "references": [
+        "specs/54-delivery-system/spec.md",
+        "docs/adr/0011-excalidraw-extension.md",
+        "web/src/sketch/upstream/ToolButton.tsx"
+      ]
+    },
+    {
+      "id": "historical-versions-on-demand",
+      "title": "历史版本使用不可变镜像和兼容快照隔离恢复；最多两个实例，空闲十五分钟释放；永久画板和档案不删除。",
+      "source": "docs/context/index.json",
+      "references": [
+        "specs/54-delivery-system/continuation.md",
+        "docs/adr/0012-historical-runtime.md",
+        "deploy/deployer/history.py",
+        "crates/store/tests/runtimes.rs",
+        "docs/context/history-archives.json"
+      ]
+    },
+    {
+      "id": "permanent-delivery-evidence-and-same-artifact-promotion",
+      "title": "候选、检查、自检和验收长期保存在同仓库索引；上线推广已验收的同一产物，核验合并后的源码内容并先备份。",
+      "source": "docs/context/index.json",
+      "references": [
+        "specs/54-delivery-system/continuation.md",
+        "docs/adr/0013-delivery-journal.md",
+        ".github/scripts/journal.cjs",
+        ".github/scripts/tests/promote.test.cjs"
+      ]
+    },
+    {
+      "id": "private-test-workspace",
+      "title": "固定画板沿用 test 账户；嵌入页面免重复登录，独立测试站仍须鉴权，页面不公开密码。目录精简，真实页面在同一工作区体验。",
+      "source": "docs/context/index.json",
+      "references": [
+        "docs/adr/0014-fixed-workspace.md",
+        "web/src/app/SketchWorkspace.tsx",
+        "deploy/deployer/workspace.sh",
+        "deploy/deployer/bootstrap-workspace.py"
+      ]
+    },
+    {
+      "id": "versioned-release-workflow",
+      "title": "一次正式发布 v0.2.5；合并、部署和发布分开，Tag/Release 固定源码与验收产物，纯工程规范另经主线校验。",
+      "source": "docs/context/index.json",
+      "references": [
+        "docs/adr/0015-versioned-release.md",
+        "docs/releases/v0.2.5.md",
+        "releases/v0.2.5.json",
+        ".github/scripts/release.cjs",
+        ".github/workflows/release.yml"
+      ]
+    }
+  ],
+  "components": [
+    {
+      "id": "外壳-登录--demo",
+      "title": "外壳/登录 / Demo",
+      "source": "web/src/app/SignIn.stories.tsx",
+      "url": "/storybook/iframe.html?id=%E5%A4%96%E5%A3%B3-%E7%99%BB%E5%BD%95--demo&viewMode=story"
+    },
+    {
+      "id": "外壳-登录--failed",
+      "title": "外壳/登录 / Failed",
+      "source": "web/src/app/SignIn.stories.tsx",
+      "url": "/storybook/iframe.html?id=%E5%A4%96%E5%A3%B3-%E7%99%BB%E5%BD%95--failed&viewMode=story"
+    },
+    {
+      "id": "外壳-登录--login",
+      "title": "外壳/登录 / Login",
+      "source": "web/src/app/SignIn.stories.tsx",
+      "url": "/storybook/iframe.html?id=%E5%A4%96%E5%A3%B3-%E7%99%BB%E5%BD%95--login&viewMode=story"
+    },
+    {
+      "id": "外壳-登录--setup",
+      "title": "外壳/登录 / Setup",
+      "source": "web/src/app/SignIn.stories.tsx",
+      "url": "/storybook/iframe.html?id=%E5%A4%96%E5%A3%B3-%E7%99%BB%E5%BD%95--setup&viewMode=story"
+    },
+    {
+      "id": "底座-button--danger",
+      "title": "底座/Button / Danger",
+      "source": "web/src/ui/Button.stories.tsx",
+      "url": "/storybook/iframe.html?id=%E5%BA%95%E5%BA%A7-button--danger&viewMode=story"
+    },
+    {
+      "id": "底座-button--default",
+      "title": "底座/Button / Default",
+      "source": "web/src/ui/Button.stories.tsx",
+      "url": "/storybook/iframe.html?id=%E5%BA%95%E5%BA%A7-button--default&viewMode=story"
+    },
+    {
+      "id": "底座-button--disabled",
+      "title": "底座/Button / Disabled",
+      "source": "web/src/ui/Button.stories.tsx",
+      "url": "/storybook/iframe.html?id=%E5%BA%95%E5%BA%A7-button--disabled&viewMode=story"
+    },
+    {
+      "id": "底座-button--ghost",
+      "title": "底座/Button / Ghost",
+      "source": "web/src/ui/Button.stories.tsx",
+      "url": "/storybook/iframe.html?id=%E5%BA%95%E5%BA%A7-button--ghost&viewMode=story"
+    },
+    {
+      "id": "底座-button--primary",
+      "title": "底座/Button / Primary",
+      "source": "web/src/ui/Button.stories.tsx",
+      "url": "/storybook/iframe.html?id=%E5%BA%95%E5%BA%A7-button--primary&viewMode=story"
+    },
+    {
+      "id": "底座-emptystate--empty",
+      "title": "底座/EmptyState / Empty",
+      "source": "web/src/ui/EmptyState.stories.tsx",
+      "url": "/storybook/iframe.html?id=%E5%BA%95%E5%BA%A7-emptystate--empty&viewMode=story"
+    },
+    {
+      "id": "底座-emptystate--error",
+      "title": "底座/EmptyState / Error",
+      "source": "web/src/ui/EmptyState.stories.tsx",
+      "url": "/storybook/iframe.html?id=%E5%BA%95%E5%BA%A7-emptystate--error&viewMode=story"
+    },
+    {
+      "id": "底座-emptystate--loading",
+      "title": "底座/EmptyState / Loading",
+      "source": "web/src/ui/EmptyState.stories.tsx",
+      "url": "/storybook/iframe.html?id=%E5%BA%95%E5%BA%A7-emptystate--loading&viewMode=story"
+    },
+    {
+      "id": "底座-kindbadge--all-kinds",
+      "title": "底座/KindBadge / All Kinds",
+      "source": "web/src/ui/KindBadge.stories.tsx",
+      "url": "/storybook/iframe.html?id=%E5%BA%95%E5%BA%A7-kindbadge--all-kinds&viewMode=story"
+    },
+    {
+      "id": "底座-kindbadge--large",
+      "title": "底座/KindBadge / Large",
+      "source": "web/src/ui/KindBadge.stories.tsx",
+      "url": "/storybook/iframe.html?id=%E5%BA%95%E5%BA%A7-kindbadge--large&viewMode=story"
+    },
+    {
+      "id": "底座-kindbadge--single",
+      "title": "底座/KindBadge / Single",
+      "source": "web/src/ui/KindBadge.stories.tsx",
+      "url": "/storybook/iframe.html?id=%E5%BA%95%E5%BA%A7-kindbadge--single&viewMode=story"
+    },
+    {
+      "id": "底座-可收起侧栏--侧栏",
+      "title": "底座/可收起侧栏 / 侧栏",
+      "source": "web/src/ui/PeekAside.stories.tsx",
+      "url": "/storybook/iframe.html?id=%E5%BA%95%E5%BA%A7-%E5%8F%AF%E6%94%B6%E8%B5%B7%E4%BE%A7%E6%A0%8F--%E4%BE%A7%E6%A0%8F&viewMode=story"
+    },
+    {
+      "id": "底座-正文--formula",
+      "title": "底座/正文 / Formula",
+      "source": "web/src/ui/Markdown.stories.tsx",
+      "url": "/storybook/iframe.html?id=%E5%BA%95%E5%BA%A7-%E6%AD%A3%E6%96%87--formula&viewMode=story"
+    },
+    {
+      "id": "底座-正文--text",
+      "title": "底座/正文 / Text",
+      "source": "web/src/ui/Markdown.stories.tsx",
+      "url": "/storybook/iframe.html?id=%E5%BA%95%E5%BA%A7-%E6%AD%A3%E6%96%87--text&viewMode=story"
+    },
+    {
+      "id": "底座-设计变量--colors",
+      "title": "底座/设计变量 / 颜色",
+      "source": "web/src/ui/Tokens.stories.tsx",
+      "url": "/storybook/iframe.html?id=%E5%BA%95%E5%BA%A7-%E8%AE%BE%E8%AE%A1%E5%8F%98%E9%87%8F--colors&viewMode=story"
+    },
+    {
+      "id": "底座-设计变量--shape",
+      "title": "底座/设计变量 / 圆角与阴影",
+      "source": "web/src/ui/Tokens.stories.tsx",
+      "url": "/storybook/iframe.html?id=%E5%BA%95%E5%BA%A7-%E8%AE%BE%E8%AE%A1%E5%8F%98%E9%87%8F--shape&viewMode=story"
+    },
+    {
+      "id": "底座-设计变量--states",
+      "title": "底座/设计变量 / 交互状态",
+      "source": "web/src/ui/Tokens.stories.tsx",
+      "url": "/storybook/iframe.html?id=%E5%BA%95%E5%BA%A7-%E8%AE%BE%E8%AE%A1%E5%8F%98%E9%87%8F--states&viewMode=story"
+    },
+    {
+      "id": "底座-设计变量--type",
+      "title": "底座/设计变量 / 文字",
+      "source": "web/src/ui/Tokens.stories.tsx",
+      "url": "/storybook/iframe.html?id=%E5%BA%95%E5%BA%A7-%E8%AE%BE%E8%AE%A1%E5%8F%98%E9%87%8F--type&viewMode=story"
+    },
+    {
+      "id": "草图-真实内容卡片--共享侧栏",
+      "title": "草图/真实内容卡片 / 共享侧栏",
+      "source": "web/src/sketch/EmbedCard.stories.tsx",
+      "url": "/storybook/iframe.html?id=%E8%8D%89%E5%9B%BE-%E7%9C%9F%E5%AE%9E%E5%86%85%E5%AE%B9%E5%8D%A1%E7%89%87--%E5%85%B1%E4%BA%AB%E4%BE%A7%E6%A0%8F&viewMode=story"
+    },
+    {
+      "id": "草图-真实内容卡片--无法加载",
+      "title": "草图/真实内容卡片 / 无法加载",
+      "source": "web/src/sketch/EmbedCard.stories.tsx",
+      "url": "/storybook/iframe.html?id=%E8%8D%89%E5%9B%BE-%E7%9C%9F%E5%AE%9E%E5%86%85%E5%AE%B9%E5%8D%A1%E7%89%87--%E6%97%A0%E6%B3%95%E5%8A%A0%E8%BD%BD&viewMode=story"
+    }
+  ],
+  "tokens": [
+    {
+      "name": "--x-accent",
+      "value": "#4fb9a8"
+    },
+    {
+      "name": "--x-font-doc",
+      "value": "var(--font-sans)"
+    },
+    {
+      "name": "--x-row",
+      "value": "28px"
+    },
+    {
+      "name": "--x-gap",
+      "value": "6px"
+    },
+    {
+      "name": "--x-fs",
+      "value": "14px"
+    },
+    {
+      "name": "--x-rail",
+      "value": "52px"
+    },
+    {
+      "name": "--x-sidebar",
+      "value": "232px"
+    },
+    {
+      "name": "--x-doc",
+      "value": "720px"
+    },
+    {
+      "name": "--x-palette",
+      "value": "560px"
+    },
+    {
+      "name": "--x-card",
+      "value": "240px"
+    },
+    {
+      "name": "--x-palette-top",
+      "value": "15vh"
+    },
+    {
+      "name": "--x-dur-fast",
+      "value": "100ms"
+    },
+    {
+      "name": "--x-dur",
+      "value": "180ms"
+    },
+    {
+      "name": "--x-dur-slow",
+      "value": "320ms"
+    },
+    {
+      "name": "--x-disabled",
+      "value": "0.45"
+    },
+    {
+      "name": "--x-kind-default",
+      "value": "#9aa0a6"
+    },
+    {
+      "name": "--x-kind-note",
+      "value": "#9aa0a6"
+    },
+    {
+      "name": "--x-kind-knowledge",
+      "value": "#bf8eda"
+    },
+    {
+      "name": "--x-kind-question",
+      "value": "#de9255"
+    },
+    {
+      "name": "--x-kind-video",
+      "value": "#df84a8"
+    },
+    {
+      "name": "--x-kind-book",
+      "value": "#eac26b"
+    },
+    {
+      "name": "--x-kind-podcast",
+      "value": "#72bc8f"
+    },
+    {
+      "name": "--x-kind-embed",
+      "value": "#9aa0a6"
+    },
+    {
+      "name": "--x-kind-task",
+      "value": "#5e9fe8"
+    },
+    {
+      "name": "--x-kind-goal",
+      "value": "#5fb8a6"
+    },
+    {
+      "name": "--x-kind-area",
+      "value": "#8fa3a0"
+    },
+    {
+      "name": "--x-kind-tool",
+      "value": "#9aa0a6"
+    },
+    {
+      "name": "--x-kind-setting",
+      "value": "#8f9bb3"
+    },
+    {
+      "name": "--x-kind-log",
+      "value": "#a6c96a"
+    },
+    {
+      "name": "--x-row",
+      "value": "34px"
+    },
+    {
+      "name": "--x-gap",
+      "value": "12px"
+    },
+    {
+      "name": "--x-fs",
+      "value": "15px"
+    },
+    {
+      "name": "--x-accent",
+      "value": "#6ea8fe"
+    },
+    {
+      "name": "--x-accent",
+      "value": "#b69cff"
+    },
+    {
+      "name": "--x-accent",
+      "value": "#e5b45a"
+    },
+    {
+      "name": "--color-bg",
+      "value": "#191919"
+    },
+    {
+      "name": "--color-side",
+      "value": "#202020"
+    },
+    {
+      "name": "--color-raised",
+      "value": "#252525"
+    },
+    {
+      "name": "--color-pop",
+      "value": "#2a2a2a"
+    },
+    {
+      "name": "--color-scrim",
+      "value": "rgb(0 0 0 / 0.45)"
+    },
+    {
+      "name": "--color-fg",
+      "value": "rgb(255 255 255 / 0.92)"
+    },
+    {
+      "name": "--color-fg-2",
+      "value": "rgb(255 255 255 / 0.62)"
+    },
+    {
+      "name": "--color-fg-3",
+      "value": "rgb(255 255 255 / 0.4)"
+    },
+    {
+      "name": "--color-line",
+      "value": "rgb(255 255 255 / 0.08)"
+    },
+    {
+      "name": "--color-hover",
+      "value": "rgb(255 255 255 / 0.055)"
+    },
+    {
+      "name": "--color-press",
+      "value": "rgb(255 255 255 / 0.09)"
+    },
+    {
+      "name": "--color-selected",
+      "value": "color-mix(in srgb, var(--x-accent) 16%, transparent)"
+    },
+    {
+      "name": "--color-accent",
+      "value": "var(--x-accent)"
+    },
+    {
+      "name": "--color-accent-soft",
+      "value": "color-mix(in srgb, var(--x-accent) 16%, transparent)"
+    },
+    {
+      "name": "--color-on-accent",
+      "value": "#0b1f1c"
+    },
+    {
+      "name": "--color-danger",
+      "value": "#e97366"
+    },
+    {
+      "name": "--color-transparent",
+      "value": "transparent"
+    },
+    {
+      "name": "--color-current",
+      "value": "currentColor"
+    },
+    {
+      "name": "--font-sans",
+      "value": "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC',\n    sans-serif"
+    },
+    {
+      "name": "--font-mono",
+      "value": "ui-monospace, Menlo, Consolas, 'Noto Sans Mono CJK SC', monospace"
+    },
+    {
+      "name": "--text-meta",
+      "value": "12px"
+    },
+    {
+      "name": "--text-meta--line-height",
+      "value": "16px"
+    },
+    {
+      "name": "--text-label",
+      "value": "12px"
+    },
+    {
+      "name": "--text-label--line-height",
+      "value": "16px"
+    },
+    {
+      "name": "--text-label--font-weight",
+      "value": "600"
+    },
+    {
+      "name": "--text-ui",
+      "value": "13px"
+    },
+    {
+      "name": "--text-ui--line-height",
+      "value": "18px"
+    },
+    {
+      "name": "--text-body",
+      "value": "var(--x-fs)"
+    },
+    {
+      "name": "--text-body--line-height",
+      "value": "1.5"
+    },
+    {
+      "name": "--text-strong",
+      "value": "15px"
+    },
+    {
+      "name": "--text-strong--line-height",
+      "value": "22px"
+    },
+    {
+      "name": "--text-strong--font-weight",
+      "value": "600"
+    },
+    {
+      "name": "--text-heading",
+      "value": "18px"
+    },
+    {
+      "name": "--text-heading--line-height",
+      "value": "26px"
+    },
+    {
+      "name": "--text-heading--font-weight",
+      "value": "600"
+    },
+    {
+      "name": "--text-display",
+      "value": "28px"
+    },
+    {
+      "name": "--text-display--line-height",
+      "value": "1.25"
+    },
+    {
+      "name": "--text-display--font-weight",
+      "value": "700"
+    },
+    {
+      "name": "--radius-sm",
+      "value": "6px"
+    },
+    {
+      "name": "--radius-md",
+      "value": "10px"
+    },
+    {
+      "name": "--radius-lg",
+      "value": "14px"
+    },
+    {
+      "name": "--shadow-raise",
+      "value": "0 1px 2px rgb(0 0 0 / 0.35), 0 0 0 1px rgb(255 255 255 / 0.05)"
+    },
+    {
+      "name": "--shadow-pop",
+      "value": "0 12px 40px rgb(0 0 0 / 0.5), 0 0 0 1px rgb(255 255 255 / 0.08)"
+    },
+    {
+      "name": "--shadow-drag",
+      "value": "0 18px 48px rgb(0 0 0 / 0.6), 0 0 0 1px var(--x-accent)"
+    },
+    {
+      "name": "--shadow-focus",
+      "value": "0 0 0 1.5px var(--x-accent)"
+    }
+  ]
+}

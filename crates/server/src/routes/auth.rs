@@ -55,6 +55,7 @@ pub async fn session(
         Some(t) => state.store.session_user(&token_hash(t)).await?,
         None => None,
     };
+    let user = user.filter(|user| crate::auth::account_allowed(&state.auth, &user.name));
     let setup_required = user.is_none() && state.store.count_users().await? == 0;
     Ok(Json(Session {
         user,
@@ -90,6 +91,13 @@ pub async fn login(
     Json(input): Json<Login>,
 ) -> Result<Response, ApiError> {
     let name = input.name.trim().to_owned();
+    if !crate::auth::account_allowed(&state.auth, &name) {
+        return Err(ApiError::new(
+            StatusCode::UNAUTHORIZED,
+            "unauthorized",
+            "用户名或密码不对",
+        ));
+    }
     state.auth.check_locked(&name)?;
     let found = state.store.find_user_by_name(&name).await?;
     let hash = found

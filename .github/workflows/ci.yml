@@ -1,6 +1,6 @@
 name: ci
 
-# 流程见 docs/adr/0006-workflow.md：机器门（这里的各个 job）→ 预览镜像 → 验收门（gate）→ 自动合并。
+# 合并只集成并校验；正式版本推广由 release.yml 执行，见 ADR 0015。
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
@@ -49,6 +49,23 @@ jobs:
         run: bash scripts/check-arch.sh
       - name: AGENTS.md 不超过 200 行
         run: bash scripts/check-docs.sh
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - name: 门禁负向回归
+        run: node --test .github/scripts/tests/*.test.cjs
+      - name: 接续索引完整性
+        run: node scripts/check-context.cjs
+      - name: 前后端与发布声明版本一致
+        run: node .github/scripts/check-release.cjs
+      - name: 原始画板迁移无损回归
+        run: |
+          python3 scripts/test-excalidraw-archive.py
+          python3 scripts/test-deployer.py
+          python3 scripts/test-history.py
+          python3 scripts/test-workspace.py
+          python3 scripts/test-release-deployment.py
+          python3 scripts/test-preview-access.py
       - name: sqlx offline cache is up to date
         run: |
           cargo sqlx migrate run --source crates/store/migrations
@@ -155,6 +172,8 @@ jobs:
           cache-dependency-path: web/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
       - run: pnpm build-storybook --quiet
+      - name: 真实组件与设计变量目录没有漂移
+        run: node ../scripts/generate-design-catalog.cjs --check
       - if: github.event_name == 'pull_request'
         uses: dawidd6/action-download-artifact@v6
         with:
@@ -196,25 +215,38 @@ jobs:
 
   # 应用镜像。PR（本仓库分支）推 pr-<号>，部署器据此起预览；master 推 latest，部署器上线正式站。
   docker:
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     needs: [rust, web, e2e]
     permissions:
-      contents: read
+      contents: write
       packages: write
     env:
-      PUSH: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+      PUSH: ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name != 'pull_request' && github.ref == 'refs/heads/master') }}
       SHA: ${{ github.event.pull_request.head.sha || github.sha }}
       TAG: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || 'latest' }}
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: ${{ env.SHA }}
       - uses: docker/setup-buildx-action@v3
+      - id: retained
+        name: 相同源码重跑复用永久产物
+        if: env.PUSH == 'true'
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const artifact=await require('./.github/scripts/find-source-artifact.cjs')({github,...context.repo,source:process.env.SHA});
+            core.setOutput('artifact',artifact || '');
       - if: env.PUSH == 'true'
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - uses: docker/build-push-action@v6
+      - id: image
+        if: steps.retained.outputs.artifact == ''
+        uses: docker/build-push-action@v6
         with:
           context: .
           push: ${{ env.PUSH == 'true' }}
@@ -225,12 +257,125 @@ jobs:
             ghcr.io/stlixx/xenica:${{ env.SHA }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+      - if: steps.retained.outputs.artifact != ''
+        name: 核验并关联同一不可变镜像
+        env:
+          RETAINED: ${{ steps.retained.outputs.artifact }}
+        run: |
+          image="ghcr.io/stlixx/xenica@$RETAINED"
+          docker pull "$image"
+          test "$(docker image inspect "$image" --format '{{ index .Config.Labels "org.opencontainers.image.revision" }}')" = "$SHA"
+          actual=$(docker buildx imagetools inspect "$image" --format '{{json .Manifest}}' | jq -r .digest)
+          test "$actual" = "$RETAINED"
+          docker buildx imagetools create --prefer-index=false --tag "ghcr.io/stlixx/xenica:$TAG" "$image"
+          test "$(docker buildx imagetools inspect "ghcr.io/stlixx/xenica:$TAG" --format '{{json .Manifest}}' | jq -r .digest)" = "$RETAINED"
+      - if: github.event_name == 'pull_request' && env.PUSH == 'true'
+        name: 生成交付候选身份
+        uses: actions/github-script@v8
+        env:
+          ARTIFACT_DIGEST: ${{ steps.retained.outputs.artifact || steps.image.outputs.digest }}
+        with:
+          script: |
+            const buildCandidate = require('./.github/scripts/build-candidate.cjs');
+            const candidate = buildCandidate({
+              root: process.cwd(), source: context.payload.pull_request.head.sha,
+              base: context.payload.pull_request.base.sha, artifact: process.env.ARTIFACT_DIGEST,
+              number: context.payload.pull_request.number, run: Number(process.env.GITHUB_RUN_ID),
+              attempt: Number(process.env.GITHUB_RUN_ATTEMPT),
+              workspace: context.payload.pull_request.labels.some(label => label.name === '固定画板') ? 'https://excalidraw.xenica.truebigsand.top' : undefined,
+            });
+            require('node:fs').writeFileSync('delivery-candidate.json', JSON.stringify(candidate, null, 2));
+            await require('./.github/scripts/journal.cjs')({github,...context.repo,record:{schema:1,type:'candidate',candidate}});
+            core.info(`交付候选：${candidate.id}`);
+      - if: github.event_name == 'pull_request' && env.PUSH == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: delivery-candidate-${{ github.run_attempt }}
+          path: delivery-candidate.json
+          if-no-files-found: error
 
-  # 验收门：能撤回的改动直接合并；截图有变化或改动撤不回，等你评论 /通过。
+  # 测试实际交付的预览；master 合并只校验，明确 release 操作才推广。
+  preview:
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    needs: [docker]
+    env:
+      XENICA_URL: https://pr-${{ github.event.pull_request.number }}.xenica.truebigsand.top
+      EXPECTED_SOURCE: ${{ github.event.pull_request.head.sha }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v4
+        with:
+          name: delivery-candidate-${{ github.run_attempt }}
+          path: .delivery
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: web/package.json
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
+      - name: 等待对应成果实际上线
+        run: |
+          expected_artifact=$(jq -r '.artifact' .delivery/delivery-candidate.json)
+          for _ in $(seq 1 60); do
+            health=$(curl -fsS --max-time 10 "$XENICA_URL/api/health") || health='{}'
+            if [ "$(jq -r '.commit // empty' <<<"$health")" = "$EXPECTED_SOURCE" ] &&
+               [ "$(jq -r '.artifact // empty' <<<"$health")" = "$expected_artifact" ]; then exit 0; fi
+            sleep 10
+          done
+          echo '::error::预览没有部署对应成果，不能交付验收'; exit 1
+      - run: pnpm install --frozen-lockfile
+        working-directory: web
+      - run: pnpm exec playwright install --with-deps chromium
+        working-directory: web
+      - name: 实际预览完整浏览器回归
+        env:
+          XENICA_REQUIRE_HISTORY: '1'
+          XENICA_E2E_SESSIONS: ${{ secrets[format('XENICA_PREVIEW_SESSIONS_{0}', github.event.pull_request.number)] }}
+        run: |
+          test -n "$XENICA_E2E_SESSIONS" || { echo '::error::缺少私有预览的短期测试授权；不使用公开示例密码回退'; exit 1; }
+          pnpm e2e --workers=1
+        working-directory: web
+      - name: 测试结束再次核对成果
+        run: |
+          health=$(curl -fsS --max-time 10 "$XENICA_URL/api/health")
+          test "$(jq -r '.commit' <<<"$health")" = "$EXPECTED_SOURCE"
+          test "$(jq -r '.artifact' <<<"$health")" = "$(jq -r '.artifact' .delivery/delivery-candidate.json)"
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: preview-agent-tests-${{ github.run_attempt }}
+          path: |
+            web/playwright-report
+            web/test-results
+          if-no-files-found: error
+
+  # 成功和失败检查都长期保存，不依赖附件保留期。
+  delivery-history:
+    if: always() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    needs: [rust, web, e2e, screenshots, docker, preview]
+    permissions:
+      contents: write
+      checks: read
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/github-script@v8
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        with:
+          script: |
+            const checks=await github.paginate(github.rest.checks.listForRef,{...context.repo,ref:context.payload.pull_request.head.sha});
+            const latest=[...require('./.github/scripts/candidate.cjs').latestChecks(checks).values()].map(({id,name,conclusion,details_url})=>({id,name,conclusion,url:details_url}));
+            await require('./.github/scripts/journal.cjs')({github,...context.repo,record:{schema:1,type:'engineering',source:context.payload.pull_request.head.sha,run:Number(process.env.GITHUB_RUN_ID),attempt:Number(process.env.GITHUB_RUN_ATTEMPT),results:JSON.parse(process.env.RESULTS),checks:latest}});
+
+  # Agent 全面自检完成后才可进入用户体验验收。
   gate:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
-    needs: [rust, web, e2e, screenshots, docker]
+    needs: [rust, web, e2e, screenshots, docker, preview, delivery-history]
     permissions:
       contents: write
       pull-requests: write
@@ -239,6 +384,10 @@ jobs:
       actions: write
     steps:
       - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v4
+        with:
+          name: delivery-candidate-${{ github.run_attempt }}
+          path: .delivery
       - id: gate
         uses: actions/github-script@v8
         env:

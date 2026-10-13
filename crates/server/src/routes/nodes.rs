@@ -3,7 +3,7 @@
 use axum::{
     Json,
     extract::{Path, Query, State},
-    http::StatusCode,
+    http::{HeaderMap, StatusCode},
 };
 use serde::Deserialize;
 use utoipa::IntoParams;
@@ -16,6 +16,16 @@ use crate::{ApiError, AppState, auth::CurrentUser, error::ErrorBody};
 pub struct ListParams {
     /// 最多返回多少条，默认 200，上限 1000。
     pub limit: Option<i64>,
+}
+
+/// 打开唯一持久开发画板；首次调用创建，后续调用不改变内容。
+#[utoipa::path(post, path = "/api/development-board", tag = "nodes",
+    responses((status = 200, body = Node), (status = 401, body = ErrorBody)))]
+pub async fn development_board(
+    State(state): State<AppState>,
+    user: CurrentUser,
+) -> Result<Json<Node>, ApiError> {
+    Ok(Json(state.store.development_board(&user.actor()).await?))
 }
 
 /// 列出节点（最近更新的在前）。
@@ -51,18 +61,46 @@ pub async fn get_node(
     Ok(Json(state.store.get_node(id).await?))
 }
 
+#[utoipa::path(get, path = "/api/nodes/{id}/archive", tag = "nodes",
+    params(("id" = String, Path, format = Uuid)), responses((status = 200, body = serde_json::Value)))]
+pub async fn archive_node(
+    State(state): State<AppState>,
+    Path(id): Path<NodeId>,
+) -> Result<impl axum::response::IntoResponse, ApiError> {
+    let archive = crate::archive::export(&state.store, id).await?;
+    Ok((
+        [
+            (axum::http::header::CACHE_CONTROL, "no-store".to_owned()),
+            (
+                axum::http::header::CONTENT_DISPOSITION,
+                format!("attachment; filename=sketch-{id}.json"),
+            ),
+        ],
+        Json(archive),
+    ))
+}
+
 /// 修改节点（只改给出的字段）。
 #[utoipa::path(patch, path = "/api/nodes/{id}", tag = "nodes",
-    params(("id" = String, Path, format = Uuid)), request_body = NodePatch,
-    responses((status = 200, body = Node), (status = 400, body = ErrorBody), (status = 404, body = ErrorBody)))]
+    params(("id" = String, Path, format = Uuid), ("If-Match" = Option<String>, Header, description = "草图正文必需：读取到的 updated_at，用双引号包围")), request_body = NodePatch,
+    responses((status = 200, body = Node), (status = 400, body = ErrorBody), (status = 409, body = ErrorBody), (status = 404, body = ErrorBody)))]
 pub async fn update_node(
     State(state): State<AppState>,
     user: CurrentUser,
     Path(id): Path<NodeId>,
+    headers: HeaderMap,
     Json(patch): Json<NodePatch>,
 ) -> Result<Json<Node>, ApiError> {
     Ok(Json(
-        state.store.update_node(&user.actor(), id, patch).await?,
+        state
+            .store
+            .update_node_checked(
+                &user.actor(),
+                id,
+                patch,
+                super::shares::expected_revision(&headers)?,
+            )
+            .await?,
     ))
 }
 

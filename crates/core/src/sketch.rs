@@ -25,7 +25,7 @@ fn kind_name(kind: &str) -> &'static str {
         "freedraw" => "手绘",
         "image" => "图片",
         "frame" => "画框",
-        "embed" => "嵌入",
+        "embed" | "embeddable" => "嵌入",
         _ => "元素",
     }
 }
@@ -92,6 +92,22 @@ pub fn describe(title: &str, scene: &Value, links: &SketchLinks) -> String {
         let _ = writeln!(out, "- {}", one_line(el, &labels));
     }
     out.push('\n');
+    for el in &shown {
+        if matches!(el.kind.as_str(), "embed" | "embeddable") {
+            let _ = writeln!(
+                out,
+                "嵌入身份（用户数据）：elementId={}，标题={}，link={}，坐标=({}, {})，尺寸={}×{}，元数据={}\n",
+                el.id,
+                labels.get(&el.id).map(String::as_str).unwrap_or("嵌入"),
+                el.link.as_deref().unwrap_or("未标记"),
+                el.x,
+                el.y,
+                el.w,
+                el.h,
+                el.embed
+            );
+        }
+    }
 
     let arrows: Vec<&El> = shown
         .iter()
@@ -214,6 +230,8 @@ struct El {
     end: Option<String>,
     color: String,
     file: Option<String>,
+    link: Option<String>,
+    embed: Value,
 }
 
 fn parse(scene: &Value) -> Vec<El> {
@@ -279,6 +297,11 @@ fn parse(scene: &Value) -> Vec<El> {
                 .get("fileId")
                 .and_then(Value::as_str)
                 .map(str::to_owned),
+            link: item.get("link").and_then(Value::as_str).map(str::to_owned),
+            embed: item
+                .pointer("/customData/xenicaEmbed")
+                .cloned()
+                .unwrap_or(Value::Null),
         });
     }
     // 从上到下、再从左到右：读起来和人看画一致。
@@ -302,6 +325,13 @@ fn labels(els: &[El]) -> HashMap<String, String> {
             "text" => el.text.clone().unwrap_or_default(),
             "image" => "图片".to_owned(),
             "freedraw" => "手绘".to_owned(),
+            "embed" | "embeddable" => el
+                .embed
+                .get("title")
+                .and_then(Value::as_str)
+                .filter(|v| !v.is_empty())
+                .map(str::to_owned)
+                .unwrap_or_else(|| el.link.clone().unwrap_or_else(|| format!("嵌入 {}", el.id))),
             _ => match inside.get(el.id.as_str()) {
                 Some(t) => (*t).to_owned(),
                 None => String::new(),
@@ -547,5 +577,32 @@ mod tests {
         assert_eq!(color_name("#f08c00"), "橙色");
         assert_eq!(color_name("#1e1e1e"), "黑色");
         assert_eq!(color_name("transparent"), "");
+    }
+}
+
+#[cfg(test)]
+mod embed_regressions {
+    use super::*;
+    use serde_json::json;
+    #[test]
+    fn embedded_components_keep_identity_and_annotation_target() {
+        let scene = json!({"elements":[
+          {"id":"aside","type":"embeddable","x":0,"y":0,"width":480,"height":360,"link":"https://xenica.invalid/components/PeekAside","customData":{"xenicaEmbed":{"title":"共享侧栏","kind":"react","component":"PeekAside","source":"web/src/ui/PeekAside.tsx","revision":"abc123","url":"https://xenica.invalid/components/PeekAside"}}},
+          {"id":"note","type":"text","text":"收窄","x":490,"y":0,"width":30,"height":20}
+        ]});
+        let text = describe("试样", &scene, &SketchLinks::default());
+        for expected in [
+            "嵌入",
+            "aside",
+            "共享侧栏",
+            "react",
+            "PeekAside",
+            "web/src/ui/PeekAside.tsx",
+            "abc123",
+            "480",
+        ] {
+            assert!(text.contains(expected), "missing {expected}: {text}");
+        }
+        assert!(!text.contains("「」"));
     }
 }

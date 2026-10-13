@@ -1,0 +1,8 @@
+[Unit]
+Description=Xenica historical version reconciler
+After=docker.service
+[Service]
+Type=oneshot
+EnvironmentFile=-/etc/xenica-history.env
+Environment=XENICA_HISTORY_PARENT=auto
+ExecStart=/usr/bin/python3 -S /opt/xenica/deploy/deployer/history.py

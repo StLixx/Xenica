@@ -77,10 +77,28 @@ export function useNodes() {
   });
 }
 
-export function useNode(id: string) {
+export function useDevelopmentBoard(enabled: boolean) {
+  const qc = useQueryClient();
+  return useQuery({
+    queryKey: ['development-board'],
+    queryFn: async () => {
+      const board = unwrap(await api.POST('/api/development-board'));
+      qc.setQueryData<Node[]>(keys.nodes, (nodes) => [
+        board,
+        ...(nodes ?? []).filter((n) => n.id !== board.id),
+      ]);
+      return board;
+    },
+    enabled,
+    staleTime: Infinity,
+  });
+}
+
+export function useNode(id: string, refetchInterval?: number) {
   return useQuery({
     queryKey: keys.node(id),
     queryFn: async () => unwrap(await api.GET('/api/nodes/{id}', { params: { path: { id } } })),
+    refetchInterval,
   });
 }
 
@@ -112,16 +130,36 @@ export function useCreateNode() {
   });
 }
 
-export function useUpdateNode(id: string) {
+export function useUpdateNode(id: string, revision?: string) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (patch: NodePatch) =>
-      unwrap(await api.PATCH('/api/nodes/{id}', { params: { path: { id } }, body: patch })),
+      unwrap(
+        await api.PATCH('/api/nodes/{id}', {
+          params: { path: { id } },
+          body: patch,
+          headers: revision ? { 'If-Match': `"${revision}"` } : undefined,
+        }),
+      ),
     onSuccess: (node) => {
       qc.setQueryData(keys.node(id), node);
       void qc.invalidateQueries({ queryKey: keys.nodes });
     },
   });
+}
+
+export async function saveSketch(id: string, body: Record<string, never>, revision: string) {
+  return unwrap(
+    await api.PATCH('/api/nodes/{id}', {
+      params: { path: { id } },
+      body: { body },
+      headers: { 'If-Match': `"${revision}"` },
+    }),
+  );
+}
+
+export async function readSketch(id: string) {
+  return unwrap(await api.GET('/api/nodes/{id}', { params: { path: { id } } }));
 }
 
 export function useDeleteNode() {
@@ -190,6 +228,13 @@ export async function uploadImage(file: Blob): Promise<string> {
   const body = (await res.json().catch(() => ({}))) as { url?: string; message?: string };
   if (!res.ok || !body.url) throw new Error(body.message ?? res.statusText);
   return body.url;
+}
+
+/** 原图也经由 API 层读取。 */
+export async function readImage(id: string): Promise<Blob> {
+  const res = await fetch(`/api/files/${encodeURIComponent(id)}`);
+  if (!res.ok) throw new Error('原图读取失败');
+  return res.blob();
 }
 
 /** 块的增删改之后：刷新节点列表和关系（正文里的 #标记 会新建节点、改关系）。 */

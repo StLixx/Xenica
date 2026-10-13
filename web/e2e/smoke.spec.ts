@@ -1,14 +1,7 @@
-import { expect, test, type Page } from '@playwright/test';
+import { signIn } from './sign-in';
+import { expect, test } from '@playwright/test';
 
 // CI 和预览站都用 XENICA_SEED=demo 启动：有示例数据（crates/server/fixtures/demo.json）和示例账号 demo / demo。
-async function signIn(page: Page) {
-  await page.goto('/');
-  await expect(page.getByText('预览站示例账号：demo / demo')).toBeVisible();
-  await page.getByLabel('用户名').fill('demo');
-  await page.getByLabel('密码').fill('demo');
-  await page.getByRole('button', { name: '登录' }).click();
-  await expect(page.getByTestId('connection')).toContainText('已连接');
-}
 
 test('api and app require login', async ({ page, request }) => {
   expect((await request.get('/api/nodes')).status()).toBe(401);
@@ -55,22 +48,35 @@ test('write a page: blocks, tags, views', async ({ page }) => {
   await expect(editor.locator('.katex')).toBeVisible();
   await expect(page.getByText('保存中…')).toBeHidden();
 
-  // 刷新后还在，标签页标题用第一块
-  await page.reload();
-  await expect(page.getByRole('tab', { name: '第 5 讲 数列极限' })).toBeVisible();
-
-  // 点标记：打开那个节点，下面列出提到它的块，可以切成表格
-  await editor.getByText(`#${tag}`).click();
+  // 正文先到、全局节点索引后到时，点击标记也必须完成导航，不能丢掉这次点击。
+  let releaseNodes!: () => void;
+  const nodesReady = new Promise<void>((resolve) => {
+    releaseNodes = resolve;
+  });
+  await page.route('**/api/nodes?limit=1000', async (route) => {
+    await nodesReady;
+    await route.continue();
+  });
+  try {
+    await page.reload();
+    await expect(page.getByRole('tab', { name: '第 5 讲 数列极限' })).toBeVisible();
+    await expect(editor.locator('.katex')).toBeVisible();
+    await editor.getByText(`#${tag}`).click();
+  } finally {
+    releaseNodes();
+  }
+  await expect(page.getByRole('tab', { name: tag, exact: true })).toBeVisible();
   const mentioned = page.getByRole('region', { name: '提到它的' });
-  await expect(mentioned.locator('.katex')).toBeVisible();
+  await expect(mentioned.locator('.katex')).toBeVisible({ timeout: 15_000 });
   await mentioned.getByRole('radio', { name: '表格' }).click();
   await expect(mentioned.getByRole('table')).toContainText('第 5 讲 数列极限');
 });
 
 test('demo page and graph', async ({ page }) => {
   await signIn(page);
-  await page.getByRole('navigation', { name: '侧栏' }).hover();
-  await page.getByRole('button', { name: '高数 · 不定积分（第 3 讲）' }).click();
+  // test 与 demo 的侧栏快捷项彼此独立；通过共享的真实节点入口验证内容。
+  await page.getByPlaceholder('筛选：标题或正文里的字').fill('高数 · 不定积分');
+  await page.getByText('高数 · 不定积分（第 3 讲）', { exact: true }).click();
   const editor = page.getByRole('region', { name: '正文' });
   await expect(editor.locator('.katex').first()).toBeVisible();
   await expect(editor.getByText('#必备').first()).toBeVisible();

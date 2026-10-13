@@ -14,7 +14,13 @@ module.exports = {
       comment: 'ui/ 只能依赖第三方库和 ui/ 自己',
       severity: 'error',
       from: { path: '^src/ui' },
-      to: { path: '^src/(api|shell|views|app)' },
+      to: { path: '^src/(api|shell|views|app|sketch)' },
+    },
+    {
+      name: 'sketch-is-independent',
+      severity: 'error',
+      from: { path: '^src/sketch' },
+      to: { path: '^src/(shell|views|app)' },
     },
     {
       name: 'only-api-talks-to-backend',
