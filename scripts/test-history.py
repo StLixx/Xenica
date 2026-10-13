@@ -16,7 +16,11 @@ identity=importlib.util.module_from_spec(identity_spec);identity_spec.loader.exe
 
 class HistoryTests(unittest.TestCase):
     def test_auto_parents_only_discovers_xenica_apps(self):
-        with patch.object(history,'run',return_value='xenica-app-1\nxenica-sketch-app-1\nxenica-pr-61-app-1\nxenica-pr-61-db-1\nother-app-1\nxenica-history-id-gateway\n'):
+        def run(*args):
+            if args[:2]==('docker','ps'):return 'xenica-app-1\nxenica-sketch-app-1\nxenica-pr-46-app-1\nxenica-pr-61-app-1\nxenica-pr-61-db-1\nother-app-1\nxenica-history-id-gateway\n'
+            if args[2]=='xenica-pr-46-app-1':raise subprocess.CalledProcessError(1,args)
+            return '[]'
+        with patch.object(history,'run',side_effect=run):
             self.assertEqual(history.parents('auto'),['xenica-app-1','xenica-pr-61-app-1','xenica-sketch-app-1'])
         self.assertEqual(history.parents('xenica-sketch-app-1'),['xenica-sketch-app-1'])
     def test_policy_rotation_uses_valid_store_stop_transition(self):

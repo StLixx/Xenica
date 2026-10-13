@@ -142,7 +142,13 @@ def reconcile(parent):
 def parents(config):
     if config!='auto':return config.split(',')
     names=run('docker','ps','--format','{{.Names}}').splitlines()
-    return sorted(n for n in names if n in ('xenica-app-1','xenica-sketch-app-1') or re.fullmatch(r'xenica-pr-[1-9][0-9]*-app-1',n))
+    result=[]
+    for name in sorted(names):
+        if name not in ('xenica-app-1','xenica-sketch-app-1') and not re.fullmatch(r'xenica-pr-[1-9][0-9]*-app-1',name):continue
+        try:
+            if isinstance(json.loads(run('docker','exec',name,'/app/xenica','runtime-queue')),list):result.append(name)
+        except (subprocess.CalledProcessError,json.JSONDecodeError):continue
+    return result
 
 if __name__=='__main__':
     ROOT.mkdir(parents=True,exist_ok=True,mode=0o700)
