@@ -15,6 +15,19 @@ identity_spec=importlib.util.spec_from_file_location('archive_identity',Path(__f
 identity=importlib.util.module_from_spec(identity_spec);identity_spec.loader.exec_module(identity)
 
 class HistoryTests(unittest.TestCase):
+    def test_accepting_temporary_server_does_not_mean_target_database_ready(self):
+        from types import SimpleNamespace
+        attempts=iter([1,0])
+        def probe(args,**kwargs):
+            # 复现 pg_isready 提前返回成功，但目标库尚不存在的边界。
+            if 'pg_isready' in args:return SimpleNamespace(returncode=0)
+            if 'psql' in args and args[args.index('-h')+1]=='127.0.0.1' and args[args.index('-d')+1]=='xenica':
+                return SimpleNamespace(returncode=next(attempts))
+            return SimpleNamespace(returncode=1)
+        with patch.object(history.subprocess,'run',side_effect=probe):
+            self.assertFalse(history.database_ready('isolated-db','test-only'))
+            self.assertTrue(history.database_ready('isolated-db','test-only'))
+
     def test_auto_parents_only_discovers_xenica_apps(self):
         def run(*args):
             if args[:2]==('docker','ps'):return 'xenica-app-1\nxenica-sketch-app-1\nxenica-pr-46-app-1\nxenica-pr-61-app-1\nxenica-pr-61-db-1\nother-app-1\nxenica-history-id-gateway\n'

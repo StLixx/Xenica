@@ -36,6 +36,12 @@ def names(runtime):
     rid = str(uuid.UUID(runtime['id']))
     return 'xenica-history-' + rid
 
+def database_ready(name,password):
+    # 官方镜像初始化期间的临时服务仅监听 Unix socket；必须连最终 TCP 服务和实际目标库。
+    return subprocess.run(['docker','exec','-e','PGPASSWORD='+password,name,'psql','-h','127.0.0.1',
+        '-v','ON_ERROR_STOP=1','-U','xenica','-d','xenica','-tAc','SELECT 1'],
+        stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL).returncode==0
+
 def stop(parent, runtime):
     name = names(runtime)
     if runtime['state'] != 'stopping':
@@ -72,7 +78,7 @@ def start(parent,runtime,version):
     run('docker','run','-d','--name',name+'-db','--network',name,'--network-alias','history-db','--label','xenica.history=db',
         '--memory','512m','-e','POSTGRES_PASSWORD='+password,'-e','POSTGRES_USER=xenica','-e','POSTGRES_DB=xenica','postgres:18')
     for _ in range(60):
-        if subprocess.run(['docker','exec',name+'-db','pg_isready','-U','xenica'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL).returncode==0: break
+        if database_ready(name+'-db',password): break
         time.sleep(1)
     else: raise RuntimeError('历史数据库未就绪')
     run('docker','exec','-i',name+'-db','psql','-v','ON_ERROR_STOP=1','-U','xenica','-d','xenica',data=snapshot.read_bytes())
