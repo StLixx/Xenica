@@ -32,6 +32,7 @@ type LoadedFile = DraftFile;
 
 /** 停手之后再写库，别每按一个键就写一次。 */
 const SAVE_DELAY = 800;
+const SAVE_RETRY_DELAY = 2000;
 
 async function blobToDataURL(blob: Blob): Promise<string> {
   return await new Promise((resolve, reject) => {
@@ -62,6 +63,7 @@ export default function CanvasSurface({ node, save, ...management }: CanvasProps
   const [visibleRevision, setVisibleRevision] = useState(node.updated_at);
   const bodyRef = useRef(node.body);
   const busy = useRef(false);
+  const saveRetries = useRef(0);
   const dirty = useRef(Boolean(draft));
   const draftDurable = useRef(Boolean(draft));
   const conflicted = useRef(Boolean(draft && draft.revision !== node.updated_at));
@@ -376,8 +378,10 @@ export default function CanvasSurface({ node, save, ...management }: CanvasProps
           draftDurable.current = false;
         }
         succeeded = true;
+        saveRetries.current = 0;
         setState(dirty.current ? 'pending' : 'saved');
       } catch (error) {
+        saveRetries.current = Math.min(saveRetries.current + 1, 5);
         if (error instanceof ApiError && error.code === 'conflict') {
           conflicted.current = true;
           setConflict(true);
@@ -385,9 +389,12 @@ export default function CanvasSurface({ node, save, ...management }: CanvasProps
         setState('error');
       } finally {
         busy.current = false;
-        if (succeeded && dirty.current && !conflicted.current) {
+        if (dirty.current && !conflicted.current) {
           if (timer.current !== null) window.clearTimeout(timer.current);
-          timer.current = window.setTimeout(() => void persist(), SAVE_DELAY);
+          const delay = succeeded
+            ? SAVE_DELAY
+            : Math.min(30_000, SAVE_RETRY_DELAY * 2 ** (saveRetries.current - 1));
+          timer.current = window.setTimeout(() => void persist(), delay);
         }
       }
     },
@@ -424,6 +431,7 @@ export default function CanvasSurface({ node, save, ...management }: CanvasProps
       }
       cacheDraft();
       if (conflicted.current) return;
+      saveRetries.current = 0;
       setState('pending');
       if (timer.current !== null) window.clearTimeout(timer.current);
       timer.current = window.setTimeout(() => void run(), SAVE_DELAY);
@@ -439,6 +447,7 @@ export default function CanvasSurface({ node, save, ...management }: CanvasProps
       }
     };
     const retry = () => {
+      saveRetries.current = 0;
       if (dirty.current) void run();
     };
     window.addEventListener('beforeunload', leaving);
@@ -632,7 +641,7 @@ export default function CanvasSurface({ node, save, ...management }: CanvasProps
               : state === 'saved'
                 ? '已保存'
                 : state === 'error' && !conflict
-                  ? '保存失败，接着画还会再试'
+                  ? '保存失败，将自动重试'
                   : state === 'pending'
                     ? '等待保存…'
                     : null}

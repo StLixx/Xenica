@@ -181,7 +181,7 @@ test('未上传原图的画布刷新后仍能恢复并完成上传', async ({ pa
   const box = await page.locator('.excalidraw').first().boundingBox();
   if (!box) throw new Error('画布没有尺寸');
   await page.mouse.click(box.x + box.width * 0.55, box.y + box.height * 0.55);
-  await expect(page.getByText('保存失败，接着画还会再试', { exact: true })).toBeVisible();
+  await expect(page.getByText('保存失败，将自动重试', { exact: true })).toBeVisible();
   await page.unroute('**/api/files');
   await page.reload();
   await expect(page.getByText('已保存', { exact: true })).toBeVisible({ timeout: 20_000 });
@@ -252,4 +252,22 @@ test('无法保留草稿且尚未保存时刷新提示保护内容', async ({ pa
   expect(
     stored.body.scene.elements.some((el: { text?: string }) => el.text === '需要离开保护的文字'),
   ).toBe(true);
+});
+
+test('短暂保存失败后无需继续编辑也会自动重试', async ({ page }) => {
+  const id = await newBoard(page);
+  let writes = 0;
+  await page.route(`**/api/nodes/${id}`, (route) => {
+    if (route.request().method() !== 'PATCH') return route.continue();
+    if (++writes === 1) return route.abort();
+    return route.continue();
+  });
+  await typeText(page, '自动重试保存的文字');
+  await expect(page.getByText('保存失败，将自动重试', { exact: true })).toBeVisible();
+  await expect(page.getByText('已保存', { exact: true })).toBeVisible({ timeout: 15_000 });
+  const stored = await (await page.request.get(`/api/nodes/${id}`)).json();
+  expect(
+    stored.body.scene.elements.some((el: { text?: string }) => el.text === '自动重试保存的文字'),
+  ).toBe(true);
+  expect(writes).toBe(2);
 });
