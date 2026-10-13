@@ -2,6 +2,14 @@ import { expect, test, type Page } from '@playwright/test';
 
 import { signIn } from './sign-in';
 
+test.describe.configure({ timeout: 90_000 });
+
+async function reloadCanvas(page: Page) {
+  await page.reload();
+  // 公网刷新包含重新鉴权与画布包加载，恢复和保存断言从画布就绪后开始。
+  await expect(page.locator('.excalidraw').first()).toBeVisible({ timeout: 60_000 });
+}
+
 async function newBoard(page: Page) {
   await signIn(page);
   await page.goto('/sketch');
@@ -49,7 +57,7 @@ test('直接输入的画布文字保存后刷新仍可搜索', async ({ page }) 
   await expect(page.getByText('已保存', { exact: true })).toBeVisible({ timeout: 20_000 });
   const stored = await (await page.request.get(`/api/nodes/${id}`)).json();
   expect(stored.body.scene.elements.some((el: { text?: string }) => el.text === marker)).toBe(true);
-  await page.reload();
+  await reloadCanvas(page);
   await expect(stage).toBeVisible();
   await stage.click({ position: { x: 400, y: 200 } });
   await page.keyboard.press('Control+f');
@@ -58,8 +66,6 @@ test('直接输入的画布文字保存后刷新仍可搜索', async ({ page }) 
 });
 
 test('保存请求尚未完成时刷新不丢失画布文字', async ({ page }) => {
-  // 公网刷新包含重新鉴权与大画布包加载，保存断言从画布就绪后开始计时。
-  test.setTimeout(90_000);
   await signIn(page);
   await page.goto('/sketch');
   await page.getByRole('button', { name: '画布管理', exact: true }).click();
@@ -82,8 +88,7 @@ test('保存请求尚未完成时刷新不丢失画布文字', async ({ page }) 
     .click();
   await page.mouse.click(box.x + box.width * 0.55, box.y + box.height * 0.55);
   await page.locator('textarea.excalidraw-wysiwyg').fill(marker);
-  await page.reload();
-  await expect(stage).toBeVisible({ timeout: 60_000 });
+  await reloadCanvas(page);
   await page.unroute(`**/api/nodes/${id}`);
   await expect(page.getByText('已保存', { exact: true })).toBeVisible({ timeout: 20_000 });
   const stored = await (await page.request.get(`/api/nodes/${id}`)).json();
@@ -122,7 +127,7 @@ test('保存期间追加文字不会被旧请求清除恢复副本', async ({ pa
         .map((el: { text: string }) => el.text);
     })
     .toEqual(['第一段文字', '保存期间的第二段']);
-  await page.reload();
+  await reloadCanvas(page);
   await expect(page.getByText('画布有更新', { exact: true })).toHaveCount(0);
 });
 
@@ -138,7 +143,7 @@ test('恢复草稿遇到服务器新版时保留双方且不覆盖', async ({ pa
     data: { title: '来自其他窗口的新版本' },
   });
   expect(updated.ok()).toBeTruthy();
-  await page.reload();
+  await reloadCanvas(page);
   await page.unroute(`**/api/nodes/${id}`);
   await expect(page.getByRole('alert')).toContainText('本次修改未覆盖新版');
   const remote = await (await page.request.get(`/api/nodes/${id}`)).json();
@@ -186,7 +191,7 @@ test('未上传原图的画布刷新后仍能恢复并完成上传', async ({ pa
   await page.mouse.click(box.x + box.width * 0.55, box.y + box.height * 0.55);
   await expect(page.getByText('保存失败，将自动重试', { exact: true })).toBeVisible();
   await page.unroute('**/api/files');
-  await page.reload();
+  await reloadCanvas(page);
   await expect(page.getByText('已保存', { exact: true })).toBeVisible({ timeout: 20_000 });
   const stored = await (await page.request.get(`/api/nodes/${id}`)).json();
   const image = stored.body.scene.elements.find((el: { type: string }) => el.type === 'image');
@@ -208,14 +213,14 @@ test('不同标签页的待保存草稿互不覆盖', async ({ page, context }) 
     route.request().method() === 'PATCH' ? route.abort() : route.continue(),
   );
   await typeText(other, '只属于第二个标签页');
-  await page.reload();
+  await reloadCanvas(page);
   await page.unroute(`**/api/nodes/${id}`);
   await expect(page.getByText('已保存', { exact: true })).toBeVisible({ timeout: 20_000 });
   const stored = await (await page.request.get(`/api/nodes/${id}`)).json();
   expect(stored.body.scene.elements.map((el: { text?: string }) => el.text)).toEqual([
     '只属于第一个标签页',
   ]);
-  await other.reload();
+  await reloadCanvas(other);
   await expect(other.getByRole('alert')).toContainText('本次修改未覆盖新版');
   await other.close();
 });
