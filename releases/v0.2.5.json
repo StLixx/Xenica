@@ -1,0 +1,10 @@
+{
+  "schema": 1,
+  "version": "v0.2.5",
+  "title": "开发画板与交付体系",
+  "notes": "docs/releases/v0.2.5.md",
+  "targets": [
+    "https://xenica.truebigsand.top",
+    "https://excalidraw.xenica.truebigsand.top"
+  ]
+}

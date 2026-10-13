@@ -128,7 +128,7 @@ async function merge({ github, owner, repo, pr }) {
     merge_method: 'squash',
     commit_title: `${pr.title} (#${pr.number})`,
   });
-  // 用 GITHUB_TOKEN 合并不会触发 push 事件，所以手动触发 master 的 CI（构建 latest 镜像，部署器随后上线）。
+  // 用 GITHUB_TOKEN 合并不会触发 push，所以手动触发 master 校验；正式推广由 release.yml 单独执行。
   await github.rest.actions.createWorkflowDispatch({ owner, repo, workflow_id: 'ci.yml', ref: 'master' });
 }
 

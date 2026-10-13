@@ -61,7 +61,7 @@ report_failure() {
 }
 
 deploy_prod() {
-  local want have rev digest ref previous_artifact
+  local want have rev digest ref previous_artifact previous_workspace=''
   digest=$(artifact "$IMAGE:latest") || { log "prod: artifact lookup failed"; return 0; }
   ref="$IMAGE@$digest"
   docker pull -q "$ref" >/dev/null || { log "prod: pull failed"; return 0; }
@@ -71,14 +71,20 @@ deploy_prod() {
   [ "$want" = "$have" ] && [ "$digest" = "$previous_artifact" ] && return 0
   [ "$want" = "$(cat "$STATE/prod.bad" 2>/dev/null)" ] && return 0
   rev=$(revision "$ref")
+  DEPLOYER_GITHUB_TOKEN="$TOKEN" python3 -S "$DEPLOY/deployer/check-release-request.py" "$rev" "$digest" || { log 'prod: explicit release request missing; deployment blocked'; return 0; }
   # 正式运行身份与原始数据先落盘；备份失败就不开始更新。
   if [ -n "$have" ]; then
-    DEPLOYER_GITHUB_TOKEN="$TOKEN" python3 "$DEPLOY/deployer/archive-version.py" xenica || { log 'prod: archive failed; deployment blocked'; return 0; }
+    DEPLOYER_GITHUB_TOKEN="$TOKEN" python3 -S "$DEPLOY/deployer/archive-version.py" xenica || { log 'prod: archive failed; deployment blocked'; return 0; }
     local backup="$STATE/backups/$(date -u +%Y%m%dT%H%M%SZ)"
     mkdir -p "$backup"
     chmod 700 "$backup"
     compose -p xenica exec -T db pg_dump --no-owner --no-acl -U xenica xenica >"$backup/database.sql" || return 0
     chmod 600 "$backup/database.sql"
+    if [ -f /var/lib/xenica-workspace/workspace.env ]; then
+      previous_workspace=$(docker inspect xenica-sketch-app-1 --format '{{.Config.Image}}') || return 0
+      docker exec xenica-sketch-db-1 pg_dump --no-owner --no-acl -U xenica xenica >"$backup/workspace.sql" || return 0
+      chmod 600 "$backup/workspace.sql"
+    fi
     printf '%s\n' "$previous_artifact" >"$backup/artifact"
     if [ -d /var/lib/xenica-design-archives ]; then cp -a /var/lib/xenica-design-archives "$backup/design-archives"; fi
     sha256sum "$backup/database.sql" >"$backup/checksums"
@@ -86,7 +92,9 @@ deploy_prod() {
   log "prod: deploying ${rev:0:7}"
   [ -n "$have" ] && docker tag "$have" "$IMAGE:previous"
   if XENICA_IMAGE="$ref" XENICA_ARTIFACT="$digest" compose -p xenica --env-file "$ENV_FILE" up -d --wait --wait-timeout 120; then
-    if DEPLOYER_GITHUB_TOKEN="$TOKEN" python3 "$DEPLOY/deployer/archive-version.py" xenica; then
+    if DEPLOYER_GITHUB_TOKEN="$TOKEN" python3 -S "$DEPLOY/deployer/archive-version.py" xenica &&
+       { [ -z "$previous_workspace" ] || XENICA_WORKSPACE_TARGET="$ref" bash "$DEPLOY/deployer/workspace.sh"; } &&
+       DEPLOYER_GITHUB_TOKEN="$TOKEN" python3 -S "$DEPLOY/deployer/deployment-receipt.py" "$backup"; then
       log "prod: ${rev:0:7} is live and archived"
       rm -f "$STATE/prod.bad"
       return 0
@@ -98,6 +106,9 @@ deploy_prod() {
   echo "$want" >"$STATE/prod.bad"
   if [ -n "$have" ]; then
     XENICA_IMAGE="$IMAGE:previous" XENICA_ARTIFACT="$previous_artifact" compose -p xenica --env-file "$ENV_FILE" up -d --wait --wait-timeout 120 || log "prod: rollback also failed"
+  fi
+  if [ -n "$previous_workspace" ]; then
+    XENICA_WORKSPACE_TARGET="$previous_workspace" bash "$DEPLOY/deployer/workspace.sh" || log "workspace: rollback also failed"
   fi
   report_failure "$rev" "$logs"
 }
@@ -113,12 +124,13 @@ deploy_preview() {
   # 镜像没变、固定域名也没换主人就不动；换了主人要重建容器（Traefik 规则在容器标签上）
   [ "$want" = "$have" ] && [ "$alias" = "$(cat "$STATE/pr-$n.alias" 2>/dev/null)" ] &&
     [ "$(running_artifact "$project")" = "$digest" ] &&
-    docker inspect "$project-app-1" --format '{{range .Mounts}}{{println .Destination}}{{end}}' | grep -qx '/run/xenica-versions' && return 0
+    docker inspect "$project-app-1" --format '{{range .Mounts}}{{println .Destination}}{{end}}' | grep -qx '/run/xenica-versions' &&
+    docker inspect "$project-app-1" --format '{{json .Config.Env}}' | jq -e 'index("XENICA_ALLOWED_ACCOUNT=test") != null' >/dev/null && return 0
   [ -f "$env_file" ] || printf 'POSTGRES_PASSWORD=%s\n' "$(openssl rand -hex 24)" >"$env_file"
   # shellcheck disable=SC2016 # 反引号是 Traefik 规则语法
   [ "$alias" = 1 ] && rule=" || Host(\`preview.$DOMAIN\`)"
   log "preview $n: deploying $(revision "$ref" | cut -c1-7)$([ "$alias" = 1 ] && echo " (preview.$DOMAIN)")"
-  if XENICA_IMAGE="$ref" XENICA_ARTIFACT="$digest" XENICA_NAME="pr-$n" XENICA_HOST="pr-$n.$DOMAIN" XENICA_ALIAS_RULE="$rule" XENICA_SEED=demo \
+  if XENICA_IMAGE="$ref" XENICA_ARTIFACT="$digest" XENICA_NAME="pr-$n" XENICA_HOST="pr-$n.$DOMAIN" XENICA_ALIAS_RULE="$rule" XENICA_SEED=demo XENICA_ALLOWED_ACCOUNT=test \
     compose -p "$project" --env-file "$env_file" up -d --wait --wait-timeout 120; then
     echo "$alias" >"$STATE/pr-$n.alias"
   else
@@ -133,7 +145,10 @@ deploy_previews() {
   open=$(jq -r --arg r "$REPO" '[.[] | select(.head.repo.full_name == $r) | .number] | sort | reverse | .[]' <<<"$pulls")
   latest=$(jq -r --arg r "$REPO" '[.[] | select(.head.repo.full_name == $r)] | sort_by(.updated_at) | last | .number // empty' <<<"$pulls")
   keep=$(head -n "$MAX_PREVIEWS" <<<"$open")
-  for n in $keep; do deploy_preview "$n" "$([ "$n" = "$latest" ] && echo 1 || echo 0)"; done
+  for n in $keep; do
+    deploy_preview "$n" "$([ "$n" = "$latest" ] && echo 1 || echo 0)"
+    DEPLOYER_GITHUB_TOKEN="$TOKEN" python3 -S "$DEPLOY/deployer/test-access.py" "xenica-pr-$n-app-1" --publish || log "preview $n: test authorization not ready"
+  done
   for project in $(docker ps -a --format '{{.Label "com.docker.compose.project"}}' | grep -E '^xenica-pr-[0-9]+$' | sort -u); do
     n=${project#xenica-pr-}
     grep -qx "$n" <<<"$keep" && continue
@@ -145,8 +160,8 @@ deploy_previews() {
     chmod 600 "$backup/database.sql"
     sha256sum "$backup/database.sql" >"$backup/checksums"
     running_artifact "$project" >"$backup/artifact"
-    DEPLOYER_GITHUB_TOKEN="$TOKEN" python3 "$DEPLOY/deployer/archive-preview-data.py" "$backup" "$project" || { log "preview $n: design archive publication failed; keeping data"; continue; }
-    DEPLOYER_GITHUB_TOKEN="$TOKEN" python3 "$DEPLOY/deployer/archive-version.py" "$project" || { log "preview $n: archive failed; keeping data"; continue; }
+    DEPLOYER_GITHUB_TOKEN="$TOKEN" python3 -S "$DEPLOY/deployer/archive-preview-data.py" "$backup" "$project" || { log "preview $n: design archive publication failed; keeping data"; continue; }
+    DEPLOYER_GITHUB_TOKEN="$TOKEN" python3 -S "$DEPLOY/deployer/archive-version.py" "$project" || { log "preview $n: archive failed; keeping data"; continue; }
     log "preview $n: removing"
     compose -p "$project" down -v --remove-orphans || true
     docker rmi "$IMAGE:pr-$n" >/dev/null 2>&1 || true

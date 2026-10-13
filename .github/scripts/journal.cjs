@@ -3,7 +3,7 @@ const {createHash}=require('node:crypto');
 const BRANCH='delivery-records';
 const hash=s=>createHash('sha256').update(s).digest('hex');
 function encode(record) {
-  if(record.schema!==1||!['candidate','engineering','acceptance','promotion','archive'].includes(record.type)) throw new Error('invalid journal record');
+  if(record.schema!==1||!['candidate','engineering','acceptance','promotion','archive','deployment','release'].includes(record.type)) throw new Error('invalid journal record');
   const text=JSON.stringify(record);
   if(/\/api\/share\/|[?&](token|ticket|password|secret|api.?key)=|postgres:\/\//i.test(text)) throw new Error('private credential in journal');
   if(record.candidate) {

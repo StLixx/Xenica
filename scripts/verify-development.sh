@@ -11,10 +11,13 @@ bash scripts/check-arch.sh
 bash scripts/check-docs.sh
 node --test .github/scripts/tests/*.test.cjs
 node scripts/check-context.cjs
+node .github/scripts/check-release.cjs
 python3 scripts/test-excalidraw-archive.py
 python3 scripts/test-deployer.py
 python3 scripts/test-history.py
 python3 scripts/test-workspace.py
+python3 scripts/test-release-deployment.py
+python3 scripts/test-preview-access.py
 pnpm -C web format:check
 pnpm -C web lint
 pnpm -C web typecheck

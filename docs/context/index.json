@@ -30,7 +30,7 @@
         "docs/context/v0.2.5-canvas-archive.md"
       ],
       "task": 57,
-      "implementation": "in-progress"
+      "implementation": "released"
     },
     {
       "id": "candidate-bound-evidence",
@@ -43,17 +43,14 @@
         ".github/scripts/tests/candidate.test.cjs"
       ],
       "task": 56,
-      "implementation": "in-progress"
+      "implementation": "released"
     },
     {
       "id": "infra-only-development",
       "status": "confirmed",
       "summary": "构建、编译、测试与重型环境只在 Infra；Windows 用于编辑、SSH 和查看。",
       "origin": "用户长期偏好与 2026-10-11 项目指令",
-      "references": [
-        "AGENTS.md",
-        "specs/54-delivery-system/spec.md"
-      ]
+      "references": ["AGENTS.md", "specs/54-delivery-system/spec.md"]
     },
     {
       "id": "managed-excalidraw-source",
@@ -66,7 +63,7 @@
         "web/src/sketch/upstream/ToolButton.tsx"
       ],
       "task": 58,
-      "implementation": "in-progress"
+      "implementation": "released"
     },
     {
       "id": "historical-versions-on-demand",
@@ -80,7 +77,7 @@
         "crates/store/tests/runtimes.rs",
         "docs/context/history-archives.json"
       ],
-      "implementation": "in-progress"
+      "implementation": "released"
     },
     {
       "id": "permanent-delivery-evidence-and-same-artifact-promotion",
@@ -93,16 +90,14 @@
         ".github/scripts/journal.cjs",
         ".github/scripts/tests/promote.test.cjs"
       ],
-      "implementation": "in-progress"
+      "implementation": "released"
     },
     {
       "id": "fresh-notion-session-verification",
       "status": "unverified",
       "summary": "本轮修复接口与交付体系，新 Notion 模型会话验收继续延期，尚未证明任何新会话自动具备全部访问能力。",
       "origin": "用户选择本轮先修复接口，稍后验收 Notion；本轮计划明确延期",
-      "references": [
-        "specs/54-delivery-system/continuation.md"
-      ]
+      "references": ["specs/54-delivery-system/continuation.md"]
     },
     {
       "id": "private-test-workspace",
@@ -115,7 +110,32 @@
         "deploy/deployer/workspace.sh",
         "deploy/deployer/bootstrap-workspace.py"
       ],
-      "implementation": "in-progress"
+      "implementation": "released"
+    },
+    {
+      "id": "versioned-release-workflow",
+      "status": "confirmed",
+      "summary": "一次正式发布 v0.2.5；合并、部署和发布分开，Tag/Release 固定源码与验收产物，纯工程规范另经主线校验。",
+      "origin": "2026-10-13 用户要求一次发布及工作流规范化；随后确认整体体验已通过，UI/UX 优化放到下一版",
+      "references": [
+        "docs/adr/0015-versioned-release.md",
+        "docs/releases/v0.2.5.md",
+        "releases/v0.2.5.json",
+        ".github/scripts/release.cjs",
+        ".github/workflows/release.yml"
+      ],
+      "task": 59,
+      "implementation": "implemented"
+    },
+    {
+      "id": "v0.2.3-separate-artifact-unlocated",
+      "status": "unverified",
+      "summary": "用户说明 v0.2.3 是另一份产物，尚未定位，不推断它已被 v0.2.5 收录，也不补造正式发布。",
+      "origin": "2026-10-13 分享会话中的用户澄清",
+      "references": [
+        "docs/adr/0015-versioned-release.md",
+        "docs/releases/v0.2.5.md"
+      ]
     }
   ],
   "references": [
@@ -124,6 +144,12 @@
       "kind": "brainstorm",
       "status": "reference",
       "note": "命名与具体实现建议不自动视为用户决定；合并前读取主线不是原子锁。"
+    },
+    {
+      "url": "https://chatgpt.com/s/cx_6acd96ad690881919c2325e90badf0f9",
+      "kind": "brainstorm",
+      "status": "reference",
+      "note": "已读取。一次发布与规范化由当前会话明确批准；v0.2.3 另一产物仍未定位。"
     }
   ]
 }

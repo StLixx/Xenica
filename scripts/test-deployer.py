@@ -24,7 +24,7 @@ elif a[:2] == ['image', 'inspect']:
 elif a and a[0] == 'inspect':
     if '.Mounts' in a[3]: print('' if os.getenv('MOCK_MISSING_CATALOG')=='1' else '/run/xenica-versions')
     elif '.Image' in a[2]: print('sha256:same-runtime')
-    else: print(json.dumps(['XENICA_ARTIFACT=' + os.environ['MOCK_RUNNING']]))
+    else: print(json.dumps(['XENICA_ARTIFACT=' + os.environ['MOCK_RUNNING'],'XENICA_ALLOWED_ACCOUNT=test']))
 elif 'compose' in a:
     if 'ps' in a: print('test-container')
     elif 'up' in a and os.getenv('MOCK_ROLLBACK') == '1' and os.getenv('XENICA_IMAGE', '').endswith(os.environ['MOCK_DIGEST']):
@@ -34,7 +34,7 @@ elif a[:2] == ['ps', '-a']: pass
 
 
 class DeployerTests(unittest.TestCase):
-    def run_deployer(self, digest=NEW, running=OLD, production=False, rollback=False, archive_failure=False, missing_catalog=False):
+    def run_deployer(self, digest=NEW, running=OLD, production=False, rollback=False, archive_failure=False, missing_catalog=False, request_failure=False, receipt_failure=False):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             deploy = root / 'deploy'
@@ -47,6 +47,8 @@ class DeployerTests(unittest.TestCase):
             script = deploy / 'deployer/deploy.sh'
             script.write_text(source.read_text(encoding='utf-8-sig'))
             (deploy / 'deployer/archive-version.py').write_text('import os, pathlib, sys\np=pathlib.Path(os.environ["ARCHIVE_COUNT"])\nn=int(p.read_text())+1 if p.exists() else 1\np.write_text(str(n))\nsys.exit(1 if os.environ.get("ARCHIVE_FAILURE")=="1" and n==2 else 0)\n')
+            (deploy / 'deployer/check-release-request.py').write_text('import os,sys\nsys.exit(int(os.environ.get("REQUEST_FAILURE","0")))\n')
+            (deploy / 'deployer/deployment-receipt.py').write_text('import os,sys\nsys.exit(int(os.environ.get("RECEIPT_FAILURE","0")))\n')
             (deploy / '.env').write_text('XENICA_HOST=test.invalid\n')
             (deploy / 'compose.yaml').write_text('services: {}\n')
             binary = root / 'bin'
@@ -62,6 +64,7 @@ class DeployerTests(unittest.TestCase):
                    'MOCK_MISSING_CATALOG': '1' if missing_catalog else '0',
                    'MOCK_ROLLBACK': '1' if rollback else '0'}
             env.update(ARCHIVE_COUNT=str(root/'archive-count'), ARCHIVE_FAILURE='1' if archive_failure else '0')
+            env.update(REQUEST_FAILURE='1' if request_failure else '0', RECEIPT_FAILURE='1' if receipt_failure else '0')
             result = subprocess.run(['bash', str(script)], env=env, capture_output=True, text=True, timeout=30)
             self.assertEqual(result.returncode, 0, result.stderr)
             return [json.loads(line) for line in log.read_text().splitlines()]
@@ -97,6 +100,15 @@ class DeployerTests(unittest.TestCase):
         calls = self.run_deployer(production=True, archive_failure=True)
         up = [c for c in calls if 'compose' in c['args'] and 'up' in c['args']]
         self.assertEqual([c['artifact'] for c in up], [NEW, OLD])
+
+    def test_mutable_latest_without_explicit_release_never_updates_production(self):
+        calls=self.run_deployer(production=True,request_failure=True)
+        self.assertFalse(any('up' in c['args'] for c in calls))
+
+    def test_receipt_failure_rolls_back_instead_of_claiming_delivery(self):
+        calls=self.run_deployer(production=True,receipt_failure=True)
+        up=[c for c in calls if 'compose' in c['args'] and 'up' in c['args']]
+        self.assertEqual([c['artifact'] for c in up],[NEW,OLD])
 
 
 if __name__ == '__main__':

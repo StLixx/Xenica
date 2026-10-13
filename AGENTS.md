@@ -34,7 +34,9 @@
 
 ### 版本与命名
 
-按体验切版本：`v0.2.0`、`v0.2.1`……一个版本 = 一个可以点的预览，Demo 驱动。PR 标题和提交信息用 Conventional Commits（`feat(editor): …`），名字照规则起，不另想。
+按体验切版本：`v0.2.0`、`v0.2.1`……一个体验版本可包含多个 Issue/PR，Milestone 汇总范围；Project 的任务完成指合并，发布状态单独记录。PR 标题和提交信息用 Conventional Commits。
+
+合并只集成与校验，不自动上线。用户明确要求发布后，Agent 执行 `release.yml`，核对已验收产物、最新检查、备份及两个固定入口；成功才创建不可移动的版本 Tag、清单附件和 GitHub Release。当前前后端版号、`releases/<版本>.json` 和发布说明须一致；不补造未发布的历史。详见 `docs/adr/0015-versioned-release.md` 与 `docs/task-lifecycle.md`。
 
 提 Issue 时用 `.github/ISSUE_TEMPLATE/` 的格式，类型四选一：试样、功能、缺陷、流程。
 
@@ -115,7 +117,7 @@ cargo run -p xenica-server -- openapi > web/src/api/openapi.json && pnpm -C web 
 
 ## 仓库设置（一次性）
 
-`bash scripts/setup-github.sh`：只允许 squash；master 必须走 PR，`rust/web/e2e/docker/screenshots/验收` 必须通过，禁止强推和删除。需要 `gh` 以管理员登录。验收门本身坏了导致无法合并时，用户在仓库 Settings → Rules 临时停用规则集再修。
+`bash scripts/setup-github.sh`：只允许 squash；master 必须走 PR，`rust/web/e2e/docker/screenshots/preview/delivery-history/验收` 必须通过，禁止强推和删除；启用不可变 Release。需要仓库管理权限。验收门故障保留失败记录，修复及负向回归完成后再放行，不能停用保护来伪造通过。
 
 Secrets：`PROJECT_TOKEN`（Projects 读写，看板同步用）。
 
@@ -125,7 +127,7 @@ Secrets：`PROJECT_TOKEN`（Projects 读写，看板同步用）。
 浏览器 → *.xenica.truebigsand.top（Cloudflare，仅 DNS）→ hikari（1Panel：证书 + 反代，保留 Host 头）
        → Tailscale → core-server 100.100.1.103:8080 → Traefik（deploy/edge）
            ├─ xenica.truebigsand.top → 正式站（compose 项目 xenica）
-           ├─ excalidraw.xenica.truebigsand.top → 草图站点，同一个容器（ADR 0009）
+           ├─ excalidraw.xenica.truebigsand.top → 独立持久画板（项目 xenica-sketch，ADR 0014）
            ├─ preview.xenica.truebigsand.top → 最近更新的那个 PR 预览
            └─ pr-<号>.xenica.truebigsand.top → PR 预览（compose 项目 xenica-pr-<号>，示例数据）
 ```
@@ -141,8 +143,8 @@ sudo systemctl daemon-reload && sudo systemctl enable --now xenica-deployer.time
 journalctl -u xenica-deployer -f                   # 看部署日志
 ```
 
-部署器只拉不推：ghcr 的 `latest` 变了就上线正式站，健康检查失败自动回滚并开缺陷 Issue（需要 `.env` 里的 `DEPLOYER_GITHUB_TOKEN`）；本仓库分支的每个打开的 PR 起一个预览，PR 关闭后连数据删掉。手动回滚：`XENICA_IMAGE=ghcr.io/stlixx/xenica:<commit> docker compose -p xenica --env-file .env up -d`。
+部署器仅接受与永久发布请求、当前主线匹配的镜像摘要，先备份再推广，失败回滚并保存证据。追加审计记录和短期测试密文使用既有部署凭据；原始数据库留在私有持久目录。同仓库打开 PR 有独立 test 预览，关闭前先归档数据；固定画板与历史档案不随 PR 删除。历史控制器自动发现支持恢复接口的实例，跳过旧版本。回滚使用已保存的不可变 digest。
 
-首次上线（库里没有账号）时，服务日志里有一次性设置码：`docker compose -p xenica logs app | grep 设置码`，打开网页用它创建账号。预览站用 `demo` / `demo` 登录。
+首次建库使用服务日志中的一次性设置码创建账号。固定画板与私有预览沿用已有 test 凭据；嵌入免重复登录，独立打开仍须鉴权。自动测试用两小时短期会话，缺失授权即失败，详见 `docs/task-lifecycle.md`。
 
 备份：`docker compose -p xenica exec db pg_dump -U xenica xenica > backup.sql`。

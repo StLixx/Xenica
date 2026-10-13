@@ -15,6 +15,27 @@ identity_spec=importlib.util.spec_from_file_location('archive_identity',Path(__f
 identity=importlib.util.module_from_spec(identity_spec);identity_spec.loader.exec_module(identity)
 
 class HistoryTests(unittest.TestCase):
+    def test_accepting_temporary_server_does_not_mean_target_database_ready(self):
+        from types import SimpleNamespace
+        attempts=iter([1,0])
+        def probe(args,**kwargs):
+            # 复现 pg_isready 提前返回成功，但目标库尚不存在的边界。
+            if 'pg_isready' in args:return SimpleNamespace(returncode=0)
+            if 'psql' in args and args[args.index('-h')+1]=='127.0.0.1' and args[args.index('-d')+1]=='xenica':
+                return SimpleNamespace(returncode=next(attempts))
+            return SimpleNamespace(returncode=1)
+        with patch.object(history.subprocess,'run',side_effect=probe):
+            self.assertFalse(history.database_ready('isolated-db','test-only'))
+            self.assertTrue(history.database_ready('isolated-db','test-only'))
+
+    def test_auto_parents_only_discovers_xenica_apps(self):
+        def run(*args):
+            if args[:2]==('docker','ps'):return 'xenica-app-1\nxenica-sketch-app-1\nxenica-pr-46-app-1\nxenica-pr-61-app-1\nxenica-pr-61-db-1\nother-app-1\nxenica-history-id-gateway\n'
+            if args[2]=='xenica-pr-46-app-1':raise subprocess.CalledProcessError(1,args)
+            return '[]'
+        with patch.object(history,'run',side_effect=run):
+            self.assertEqual(history.parents('auto'),['xenica-app-1','xenica-pr-61-app-1','xenica-sketch-app-1'])
+        self.assertEqual(history.parents('xenica-sketch-app-1'),['xenica-sketch-app-1'])
     def test_policy_rotation_uses_valid_store_stop_transition(self):
         runtime={'id':'00000000-0000-4000-8000-000000000001','generation':1,'state':'running'}
         with patch.object(history,'state') as state,patch.object(history.subprocess,'run'):

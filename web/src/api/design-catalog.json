@@ -100,6 +100,18 @@
         "deploy/deployer/workspace.sh",
         "deploy/deployer/bootstrap-workspace.py"
       ]
+    },
+    {
+      "id": "versioned-release-workflow",
+      "title": "一次正式发布 v0.2.5；合并、部署和发布分开，Tag/Release 固定源码与验收产物，纯工程规范另经主线校验。",
+      "source": "docs/context/index.json",
+      "references": [
+        "docs/adr/0015-versioned-release.md",
+        "docs/releases/v0.2.5.md",
+        "releases/v0.2.5.json",
+        ".github/scripts/release.cjs",
+        ".github/workflows/release.yml"
+      ]
     }
   ],
   "components": [

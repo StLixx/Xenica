@@ -1,0 +1,99 @@
+name: release
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 体验版本（例如 v0.2.5）
+        required: true
+        type: string
+      commit:
+        description: 要发布的已合并 master 完整 SHA
+        required: true
+        type: string
+concurrency:
+  group: xenica-production-release
+  cancel-in-progress: false
+permissions:
+  contents: read
+jobs:
+  release:
+    if: github.ref == 'refs/heads/master' && github.actor == github.repository_owner
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+      checks: read
+      actions: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          path: .control
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.commit }}
+          path: .release
+      - id: prepare
+        uses: actions/github-script@v8
+        env:
+          VERSION: ${{ inputs.version }}
+          COMMIT: ${{ inputs.commit }}
+        with:
+          script: |
+            await require('./.control/.github/scripts/release.cjs')({github,context,core,root:process.cwd()+'/.control',sourceRoot:process.cwd()+'/.release',version:process.env.VERSION,commit:process.env.COMMIT});
+      - if: steps.prepare.outputs.published != 'true'
+        uses: docker/setup-buildx-action@v3
+      - if: steps.prepare.outputs.published != 'true'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - if: steps.prepare.outputs.published != 'true'
+        name: 明确发布才推广已验收的同一产物
+        env:
+          DIGEST: ${{ steps.prepare.outputs.artifact }}
+        run: |
+          docker buildx imagetools create --prefer-index=false --tag ghcr.io/stlixx/xenica:latest "ghcr.io/stlixx/xenica@$DIGEST"
+          test "$(docker buildx imagetools inspect ghcr.io/stlixx/xenica:latest --format '{{json .Manifest}}' | jq -r .digest)" = "$DIGEST"
+      - id: publish
+        if: steps.prepare.outputs.published != 'true'
+        name: 验证持久部署与备份后发布不可变 Tag 和 Release
+        uses: actions/github-script@v8
+        env:
+          VERSION: ${{ inputs.version }}
+          COMMIT: ${{ inputs.commit }}
+          SOURCE: ${{ steps.prepare.outputs.source }}
+          DIGEST: ${{ steps.prepare.outputs.artifact }}
+        with:
+          script: |
+            const release=require('./.control/.github/scripts/release.cjs');
+            await release.waitDeployment({github,...context.repo,source:process.env.SOURCE,artifact:process.env.DIGEST,version:process.env.VERSION});
+            await release({github,context,core,root:process.cwd()+'/.control',sourceRoot:process.cwd()+'/.release',version:process.env.VERSION,commit:process.env.COMMIT,phase:'publish'});
+      - name: 关闭已完成发布的版本范围
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const version=context.payload.inputs.version;
+            const milestone=(await github.paginate(github.rest.issues.listMilestones,{...context.repo,state:'all'})).find(m=>m.title===version);
+            if(!milestone||milestone.open_issues) throw new Error('版本范围尚未全部完成');
+            if(milestone.state!=='closed') await github.rest.issues.updateMilestone({...context.repo,milestone_number:milestone.number,state:'closed'});
+      - name: 投影版本发布状态到工作看板
+        uses: actions/github-script@v8
+        with:
+          github-token: ${{ secrets.PROJECT_TOKEN }}
+          script: |
+            await require('./.control/.github/scripts/project.cjs').release({github,core,...context.repo,version:context.payload.inputs.version,commit:context.payload.inputs.commit});
+      - if: failure()
+        name: 保存失败记录并保留实际发布事实
+        uses: actions/github-script@v8
+        env:
+          VERSION: ${{ inputs.version }}
+          COMMIT: ${{ inputs.commit }}
+          SOURCE: ${{ steps.prepare.outputs.source }}
+          DIGEST: ${{ steps.prepare.outputs.artifact }}
+        with:
+          script: |
+            let published=false;
+            try { const r=(await github.rest.repos.getReleaseByTag({...context.repo,tag:process.env.VERSION})).data; published=!r.draft; } catch(e) { if(e.status!==404) throw e; }
+            await require('./.control/.github/scripts/journal.cjs')({github,...context.repo,record:{schema:1,type:'release',version:process.env.VERSION,merged:process.env.COMMIT,source:process.env.SOURCE||process.env.COMMIT,artifact:process.env.DIGEST||null,stage:published?'followup-failed':'failed',run:Number(process.env.GITHUB_RUN_ID),attempt:Number(process.env.GITHUB_RUN_ATTEMPT)}});

@@ -36,6 +36,12 @@ def names(runtime):
     rid = str(uuid.UUID(runtime['id']))
     return 'xenica-history-' + rid
 
+def database_ready(name,password):
+    # 官方镜像初始化期间的临时服务仅监听 Unix socket；必须连最终 TCP 服务和实际目标库。
+    return subprocess.run(['docker','exec','-e','PGPASSWORD='+password,name,'psql','-h','127.0.0.1',
+        '-v','ON_ERROR_STOP=1','-U','xenica','-d','xenica','-tAc','SELECT 1'],
+        stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL).returncode==0
+
 def stop(parent, runtime):
     name = names(runtime)
     if runtime['state'] != 'stopping':
@@ -72,7 +78,7 @@ def start(parent,runtime,version):
     run('docker','run','-d','--name',name+'-db','--network',name,'--network-alias','history-db','--label','xenica.history=db',
         '--memory','512m','-e','POSTGRES_PASSWORD='+password,'-e','POSTGRES_USER=xenica','-e','POSTGRES_DB=xenica','postgres:18')
     for _ in range(60):
-        if subprocess.run(['docker','exec',name+'-db','pg_isready','-U','xenica'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL).returncode==0: break
+        if database_ready(name+'-db',password): break
         time.sleep(1)
     else: raise RuntimeError('历史数据库未就绪')
     run('docker','exec','-i',name+'-db','psql','-v','ON_ERROR_STOP=1','-U','xenica','-d','xenica',data=snapshot.read_bytes())
@@ -139,10 +145,21 @@ def reconcile(parent):
                 subprocess.run(['docker','rm','-f',name+'-'+service],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,check=False)
             state(parent,runtime,'failed','历史版本启动失败，档案已保留')
 
+def parents(config):
+    if config!='auto':return config.split(',')
+    names=run('docker','ps','--format','{{.Names}}').splitlines()
+    result=[]
+    for name in sorted(names):
+        if name not in ('xenica-app-1','xenica-sketch-app-1') and not re.fullmatch(r'xenica-pr-[1-9][0-9]*-app-1',name):continue
+        try:
+            if isinstance(json.loads(run('docker','exec',name,'/app/xenica','runtime-queue')),list):result.append(name)
+        except (subprocess.CalledProcessError,json.JSONDecodeError):continue
+    return result
+
 if __name__=='__main__':
     ROOT.mkdir(parents=True,exist_ok=True,mode=0o700)
     with (ROOT/'lock').open('w') as lock:
         fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
-        for parent in os.environ.get('XENICA_HISTORY_PARENT','xenica-app-1').split(','):
+        for parent in parents(os.environ.get('XENICA_HISTORY_PARENT','auto')):
             if subprocess.run(['docker','inspect',parent],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL).returncode == 0:
                 reconcile(parent)
