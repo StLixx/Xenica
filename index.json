@@ -725,6 +725,15 @@
       "run": 38344093026,
       "attempt": 1,
       "previous": "e6824c2f2bfc0b18bb03a4de39a0536329e1b0dd4fef384baa1678e23bda78bc"
+    },
+    {
+      "path": "records/4498b37bf82aedd3250dff187994ffcde27d088799c5c3e98b846aad42c06a28.json",
+      "sha256": "4498b37bf82aedd3250dff187994ffcde27d088799c5c3e98b846aad42c06a28",
+      "type": "acceptance",
+      "source": "472969b074612f1e2aeb4d6dbc4bf52e2af0672c",
+      "run": 38344093026,
+      "attempt": 1,
+      "previous": "d5d67639567e4b0cd9995eb3b70cc078b5fb2a14d4e4739fcc59fe5d77ef00b0"
     }
   ]
 }
