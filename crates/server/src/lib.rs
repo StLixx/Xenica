@@ -10,6 +10,7 @@ pub mod auth;
 pub mod config;
 mod error;
 mod routes;
+pub mod runtime_proxy;
 pub mod seed;
 
 use std::{path::Path, sync::Arc};
@@ -67,6 +68,13 @@ fn api_router() -> OpenApiRouter<AppState> {
             routes::nodes::delete_node
         ))
         .routes(routes!(routes::nodes::list_node_traces))
+        .routes(routes!(routes::nodes::archive_node))
+        .routes(routes!(routes::nodes::development_board))
+        .routes(routes!(routes::development::versions))
+        .routes(routes!(routes::development::version))
+        .routes(routes!(routes::development::start))
+        .routes(routes!(routes::development::status))
+        .routes(routes!(routes::development::bridge))
         .routes(routes!(
             routes::nodes::list_children,
             routes::nodes::create_children,
@@ -84,6 +92,7 @@ fn api_router() -> OpenApiRouter<AppState> {
             routes::shares::write_share
         ))
         .routes(routes!(routes::shares::share_scene))
+        .routes(routes!(routes::shares::share_history))
         .routes(routes!(routes::shares::share_image))
         .routes(routes!(routes::shares::share_file))
         .routes(routes!(
@@ -117,3 +126,4 @@ pub fn app(state: AppState, web_dist: Option<&Path>) -> Router {
     };
     router.layer(TraceLayer::new_for_http())
 }
+pub mod archive;

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { Node } from '../api/client';
-import { emptyScene, fileIdsOf, sceneOf, signature } from './scene';
+import { dataURLtoBlob, emptyScene, fileIdsOf, sceneOf, signature } from './scene';
 
 function node(body: unknown): Node {
   return {
@@ -15,6 +15,12 @@ function node(body: unknown): Node {
 }
 
 describe('画面的读写', () => {
+  it('原图在内存中解码，不允许借图片转换访问远程网址', async () => {
+    const blob = await dataURLtoBlob('data:image/png;base64,AQID');
+    expect(blob.type).toBe('image/png');
+    expect(blob.size).toBe(3);
+    await expect(dataURLtoBlob('https://example.com/image.png')).rejects.toThrow();
+  });
   it('没有画面的节点当空画面', () => {
     expect(sceneOf(node({ md: '一段笔记' })).elements).toEqual([]);
     expect(sceneOf(node({ scene: { elements: 'nope' } })).elements).toEqual([]);

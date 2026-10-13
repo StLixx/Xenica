@@ -1,7 +1,12 @@
 /** 草图站点：独立域名，或者 `/sketch` 路径（本机开发和预览站都用路径）。 */
 
 export function isSketchEntry(): boolean {
-  return location.hostname.startsWith('excalidraw.') || location.pathname.startsWith('/sketch');
+  return (
+    location.pathname.startsWith('/sketch') ||
+    (location.hostname.startsWith('excalidraw.') &&
+      !new URLSearchParams(location.search).has('experience') &&
+      !new URLSearchParams(location.search).has('view'))
+  );
 }
 
 /** 地址里的草图 id（`/sketch/<id>`）。 */
@@ -11,6 +16,8 @@ export function sketchIdFromPath(): string | null {
 }
 
 /** 选中一张草图时把 id 写进地址，方便刷新和分享。 */
-export function putSketchInPath(id: string): void {
-  history.replaceState(null, '', `/sketch/${id}`);
+export function putSketchInPath(id: string, replace = false, title = ''): void {
+  const path = `/sketch/${id}${title.trim() ? `/${encodeURIComponent(title.trim())}` : ''}`;
+  if (location.pathname === path) return;
+  history[replace ? 'replaceState' : 'pushState'](null, '', path);
 }

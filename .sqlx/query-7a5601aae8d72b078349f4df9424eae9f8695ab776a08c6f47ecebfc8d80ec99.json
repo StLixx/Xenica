@@ -1,0 +1,23 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "select jsonb_build_object('revision', revision, 'title', title, 'body', body) as \"snapshot!\" from sketch_versions where node = $1 order by revision desc",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "snapshot!",
+        "type_info": "Jsonb",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "7a5601aae8d72b078349f4df9424eae9f8695ab776a08c6f47ecebfc8d80ec99"
+}

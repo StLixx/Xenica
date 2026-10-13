@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "insert into sketch_versions (node, revision, title, body) select id, updated_at, title, body from nodes where id = $1 on conflict do nothing",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "3c63a757c6445e3f667142fcc5b434e9c63c04490733582d49203e9e1e2f4047"
+}

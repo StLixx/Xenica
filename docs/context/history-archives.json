@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "observedAt": "2026-10-11T14:36:51Z",
+  "status": "both-restored-and-bridged-in-preview",
+  "recovery": "core-server:/var/lib/xenica-history; catalog/catalog.json and snapshots/<id>.sql; deploy/deployer/history.py",
+  "entries": [
+    {
+      "id": "v0.2.1",
+      "source": "20cc2ce61440f865a4f10709ae9947d98ab20040",
+      "image": "ghcr.io/stlixx/xenica@sha256:f9bb982e756a01223340b0f6703ae9b99d4d01f2d796d6275e58a1cf27c39c50",
+      "snapshot": "v0.2.1.sql",
+      "snapshot_sha256": "d5bb7915a40820046d12abd6248f0cb0ab5ab80e36a3580049ba7bbad81229f3"
+    },
+    {
+      "id": "v0.2.1-9d72dd440f6e",
+      "source": "9d72dd440f6ec4c4c7ed11bb5776e8a5dc7c4162",
+      "image": "ghcr.io/stlixx/xenica@sha256:90fbb9dfc73776508d4b13e5cf45b20a4ce48eaf2fa7e045065ec62dee44c59f",
+      "snapshot": "v0.2.1-9d72dd440f6e.sql",
+      "snapshot_sha256": "b30a8b333b1f824af4e7e8e2d81d47349aff8860e46b726a252f7b590705d4b9",
+      "note": "历史试样的软件版本仍为 v0.2.1；不依据画布标题冒充已发布 v0.2.3。"
+    }
+  ]
+}

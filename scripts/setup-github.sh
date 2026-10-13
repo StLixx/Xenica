@@ -25,10 +25,10 @@ ruleset='{
         "required_review_thread_resolution": false,
         "allowed_merge_methods": ["squash"] } },
     { "type": "required_status_checks", "parameters": {
-        "strict_required_status_checks_policy": false,
+        "strict_required_status_checks_policy": true,
         "required_status_checks": [
           { "context": "rust" }, { "context": "web" }, { "context": "e2e" }, { "context": "docker" },
-          { "context": "screenshots" }, { "context": "验收" } ] } }
+          { "context": "screenshots" }, { "context": "preview" }, { "context": "delivery-history" }, { "context": "验收" } ] } }
   ]
 }'
 
@@ -37,5 +37,13 @@ if [ -n "$id" ]; then
   gh api -X PUT "repos/$repo/rulesets/$id" --input - <<<"$ruleset" >/dev/null
 else
   gh api -X POST "repos/$repo/rulesets" --input - <<<"$ruleset" >/dev/null
+fi
+
+journal_rules='{"name":"delivery-records","target":"branch","enforcement":"active","bypass_actors":[],"conditions":{"ref_name":{"include":["refs/heads/delivery-records"],"exclude":[]}},"rules":[{"type":"deletion"},{"type":"non_fast_forward"}]}'
+journal_id=$(gh api "repos/$repo/rulesets" --jq '.[] | select(.name == "delivery-records") | .id')
+if [ -n "$journal_id" ]; then
+  gh api -X PUT "repos/$repo/rulesets/$journal_id" --input - <<<"$journal_rules" >/dev/null
+else
+  gh api -X POST "repos/$repo/rulesets" --input - <<<"$journal_rules" >/dev/null
 fi
 echo "done: https://github.com/$repo/settings/rules"

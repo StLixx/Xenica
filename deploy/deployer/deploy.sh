@@ -3,7 +3,7 @@
 #   正式站：ghcr 上的 latest 变了就换上；健康检查不过就回滚到上一个镜像，并记下这个坏版本。
 #   预览：  本仓库分支提的每个打开的 PR 一个实例（pr-<号>.<域名>，带示例数据）；PR 关了就连数据一起删掉。
 #           最近更新的那个 PR 同时挂在固定域名 preview.<域名> 上——用户只需要记这一个预览网址。
-# 需要：docker（含 compose 插件）、curl、jq、openssl。配置读 deploy/.env。
+# 需要：docker（含 compose、buildx 插件）、curl、jq、openssl。配置读 deploy/.env。
 set -euo pipefail
 
 ROOT=$(cd "$(dirname "$0")/../.." && pwd)
@@ -27,10 +27,21 @@ log() { echo "[deployer] $*"; }
 compose() { docker compose -f "$DEPLOY/compose.yaml" "$@"; }
 image_id() { docker image inspect -f '{{.Id}}' "$1" 2>/dev/null || true; }
 revision() { docker image inspect -f '{{index .Config.Labels "org.opencontainers.image.revision"}}' "$1" 2>/dev/null || true; }
+artifact() {
+  # 本地 RepoDigests 可同时包含多次构建，顺序不能标识当前标签。
+  docker buildx imagetools inspect "$1" --format '{{json .Manifest}}' |
+    jq -er '.digest | select(test("^sha256:[a-f0-9]{64}$"))'
+}
 running_image() {
   local cid
   cid=$(compose -p "$1" ps -q app 2>/dev/null | head -n 1)
   [ -n "$cid" ] && docker inspect -f '{{.Image}}' "$cid" 2>/dev/null || true
+}
+running_artifact() {
+  local cid
+  cid=$(compose -p "$1" ps -q app 2>/dev/null | head -n 1)
+  [ -n "$cid" ] && docker inspect -f '{{json .Config.Env}}' "$cid" |
+    jq -r '.[] | select(startswith("XENICA_ARTIFACT=")) | sub("^XENICA_ARTIFACT="; "")' || true
 }
 github() {
   local auth=()
@@ -50,42 +61,64 @@ report_failure() {
 }
 
 deploy_prod() {
-  docker pull -q "$IMAGE:latest" >/dev/null || { log "prod: pull failed"; return 0; }
-  local want have rev
-  want=$(image_id "$IMAGE:latest")
+  local want have rev digest ref previous_artifact
+  digest=$(artifact "$IMAGE:latest") || { log "prod: artifact lookup failed"; return 0; }
+  ref="$IMAGE@$digest"
+  docker pull -q "$ref" >/dev/null || { log "prod: pull failed"; return 0; }
+  want=$(image_id "$ref")
   have=$(running_image xenica)
-  [ "$want" = "$have" ] && return 0
+  previous_artifact=$(running_artifact xenica)
+  [ "$want" = "$have" ] && [ "$digest" = "$previous_artifact" ] && return 0
   [ "$want" = "$(cat "$STATE/prod.bad" 2>/dev/null)" ] && return 0
-  rev=$(revision "$IMAGE:latest")
+  rev=$(revision "$ref")
+  # 正式运行身份与原始数据先落盘；备份失败就不开始更新。
+  if [ -n "$have" ]; then
+    DEPLOYER_GITHUB_TOKEN="$TOKEN" python3 "$DEPLOY/deployer/archive-version.py" xenica || { log 'prod: archive failed; deployment blocked'; return 0; }
+    local backup="$STATE/backups/$(date -u +%Y%m%dT%H%M%SZ)"
+    mkdir -p "$backup"
+    chmod 700 "$backup"
+    compose -p xenica exec -T db pg_dump --no-owner --no-acl -U xenica xenica >"$backup/database.sql" || return 0
+    chmod 600 "$backup/database.sql"
+    printf '%s\n' "$previous_artifact" >"$backup/artifact"
+    if [ -d /var/lib/xenica-design-archives ]; then cp -a /var/lib/xenica-design-archives "$backup/design-archives"; fi
+    sha256sum "$backup/database.sql" >"$backup/checksums"
+  fi
   log "prod: deploying ${rev:0:7}"
   [ -n "$have" ] && docker tag "$have" "$IMAGE:previous"
-  if XENICA_IMAGE="$IMAGE:latest" compose -p xenica --env-file "$ENV_FILE" up -d --wait --wait-timeout 120; then
-    log "prod: ${rev:0:7} is live"
-    rm -f "$STATE/prod.bad"
-    return 0
+  if XENICA_IMAGE="$ref" XENICA_ARTIFACT="$digest" compose -p xenica --env-file "$ENV_FILE" up -d --wait --wait-timeout 120; then
+    if DEPLOYER_GITHUB_TOKEN="$TOKEN" python3 "$DEPLOY/deployer/archive-version.py" xenica; then
+      log "prod: ${rev:0:7} is live and archived"
+      rm -f "$STATE/prod.bad"
+      return 0
+    fi
+    log 'prod: new archive failed; restoring previous runtime'
   fi
   local logs
   logs=$(compose -p xenica logs --tail 40 app 2>&1 || true)
   echo "$want" >"$STATE/prod.bad"
   if [ -n "$have" ]; then
-    XENICA_IMAGE="$IMAGE:previous" compose -p xenica --env-file "$ENV_FILE" up -d --wait --wait-timeout 120 || log "prod: rollback also failed"
+    XENICA_IMAGE="$IMAGE:previous" XENICA_ARTIFACT="$previous_artifact" compose -p xenica --env-file "$ENV_FILE" up -d --wait --wait-timeout 120 || log "prod: rollback also failed"
   fi
   report_failure "$rev" "$logs"
 }
 
 deploy_preview() {
   local n=$1 alias=$2 project="xenica-pr-$1" tag="$IMAGE:pr-$1" env_file="$STATE/pr-$1.env"
-  docker pull -q "$tag" >/dev/null 2>&1 || return 0 # CI 还没推送镜像
-  local want have rule=''
-  want=$(image_id "$tag")
+  local want have digest ref rule=''
+  digest=$(artifact "$tag") || return 0 # CI 还没推送镜像
+  ref="$IMAGE@$digest"
+  docker pull -q "$ref" >/dev/null 2>&1 || return 0
+  want=$(image_id "$ref")
   have=$(running_image "$project")
   # 镜像没变、固定域名也没换主人就不动；换了主人要重建容器（Traefik 规则在容器标签上）
-  [ "$want" = "$have" ] && [ "$alias" = "$(cat "$STATE/pr-$n.alias" 2>/dev/null)" ] && return 0
+  [ "$want" = "$have" ] && [ "$alias" = "$(cat "$STATE/pr-$n.alias" 2>/dev/null)" ] &&
+    [ "$(running_artifact "$project")" = "$digest" ] &&
+    docker inspect "$project-app-1" --format '{{range .Mounts}}{{println .Destination}}{{end}}' | grep -qx '/run/xenica-versions' && return 0
   [ -f "$env_file" ] || printf 'POSTGRES_PASSWORD=%s\n' "$(openssl rand -hex 24)" >"$env_file"
   # shellcheck disable=SC2016 # 反引号是 Traefik 规则语法
   [ "$alias" = 1 ] && rule=" || Host(\`preview.$DOMAIN\`)"
-  log "preview $n: deploying $(revision "$tag" | cut -c1-7)$([ "$alias" = 1 ] && echo " (preview.$DOMAIN)")"
-  if XENICA_IMAGE="$tag" XENICA_NAME="pr-$n" XENICA_HOST="pr-$n.$DOMAIN" XENICA_ALIAS_RULE="$rule" XENICA_SEED=demo \
+  log "preview $n: deploying $(revision "$ref" | cut -c1-7)$([ "$alias" = 1 ] && echo " (preview.$DOMAIN)")"
+  if XENICA_IMAGE="$ref" XENICA_ARTIFACT="$digest" XENICA_NAME="pr-$n" XENICA_HOST="pr-$n.$DOMAIN" XENICA_ALIAS_RULE="$rule" XENICA_SEED=demo \
     compose -p "$project" --env-file "$env_file" up -d --wait --wait-timeout 120; then
     echo "$alias" >"$STATE/pr-$n.alias"
   else
@@ -104,6 +137,16 @@ deploy_previews() {
   for project in $(docker ps -a --format '{{.Label "com.docker.compose.project"}}' | grep -E '^xenica-pr-[0-9]+$' | sort -u); do
     n=${project#xenica-pr-}
     grep -qx "$n" <<<"$keep" && continue
+    # 删除临时运行资源之前留下完整私有数据库；永久档案不跟随预览销毁。
+    local backup="$STATE/preview-archives/$project/$(date -u +%Y%m%dT%H%M%SZ)"
+    mkdir -p "$backup"
+    chmod 700 "$backup"
+    compose -p "$project" exec -T db pg_dump --no-owner --no-acl -U xenica xenica >"$backup/database.sql" || { log "preview $n: backup failed; keeping data"; continue; }
+    chmod 600 "$backup/database.sql"
+    sha256sum "$backup/database.sql" >"$backup/checksums"
+    running_artifact "$project" >"$backup/artifact"
+    DEPLOYER_GITHUB_TOKEN="$TOKEN" python3 "$DEPLOY/deployer/archive-preview-data.py" "$backup" "$project" || { log "preview $n: design archive publication failed; keeping data"; continue; }
+    DEPLOYER_GITHUB_TOKEN="$TOKEN" python3 "$DEPLOY/deployer/archive-version.py" "$project" || { log "preview $n: archive failed; keeping data"; continue; }
     log "preview $n: removing"
     compose -p "$project" down -v --remove-orphans || true
     docker rmi "$IMAGE:pr-$n" >/dev/null 2>&1 || true
@@ -112,6 +155,11 @@ deploy_previews() {
 }
 
 docker network inspect xenica-edge >/dev/null 2>&1 || docker network create xenica-edge >/dev/null
+if [ -n "${XENICA_ONLY_PREVIEW:-}" ]; then
+  [[ "$XENICA_ONLY_PREVIEW" =~ ^[1-9][0-9]*$ ]] || { log 'invalid preview number'; exit 1; }
+  deploy_preview "$XENICA_ONLY_PREVIEW" "$(cat "$STATE/pr-$XENICA_ONLY_PREVIEW.alias" 2>/dev/null || echo 0)"
+  exit 0
+fi
 deploy_prod
 deploy_previews
 docker image prune -f >/dev/null 2>&1 || true

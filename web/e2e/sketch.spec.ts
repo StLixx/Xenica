@@ -1,14 +1,7 @@
-import { expect, test, type Page } from '@playwright/test';
+import { signIn } from './sign-in';
+import { expect, test } from '@playwright/test';
 
 // 草图站点：CI 和预览站都用 XENICA_SEED=demo 启动（账号 demo / demo）。
-async function signIn(page: Page) {
-  await page.goto('/');
-  await expect(page.getByText('预览站示例账号：demo / demo')).toBeVisible();
-  await page.getByLabel('用户名').fill('demo');
-  await page.getByLabel('密码').fill('demo');
-  await page.getByRole('button', { name: '登录' }).click();
-  await expect(page.getByTestId('connection')).toContainText('已连接');
-}
 
 test('画一张草图，给 AI 的链接能读到画了什么', async ({ page, browser }) => {
   await signIn(page);
@@ -16,9 +9,12 @@ test('画一张草图，给 AI 的链接能读到画了什么', async ({ page, b
 
   // 独立入口：/sketch（域名入口见 ADR 0009，同一个前端）
   await page.goto('/sketch');
-  await page.getByRole('button', { name: '新建' }).click();
+  await page.getByRole('button', { name: '画布管理', exact: true }).click();
+  const initial = page.url();
+  await page.getByRole('button', { name: '新建草图', exact: true }).click();
+  await expect.poll(() => page.url()).not.toBe(initial);
   await expect(page).toHaveURL(/\/sketch\/[0-9a-f-]{36}/);
-  const id = page.url().split('/sketch/')[1] as string;
+  const id = page.url().split('/sketch/')[1]?.split('/')[0] as string;
 
   // 画布起来了：画一个框
   const stage = page.locator('.excalidraw').first();

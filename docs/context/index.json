@@ -1,0 +1,129 @@
+{
+  "schema": 1,
+  "version": "v0.2.5",
+  "scope": "specs/54-delivery-system/spec.md",
+  "decisions": [
+    {
+      "id": "user-definition-and-acceptance",
+      "status": "confirmed",
+      "summary": "用户只负责开始前范围定义与完成后的交互体验验收；Agent 处理中间过程。开始不能代替成果验收。 结束验收前，Agent 全面测试、修复全部失败，不能把未测试成果交给用户排错。",
+      "origin": "2026-10-11 用户会话确认",
+      "references": [
+        "AGENTS.md",
+        "docs/adr/0006-workflow.md",
+        "specs/54-delivery-system/spec.md",
+        "docs/context/v0.2.5-input.md",
+        "docs/task-lifecycle.md",
+        "docs/context/v0.2.5-canvas-original.md"
+      ]
+    },
+    {
+      "id": "one-persistent-development-board",
+      "status": "confirmed",
+      "summary": "唯一固定开发画板长期承载组件、Features 和各版本设计；临时预览不拥有长期事实。",
+      "origin": "2026-10-11 用户补充固定入口定义",
+      "references": [
+        "specs/54-delivery-system/spec.md",
+        "crates/server/src/archive.rs",
+        "crates/store/src/nodes.rs",
+        "web/e2e/development-board.spec.ts",
+        "docs/context/v0.2.5-canvas-archive.md"
+      ],
+      "task": 57,
+      "implementation": "in-progress"
+    },
+    {
+      "id": "candidate-bound-evidence",
+      "status": "confirmed",
+      "summary": "成果身份关联源码、产物、部署、规则与检查；产品验收与工程合并资格分离。",
+      "origin": "2026-10-11 已复述并确认实施的 v0.2.5 范围",
+      "references": [
+        "docs/adr/0010-delivery-candidate.md",
+        ".github/scripts/candidate.cjs",
+        ".github/scripts/tests/candidate.test.cjs"
+      ],
+      "task": 56,
+      "implementation": "in-progress"
+    },
+    {
+      "id": "infra-only-development",
+      "status": "confirmed",
+      "summary": "构建、编译、测试与重型环境只在 Infra；Windows 用于编辑、SSH 和查看。",
+      "origin": "用户长期偏好与 2026-10-11 项目指令",
+      "references": [
+        "AGENTS.md",
+        "specs/54-delivery-system/spec.md"
+      ]
+    },
+    {
+      "id": "managed-excalidraw-source",
+      "status": "confirmed",
+      "summary": "深入分析和改进 Excalidraw 原生体验，必要源码改造及依据须在同一仓库可复现。维护方式由 Agent 调研。",
+      "origin": "2026-10-11 用户补充",
+      "references": [
+        "specs/54-delivery-system/spec.md",
+        "docs/adr/0011-excalidraw-extension.md",
+        "web/src/sketch/upstream/ToolButton.tsx"
+      ],
+      "task": 58,
+      "implementation": "in-progress"
+    },
+    {
+      "id": "historical-versions-on-demand",
+      "status": "confirmed",
+      "summary": "历史版本使用不可变镜像和兼容快照隔离恢复；最多两个实例，空闲十五分钟释放；永久画板和档案不删除。",
+      "origin": "2026-10-11 本会话用户明确要求实施 v0.2.5 连续开发、验证与交付计划",
+      "references": [
+        "specs/54-delivery-system/continuation.md",
+        "docs/adr/0012-historical-runtime.md",
+        "deploy/deployer/history.py",
+        "crates/store/tests/runtimes.rs",
+        "docs/context/history-archives.json"
+      ],
+      "implementation": "in-progress"
+    },
+    {
+      "id": "permanent-delivery-evidence-and-same-artifact-promotion",
+      "status": "confirmed",
+      "summary": "候选、检查、自检和验收长期保存在同仓库索引；上线推广已验收的同一产物，核验合并后的源码内容并先备份。",
+      "origin": "2026-10-11 用户明确实施的完整计划",
+      "references": [
+        "specs/54-delivery-system/continuation.md",
+        "docs/adr/0013-delivery-journal.md",
+        ".github/scripts/journal.cjs",
+        ".github/scripts/tests/promote.test.cjs"
+      ],
+      "implementation": "in-progress"
+    },
+    {
+      "id": "fresh-notion-session-verification",
+      "status": "unverified",
+      "summary": "本轮修复接口与交付体系，新 Notion 模型会话验收继续延期，尚未证明任何新会话自动具备全部访问能力。",
+      "origin": "用户选择本轮先修复接口，稍后验收 Notion；本轮计划明确延期",
+      "references": [
+        "specs/54-delivery-system/continuation.md"
+      ]
+    },
+    {
+      "id": "private-test-workspace",
+      "status": "confirmed",
+      "summary": "固定画板沿用 test 账户；嵌入页面免重复登录，独立测试站仍须鉴权，页面不公开密码。目录精简，真实页面在同一工作区体验。",
+      "origin": "2026-10-12 用户会话补充并确认开始",
+      "references": [
+        "docs/adr/0014-fixed-workspace.md",
+        "web/src/app/SketchWorkspace.tsx",
+        "deploy/deployer/workspace.sh",
+        "deploy/deployer/bootstrap-workspace.py"
+      ],
+      "implementation": "in-progress"
+    }
+  ],
+  "references": [
+    {
+      "url": "https://chatgpt.com/share/6acb4939-b648-83ea-93b3-1921eb904284",
+      "kind": "brainstorm",
+      "status": "reference",
+      "note": "命名与具体实现建议不自动视为用户决定；合并前读取主线不是原子锁。"
+    }
+  ]
+}

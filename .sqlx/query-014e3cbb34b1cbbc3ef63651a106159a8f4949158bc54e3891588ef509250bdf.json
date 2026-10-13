@@ -1,0 +1,52 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "with recursive d(id) as (\n                   select $1::uuid\n                   union\n                   select e.target from edges e join d on e.source = d.id where e.kind = 'contains'\n               )\n               delete from nodes where id in (select id from d) returning id, title, body",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "nodes",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "title",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "nodes",
+            "name": "title"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "body",
+        "type_info": "Jsonb",
+        "origin": {
+          "Table": {
+            "table": "nodes",
+            "name": "body"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "014e3cbb34b1cbbc3ef63651a106159a8f4949158bc54e3891588ef509250bdf"
+}

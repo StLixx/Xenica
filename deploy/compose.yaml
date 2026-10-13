@@ -29,7 +29,11 @@ services:
     environment:
       DATABASE_URL: postgres://xenica:${POSTGRES_PASSWORD}@db:5432/xenica
       XENICA_SEED: ${XENICA_SEED:-}
+      XENICA_ARTIFACT: ${XENICA_ARTIFACT:-}
+      XENICA_ALLOWED_ACCOUNT: ${XENICA_ALLOWED_ACCOUNT:-}
       RUST_LOG: ${RUST_LOG:-info}
+    volumes:
+      - ${XENICA_HISTORY_ROOT:-/var/lib/xenica-history}/catalog:/run/xenica-versions:ro
     networks: [default, edge]
     labels:
       - "traefik.enable=true"
@@ -37,6 +41,7 @@ services:
       # XENICA_ALIAS_RULE：部署器给「最近更新的预览」加上固定域名 preview.<域名>
       - "traefik.http.routers.${XENICA_NAME:-prod}.rule=Host(`${XENICA_HOST:-xenica.truebigsand.top}`)${XENICA_ALIAS_RULE:-}"
       - "traefik.http.routers.${XENICA_NAME:-prod}.entrypoints=web"
+      - "traefik.http.routers.${XENICA_NAME:-prod}.priority=${XENICA_PRIORITY:-0}"
       - "traefik.http.services.${XENICA_NAME:-prod}.loadbalancer.server.port=8080"
 
 volumes:

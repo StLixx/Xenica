@@ -4,17 +4,16 @@
 // 「验收」这个 commit status 就是验收记录：它挂在具体的 commit 上，PR 有新提交就要重新验收。
 
 const STATUS = '验收';
-const REQUIRED_CHECKS = ['rust', 'web', 'e2e', 'docker', 'screenshots'];
+const REQUIRED_CHECKS = require('./candidate.cjs').REQUIRED;
 const DOMAIN = 'xenica.truebigsand.top';
+const { latestChecks } = require('./candidate.cjs');
+const { readReport } = require('./readiness.cjs');
+const verifyDelivery = require('./verify-delivery.cjs');
 
 // 撤不回、或会改变规则本身的改动，永远要你验收。
 const SENSITIVE = [
-  [/^\.github\//, 'CI 与流程'],
-  [/^deploy\//, '部署'],
-  [/^scripts\//, '仓库脚本'],
-  [/^(AGENTS|CLAUDE)\.md$/, 'Agent 规则'],
   // 界面改动一律在整体预览里看过再合并（测试和 story 本身除外，story 的变化由截图对比管）
-  [/^web\/src\/(?!.*\.(test|stories)\.tsx?$)/, '界面'],
+  [/^web\/src\/(?!api\/)(?!.*\.(test|stories)\.tsx?$)/, '界面'],
 ];
 const DESTRUCTIVE_SQL = /\b(drop|truncate|rename|delete\s+from|alter\s+column[^;]*\btype)\b/i;
 
@@ -72,7 +71,8 @@ async function setStatus({ github, owner, repo, sha }, state, description) {
 
 async function ciPassed({ github, owner, repo, sha }) {
   const runs = await github.paginate(github.rest.checks.listForRef, { owner, repo, ref: sha });
-  return REQUIRED_CHECKS.every((name) => runs.some((r) => r.name === name && r.conclusion === 'success'));
+  const latest = latestChecks(runs);
+  return REQUIRED_CHECKS.every((name) => latest.get(name)?.conclusion === 'success');
 }
 
 async function linkedIssues({ github, owner, repo, number }) {
@@ -107,7 +107,7 @@ function previewBody({ pr, changed, why, sha }) {
       if (changed.length > 20) lines.push(`- ……共 ${changed.length} 个`);
       lines.push('');
     }
-    lines.push('执行 Agent 会在对话里把要看的地方告诉你；你确认后它代你评论 `/通过`，你也可以自己评论。');
+    lines.push('执行 Agent 会在对话里把要看的地方告诉你；你确认体验后，它记录已体验的成果身份。无需你打开 GitHub 或再次确认。');
   } else {
     lines.push('无需验收，CI 全绿后自动合并。');
   }
@@ -115,6 +115,11 @@ function previewBody({ pr, changed, why, sha }) {
 }
 
 async function merge({ github, owner, repo, pr }) {
+  // 严格主线检查仍由平台执行；再次读取不作为原子锁。
+  const fresh = (await github.rest.pulls.get({ owner, repo, pull_number: pr.number })).data;
+  if (fresh.head.sha !== pr.head.sha || (pr.base && fresh.base?.sha !== pr.base.sha)) {
+    throw new Error('合并前成果或主线已更新，需要重新检查');
+  }
   await github.rest.pulls.merge({
     owner,
     repo,
@@ -128,7 +133,7 @@ async function merge({ github, owner, repo, pr }) {
 }
 
 /** 返回 { stage, issues }，给 project.cjs 更新看板。 */
-module.exports = async function gate({ github, context, core, mode, changed = [] }) {
+module.exports = async function gate({ github, context, core, mode, changed = [], verify = verifyDelivery, archive = require('./journal.cjs') }) {
   const { owner, repo } = context.repo;
   const number = context.payload.pull_request?.number ?? context.payload.issue.number;
   const pr = (await github.rest.pulls.get({ owner, repo, pull_number: number })).data;
@@ -144,27 +149,74 @@ module.exports = async function gate({ github, context, core, mode, changed = []
 
   if (pr.state !== 'open') return result('完成');
 
+  if (mode === 'ci' && context.payload.pull_request.head.sha !== sha) {
+    core.info('流水线对应的头提交已过时，不记录验收或尝试合并。');
+    return result('进行中');
+  }
+
+  const why = await reasons({ github, owner, repo, pr, changed });
+  const checksReady = await ciPassed(ctx);
+  const selfTest = readReport(await github.paginate(github.rest.issues.listComments, {
+    owner, repo, issue_number: number,
+  }), { owner, sha, preview: `https://pr-${number}.${DOMAIN}`, interactive: why.length > 0 });
+  if (!checksReady || !selfTest.ready) {
+    const reason = !checksReady ? '当前工程或真实预览测试未全部通过' : selfTest.reason;
+    core.info(reason);
+    await setStatus(ctx, 'pending', `Agent 自检未完成：${reason}`);
+    return result('进行中');
+  }
+  let delivery;
+  try {
+    delivery = await verify({ github, owner, repo, pr });
+  } catch {
+    delivery = { ready: false, reasons: ['候选或部署证据无法核验'] };
+  }
+  if (!delivery.ready) {
+    await setStatus(ctx, 'pending', `交付核验未完成：${delivery.reasons.join('；')}`);
+    return result('进行中');
+  }
+
+  if (selfTest.report.artifact !== delivery.candidate.artifact) {
+    await setStatus(ctx, 'pending', 'Agent 实测对应其他构建产物');
+    return result('进行中');
+  }
+
   if (mode === 'approve') {
-    await setStatus(ctx, 'success', '已验收（/通过）');
+    await archive({github,owner,repo,record:{schema:1,type:'engineering',candidate:delivery.candidate,checks:delivery.checks,deployed:delivery.deployed,selfTest:selfTest.report,comment:selfTest.comment}});
+    // 由 Agent 根据用户实际体验的成果代写；普通命令不能推断验收了当前新提交。
+    const accepted = require('./acceptance.cjs').parse(context.payload.comment,{owner,source:sha,product:delivery.product});
+    if (!accepted) {
+      core.info('未提供对应成果身份或成果已更新，保留未验收状态。');
+      return result('待验收');
+    }
+    await archive({github,owner,repo,record:{schema:1,type:'acceptance',candidate:delivery.candidate,product:delivery.product,evidence:accepted}});
+    await setStatus(ctx, 'success', `已验收 ${delivery.product}`);
     if (pr.draft || !(await ciPassed(ctx))) {
-      core.info('CI 还没全绿或仍是草稿，CI 结束时会自动合并。');
+      core.info('当前必需检查还没全绿或仍是草稿，保持未合并。');
       return result('待验收');
     }
     await merge({ github, owner, repo, pr });
     return result('完成');
   }
 
-  const why = await reasons({ github, owner, repo, pr, changed });
-  const approved = (await status(ctx))?.description?.startsWith('已验收');
+  const approved = Boolean(await require('./read-acceptance.cjs')({github,owner,repo,source:sha,product:delivery.product}));
+  await archive({github,owner,repo,record:{schema:1,type:'engineering',candidate:delivery.candidate,checks:delivery.checks,deployed:delivery.deployed,selfTest:selfTest.report,comment:selfTest.comment}});
   await comment({ github, owner, repo, pr, body: previewBody({ pr, changed, why, sha }) });
 
   if (why.length && !approved) {
     await setStatus(ctx, 'pending', `等你验收：${why.join('；')}`);
     return result('待验收');
   }
-  if (!approved) await setStatus(ctx, 'success', '无需验收');
+  if (!approved) {
+    await archive({github,owner,repo,record:{schema:1,type:'acceptance',candidate:delivery.candidate,product:delivery.product,evidence:{type:'engineering-only',interactive:false}}});
+    await setStatus(ctx, 'success', '无需验收');
+  }
   if (pr.draft) {
     core.info('草稿 PR 不合并；标记为 Ready for review 后自动合并。');
+    return result('进行中');
+  }
+  if (!(await ciPassed(ctx))) {
+    core.info('当前必需检查未全绿，不能自动合并。');
     return result('进行中');
   }
   await merge({ github, owner, repo, pr });
