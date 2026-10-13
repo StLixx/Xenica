@@ -50,6 +50,10 @@ describe('画面的读写', () => {
     expect(a).not.toBe(signature([{ id: 'a', version: 1 }], 1));
   });
 
+  it('删除元素的通知和实际保存画面的指纹一致', () => {
+    expect(signature([{ id: 'deleted', version: 2, isDeleted: true }], 0)).toBe(signature([], 0));
+  });
+
   it('每次给的都是新画面，不会被改坏', () => {
     expect(emptyScene()).not.toBe(emptyScene());
   });
