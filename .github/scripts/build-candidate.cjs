@@ -20,6 +20,7 @@ function policyHash(root) {
     'deploy/deployer/check-release-request.py', 'deploy/deployer/deployment-receipt.py',
     'deploy/deployer/deploy.sh', 'deploy/deployer/journal.py',
     'deploy/deployer/archive-version.py', 'deploy/deployer/history.py',
+    'deploy/deployer/test-access.py', 'deploy/deployer/sealed_secret.py',
   ];
   const hash = createHash('sha256');
   for (const file of files.sort()) {

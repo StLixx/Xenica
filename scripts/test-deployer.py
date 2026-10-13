@@ -24,7 +24,7 @@ elif a[:2] == ['image', 'inspect']:
 elif a and a[0] == 'inspect':
     if '.Mounts' in a[3]: print('' if os.getenv('MOCK_MISSING_CATALOG')=='1' else '/run/xenica-versions')
     elif '.Image' in a[2]: print('sha256:same-runtime')
-    else: print(json.dumps(['XENICA_ARTIFACT=' + os.environ['MOCK_RUNNING']]))
+    else: print(json.dumps(['XENICA_ARTIFACT=' + os.environ['MOCK_RUNNING'],'XENICA_ALLOWED_ACCOUNT=test']))
 elif 'compose' in a:
     if 'ps' in a: print('test-container')
     elif 'up' in a and os.getenv('MOCK_ROLLBACK') == '1' and os.getenv('XENICA_IMAGE', '').endswith(os.environ['MOCK_DIGEST']):

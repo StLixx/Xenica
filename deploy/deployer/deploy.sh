@@ -124,12 +124,13 @@ deploy_preview() {
   # 镜像没变、固定域名也没换主人就不动；换了主人要重建容器（Traefik 规则在容器标签上）
   [ "$want" = "$have" ] && [ "$alias" = "$(cat "$STATE/pr-$n.alias" 2>/dev/null)" ] &&
     [ "$(running_artifact "$project")" = "$digest" ] &&
-    docker inspect "$project-app-1" --format '{{range .Mounts}}{{println .Destination}}{{end}}' | grep -qx '/run/xenica-versions' && return 0
+    docker inspect "$project-app-1" --format '{{range .Mounts}}{{println .Destination}}{{end}}' | grep -qx '/run/xenica-versions' &&
+    docker inspect "$project-app-1" --format '{{json .Config.Env}}' | jq -e 'index("XENICA_ALLOWED_ACCOUNT=test") != null' >/dev/null && return 0
   [ -f "$env_file" ] || printf 'POSTGRES_PASSWORD=%s\n' "$(openssl rand -hex 24)" >"$env_file"
   # shellcheck disable=SC2016 # 反引号是 Traefik 规则语法
   [ "$alias" = 1 ] && rule=" || Host(\`preview.$DOMAIN\`)"
   log "preview $n: deploying $(revision "$ref" | cut -c1-7)$([ "$alias" = 1 ] && echo " (preview.$DOMAIN)")"
-  if XENICA_IMAGE="$ref" XENICA_ARTIFACT="$digest" XENICA_NAME="pr-$n" XENICA_HOST="pr-$n.$DOMAIN" XENICA_ALIAS_RULE="$rule" XENICA_SEED=demo \
+  if XENICA_IMAGE="$ref" XENICA_ARTIFACT="$digest" XENICA_NAME="pr-$n" XENICA_HOST="pr-$n.$DOMAIN" XENICA_ALIAS_RULE="$rule" XENICA_SEED=demo XENICA_ALLOWED_ACCOUNT=test \
     compose -p "$project" --env-file "$env_file" up -d --wait --wait-timeout 120; then
     echo "$alias" >"$STATE/pr-$n.alias"
   else
@@ -144,7 +145,10 @@ deploy_previews() {
   open=$(jq -r --arg r "$REPO" '[.[] | select(.head.repo.full_name == $r) | .number] | sort | reverse | .[]' <<<"$pulls")
   latest=$(jq -r --arg r "$REPO" '[.[] | select(.head.repo.full_name == $r)] | sort_by(.updated_at) | last | .number // empty' <<<"$pulls")
   keep=$(head -n "$MAX_PREVIEWS" <<<"$open")
-  for n in $keep; do deploy_preview "$n" "$([ "$n" = "$latest" ] && echo 1 || echo 0)"; done
+  for n in $keep; do
+    deploy_preview "$n" "$([ "$n" = "$latest" ] && echo 1 || echo 0)"
+    DEPLOYER_GITHUB_TOKEN="$TOKEN" python3 -S "$DEPLOY/deployer/test-access.py" "xenica-pr-$n-app-1" --publish || log "preview $n: test authorization not ready"
+  done
   for project in $(docker ps -a --format '{{.Label "com.docker.compose.project"}}' | grep -E '^xenica-pr-[0-9]+$' | sort -u); do
     n=${project#xenica-pr-}
     grep -qx "$n" <<<"$keep" && continue

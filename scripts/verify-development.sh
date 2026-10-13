@@ -17,6 +17,7 @@ python3 scripts/test-deployer.py
 python3 scripts/test-history.py
 python3 scripts/test-workspace.py
 python3 scripts/test-release-deployment.py
+python3 scripts/test-preview-access.py
 pnpm -C web format:check
 pnpm -C web lint
 pnpm -C web typecheck

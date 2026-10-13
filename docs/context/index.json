@@ -125,7 +125,7 @@
         ".github/workflows/release.yml"
       ],
       "task": 59,
-      "implementation": "in-progress"
+      "implementation": "implemented"
     },
     {
       "id": "v0.2.3-separate-artifact-unlocated",

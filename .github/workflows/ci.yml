@@ -65,6 +65,7 @@ jobs:
           python3 scripts/test-history.py
           python3 scripts/test-workspace.py
           python3 scripts/test-release-deployment.py
+          python3 scripts/test-preview-access.py
       - name: sqlx offline cache is up to date
         run: |
           cargo sqlx migrate run --source crates/store/migrations
@@ -333,7 +334,9 @@ jobs:
         env:
           XENICA_REQUIRE_HISTORY: '1'
           XENICA_E2E_SESSIONS: ${{ secrets[format('XENICA_PREVIEW_SESSIONS_{0}', github.event.pull_request.number)] }}
-        run: pnpm e2e --workers=1
+        run: |
+          test -n "$XENICA_E2E_SESSIONS" || { echo '::error::缺少私有预览的短期测试授权；不使用公开示例密码回退'; exit 1; }
+          pnpm e2e --workers=1
         working-directory: web
       - name: 测试结束再次核对成果
         run: |

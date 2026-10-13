@@ -12,3 +12,5 @@
 首次发布冻结已体验产物，不为追加流程文件重建它。后续工程规范另经 PR 进入主线，不移动 v0.2.5 Tag。v0.2.3 的另一份产物未定位，保留为待核实记录，不推断包含关系。
 
 GitHub 的不可变发布锁定 Tag 与附件，不能锁定外部镜像标签或可编辑说明；所以仍使用镜像摘要及附件校验。[GitHub 官方说明（Tier S）](https://docs.github.com/en/code-security/concepts/supply-chain-security/immutable-releases)
+
+预览也限定 test 身份，不能用公开 demo 会话恢复私有历史数据。自动检查使用按真实场景签发的短期会话，加密同步到 Actions；鉴权缺失不能使用演示密码兜底。[GitHub secret 加密机制（Tier S）](https://docs.github.com/en/actions/concepts/security/secrets)
