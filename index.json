@@ -1023,6 +1023,15 @@
       "type": "archive",
       "source": "5a62b664d48f7b6e40d7d68ced2d45a636ffc2a4",
       "previous": "b5ae5aaef34ad31d350491c822192c4abf4ee4ef9d1db2bdfb1a170199507fa7"
+    },
+    {
+      "path": "records/6907bc142574c73d0123d41845dd90e427af6cee575e91cb1ba81f509bd70e74.json",
+      "sha256": "6907bc142574c73d0123d41845dd90e427af6cee575e91cb1ba81f509bd70e74",
+      "type": "candidate",
+      "source": "2717beddc0ad57c5a845876fc014271f21ee668f",
+      "run": 38368300389,
+      "attempt": 1,
+      "previous": "8b882bfc5aa20fd11ef63d0b57788b8fad7c7a45de84e87b718c322d54e695b7"
     }
   ]
 }
