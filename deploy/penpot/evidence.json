@@ -1,0 +1,78 @@
+{
+  "schema": 1,
+  "verified_at": "2026-10-14T18:27:04.178995+08:00",
+  "url": "https://penpot.truebigsand.top",
+  "artifact": "sha256:58258bece7cdcee15fb40df70d78b5ae22f7d77496359811433540160d28abc2",
+  "identity": {
+    "images": {
+      "PENPOT_FRONTEND_IMAGE": "penpotapp/frontend@sha256:bb8abe27d53de84c95597f2c02c0e702b2779971fb0703e543f9ecf183e999f6",
+      "PENPOT_BACKEND_IMAGE": "penpotapp/backend@sha256:2df1b3440d2a82cc3571db211b4ffdfa2b89ccc910759e8d5e9387fb62971b5c",
+      "PENPOT_EXPORTER_IMAGE": "penpotapp/exporter@sha256:418232d6ca3120b1c2bfde298a56a05a1f41f567cd8494deac3fe7fbc186cfbd",
+      "PENPOT_VALKEY_IMAGE": "valkey/valkey@sha256:418652cfb58ef879d4978c33553735d7147016032d5aefaa14c828e611eb9dfd"
+    },
+    "compose_sha256": "c8484e17440cc854f43524e464f3a35d7e364cd6f53965b7e5670e414f5797d1"
+  },
+  "security": {
+    "ok": true,
+    "checks": {
+      "anonymous_data_denied": true,
+      "registration_disabled": true,
+      "wrong_password_denied": true,
+      "correct_password_accepted": true,
+      "secure_httponly_cookie": true,
+      "display_name": true,
+      "projects_accessible": true,
+      "only_one_profile": true,
+      "non_superuser": true
+    }
+  },
+  "recovery": {
+    "schema": 1,
+    "ok": true,
+    "source": "OneDrive",
+    "stamp": "20261014T101916Z",
+    "sha256_verified": true,
+    "asset_count": 2,
+    "inventory": {
+      "profiles": 1,
+      "files": 1,
+      "media": 1
+    },
+    "login_verified": true,
+    "backend_file_read_verified": true,
+    "seconds": 30.12
+  },
+  "browser": {
+    "login": true,
+    "rectangle_text_and_upload": true,
+    "png_export_dimensions": [
+      250,
+      180
+    ],
+    "refresh_and_application_restart_persistence": true,
+    "initial_session_survived_restart": true,
+    "desktop_rendering_verified": true
+  },
+  "monitor": {
+    "url": "http://100.100.1.202:9017/health",
+    "change_only_watchdog": true
+  },
+  "backup": {
+    "local_storage": "/mnt/HDD/penpot",
+    "encrypted_peer": "core-server",
+    "independent": "existing OneDrive",
+    "daily_at": "03:00 Asia/Shanghai",
+    "retained_complete_sets": 7,
+    "consistent_database_assets": true
+  },
+  "unit_tests": {
+    "failure_resumes_paused_containers": true,
+    "resume_failure_attempts_remaining_containers": true
+  },
+  "known_limits": [
+    "SMTP未启用，邮件邀请及密码找回不可用。",
+    "原版编辑器在390px手机窄屏显示不完整，使用桌面浏览器编辑。",
+    "配套数据库与文件每天备份；PG持续WAL不代表文件具有同样的恢复粒度。"
+  ],
+  "acceptance": "pending user experience"
+}

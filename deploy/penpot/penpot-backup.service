@@ -1,0 +1,11 @@
+[Unit]
+Description=Penpot consistent encrypted database and asset backup
+After=docker.service network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 -S /opt/penpot-ops/backup.py
+UMask=0077
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7
