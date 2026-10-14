@@ -1,0 +1,29 @@
+# Penpot
+
+长期接续入口：[运行与恢复](../../docs/context/penpot-operations.md)、[设备及状态清单](../../docs/context/penpot-inventory.json)、[考证与记录方式](../../docs/context/penpot-recording.md)。任务 #65 归入 #54 的 v0.2.5 开发脚手架目标，属于发布后追加记录；已发布 Tag 的身份见原 Release。
+
+固定入口 `https://penpot.truebigsand.top`；Infra Compose 位于 `/opt/stacks/penpot`，凭据和稳定服务密钥位于 `/etc/penpot-ops`，文件位于 `/mnt/HDD/penpot/assets`。镜像固定为已验证的 2.18.3 摘要；升级前备份并隔离恢复验证，不自动追踪 latest。
+
+只有前端绑定 Tailscale 的 9001 端口。hikari 站点 27 提供 HTTPS、HTTP 跳转、WebSocket 和 100 MiB 上传限制，使用既有自动续期证书。公开注册、Google、SMTP 不启用；邮箱、预留名单和密码只保存在服务器私有配置。
+
+官方同版本 MCP 多用户组件经 `/mcp/stream` 和 `/mcp/ws` 提供服务，不挂载主机文件，禁用文件访问及调试 REPL。两层代理关闭 MCP URL 查询日志和响应缓冲。按用户授权创建无限期 MCP 密钥及仅本人可用的 ChatGPT 插件；连接地址只存服务器私有文件，不写入源码。设计文件必须连接 MCP 并保持标签页活跃。个人 API Token 和团队 Webhooks 开放原生入口，没有预设 Xenica 接收地址；普通 API 测试令牌已撤销。
+
+官方管理控制台使用公网 `/admin-console` 和原生登录/组织所有者权限，容器端口不单独发布。组织管理与 Enterprise 模块沿用官方许可流程，不预购或绕过限制；普通团队与设计文件仍沿用原功能。控制台数据库权限和稳定服务密钥在 `/etc/penpot-ops/admin-console.env`，纳入配套备份及 PG 路由更新。
+
+当前版本的 Admin Console 前端开关同时显示 Enterprise 推广。`selfhost.css` 经 Nginx 插入样式链接，仅隐藏推广横幅、其他套餐展示和升级菜单；控制台、组织导航、当前订阅及许可到期提醒保留。官方镜像未修改，覆盖文件纳入备份，升级时须重新验证选择器。
+
+Infra 的 Wikimedia IPv4 路径超时而 IPv6 可达；Penpot 专用 Docker 网络启用双栈，并让后端 JVM 优先 IPv6。保留原 IPv4 子网和仅 Tailscale 的前端端口绑定，不修改其他应用网络，不放宽原生 SSRF 检查。图片仍经原生公网 URL 导入接口下载和验证。
+
+Wikimedia 对默认 Java 请求标识返回 403。`runtime-patches` 从固定后端镜像内的 MPL 源码提取 `app.media`，启动时只给图片下载请求添加描述性 User-Agent 和本站联系地址，保留原有大小、类型、重定向及安全检查；PNG/JPEG 公网导入实测通过。覆盖及启动脚本随配置备份和隔离恢复；升级镜像前需重新对比原生源码。SVG 测试样本仍触发原生 XML 解析错误，不登记为通过。
+
+每日 03:00 的 `penpot-backup.timer` 短暂停止应用写入，复制一致的数据库、文件和恢复配置，随后恢复服务并加密复制到 core 和现有 OneDrive 的专用任务目录。密钥另存，保留最近七份；只有云端确认保留副本后才允许清理。数据库另有共享 PG 的持续 WAL 归档；文件仅每日备份，整套恢复以数据库与文件配套备份时间点为准。
+
+`backup.py` 手动执行同一流程；`restore.py` 从实际云端下载、验证摘要并在无外部出口的临时容器恢复，不覆盖生产目录。首次验证使用私有初始化账号密码；账号改密后，运行登录探针前应更新私有验证凭据。恢复工具不负责生产推广。
+
+私有健康端点为 `http://100.100.1.202:9017/health`，检查容器、前端、后端权限响应、备份新鲜度与磁盘容量，接入既有状态变化监控。
+
+数据库端口以已登记主库的实际 Compose 绑定为准。共享 PG 重建为两端 5432 后，后端及管理控制台私有 URI 同步更新，并用原业务角色验证主库、拒绝备库。健康检查额外探测首页初始化使用的 `get-profile`；该接口返回 500 或超时必须告警，不能只用匿名项目 401 判定数据库正常。
+
+共享 PG 的 `maintenance.py switch-apps` 同时调用 Penpot 路由更新。更新前用原业务权限验证目标确实为主库，再改私有 URI 并重建后端；禁止指向未登记主机或备库。备份根据实际应用 URI 直连主库，原主停止或角色改名不影响备份选主。
+
+实际验证：登录、文字/图形、上传、PNG 导出、刷新和应用重启持久化、注册/匿名/错误密码拒绝、独立备份恢复。手机 390px 编辑器显示不完整，这是当前原版 Penpot 的已观察限制；使用桌面浏览器编辑。界面覆盖仅隐藏 Enterprise 推广。

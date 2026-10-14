@@ -1,0 +1,13 @@
+[Unit]
+Description=Private Penpot health and backup endpoint
+After=docker.service tailscaled.service
+
+[Service]
+ExecStart=/usr/bin/python3 -S /opt/penpot-ops/health.py
+Restart=on-failure
+UMask=0077
+MemoryMax=128M
+CPUQuota=25%
+
+[Install]
+WantedBy=multi-user.target

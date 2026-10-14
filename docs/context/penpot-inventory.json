@@ -1,0 +1,356 @@
+{
+  "schema": 1,
+  "version": "v0.2.5",
+  "task": 65,
+  "parent_task": 54,
+  "classification": "post-release scaffolding supplement",
+  "verified_on": "2026-10-14",
+  "timezone": "Asia/Shanghai",
+  "epistemic_note": "设备、可用内存和磁盘空间是核验快照；运行前重验。敏感值及设计正文不在此清单。",
+  "source_session": "01a13890-cbe2-7ff0-885e-75317a6424d0",
+  "deployment_baseline": {
+    "source": "13774011dc19778d1acf06c4cdfd5c5297c9e749",
+    "artifact": "sha256:5f04a35d2396973a63e280703321db7519f91a0f0abdddf5539056f316ffd7f9",
+    "evidence": "deploy/penpot/access-recovery-evidence.json",
+    "images_reference": "deploy/penpot/access-recovery-evidence.json#/identity/images"
+  },
+  "entrypoints": {
+    "application": "https://penpot.truebigsand.top",
+    "admin_console": "https://penpot.truebigsand.top/admin-console",
+    "mcp_base": "https://penpot.truebigsand.top/mcp/stream",
+    "chatgpt_plugin": "https://chatgpt.com/plugins/plugin_asdk_app_6acf693ce9e881919cae4195fbb0e096",
+    "private_health": "http://100.100.1.202:9017/health"
+  },
+  "dns": {
+    "provider": "Cloudflare",
+    "type": "A",
+    "name": "penpot.truebigsand.top",
+    "content": "139.224.197.51",
+    "proxied": false,
+    "ttl_seconds": 300
+  },
+  "devices": [
+    {
+      "id": "infra",
+      "hostname": "infra-server",
+      "address": "100.100.1.202",
+      "role": [
+        "Penpot six services",
+        "shared PG primary",
+        "assets and matching backup",
+        "heavy development/testing"
+      ],
+      "os": "Ubuntu 26.04.1 LTS",
+      "kernel": "7.0.0-38-generic",
+      "cpu_model": "AMD EPYC 7R32 48-Core Processor",
+      "logical_cpus": 32,
+      "virtualization": "VMware",
+      "memory_total_bytes": 16177504256,
+      "memory_available_snapshot_bytes": 11183333376,
+      "swap_total_bytes": 4294963200,
+      "docker_version": "29.7.2",
+      "disks": [
+        {
+          "mount": "/",
+          "device": "/dev/sda2",
+          "filesystem": "ext4",
+          "total_bytes": 99749253120,
+          "available_snapshot_bytes": 45239037952
+        },
+        {
+          "mount": "/mnt/HDD",
+          "device": "/dev/sdb",
+          "filesystem": "ext4",
+          "total_bytes": 2852430929920,
+          "available_snapshot_bytes": 2581829406720
+        }
+      ],
+      "deployment_directory": "/opt/stacks/penpot",
+      "operations_directory": "/opt/penpot-ops",
+      "private_directory": "/etc/penpot-ops",
+      "evidence_directory": "/var/lib/penpot-ops"
+    },
+    {
+      "id": "core",
+      "hostname": "core-server",
+      "address": "100.100.1.103",
+      "role": [
+        "shared PG standby",
+        "encrypted backup peer",
+        "existing OneDrive upload/download"
+      ],
+      "os": "Ubuntu 24.04.4 LTS",
+      "cpu_model": "Intel Xeon E5-2698 v3 @ 2.30GHz",
+      "logical_cpus": 16,
+      "memory_total_bytes": 16765227008,
+      "memory_available_snapshot_bytes": 14365466624,
+      "swap_total_bytes": 4294963200,
+      "disks": [
+        {
+          "mount": "/",
+          "device": "/dev/mapper/ubuntu--vg-ubuntu--lv",
+          "total_bytes": 97632309248,
+          "available_snapshot_bytes": 26850201600
+        }
+      ],
+      "pg_port": 5432,
+      "pg_recovery_verified": true
+    },
+    {
+      "id": "hikari",
+      "panel_reported_hostname": "localhost",
+      "address": "100.125.180.76",
+      "public_ipv4": "139.224.197.51",
+      "role": [
+        "public TLS",
+        "1Panel website27 reverse proxy",
+        "WebSocket/MCP ingress"
+      ],
+      "os": "Debian 13.1",
+      "kernel": "6.12.43+deb13-cloud-amd64",
+      "cpu_model": "Intel Xeon Platinum",
+      "logical_cpus": 2,
+      "panel_reported_cores": 1,
+      "memory_total_bytes": 1966657536,
+      "memory_available_snapshot_bytes": 1232785408,
+      "disks": [
+        {
+          "mount": "/",
+          "device": "/dev/vda2",
+          "filesystem": "ext4",
+          "total_bytes": 41851256832,
+          "free_snapshot_bytes": 32283684864
+        }
+      ],
+      "panel": "https://1panel.hikari.truebigsand.top",
+      "panel_version_historical": "2.1.4",
+      "website_id": 27,
+      "certificate_id_historical": 8,
+      "certificate": {
+        "kind": "existing wildcard auto-renew",
+        "historical_expiry": "2026-11-22",
+        "status": "historical metadata; recheck expiry and renewal before changes"
+      },
+      "probe": "1Panel /dashboard/base/all/all; explicit field allowlist"
+    },
+    {
+      "id": "windows-client",
+      "role": [
+        "editing",
+        "SSH",
+        "Edge/in-app browser acceptance"
+      ],
+      "os": "Windows 11 Pro",
+      "os_version": "10.0.26200",
+      "manufacturer": "ASUS",
+      "model_reported": "System Product Name",
+      "cpu_model": "AMD Ryzen 5 5500GT with Radeon Graphics",
+      "logical_cpus": 12,
+      "memory_visible_bytes": 33602629632,
+      "repository": "C:\\dev\\Xenica",
+      "managed_worktree_historical": "%USERPROFILE%\\.codex\\worktrees\\pg-operations\\Xenica",
+      "ssh_private_key_location": "%USERPROFILE%\\.ssh\\id_ed25519",
+      "heavy_builds_allowed": false
+    }
+  ],
+  "database": {
+    "container": "njupt-pg",
+    "primary": "100.100.1.202:5432",
+    "standby": "100.100.1.103:5432",
+    "version_verified": "18.6",
+    "database": "penpot",
+    "role": "penpot_app",
+    "superuser": false,
+    "role_connection_limit": 12,
+    "server_max_connections": 100,
+    "backend_min_pool_size": 2,
+    "backend_max_pool_size": 10,
+    "database_size_snapshot_bytes": 13678271,
+    "private_uri_files": [
+      "/etc/penpot-ops/backend.env",
+      "/etc/penpot-ops/admin-console.env"
+    ],
+    "port_incident": {
+      "previous_port": 5433,
+      "recreated_at": "2026-10-14T14:23:55.713437428Z",
+      "fixed_to": 5432
+    },
+    "last_verified_on": "2026-10-15",
+    "encoding": "UTF8",
+    "collation": "en_US.utf8",
+    "ctype": "en_US.utf8",
+    "timezone": "Asia/Shanghai",
+    "extensions": [
+      {
+        "name": "plpgsql",
+        "version": "1.0"
+      },
+      {
+        "name": "uuid-ossp",
+        "version": "1.1"
+      }
+    ]
+  },
+  "services": [
+    {
+      "name": "frontend",
+      "memory_limit": "256MiB",
+      "cpus": 1,
+      "container_port": 8080,
+      "published": "100.100.1.202:9001",
+      "nginx_workers": 1,
+      "assets_mount": "read-only"
+    },
+    {
+      "name": "backend",
+      "memory_limit": "2GiB",
+      "cpus": 2,
+      "container_port": 6060,
+      "published": false,
+      "jvm_heap": "768MiB",
+      "jvm_active_processors": 2,
+      "prefer_ipv6": true,
+      "storage_backend": "fs",
+      "storage_container_path": "/opt/data/assets"
+    },
+    {
+      "name": "exporter",
+      "memory_limit": "1GiB",
+      "cpus": 2,
+      "published": false
+    },
+    {
+      "name": "valkey",
+      "memory_limit": "256MiB",
+      "cpus": 1,
+      "container_port": 6379,
+      "published": false,
+      "maxmemory": "128MiB",
+      "eviction": "volatile-lfu"
+    },
+    {
+      "name": "mcp",
+      "memory_limit": "512MiB",
+      "cpus": 1,
+      "container_ports": [
+        4401,
+        4402
+      ],
+      "published": false,
+      "remote_mode": true,
+      "debug_repl": false,
+      "host_files_mounted": false,
+      "log_level": "warn",
+      "tools": [
+        "execute_code",
+        "high_level_overview",
+        "penpot_api_info",
+        "export_shape"
+      ]
+    },
+    {
+      "name": "admin-console",
+      "memory_limit": "512MiB",
+      "cpus": 1,
+      "container_port": 3000,
+      "published": false
+    }
+  ],
+  "network": {
+    "docker_network": "penpot_penpot",
+    "ipv4_subnet": "172.21.0.0/16",
+    "ipv6_subnet": "fd42:7065:6e70:6f74::/64",
+    "public_access": "hikari HTTPS; end users do not require Tailscale",
+    "upload_max_bytes": 104857600,
+    "tls_protocols": [
+      "TLSv1.2",
+      "TLSv1.3"
+    ],
+    "mcp_proxy": {
+      "websocket": true,
+      "buffering": false,
+      "read_timeout_seconds": 300,
+      "request_url_logs": false,
+      "error_url_logs": false
+    }
+  },
+  "user_decisions": {
+    "expected_users": 2,
+    "created_profiles": 1,
+    "display_name": "Lixx",
+    "second_email": "reserved in private bootstrap only",
+    "public_registration": false,
+    "google_login": false,
+    "smtp": false,
+    "mcp": true,
+    "mcp_key_expiry": null,
+    "chatgpt_visibility": "personal",
+    "api_tokens": true,
+    "webhooks": true,
+    "admin_console_public": true,
+    "organization_created": false,
+    "enterprise_license_activated": false,
+    "enterprise_promotion": "CSS hidden; native license/subscription/expiry behavior preserved",
+    "xenica_embedding": "not implemented",
+    "production_xenica_webhook_receiver": "not configured"
+  },
+  "protected_live_designs": [
+    {
+      "file_id": "0fa1661d-1160-8107-8008-c9ce8b6bc788",
+      "page_id": "0fa1661d-1160-8107-8008-c9ce8b6bc789",
+      "project_id": "8fa64b17-9fc4-8078-8008-c9bd47ea9c79",
+      "team_id": "8fa64b17-9fc4-8078-8008-c9bd47e80f37",
+      "historical_name": "MCP integration verification refreshed",
+      "classification": "user adopted original verification file; never clean by test-looking name"
+    }
+  ],
+  "backup": {
+    "schedule": "03:00 Asia/Shanghai",
+    "random_delay_max_seconds": 120,
+    "retained_complete_sets": 7,
+    "paused_services": [
+      "backend",
+      "exporter",
+      "admin-console"
+    ],
+    "plaintext_root": "/mnt/HDD/penpot/backups",
+    "infra_encrypted_root": "/mnt/HDD/pg-ops/encrypted/penpot-assets/base",
+    "core_stage": "/var/lib/pg-ops/penpot-stage",
+    "core_encrypted_root": "/var/lib/pg-ops/encrypted/penpot-assets/base",
+    "cloud": "drive02:PG-operations-v1/penpot-assets/base",
+    "cipher": "AES256 via gpg symmetric",
+    "key_location": "/etc/pg-ops/backup.key; private separate custody",
+    "matching_snapshot": true,
+    "continuous_pg_wal": true,
+    "continuous_asset_wal": false,
+    "latest_verified_restore": {
+      "schema": 1,
+      "ok": true,
+      "source": "OneDrive",
+      "stamp": "20261014T144654Z",
+      "sha256_verified": true,
+      "asset_count": 15,
+      "inventory": {
+        "profiles": 1,
+        "files": 6,
+        "media": 3
+      },
+      "login_verified": true,
+      "backend_file_read_verified": true,
+      "seconds": 35.4
+    },
+    "core_rclone_config": "/root/.config/rclone/rclone.conf"
+  },
+  "unverified_or_unconfigured": [
+    "full-host disaster recovery after both machines lost",
+    "cross-version restore",
+    "SVG XML parser failure repair",
+    "original other-source I/O case without URL",
+    "SMTP/invitations/password reset",
+    "second profile creation",
+    "Xenica embedding/production webhook receiver",
+    "load capacity beyond small self-use",
+    "complete telemetry/default-upstream-feature audit"
+  ],
+  "archive_recorded_on": "2026-10-15"
+}

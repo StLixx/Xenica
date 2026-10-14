@@ -60,6 +60,10 @@ def set_role(src, cfg):
 def switch_apps(host):
     if host not in HOSTS or run(["hostname"]) != "infra-server":
         raise RuntimeError("application routing is maintained on Infra with an approved database host")
+    penpot = Path('/opt/penpot-ops/routing.py')
+    has_penpot = penpot.exists() and Path('/etc/penpot-ops/backend.env').exists()
+    if has_penpot:
+        run(['python3', '-S', str(penpot), host, '--check'])
     target = "127.0.0.1" if host == "100.100.1.202" else host
     for path in ["/etc/pg-ops/runtime-njupt_notice.env", "/etc/pg-ops/runtime-njupt_console.env",
                  "/opt/njupt-notice/app/.env", "/opt/njupt-console/.env"]:
@@ -68,6 +72,8 @@ def switch_apps(host):
         p.write_text(text)
         os.chmod(p, 0o600)
     run(["systemctl", "restart", "njupt-console", "njupt-notice-dashboard", "njupt-notice-notifier"])
+    if has_penpot:
+        run(['python3', '-S', str(penpot), host])
     print(json.dumps({"applications_database_host": host}))
 
 

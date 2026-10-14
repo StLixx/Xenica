@@ -1,0 +1,131 @@
+{
+  "schema": 1,
+  "verified_at": "2026-10-14T14:11:32.866942+00:00",
+  "url": "https://penpot.truebigsand.top",
+  "identity": {
+    "images": {
+      "PENPOT_FRONTEND_IMAGE": "penpotapp/frontend@sha256:bb8abe27d53de84c95597f2c02c0e702b2779971fb0703e543f9ecf183e999f6",
+      "PENPOT_BACKEND_IMAGE": "penpotapp/backend@sha256:2df1b3440d2a82cc3571db211b4ffdfa2b89ccc910759e8d5e9387fb62971b5c",
+      "PENPOT_EXPORTER_IMAGE": "penpotapp/exporter@sha256:418232d6ca3120b1c2bfde298a56a05a1f41f567cd8494deac3fe7fbc186cfbd",
+      "PENPOT_VALKEY_IMAGE": "valkey/valkey@sha256:418652cfb58ef879d4978c33553735d7147016032d5aefaa14c828e611eb9dfd",
+      "PENPOT_MCP_IMAGE": "penpotapp/mcp@sha256:5e811e6eeb179d80d8781fb0ffd2991560785d150b3676f1ac5e28d63ba9f7c2",
+      "PENPOT_ADMIN_CONSOLE_IMAGE": "penpotapp/admin-console@sha256:5935b5adbf33eb7abaabfab657fe8f5d465cac08e62e340f932ddb35ce0f311f"
+    },
+    "files_sha256": {
+      "compose.yaml": "8fa384c94b4aab13266fa04b0618a1d4cae38d066d6f59a3c4d20dfe10cc9a11",
+      "selfhost.css": "0dfb4c07f091d3a8e6c258238b107a565bafd402b0c4e06e94bca50e861d8aba",
+      "frontend-custom.conf": "45981e358f68c1ba5e80286d0ffc814f2f3a0ad0559215daeff713dcd40669e3",
+      "runtime-patches/init.clj": "ea6f8ad26f24ee75023334496026f052799413637c791a7231eb48176314eb7a",
+      "runtime-patches/media.clj": "a3024b0410bdcec44746cac7bf59d77f4753a7c19d214feeb141f14f049f4dd5",
+      "runtime-patches/run.sh": "fad615a3ad07516589be19a9768b3e840fb9f395057a8d130b6f6d3ee87116cd"
+    }
+  },
+  "artifact": "sha256:d0c9c98fba6bf1c9947d346d8ee204d98d96375210d62a35529258c01bb7d405",
+  "recovery": {
+    "schema": 1,
+    "ok": true,
+    "source": "OneDrive",
+    "stamp": "20261014T140941Z",
+    "sha256_verified": true,
+    "asset_count": 14,
+    "inventory": {
+      "profiles": 1,
+      "files": 6,
+      "media": 3
+    },
+    "login_verified": true,
+    "backend_file_read_verified": true,
+    "seconds": 34.98
+  },
+  "backup": {
+    "ok": true,
+    "stamp": "20261014T140941Z",
+    "completed": 1791987057.1169746,
+    "independent": true,
+    "inventory": {
+      "profiles": 1,
+      "files": 6,
+      "media": 3
+    }
+  },
+  "api_token": {
+    "valid": true,
+    "revoked_status": 401
+  },
+  "webhook": {
+    "created": true,
+    "delivered": true,
+    "received_count": 1,
+    "private_uri_blocked": true,
+    "payload_types": [
+      [
+        "name",
+        "props",
+        "createdAt",
+        "profileId",
+        "trackedAt"
+      ]
+    ]
+  },
+  "image_import": [
+    {
+      "format": "svg",
+      "ok": false,
+      "status": 500,
+      "error": "{\"type\":\"server-error\",\"code\":\"unexpected\"}"
+    },
+    {
+      "format": "png",
+      "ok": true,
+      "width": 120,
+      "height": 110,
+      "mtype": "image/png"
+    },
+    {
+      "format": "jpeg",
+      "ok": true,
+      "width": 500,
+      "height": 477,
+      "mtype": "image/jpeg"
+    }
+  ],
+  "chatgpt": {
+    "connected": true,
+    "personal_only": true,
+    "mcp_key_expires": null,
+    "plugin_url": "https://chatgpt.com/plugins/plugin_asdk_app_6acf693ce9e881919cae4195fbb0e096"
+  },
+  "mcp": {
+    "official": true,
+    "canvas_read_write_verified": true,
+    "wrong_token_denied": true,
+    "disconnected_file_denied": true,
+    "file_access_disabled": true,
+    "debug_repl_disabled": true
+  },
+  "admin_console": {
+    "public_url": "https://penpot.truebigsand.top/admin-console",
+    "native_login_verified": true,
+    "organization_created": false,
+    "enterprise_license_unchanged": true
+  },
+  "promotions": {
+    "hidden": true,
+    "subscription_and_expiry_warning_preserved": true
+  },
+  "unit_tests": {
+    "pg_ops": 13,
+    "penpot": 8
+  },
+  "acceptance": "pending user experience",
+  "known_limits": [
+    "SMTP未启用，邮件邀请及密码找回不可用。",
+    "Wikimedia SVG测试样本触发原生XML解析错误；PNG及JPEG导入通过。",
+    "原版手机窄屏编辑器显示不完整，使用桌面浏览器。",
+    "文件每日配套备份，不具有PG持续WAL同等恢复粒度。"
+  ],
+  "health": {
+    "ok": true,
+    "alerts": []
+  }
+}

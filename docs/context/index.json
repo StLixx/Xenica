@@ -136,6 +136,41 @@
         "docs/adr/0015-versioned-release.md",
         "docs/releases/v0.2.5.md"
       ]
+    },
+    {
+      "id": "penpot-v025-scaffolding-supplement",
+      "status": "confirmed",
+      "summary": "Penpot 的部署、设备、运维、决定与考证信息归入 v0.2.5 开发脚手架父任务54/子任务65；用户明确要求提交并合并，发布后追加记录保留独立日期和源码/部署身份。",
+      "origin": "2026-10-14 当前会话明确的长期归档与合并指令，原话见 penpot-recording.md",
+      "references": ["docs/adr/0017-penpot-scaffolding.md", "docs/context/penpot-operations.md", "docs/context/penpot-inventory.json", "docs/context/penpot-recording.md", "specs/65-penpot-deployment/spec.md", "deploy/penpot/README.md"],
+      "task": 65,
+      "parentTask": 54,
+      "implementation": "deployed"
+    },
+    {
+      "id": "penpot-native-integrations-and-private-credentials",
+      "status": "confirmed",
+      "summary": "官方MCP及个人ChatGPT无限期密钥、API Token/Webhooks、公网admin-console启用；公开注册/Google/SMTP关闭，同学仅预留，许可不激活。密码、密钥和原设计只存私有位置，用户采用的验证文件必须保留。",
+      "origin": "2026-10-14 本会话逐项决定与无限期密钥单独授权",
+      "references": ["specs/65-penpot-deployment/spec.md", "deploy/penpot/compose.yaml", "deploy/penpot/integrations-evidence.json", "docs/context/penpot-inventory.json"],
+      "task": 65,
+      "implementation": "deployed"
+    },
+    {
+      "id": "penpot-profile-health-port-drift-incident",
+      "status": "historical",
+      "summary": "共享PG重建为5432，Penpot旧5433连接拒绝使get-profile500；原权限401探针漏检。同步两个组件URI并增加profile负向回归，两个浏览器及新云端恢复通过。",
+      "origin": "2026-10-14 用户report.txt与服务器实测；不是浏览器或双栈故障的推断",
+      "references": ["deploy/penpot/access-recovery-evidence.json", "deploy/penpot/health.py", "deploy/penpot/test_health.py", "docs/context/penpot-recording.md"],
+      "task": 65
+    },
+    {
+      "id": "penpot-recovery-and-integration-boundaries",
+      "status": "unverified",
+      "summary": "整机双服务器丢失及跨版本恢复未验证；SVG和缺少原始URL的其他素材案例未独立通过；Xenica内嵌/生产Webhook接收未实施。已验证OneDrive同版本隔离恢复不扩大为这些结论。",
+      "origin": "2026-10-14 归档核对实际演练依赖与原始证据",
+      "references": ["docs/context/penpot-operations.md", "docs/context/penpot-inventory.json", "deploy/penpot/restore.py"],
+      "task": 65
     }
   ],
   "references": [
