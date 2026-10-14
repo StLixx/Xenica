@@ -1,0 +1,93 @@
+{
+  "schema": 1,
+  "verified_at": "2026-10-14T14:50:25.828795+00:00",
+  "previous_artifact": "sha256:d0c9c98fba6bf1c9947d346d8ee204d98d96375210d62a35529258c01bb7d405",
+  "artifact": "sha256:5f04a35d2396973a63e280703321db7519f91a0f0abdddf5539056f316ffd7f9",
+  "identity": {
+    "images": {
+      "PENPOT_FRONTEND_IMAGE": "penpotapp/frontend@sha256:bb8abe27d53de84c95597f2c02c0e702b2779971fb0703e543f9ecf183e999f6",
+      "PENPOT_BACKEND_IMAGE": "penpotapp/backend@sha256:2df1b3440d2a82cc3571db211b4ffdfa2b89ccc910759e8d5e9387fb62971b5c",
+      "PENPOT_EXPORTER_IMAGE": "penpotapp/exporter@sha256:418232d6ca3120b1c2bfde298a56a05a1f41f567cd8494deac3fe7fbc186cfbd",
+      "PENPOT_VALKEY_IMAGE": "valkey/valkey@sha256:418652cfb58ef879d4978c33553735d7147016032d5aefaa14c828e611eb9dfd",
+      "PENPOT_MCP_IMAGE": "penpotapp/mcp@sha256:5e811e6eeb179d80d8781fb0ffd2991560785d150b3676f1ac5e28d63ba9f7c2",
+      "PENPOT_ADMIN_CONSOLE_IMAGE": "penpotapp/admin-console@sha256:5935b5adbf33eb7abaabfab657fe8f5d465cac08e62e340f932ddb35ce0f311f"
+    },
+    "files_sha256": {
+      "compose.yaml": "8fa384c94b4aab13266fa04b0618a1d4cae38d066d6f59a3c4d20dfe10cc9a11",
+      "selfhost.css": "0dfb4c07f091d3a8e6c258238b107a565bafd402b0c4e06e94bca50e861d8aba",
+      "frontend-custom.conf": "45981e358f68c1ba5e80286d0ffc814f2f3a0ad0559215daeff713dcd40669e3",
+      "runtime-patches/init.clj": "ea6f8ad26f24ee75023334496026f052799413637c791a7231eb48176314eb7a",
+      "runtime-patches/media.clj": "a3024b0410bdcec44746cac7bf59d77f4753a7c19d214feeb141f14f049f4dd5",
+      "runtime-patches/run.sh": "fad615a3ad07516589be19a9768b3e840fb9f395057a8d130b6f6d3ee87116cd"
+    },
+    "database_route": {
+      "host": "100.100.1.202",
+      "port": 5432,
+      "database": "penpot"
+    },
+    "operations_files_sha256": {
+      "health.py": "9617bc4db3bf898244d518cf59c3cde8c54bc2ad8d95a80ca865508acbd69a91",
+      "routing.py": "90d90bd41644b1d1cdf2e877282fd5e8aa35ae1f99556b0fbf11b68edad01f04",
+      "backup.py": "bd5bac513536c496773dcc907b42d4b6d5108b6b390a50e8e0130b0734b48af8",
+      "restore.py": "3dc34964638ab3b18cc107280e42ea4b90d9c277b393d7188cf6d51cda59edac"
+    }
+  },
+  "cause": {
+    "database_container_recreated_at": "2026-10-14T14:23:55.713437428Z",
+    "old_port": 5433,
+    "current_registered_port": 5432,
+    "backend_old_port_connection_refused": true,
+    "profile_http_500": true,
+    "initial_monitor_false_positive": true
+  },
+  "repair": {
+    "backend_and_admin_routes_updated": true,
+    "business_role_primary_verified": true,
+    "authenticated_core_standby_rejected": true,
+    "public_profile_status": {
+      "/api/main/methods/get-profile": 200,
+      "/api/rpc/command/get-profile": 200
+    },
+    "browser_home_project_list_verified": true,
+    "browser_admin_console_authenticated_verified": true,
+    "account_and_active_design_preserved": true,
+    "profile_500_health_regression_failed_before_fix": true,
+    "profile_500_health_regression_passed_after_fix": true
+  },
+  "health": {
+    "ok": true,
+    "alerts": []
+  },
+  "backup": {
+    "ok": true,
+    "stamp": "20261014T144654Z",
+    "completed": 1791989279.8643906,
+    "independent": true,
+    "inventory": {
+      "profiles": 1,
+      "files": 6,
+      "media": 3
+    }
+  },
+  "recovery": {
+    "schema": 1,
+    "ok": true,
+    "source": "OneDrive",
+    "stamp": "20261014T144654Z",
+    "sha256_verified": true,
+    "asset_count": 15,
+    "inventory": {
+      "profiles": 1,
+      "files": 6,
+      "media": 3
+    },
+    "login_verified": true,
+    "backend_file_read_verified": true,
+    "seconds": 35.4
+  },
+  "unit_tests": {
+    "penpot": 10,
+    "pg_ops": 13
+  },
+  "acceptance": "pending user experience"
+}

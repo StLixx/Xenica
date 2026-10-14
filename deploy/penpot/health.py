@@ -33,8 +33,20 @@ def health():
     except urllib.error.HTTPError as error:
         if error.code != 401:
             alerts.append('backend-http')
+        error.close()
     except Exception:
         alerts.append('backend-http')
+    # 首页启动先读取 profile；匿名项目 401 本身不能证明数据库可用。
+    try:
+        with urllib.request.urlopen('http://100.100.1.202:9001/api/main/methods/get-profile', timeout=5) as response:
+            if response.status != 200:
+                alerts.append('profile-http')
+    except urllib.error.HTTPError as error:
+        if error.code != 401:
+            alerts.append('profile-http')
+        error.close()
+    except Exception:
+        alerts.append('profile-http')
     try:
         backup = json.loads(Path('/var/lib/penpot-ops/backup.json').read_text())
         if not backup.get('ok') or not backup.get('independent') or time.time() - backup['completed'] > 26 * 3600:
