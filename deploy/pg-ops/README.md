@@ -11,6 +11,8 @@
 
 手动切换顺序：旧主运行 `failover.py fence --source shared`，把输出的私有回执交给备机；备机运行 `failover.py promote --source shared-standby --receipt <回执路径> --old-primary <旧主IP>`。提升会复核旧主关闭且禁用自动启动，并等待最终停止检查点重放。原始端口超时不能代替隔离证据；不可验证的旧主必须停在人工处理阶段。
 
-提升后在新主执行 `maintenance.py set-role` 登记备份与归档，再在 Infra 执行 `maintenance.py switch-apps --host <新主IP>`。旧主保持停止，执行 `maintenance.py rejoin --host <新主IP>`，通过身份检查后才保留旧目录并换入新备库，最后执行 `maintenance.py set-role`。回切用同一顺序反向执行；复制协调器按实际主库角色选择方向。保留的旧目录由管理员在确认恢复后另行处理，脚本不删除。
+提升后在新主执行 `maintenance.py set-role` 登记备份与归档、`pg_ops.py backup --source shared` 完成新主首份备份，再在 Infra 执行 `maintenance.py switch-apps --host <新主IP>`。旧主保持停止，执行 `maintenance.py rejoin --host <新主IP>`，通过身份检查后才保留旧目录并换入新备库，最后执行 `maintenance.py set-role`。回切用同一顺序反向执行；复制协调器按实际主库角色选择方向。保留的旧目录由管理员在确认恢复后另行处理，脚本不删除。
 
 升级先记录镜像摘要、配置和完成的备份，使用 `drill.py` 校验目标版本的恢复；生产逐实例维护。小版本失败可恢复原摘要与配置；大版本必须恢复匹配版本的完整备份，不能用旧二进制直接打开升级后的数据目录。
+
+Infra 构建、编译、测试使用 `infra-dev-run <命令>`，共用开发 slice 的 4 CPU/6 GiB 上限；Docker 容器另设内存与 CPU 限额，不能假设客户端 scope 会限制 Docker daemon 启动的容器。生产 PG 有独立容器预算。

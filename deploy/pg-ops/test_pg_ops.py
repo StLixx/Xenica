@@ -63,6 +63,32 @@ class OperationsTests(unittest.TestCase):
                 ops.prune(src, {"keep_daily": 7})
             self.assertTrue(all(p.exists() for p in paths))
 
+    def test_retention_preserves_required_wal_and_history(self):
+        import time
+        with tempfile.TemporaryDirectory() as d, patch.object(ops, "STATE", Path(d) / "state"):
+            root = Path(d)
+            src = {"name": "test", "data_root": str(root / "data")}
+            paths = []
+            for i in range(8):
+                p = root / "data/pgops/base" / f"backup-{i}"
+                p.mkdir(parents=True)
+                (p / "complete.json").write_text(json.dumps({"start_wal": f"0000000100000000{i+1:08X}"}))
+                paths.append(p)
+            archive = root / "data/pgops/archive"
+            archive.mkdir()
+            obsolete = archive / "000000010000000000000001.gz"
+            required = archive / "000000010000000000000002.gz"
+            history = archive / "00000002.history.gz"
+            for p in [obsolete, required, history]:
+                p.write_bytes(b"fixture")
+            ops.atomic_json(ops.STATE / "cloud.json", {"completed": time.time(), "bases": {"test": [p.name for p in paths]}})
+            ops.prune(src, {"keep_daily": 7, "encrypted_root": str(root / "encrypted")})
+            self.assertFalse(paths[0].exists())
+            self.assertTrue(all(p.exists() for p in paths[1:]))
+            self.assertFalse(obsolete.exists())
+            self.assertTrue(required.exists())
+            self.assertTrue(history.exists())
+
     def test_secrets_are_not_logged_on_command_failure(self):
         with self.assertRaises(RuntimeError) as error:
             ops.run(["sh", "-c", "echo private-password >&2; exit 3"])

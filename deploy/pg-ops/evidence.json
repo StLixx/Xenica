@@ -1,0 +1,121 @@
+{
+  "schema": 1,
+  "verified_at": "2026-10-14T14:55:51.165176+08:00",
+  "scope_reference": "specs/63-pg-operations/spec.md; 本会话用户确认并回复开始",
+  "operations": {
+    "clusters": [
+      "shared",
+      "xenica",
+      "xenica-sketch"
+    ],
+    "archive_timeout_seconds": 60,
+    "copy_interval_seconds": 60,
+    "daily_full_backup": "02:30 Asia/Shanghai",
+    "retention_daily_full": 7,
+    "encryption": "GPG AES256",
+    "independent_destination": "existing OneDrive dedicated directory",
+    "application_roles_superuser": false
+  },
+  "recovery": {
+    "passed": true,
+    "download_decrypt_and_restore_seconds": 1029.38,
+    "independent_copy_latency_max_seconds": 25.87,
+    "scenarios": [
+      {
+        "cluster": "shared",
+        "kind": "full",
+        "passed": true,
+        "restore_seconds": 4.48,
+        "database_inventory_verified": true
+      },
+      {
+        "cluster": "shared",
+        "kind": "point-in-time",
+        "passed": true,
+        "restore_seconds": 6.43,
+        "database_inventory_verified": true
+      },
+      {
+        "cluster": "xenica",
+        "kind": "full",
+        "passed": true,
+        "restore_seconds": 2.44,
+        "database_inventory_verified": true
+      },
+      {
+        "cluster": "xenica",
+        "kind": "point-in-time",
+        "passed": true,
+        "restore_seconds": 2.46,
+        "database_inventory_verified": true
+      },
+      {
+        "cluster": "xenica-sketch",
+        "kind": "full",
+        "passed": true,
+        "restore_seconds": 1.88,
+        "database_inventory_verified": true
+      },
+      {
+        "cluster": "xenica-sketch",
+        "kind": "point-in-time",
+        "passed": true,
+        "restore_seconds": 2.94,
+        "database_inventory_verified": true
+      }
+    ]
+  },
+  "failover": {
+    "schema": 1,
+    "ok": true,
+    "seconds": 9.03,
+    "scenarios": [
+      "old-primary-fenced",
+      "all-commits-replayed",
+      "standby-promoted",
+      "old-data-preserved",
+      "standby-rebuilt",
+      "return-to-original-primary",
+      "replication-resumed"
+    ]
+  },
+  "penpot": {
+    "schema": 1,
+    "ok": true,
+    "backend": "penpotapp/backend@sha256:2df1b3440d2a82cc3571db211b4ffdfa2b89ccc910759e8d5e9387fb62971b5c",
+    "postgres": "18.6",
+    "runtime_user": "penpot_app",
+    "superuser": false,
+    "pool_min": 2,
+    "pool_max": 10,
+    "seconds": 52.99,
+    "scenarios": [
+      "schema-migration",
+      "registration-login",
+      "create-file",
+      "save-read",
+      "restart-persistence"
+    ]
+  },
+  "checks": {
+    "ops_regressions": 13,
+    "rust_fmt_clippy_tests": "passed on Infra",
+    "frontend_format_lint_types_tests_arch_build": "passed on Infra",
+    "e2e": {
+      "passed": true,
+      "scenario_count": 22
+    },
+    "initial_attempt_note": "Infra E2E 首次使用 HTTP 127.0.0.1 时 Secure Cookie 未进入 API 请求；改用与 CI 一致的 localhost 后全部通过，产品认证策略未改变。"
+  },
+  "deployment_boundary": {
+    "xenica_migrated": false,
+    "supabase_added": false,
+    "penpot_production_service_deployed": false
+  },
+  "limits": [
+    "恢复耗时与副本延迟是本次当前数据量实测，不是任意未来负载承诺。",
+    "手动切换须能验证旧主隔离；不凭端口超时自动提升。",
+    "开发 slice 限制经 infra-dev-run 启动的进程；Docker 任务单独限额。"
+  ],
+  "unresolved": []
+}
