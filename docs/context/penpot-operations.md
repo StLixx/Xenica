@@ -62,6 +62,7 @@ flowchart LR
 | `deploy/penpot/selfhost.css`、`frontend-custom.conf` | 推广展示覆盖及样式注入；升级复核选择器 |
 | `deploy/penpot/hikari-mcp-location.conf` | 公网 MCP 代理模板，关闭含密钥 URL 的请求 / 错误日志及响应缓冲 |
 | `deploy/penpot/{backup,restore,routing,health}.py`、`test_*.py` | 配套备份、隔离恢复、主库路由预检、首页初始化监控和负向回归 |
+| `deploy/penpot/diagnostics/` | 本次使用的 1Panel/Cloudflare、原生 RPC、MCP/SSE 私有验证辅助代码；无默认写入动作，凭据由私有文件提供 |
 | Infra `/opt/stacks/penpot/` | 运行 Compose、固定镜像 `.env`、样式与媒体覆盖；`.env` 不能提交 |
 | Infra `/opt/penpot-ops/` | 已部署运维脚本与测试；`source.json` 记录与源码的 LF 规范化核对 |
 | Infra `/etc/penpot-ops/{backend,exporter,admin-console}.env` | 稳定服务密钥、数据库权限与私有配置；root 读取，随配置加密备份 |
@@ -101,6 +102,8 @@ python3 -S /opt/penpot-ops/restore.py
 - 当前演练依赖现有备份密钥、core SSH / rclone、`bootstrap.json`、`images.json` 与 PG 镜像配置。新机接管需单独恢复这些依赖；跨版本先核对归档 `.env` 与固定镜像。尚未实测两台服务器同时丢失后的整机恢复。
 - PG 持续 WAL 与文件每日备份粒度不同；整套 Penpot 恢复使用配套一致时点，不宣称文件分钟级 PITR。
 
+历史回退配置在 `/var/lib/penpot-ops/pre-integrations/` 和 `pre-ipv6-compose.yaml`，仅供比较；它们可能仍含旧5433路由和较少组件。回滚前验证当前数据库目标、镜像/迁移兼容性及配套配置，不能直接覆盖现有运行配置。生产切换另行审核，保留当前固定镜像和原文件。
+
 ## 故障与验证边界
 
 | 现象 | 已知依据与处理 |
@@ -112,6 +115,7 @@ python3 -S /opt/penpot-ops/restore.py
 | MCP 无法操作 | 检查文件是否连接、标签页是否挂起、密钥是否有效；无效密钥 / 未连接拒绝已实测。不要重建账号或删除文件来解决连接问题。 |
 | Edge 曾白屏 | 早期有防指纹脚本冲突线索，用户选择自行处理；未修改浏览器保护。后续本次服务端故障在两种浏览器均复现并修复。 |
 | 手机编辑器不完整 | 390px 原版界面已观察并披露；使用桌面浏览器，未登记移动编辑通过。 |
+| 前端进程超内存预算 | 32逻辑CPU的默认 Nginx auto worker 曾导致256MiB预算超额；Compose 启动步骤固定一个 worker，升级时保留并复核。 |
 
 初始验证文件后来被用户继续设计，受保护 ID 在清单中；不能按「MCP verification」名称清理。只有新建独立图片测试文件通过原生回收站软删除。截图、合并或临时预览结束不删除用户设计。
 

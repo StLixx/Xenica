@@ -22,6 +22,7 @@
 | MCP / 原生集成与素材验证历史 | `deploy/penpot/integrations-evidence.json`，含当时镜像 / 配置身份 |
 | 访问故障修复基线 | `deploy/penpot/access-recovery-evidence.json`，业务主库 / 备库拒绝、profile200、23项运维检查、真实云端恢复 |
 | 原始私有探针与恢复清单 | Infra `/var/lib/penpot-ops/`、配套备份 `complete.json`；原件 / 用户设计不公开 |
+| 探针的非敏感源码 | `deploy/penpot/diagnostics/`；实际使用的协议与签名函数保留，认证输入仍在私有位置 |
 | 永久工程与验收记录 | 本仓库 `delivery-records/index.json` 串联 `records/<sha256>.json`；实际 run / attempt / job、自检、产品确认与合并身份 |
 | 公开截图 | `delivery-records` 的 `evidence/penpot/`；只公开合成验证或不含设计正文的视图 |
 
