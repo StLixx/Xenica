@@ -1,0 +1,8 @@
+[Unit]
+Description=Infra development resource budget
+
+[Slice]
+CPUQuota=400%
+MemoryHigh=4G
+MemoryMax=6G
+IOWeight=25

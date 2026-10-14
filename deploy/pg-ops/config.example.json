@@ -1,0 +1,16 @@
+{
+  "sources": [
+    {
+      "name": "shared",
+      "container": "njupt-pg",
+      "admin": "njupt",
+      "data_root": "/opt/stacks/njupt-pg/data",
+      "image": "postgres@sha256:replace-with-verified-digest",
+      "require_standby": true,
+      "config_paths": ["/opt/stacks/njupt-pg/compose.yaml", "/etc/pg-ops/config.json"]
+    }
+  ],
+  "encrypted_root": "/var/lib/pg-ops/encrypted",
+  "key_file": "/etc/pg-ops/backup.key",
+  "keep_daily": 7
+}

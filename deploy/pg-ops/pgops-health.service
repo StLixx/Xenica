@@ -1,0 +1,12 @@
+[Unit]
+Description=Private PostgreSQL operations health endpoint
+After=network-online.target
+
+[Service]
+ExecStart=/usr/bin/python3 -S /opt/pg-ops/source/health.py
+Restart=on-failure
+RestartSec=5
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

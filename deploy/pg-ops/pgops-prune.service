@@ -1,0 +1,9 @@
+[Unit]
+Description=Expire PostgreSQL backups after independent-copy confirmation
+After=pgops-replicate.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 -S /opt/pg-ops/source/pg_ops.py prune
+Nice=15
+UMask=0077
