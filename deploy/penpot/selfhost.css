@@ -1,0 +1,6 @@
+/* Hide promotional blocks only; keep organization controls and license status. */
+.main_ui_dashboard_subscription__nitrate-banner.main_ui_dashboard_subscription__highlighted,
+.main_ui_settings_subscription__other-subscriptions,
+#file-menu-power-up {
+  display: none !important;
+}

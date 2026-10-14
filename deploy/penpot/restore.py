@@ -32,7 +32,7 @@ for name,digest in manifest['assets'].items():
  if sha(assets/name)!=digest:raise RuntimeError('asset checksum mismatch')
 for p in [assets,*assets.rglob('*')]:os.chown(p,1001,1001)
 prefix='penpot-restore-'+uuid.uuid4().hex[:8]
-network=prefix;db=prefix+'-db';redis=prefix+'-redis';backend=prefix+'-backend'
+network=prefix;db=prefix+'-db';redis=prefix+'-redis';backend=prefix+'-backend';admin=prefix+'-admin'
 run(['docker','network','create','--internal',network])
 try:
  images=json.loads((STATE/'images.json').read_text())
@@ -42,16 +42,27 @@ try:
   if subprocess.run(['docker','exec',db,'pg_isready','-h','127.0.0.1','-U','postgres'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL).returncode==0:break
   time.sleep(1)
  else:raise RuntimeError('restore postgres not ready')
- run(['docker','exec',db,'createdb','-U','postgres','penpot'])
- run(['docker','exec','-i',db,'pg_restore','--exit-on-error','--no-owner','--no-acl','-U','postgres','-d','penpot'],input=(workspace/'database.dump').read_bytes())
+ run(['docker','exec',db,'createdb','-h','127.0.0.1','-U','postgres','penpot'])
+ run(['docker','exec','-i',db,'pg_restore','-h','127.0.0.1','--exit-on-error','--no-owner','--no-acl','-U','postgres','-d','penpot'],input=(workspace/'database.dump').read_bytes())
  query="select json_build_object('profiles',(select count(*) from profile),'files',(select count(*) from file),'media',(select count(*) from file_media_object));"
- inventory=json.loads(run(['docker','exec',db,'psql','-XAt','-U','postgres','-d','penpot','-c',query]))
+ inventory=json.loads(run(['docker','exec',db,'psql','-h','127.0.0.1','-XAt','-U','postgres','-d','penpot','-c',query]))
  if inventory!=manifest['inventory']:raise RuntimeError('restore inventory mismatch')
  run(['docker','run','-d','--name',redis,'--network',network,'--network-alias','restore-redis','--memory','128m','--cpus','1',images['PENPOT_VALKEY_IMAGE']])
  env=dict(line.split('=',1) for line in (workspace/'private'/'backend.env').read_text().splitlines() if '=' in line)
  env.update(PENPOT_DATABASE_URI='postgresql://restore-db/penpot',PENPOT_DATABASE_USERNAME='postgres',PENPOT_DATABASE_PASSWORD='',PENPOT_REDIS_URI='redis://restore-redis/0')
+ admin_config=workspace/'private'/'admin-console.env'
+ if admin_config.exists() and 'PENPOT_ADMIN_CONSOLE_IMAGE' in images:
+  admin_env=dict(line.split('=',1) for line in admin_config.read_text().splitlines() if '=' in line)
+  admin_env.update(PENPOT_DATABASE_URI='postgresql://restore-db/penpot',PENPOT_DATABASE_USERNAME='postgres',PENPOT_DATABASE_PASSWORD='',PENPOT_INTERNAL_URI='http://restore-backend:6060',PENPOT_PUBLIC_URI='https://penpot.truebigsand.top')
+  admin_file=workspace/'restore-admin.env';admin_file.write_text('\n'.join(k+'='+v for k,v in admin_env.items())+'\n');admin_file.chmod(0o600)
+  run(['docker','run','-d','--name',admin,'--network',network,'--network-alias','restore-admin','--memory','512m','--cpus','1','--env-file',str(admin_file),images['PENPOT_ADMIN_CONSOLE_IMAGE']])
+  env['PENPOT_ADMIN_CONSOLE_URI']='http://restore-admin:3000'
  f=workspace/'restore.env';f.write_text('\n'.join(k+'='+v for k,v in env.items())+'\n');f.chmod(0o600)
- run(['docker','run','-d','--name',backend,'--network',network,'--memory','2g','--cpus','2','--env-file',str(f),'-v',str(assets)+':/opt/data/assets',images['PENPOT_BACKEND_IMAGE']])
+ patch=workspace/'deployment'/'runtime-patches'
+ mounts=['-v',str(assets)+':/opt/data/assets']
+ if patch.is_dir():
+  mounts+=['-v',str(patch)+':/opt/penpot/runtime-patches:ro','-v',str(patch/'run.sh')+':/opt/penpot/backend/run.sh:ro']
+ run(['docker','run','-d','--name',backend,'--network',network,'--network-alias','restore-backend','--memory','2g','--cpus','2','--env-file',str(f),*mounts,images['PENPOT_BACKEND_IMAGE']])
  address=json.loads(run(['docker','inspect',backend]))[0]['NetworkSettings']['Networks'][network]['IPAddress']
  jar=http.cookiejar.CookieJar();client=urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
  def rpc(name,data):
@@ -62,7 +73,7 @@ try:
  env['PENPOT_FLAGS']+=' disable-secure-session-cookies'
  f.write_text('\n'.join(k+'='+v for k,v in env.items())+'\n')
  run(['docker','rm','-f',backend])
- run(['docker','run','-d','--name',backend,'--network',network,'--memory','2g','--cpus','2','--env-file',str(f),'-v',str(assets)+':/opt/data/assets',images['PENPOT_BACKEND_IMAGE']])
+ run(['docker','run','-d','--name',backend,'--network',network,'--network-alias','restore-backend','--memory','2g','--cpus','2','--env-file',str(f),*mounts,images['PENPOT_BACKEND_IMAGE']])
  address=json.loads(run(['docker','inspect',backend]))[0]['NetworkSettings']['Networks'][network]['IPAddress']
  for _ in range(120):
   try:
@@ -72,7 +83,7 @@ try:
  projects=rpc('get-all-projects',{})
  if not projects:raise RuntimeError('restored project missing')
  # 数据库、文件和原密码均验证；从恢复库取对应文件，真实后端读取其数据。
- file_id=run(['docker','exec',db,'psql','-XAt','-U','postgres','-d','penpot','-c',"select id from file where deleted_at is null limit 1;"]).decode().strip()
+ file_id=run(['docker','exec',db,'psql','-h','127.0.0.1','-XAt','-U','postgres','-d','penpot','-c',"select id from file where deleted_at is null limit 1;"]).decode().strip()
  if file_id:
   teams=rpc('get-teams',{});features=teams[0].get('features',[])
   file=rpc('get-file',{'id':file_id,'features':features})
@@ -80,5 +91,5 @@ try:
  report={'schema':1,'ok':True,'source':'OneDrive','stamp':stamp,'sha256_verified':True,'asset_count':len(manifest['assets']),'inventory':inventory,'login_verified':True,'backend_file_read_verified':bool(file_id),'seconds':round(time.time()-start,2)}
  (STATE/'restore-report.json').write_text(json.dumps(report));(STATE/'restore-report.json').chmod(0o600);print(json.dumps(report))
 finally:
- for name in [backend,redis,db]:subprocess.run(['docker','rm','-f',name],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+ for name in [backend,admin,redis,db]:subprocess.run(['docker','rm','-f',name],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
  subprocess.run(['docker','network','rm',network],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)

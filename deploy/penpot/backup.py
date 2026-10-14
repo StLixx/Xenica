@@ -69,8 +69,9 @@ def backup():
                 config = Path('/etc/penpot-ops') / name
                 if config.exists():
                     archive.add(config, arcname='private/' + name)
-            for name in ['compose.yaml', '.env']:
+            for name in ['compose.yaml', '.env', 'selfhost.css', 'frontend-custom.conf']:
                 archive.add('/opt/stacks/penpot/' + name, arcname='deployment/' + name)
+            archive.add('/opt/stacks/penpot/runtime-patches', arcname='deployment/runtime-patches')
         command, password = database_command('psql', '-XAt', '-d', 'penpot', '-c',
                                               "select json_build_object('profiles',(select count(*) from profile),'files',(select count(*) from file),'media',(select count(*) from file_media_object));")
         inventory = json.loads(run(command, input=password))
