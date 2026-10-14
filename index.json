@@ -1537,6 +1537,15 @@
       "run": 38578407201,
       "attempt": 1,
       "previous": "7973a561f937b734de6777fe9a079a569b306aeae00130edb3de174a53cd9203"
+    },
+    {
+      "path": "records/6a41cde2128103991959455ca03ff93b085766770f6b2248051397b31a26c6ea.json",
+      "sha256": "6a41cde2128103991959455ca03ff93b085766770f6b2248051397b31a26c6ea",
+      "type": "candidate",
+      "source": "6ea1341535e3382bf8945ce7fad32a28e053afdf",
+      "run": 38578407201,
+      "attempt": 2,
+      "previous": "a379a02148c3660389a212c38ff8a32ae912f1a42cb67c8a2f7ff6dd2245eea3"
     }
   ]
 }
