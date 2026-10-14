@@ -1,0 +1,11 @@
+[Unit]
+Description=Encrypted PostgreSQL cross-host and cloud copies
+After=network-online.target docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 -S /opt/pg-ops/source/replicate.py
+Nice=15
+IOSchedulingClass=idle
+TimeoutStartSec=2400
+UMask=0077

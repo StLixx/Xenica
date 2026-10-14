@@ -1,0 +1,11 @@
+[Unit]
+Description=PostgreSQL native base and logical backups
+After=docker.service network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 -S /opt/pg-ops/source/pg_ops.py backup
+Nice=15
+IOSchedulingClass=idle
+TimeoutStartSec=3600
+UMask=0077
