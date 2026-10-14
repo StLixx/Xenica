@@ -55,7 +55,10 @@
       "id": "infra-only-development",
       "title": "构建、编译、测试与重型环境只在 Infra；Windows 用于编辑、SSH 和查看。",
       "source": "docs/context/index.json",
-      "references": ["AGENTS.md", "specs/54-delivery-system/spec.md"]
+      "references": [
+        "AGENTS.md",
+        "specs/54-delivery-system/spec.md"
+      ]
     },
     {
       "id": "managed-excalidraw-source",
@@ -111,6 +114,30 @@
         "releases/v0.2.5.json",
         ".github/scripts/release.cjs",
         ".github/workflows/release.yml"
+      ]
+    },
+    {
+      "id": "penpot-v025-scaffolding-supplement",
+      "title": "Penpot 的部署、设备、运维、决定与考证信息归入 v0.2.5 开发脚手架父任务54/子任务65；用户明确要求提交并合并，发布后追加记录保留独立日期和源码/部署身份。",
+      "source": "docs/context/index.json",
+      "references": [
+        "docs/adr/0017-penpot-scaffolding.md",
+        "docs/context/penpot-operations.md",
+        "docs/context/penpot-inventory.json",
+        "docs/context/penpot-recording.md",
+        "specs/65-penpot-deployment/spec.md",
+        "deploy/penpot/README.md"
+      ]
+    },
+    {
+      "id": "penpot-native-integrations-and-private-credentials",
+      "title": "官方MCP及个人ChatGPT无限期密钥、API Token/Webhooks、公网admin-console启用；公开注册/Google/SMTP关闭，同学仅预留，许可不激活。密码、密钥和原设计只存私有位置，用户采用的验证文件必须保留。",
+      "source": "docs/context/index.json",
+      "references": [
+        "specs/65-penpot-deployment/spec.md",
+        "deploy/penpot/compose.yaml",
+        "deploy/penpot/integrations-evidence.json",
+        "docs/context/penpot-inventory.json"
       ]
     }
   ],
