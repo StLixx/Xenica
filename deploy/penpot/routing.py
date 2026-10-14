@@ -33,13 +33,15 @@ def database_command(tool, *args, host=None):
     return command, (password + '\n').encode()
 
 
-def switch(host):
+def switch(host, check_only=False):
     if host not in HOSTS:
         raise RuntimeError('unapproved database host')
     command, password = database_command('psql', '-XAt', '-d', 'penpot', '-c', 'SELECT pg_is_in_recovery();', host=host)
     result = subprocess.run(command, input=password, capture_output=True, timeout=30)
     if result.returncode or result.stdout.strip() != b'f':
         raise RuntimeError('target is not an authenticated writable primary')
+    if check_only:
+        return {'host': host, 'changed': False, 'primary_verified': True}
     path = Path('/etc/penpot-ops/backend.env')
     env = environment()
     uri = urlparse(env['PENPOT_DATABASE_URI'])
@@ -60,4 +62,4 @@ def switch(host):
 
 
 if __name__ == '__main__':
-    print(json.dumps(switch(sys.argv[1])))
+    print(json.dumps(switch(sys.argv[1], check_only='--check' in sys.argv[2:])))

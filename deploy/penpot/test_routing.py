@@ -25,6 +25,15 @@ class RoutingGuards(unittest.TestCase):
             self.assertNotIn('secret-value', ' '.join(command))
             self.assertEqual(password, b'secret-value\n')
 
+    def test_preflight_does_not_modify_application_configuration(self):
+        with patch.object(routing, 'database_command', return_value=(['probe'], b'private-input')), \
+                patch.object(subprocess, 'run', return_value=subprocess.CompletedProcess([], 0, stdout=b'f\n')), \
+                patch.object(routing, 'environment') as environment:
+            result = routing.switch('100.100.1.103', check_only=True)
+            self.assertTrue(result['primary_verified'])
+            self.assertFalse(result['changed'])
+            environment.assert_not_called()
+
 
 if __name__ == '__main__':
     unittest.main()
