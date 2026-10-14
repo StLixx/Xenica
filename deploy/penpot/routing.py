@@ -7,10 +7,11 @@ import sys
 from urllib.parse import urlparse, urlunparse
 
 HOSTS = {'100.100.1.202', '100.100.1.103'}
+PRIVATE = Path('/etc/penpot-ops')
 
 
 def environment():
-    return dict(line.split('=', 1) for line in Path('/etc/penpot-ops/backend.env').read_text().splitlines() if '=' in line)
+    return dict(line.split('=', 1) for line in (PRIVATE / 'backend.env').read_text().splitlines() if '=' in line)
 
 
 def database_access():
@@ -42,22 +43,32 @@ def switch(host, check_only=False):
         raise RuntimeError('target is not an authenticated writable primary')
     if check_only:
         return {'host': host, 'changed': False, 'primary_verified': True}
-    path = Path('/etc/penpot-ops/backend.env')
-    env = environment()
-    uri = urlparse(env['PENPOT_DATABASE_URI'])
-    target = urlunparse(uri._replace(netloc=host + ':' + str(uri.port or 5432)))
-    if target == env['PENPOT_DATABASE_URI']:
+    changes = []
+    for filename, service in [('backend.env', 'penpot-backend'), ('admin-console.env', 'penpot-admin-console')]:
+        path = PRIVATE / filename
+        if filename == 'admin-console.env' and not path.exists():
+            continue
+        original = path.read_bytes()
+        env = dict(line.split('=', 1) for line in original.decode().splitlines() if '=' in line)
+        uri = urlparse(env['PENPOT_DATABASE_URI'])
+        if uri.hostname not in HOSTS or uri.path != '/penpot':
+            raise RuntimeError('unapproved Penpot database endpoint')
+        target = urlunparse(uri._replace(netloc=host + ':' + str(uri.port or 5432)))
+        if target != env['PENPOT_DATABASE_URI']:
+            env['PENPOT_DATABASE_URI'] = target
+            changes.append((path, original, env, service))
+    if not changes:
         return {'host': host, 'changed': False, 'primary_verified': True}
-    rollback = path.with_suffix('.before-routing')
-    rollback.write_bytes(path.read_bytes())
-    rollback.chmod(0o600)
-    env['PENPOT_DATABASE_URI'] = target
-    temporary = path.with_suffix('.partial')
-    temporary.write_text('\n'.join(k + '=' + v for k, v in env.items()) + '\n')
-    temporary.chmod(0o600)
-    temporary.replace(path)
+    for path, original, env, _ in changes:
+        rollback = path.with_suffix('.before-routing')
+        rollback.write_bytes(original)
+        rollback.chmod(0o600)
+        temporary = path.with_suffix('.partial')
+        temporary.write_text('\n'.join(k + '=' + v for k, v in env.items()) + '\n')
+        temporary.chmod(0o600)
+        temporary.replace(path)
     subprocess.run(['docker', 'compose', '-f', '/opt/stacks/penpot/compose.yaml', '--env-file', '/opt/stacks/penpot/.env',
-                    'up', '-d', 'penpot-backend'], check=True, timeout=120)
+                    'up', '-d', *[service for _, _, _, service in changes]], check=True, timeout=120)
     return {'host': host, 'changed': True, 'primary_verified': True}
 
 

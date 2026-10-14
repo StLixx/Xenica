@@ -39,7 +39,7 @@ class ResumeOnFailure(unittest.TestCase):
         self.assertEqual(self.exercise(fail_pause=True), ['penpot-penpot-backend-1'])
 
     def test_resume_failure_does_not_skip_remaining_container(self):
-        self.assertEqual(self.exercise(fail_unpause=True), ['penpot-penpot-exporter-1', 'penpot-penpot-backend-1'])
+        self.assertEqual(self.exercise(fail_unpause=True), ['penpot-penpot-admin-console-1', 'penpot-penpot-exporter-1', 'penpot-penpot-backend-1'])
 
 
 if __name__ == '__main__':

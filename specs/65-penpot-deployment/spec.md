@@ -2,6 +2,10 @@
 
 范围来源：本会话逐项确认，2026-10-14 用户回复「开始」。
 
-在 `https://penpot.truebigsand.top` 部署全新实例，Infra 承载应用与 `/mnt/HDD` 文件，使用既有专用 PG 权限；hikari 提供 HTTPS，Cloudflare 管理 DNS。公开注册关闭，只创建用户指定邮箱账号，显示名称 `Lixx/StUni815`；同学邮箱仅保存在私有接续配置，不创建账号。不上 Google、SMTP、公开管理控制台或 MCP。
+在 `https://penpot.truebigsand.top` 部署全新实例，Infra 承载应用与 `/mnt/HDD` 文件，使用既有专用 PG 权限；hikari 提供 HTTPS，Cloudflare 管理 DNS。公开注册关闭，只创建用户指定邮箱账号；用户后来自行改名为 `Lixx` 并改密；同学邮箱仅预留，不创建账号。不上 Google、SMTP。
+
+范围扩展来源：2026-10-14 用户明确要求先完成官方 MCP 与 ChatGPT 接入，再开启 Webhooks 和个人 API Token，最后配置管理控制台；随后指定官方公网 `/admin-console`，不使用 Tailscale 限制。MCP 使用官方同版本组件、多用户密钥隔离，禁用主机文件访问和调试 REPL；Webhooks/API Token 开放原生入口，不提前连接 Xenica，不替用户创建长期个人密钥。管理入口沿用账号登录和官方组织所有者权限，不绕过许可限制。
+
+扩展验收：实际 MCP initialize/tools/list 与画布读取/可撤销写入；无效密钥、无文件连接及关闭 MCP 后不能操作画布（官方工具清单可以独立于画布连接扫描）；Webhooks 和 API Token 原生界面及权限实测；控制台正常加载、匿名与非所有者不能管理；备份与 PG 切换涵盖新增组件私有配置。ChatGPT 授权/密钥生成由用户完成，需要交接时明确标为待完成，不能登记为已接入。
 
 验收：HTTPS、登录、编辑、图片上传、导出、刷新及重启持久化均实测；未登录数据访问和公开注册被拒绝；数据库与文件一起备份、加密复制及隔离恢复校验；监控和资源预算有效。完成后给正式网址，等待用户实际体验确认，再合并。密码、令牌及个人邮箱不进公开源码。

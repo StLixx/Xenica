@@ -12,7 +12,7 @@ import urllib.error
 
 def health():
     alerts = []
-    for service in ['frontend', 'backend', 'exporter', 'valkey']:
+    for service in ['frontend', 'backend', 'exporter', 'valkey', 'mcp', 'admin-console']:
         try:
             state = json.loads(subprocess.check_output(['docker', 'inspect', 'penpot-penpot-' + service + '-1'], timeout=5))[0]['State']
             if not state['Running'] or state['Restarting'] or state.get('Health', {}).get('Status', 'healthy') != 'healthy':

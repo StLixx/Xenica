@@ -2,7 +2,11 @@
 
 固定入口 `https://penpot.truebigsand.top`；Infra Compose 位于 `/opt/stacks/penpot`，凭据和稳定服务密钥位于 `/etc/penpot-ops`，文件位于 `/mnt/HDD/penpot/assets`。镜像固定为已验证的 2.18.3 摘要；升级前备份并隔离恢复验证，不自动追踪 latest。
 
-只有前端绑定 Tailscale 的 9001 端口。hikari 站点 27 提供 HTTPS、HTTP 跳转、WebSocket 和 100 MiB 上传限制，使用既有自动续期证书。公开注册、Google、SMTP、MCP 和管理控制台均不启用；开户管理通道只在首次建号时临时开启。邮箱、预留名单和密码只保存在服务器私有配置。
+只有前端绑定 Tailscale 的 9001 端口。hikari 站点 27 提供 HTTPS、HTTP 跳转、WebSocket 和 100 MiB 上传限制，使用既有自动续期证书。公开注册、Google、SMTP 不启用；邮箱、预留名单和密码只保存在服务器私有配置。
+
+官方同版本 MCP 多用户组件经 `/mcp/stream` 和 `/mcp/ws` 提供服务，不挂载主机文件，禁用文件访问及调试 REPL。两层代理关闭 MCP URL 查询日志和响应缓冲。个人账号在「集成」生成 MCP 密钥，ChatGPT 添加完整 URL；设计文件必须连接 MCP 并保持标签页活跃。个人 API Token 和团队 Webhooks 开放原生入口，没有预设 Xenica 接收地址或长期个人密钥。
+
+官方管理控制台使用公网 `/admin-console` 和原生登录/组织所有者权限，容器端口不单独发布。组织管理与 Enterprise 模块沿用官方许可流程，不预购或绕过限制；普通团队与设计文件仍沿用原功能。控制台数据库权限和稳定服务密钥在 `/etc/penpot-ops/admin-console.env`，纳入配套备份及 PG 路由更新。
 
 每日 03:00 的 `penpot-backup.timer` 短暂停止应用写入，复制一致的数据库、文件和恢复配置，随后恢复服务并加密复制到 core 和现有 OneDrive 的专用任务目录。密钥另存，保留最近七份；只有云端确认保留副本后才允许清理。数据库另有共享 PG 的持续 WAL 归档；文件仅每日备份，整套恢复以数据库与文件配套备份时间点为准。
 

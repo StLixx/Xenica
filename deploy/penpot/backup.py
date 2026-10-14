@@ -49,7 +49,7 @@ def backup():
     destination.mkdir(mode=0o700)
     paused = []
     try:
-        for name in ['penpot-penpot-backend-1', 'penpot-penpot-exporter-1']:
+        for name in ['penpot-penpot-backend-1', 'penpot-penpot-exporter-1', 'penpot-penpot-admin-console-1']:
             run(['docker', 'pause', name])
             paused.append(name)
         with (destination / 'database.dump').open('wb') as dump:
@@ -65,8 +65,10 @@ def backup():
         with tarfile.open(destination / 'assets.tar.gz', 'w:gz') as archive:
             archive.add(assets, arcname='assets')
         with tarfile.open(destination / 'configuration.tar.gz', 'w:gz') as archive:
-            for name in ['backend.env', 'exporter.env']:
-                archive.add('/etc/penpot-ops/' + name, arcname='private/' + name)
+            for name in ['backend.env', 'exporter.env', 'admin-console.env']:
+                config = Path('/etc/penpot-ops') / name
+                if config.exists():
+                    archive.add(config, arcname='private/' + name)
             for name in ['compose.yaml', '.env']:
                 archive.add('/opt/stacks/penpot/' + name, arcname='deployment/' + name)
         command, password = database_command('psql', '-XAt', '-d', 'penpot', '-c',
