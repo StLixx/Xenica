@@ -15,7 +15,7 @@ def sha(p):
  return h.hexdigest()
 start=time.time();stamp=json.loads((STATE/'backup.json').read_text())['stamp']
 if re.fullmatch(r'\d{8}T\d{6}Z',stamp) is None:raise RuntimeError('invalid backup stamp')
-workspace=STATE/'drills'/('restore-'+stamp);workspace.mkdir(parents=True,mode=0o700,exist_ok=False)
+workspace=STATE/'drills'/('restore-'+stamp+'-'+uuid.uuid4().hex[:8]);workspace.mkdir(parents=True,mode=0o700,exist_ok=False)
 remote='/var/lib/pg-ops/penpot-restore-'+stamp
 run(['ssh','-o','BatchMode=yes','root@100.100.1.103','mkdir -p '+remote+'; chmod 700 '+remote+'; rclone copy drive02:PG-operations-v1/penpot-assets/base/'+stamp+' '+remote+' --checksum --transfers 4 --checkers 4'])
 download=workspace/'cloud';download.mkdir(mode=0o700)
@@ -39,7 +39,7 @@ try:
  pg=json.loads(Path('/etc/pg-ops/config.json').read_text())['sources'][0]['image_id']
  run(['docker','run','-d','--name',db,'--network',network,'--network-alias','restore-db','--memory','512m','--cpus','1','-e','POSTGRES_HOST_AUTH_METHOD=trust',pg])
  for _ in range(60):
-  if subprocess.run(['docker','exec',db,'pg_isready','-U','postgres'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL).returncode==0:break
+  if subprocess.run(['docker','exec',db,'pg_isready','-h','127.0.0.1','-U','postgres'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL).returncode==0:break
   time.sleep(1)
  else:raise RuntimeError('restore postgres not ready')
  run(['docker','exec',db,'createdb','-U','postgres','penpot'])

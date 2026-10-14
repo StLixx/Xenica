@@ -71,7 +71,8 @@
     "resume_failure_attempts_remaining_containers": true,
     "unregistered_database_host_rejected": true,
     "authenticated_standby_rejected": true,
-    "password_excluded_from_command_arguments": true
+    "password_excluded_from_command_arguments": true,
+    "routing_preflight_does_not_modify_configuration": true
   },
   "known_limits": [
     "SMTP未启用，邮件邀请及密码找回不可用。",
@@ -84,5 +85,23 @@
     "actual_core_standby_rejected": true,
     "automatic_switch_hook_installed": true,
     "backup_follows_application_uri": true
-  }
+  },
+  "empty_workspace_recovery": {
+    "schema": 1,
+    "ok": true,
+    "source": "OneDrive",
+    "stamp": "20261014T103621Z",
+    "sha256_verified": true,
+    "asset_count": 2,
+    "inventory": {
+      "profiles": 1,
+      "files": 1,
+      "media": 1
+    },
+    "login_verified": true,
+    "backend_file_read_verified": false,
+    "seconds": 29.91,
+    "note": "验证文件已软删除，恢复库保持空工作区；设计正文读取见首次恢复记录。"
+  },
+  "recovery_readiness": "等待最终 TCP 服务就绪，不误用初始化阶段的 Unix socket 服务。"
 }
