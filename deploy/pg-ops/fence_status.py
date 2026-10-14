@@ -4,7 +4,8 @@ import json
 from pg_ops import run, STATE
 
 try:
-    receipt = json.loads((STATE / "fences/shared.json").read_text())
+    candidates = list((STATE / "fences").glob("shared*.json"))
+    receipt = json.loads(max(candidates, key=lambda p: p.stat().st_mtime).read_text())
     running = run(["docker", "inspect", "--format", "{{.State.Running}}", "njupt-pg"])
     restart = run(["docker", "inspect", "--format", "{{.HostConfig.RestartPolicy.Name}}", "njupt-pg"])
     print(json.dumps({"fenced": receipt.get("fenced") and running == "false" and restart == "no",

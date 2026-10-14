@@ -88,6 +88,7 @@ if __name__ == "__main__":
     p.add_argument("action", choices=["fence", "status", "promote"])
     p.add_argument("--source", required=True)
     p.add_argument("--receipt")
+    p.add_argument("--old-primary", choices=["100.100.1.202", "100.100.1.103"], default="100.100.1.202")
     a = p.parse_args()
     src = next(s for s in load_config()["sources"] if s["name"] == a.source)
     if a.action == "fence":
@@ -98,8 +99,12 @@ if __name__ == "__main__":
         receipt = json.loads(Path(a.receipt).read_text())
         def confirm():
             try:
-                check = json.loads(run(["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=10", "-i",
-                                        "/etc/pg-ops/fence-check-key", "root@100.100.1.202"]))
+                command = ["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=10"]
+                if a.old_primary == "100.100.1.202":
+                    command += ["-i", "/etc/pg-ops/fence-check-key", "root@100.100.1.202"]
+                else:
+                    command += ["root@100.100.1.103", "python3 -S /opt/pg-ops/source/fence_status.py"]
+                check = json.loads(run(command))
                 return check.get("fenced") is True and check.get("system") == receipt.get("system")
             except Exception:
                 return False

@@ -19,13 +19,15 @@ def synchronize():
     run([sys.executable, "/opt/pg-ops/source/pg_ops.py", "encrypt"], timeout=600)
     run(REMOTE + ["python3 -S /opt/pg-ops/source/pg_ops.py encrypt"], timeout=600)
     root = Path(cfg["encrypted_root"])
-    for source in ["xenica", "xenica-sketch"]:
+    peer_cfg = json.loads(run(REMOTE + ["cat /etc/pg-ops/config.json"]))
+    for source in [s["name"] for s in peer_cfg["sources"] if s.get("backup", True)]:
         destination = root / source
         destination.mkdir(exist_ok=True, parents=True, mode=0o700)
         run(["rsync", "-a", "--checksum", "--delete-delay", "--exclude=*.partial", "--chmod=Du=rwx,Dgo=,Fu=rw,Fgo=",
              PEER + ":/var/lib/pg-ops/encrypted/" + source + "/", str(destination) + "/"], timeout=600)
-    run(["rsync", "-a", "--checksum", "--delete-delay", "--exclude=*.partial", "--chmod=Du=rwx,Dgo=,Fu=rw,Fgo=",
-         str(root / "shared") + "/", PEER + ":/var/lib/pg-ops/encrypted/shared/"], timeout=600)
+    for source in [s["name"] for s in cfg["sources"] if s.get("backup", True)]:
+        run(["rsync", "-a", "--checksum", "--delete-delay", "--exclude=*.partial", "--chmod=Du=rwx,Dgo=,Fu=rw,Fgo=",
+             str(root / source) + "/", PEER + ":/var/lib/pg-ops/encrypted/" + source + "/"], timeout=600)
     run(REMOTE + ["python3 -S /opt/pg-ops/source/pg_ops.py cloud"], timeout=1800)
     # 只在远端成功完成云端同步后确认 RPO 所依赖的复制回执。
     receipt = json.loads(run(REMOTE + ["cat /var/lib/pg-ops/cloud.json"]))

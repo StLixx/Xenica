@@ -13,6 +13,7 @@ spec.loader.exec_module(ops)
 import sys
 sys.path.insert(0, str(Path(__file__).parent))
 import failover
+import maintenance
 
 
 class OperationsTests(unittest.TestCase):
@@ -90,6 +91,23 @@ class OperationsTests(unittest.TestCase):
             with self.assertRaises(RuntimeError):
                 failover.preserve_and_swap(root, root / "unsafe")
             self.assertTrue((original / "PG_VERSION").exists())
+
+    def test_rejoin_refuses_running_server(self):
+        with patch.object(maintenance, "run", return_value="true"):
+            with self.assertRaises(RuntimeError):
+                maintenance.rejoin({"container": "example"}, "100.100.1.103")
+
+    def test_application_switch_rejects_unknown_host(self):
+        with self.assertRaises(RuntimeError):
+            maintenance.switch_apps("unapproved.example")
+
+    def test_fence_records_final_shutdown_checkpoint(self):
+        with tempfile.TemporaryDirectory() as d, patch.object(failover, "STATE", Path(d)):
+            with patch.object(failover, "sql", side_effect=["f", "42", ""]), patch.object(
+                failover, "run", side_effect=["", "", "false", "image",
+                                             "Database cluster state: shut down\nLatest checkpoint location: 0/20\n"]):
+                receipt = failover.fence({"name": "test", "container": "example", "data_root": d})
+            self.assertEqual(receipt["flush_lsn"], "0/20")
 
 
 if __name__ == "__main__":
