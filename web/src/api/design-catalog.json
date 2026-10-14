@@ -55,10 +55,7 @@
       "id": "infra-only-development",
       "title": "构建、编译、测试与重型环境只在 Infra；Windows 用于编辑、SSH 和查看。",
       "source": "docs/context/index.json",
-      "references": [
-        "AGENTS.md",
-        "specs/54-delivery-system/spec.md"
-      ]
+      "references": ["AGENTS.md", "specs/54-delivery-system/spec.md"]
     },
     {
       "id": "managed-excalidraw-source",
