@@ -1,5 +1,7 @@
 # Penpot
 
+长期接续入口：[运行与恢复](../../docs/context/penpot-operations.md)、[设备及状态清单](../../docs/context/penpot-inventory.json)、[考证与记录方式](../../docs/context/penpot-recording.md)。任务 #65 归入 #54 的 v0.2.5 开发脚手架目标，属于发布后追加记录；已发布 Tag 的身份见原 Release。
+
 固定入口 `https://penpot.truebigsand.top`；Infra Compose 位于 `/opt/stacks/penpot`，凭据和稳定服务密钥位于 `/etc/penpot-ops`，文件位于 `/mnt/HDD/penpot/assets`。镜像固定为已验证的 2.18.3 摘要；升级前备份并隔离恢复验证，不自动追踪 latest。
 
 只有前端绑定 Tailscale 的 9001 端口。hikari 站点 27 提供 HTTPS、HTTP 跳转、WebSocket 和 100 MiB 上传限制，使用既有自动续期证书。公开注册、Google、SMTP 不启用；邮箱、预留名单和密码只保存在服务器私有配置。
