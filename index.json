@@ -1199,6 +1199,15 @@
       "run": 38516257413,
       "attempt": 1,
       "previous": "dbf783b1a6c2cf4975b1fbac05c584e98b3f984ad76552ad9348f7f7e14ffba7"
+    },
+    {
+      "path": "records/278470457dc648ea4a74d4023eb9742d23c6e54b9ec6f7ea257757b0a9bf9fe4.json",
+      "sha256": "278470457dc648ea4a74d4023eb9742d23c6e54b9ec6f7ea257757b0a9bf9fe4",
+      "type": "candidate",
+      "source": "c37a6d3377247f4b913557d756c5c10df121c168",
+      "run": 38516257413,
+      "attempt": 2,
+      "previous": "7ef7c6ddc892180620f4d479c60f7f9becc69f4bb37326aa624c1c3af3195e39"
     }
   ]
 }
