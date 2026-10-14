@@ -39,10 +39,13 @@ export function fileIdsOf(scene: Scene): string[] {
 
 /** 内容指纹：元素的版本号或文件数变了才需要写库（滚动、选中都不算改）。 */
 export function signature(
-  elements: readonly { id: string; version?: number }[],
+  elements: readonly { id: string; version?: number; isDeleted?: boolean }[],
   fileCount: number,
 ): string {
-  return `${elements.map((e) => `${e.id}:${e.version ?? 0}`).join(',')}|${fileCount}`;
+  return `${elements
+    .filter((e) => !e.isDeleted)
+    .map((e) => `${e.id}:${e.version ?? 0}`)
+    .join(',')}|${fileCount}`;
 }
 
 /** 图片的 dataURL 转成能上传的 blob。 */

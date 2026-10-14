@@ -16,6 +16,7 @@ import { EmptyState } from '../ui';
 import { CanvasPanels } from './CanvasPanels';
 import { EmbedCard } from './EmbedCard';
 import { DevelopmentPanel } from './DevelopmentPanel';
+import { clearDraft, readDraft, writeDraft, type DraftFile } from './draft';
 import { ASIDE_URL, embedSource, pageURL, type EmbedSource } from './embed';
 import type { Scene, SceneElement } from './scene';
 import { dataURLtoBlob, fileIdsOf, sceneOf, signature } from './scene';
@@ -27,10 +28,11 @@ import { NativeToolButton } from './upstream/ToolButton';
 type ExcalidrawProps = React.ComponentProps<typeof Excalidraw>;
 type Editor = Parameters<NonNullable<ExcalidrawProps['excalidrawAPI']>>[0];
 type InitialData = NonNullable<ExcalidrawProps['initialData']>;
-type LoadedFile = { id: string; mimeType: string; dataURL: string; created: number };
+type LoadedFile = DraftFile;
 
 /** 停手之后再写库，别每按一个键就写一次。 */
 const SAVE_DELAY = 800;
+const SAVE_RETRY_DELAY = 2000;
 
 async function blobToDataURL(blob: Blob): Promise<string> {
   return await new Promise((resolve, reject) => {
@@ -48,28 +50,51 @@ async function blobToDataURL(blob: Blob): Promise<string> {
  */
 export default function CanvasSurface({ node, save, ...management }: CanvasProps) {
   const scene = sceneOf(node);
+  const [draft] = useState(() => readDraft(node.id));
+  const [initialScene] = useState(() => draft?.scene ?? scene);
   const editor = useRef<Editor | null>(null);
   const uploaded = useRef<Record<string, string>>({});
   const savedImage = useRef<string | undefined>(undefined);
-  const lastSaved = useRef('');
+  const lastSaved = useRef(signature(scene.elements ?? [], fileIdsOf(scene).length));
+  const lastObserved = useRef('');
   const armed = useRef(false);
   const timer = useRef<number | null>(null);
-  const revision = useRef(node.updated_at);
+  const revision = useRef(draft?.revision ?? node.updated_at);
   const [visibleRevision, setVisibleRevision] = useState(node.updated_at);
   const bodyRef = useRef(node.body);
   const busy = useRef(false);
-  const dirty = useRef(false);
-  const conflicted = useRef(false);
-  const [conflict, setConflict] = useState(false);
+  const saveRetries = useRef(0);
+  const dirty = useRef(Boolean(draft));
+  const draftDurable = useRef(Boolean(draft));
+  const conflicted = useRef(Boolean(draft && draft.revision !== node.updated_at));
+  const [conflict, setConflict] = useState(Boolean(draft && draft.revision !== node.updated_at));
   const [draftSaved, setDraftSaved] = useState(false);
   const [files, setFiles] = useState<Record<string, LoadedFile> | null>(null);
-  const [state, setState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [editorReady, setEditorReady] = useState(false);
+  const [state, setState] = useState<'idle' | 'pending' | 'saving' | 'saved' | 'error'>(
+    draft ? 'pending' : 'idle',
+  );
   const health = useHealth();
   const [url, setURL] = useState('');
   const [error, setError] = useState('');
   const [selectedEmbed, setSelectedEmbed] = useState<string | null>(null);
   const [activeEmbed, setActiveEmbed] = useState<string | null>(null);
   const [sidebarTab, setSidebarTab] = useState<string | null>(null);
+  const cacheDraft = useCallback(() => {
+    const live = editor.current;
+    if (!live) return;
+    draftDurable.current = writeDraft(node.id, {
+      schema: 1,
+      revision: revision.current,
+      scene: {
+        type: 'excalidraw',
+        version: 2,
+        source: 'xenica',
+        elements: live.getSceneElements() as unknown as SceneElement[],
+      },
+      files: live.getFiles() as unknown as Record<string, LoadedFile>,
+    });
+  }, [node.id]);
   const togglePanel = (tab: string) => {
     const current = editor.current?.getAppState().openSidebar;
     editor.current?.toggleSidebar({
@@ -81,7 +106,7 @@ export default function CanvasSurface({ node, save, ...management }: CanvasProps
 
   useEffect(() => {
     if (conflict) editor.current?.toggleSidebar({ name: 'xenica', tab: 'context', force: true });
-  }, [conflict]);
+  }, [conflict, editorReady]);
 
   useEffect(() => {
     if (
@@ -227,8 +252,9 @@ export default function CanvasSurface({ node, save, ...management }: CanvasProps
   useEffect(() => {
     let alive = true;
     void (async () => {
-      const out: Record<string, LoadedFile> = {};
-      for (const id of fileIdsOf(scene)) {
+      const out: Record<string, LoadedFile> = { ...draft?.files };
+      for (const id of new Set([...fileIdsOf(initialScene), ...fileIdsOf(scene)])) {
+        if (out[id]) continue;
         try {
           const blob = await readImage(id);
           out[id] = {
@@ -237,12 +263,12 @@ export default function CanvasSurface({ node, save, ...management }: CanvasProps
             dataURL: await blobToDataURL(blob),
             created: Date.now(),
           };
+          uploaded.current[id] = id;
         } catch {
           // 取不到就少一张图，不影响继续画
         }
       }
       if (alive) {
-        for (const id of Object.keys(out)) uploaded.current[id] = id;
         const live = editor.current;
         if (live && !dirty.current && !conflicted.current) {
           lastSaved.current = signature(
@@ -257,7 +283,7 @@ export default function CanvasSurface({ node, save, ...management }: CanvasProps
     return () => {
       alive = false;
     };
-  }, [scene]);
+  }, [scene, initialScene, draft]);
 
   const run = useCallback(
     async function persist() {
@@ -346,9 +372,16 @@ export default function CanvasSurface({ node, save, ...management }: CanvasProps
         lastSaved.current = snapshotSig;
         dirty.current =
           signature(live.getSceneElements(), Object.keys(live.getFiles()).length) !== snapshotSig;
+        if (dirty.current) cacheDraft();
+        else {
+          clearDraft(node.id);
+          draftDurable.current = false;
+        }
         succeeded = true;
-        setState('saved');
+        saveRetries.current = 0;
+        setState(dirty.current ? 'pending' : 'saved');
       } catch (error) {
+        saveRetries.current = Math.min(saveRetries.current + 1, 5);
         if (error instanceof ApiError && error.code === 'conflict') {
           conflicted.current = true;
           setConflict(true);
@@ -356,13 +389,16 @@ export default function CanvasSurface({ node, save, ...management }: CanvasProps
         setState('error');
       } finally {
         busy.current = false;
-        if (succeeded && dirty.current && !conflicted.current) {
+        if (dirty.current && !conflicted.current) {
           if (timer.current !== null) window.clearTimeout(timer.current);
-          timer.current = window.setTimeout(() => void persist(), SAVE_DELAY);
+          const delay = succeeded
+            ? SAVE_DELAY
+            : Math.min(30_000, SAVE_RETRY_DELAY * 2 ** (saveRetries.current - 1));
+          timer.current = window.setTimeout(() => void persist(), delay);
         }
       }
     },
-    [save],
+    [save, cacheDraft, node.id],
   );
 
   const change = useCallback<NonNullable<ExcalidrawProps['onChange']>>(
@@ -378,18 +414,49 @@ export default function CanvasSurface({ node, save, ...management }: CanvasProps
       // 打开画布本身会触发一次 onChange，那次不算改动。
       if (!armed.current) {
         armed.current = true;
-        lastSaved.current = sig;
+        if (!dirty.current) {
+          lastSaved.current = sig;
+          lastObserved.current = sig;
+          return;
+        }
+      }
+      // 选中、搜索、鼠标移动的通知不能反复推迟尚未完成的保存。
+      if (sig === lastObserved.current) return;
+      lastObserved.current = sig;
+      dirty.current = conflicted.current || busy.current || sig !== lastSaved.current;
+      if (!dirty.current) {
+        clearDraft(node.id);
+        setState('saved');
         return;
       }
-      if (sig === lastSaved.current) return;
-      dirty.current = true;
+      cacheDraft();
       if (conflicted.current) return;
-      setState('idle');
+      saveRetries.current = 0;
+      setState('pending');
       if (timer.current !== null) window.clearTimeout(timer.current);
       timer.current = window.setTimeout(() => void run(), SAVE_DELAY);
     },
-    [run],
+    [run, cacheDraft, node.id],
   );
+
+  useEffect(() => {
+    const leaving = (event: BeforeUnloadEvent) => {
+      if (dirty.current && !draftDurable.current) {
+        event.preventDefault();
+        event.returnValue = '';
+      }
+    };
+    const retry = () => {
+      saveRetries.current = 0;
+      if (dirty.current) void run();
+    };
+    window.addEventListener('beforeunload', leaving);
+    window.addEventListener('online', retry);
+    return () => {
+      window.removeEventListener('beforeunload', leaving);
+      window.removeEventListener('online', retry);
+    };
+  }, [run]);
 
   useEffect(
     () => () => {
@@ -408,13 +475,14 @@ export default function CanvasSurface({ node, save, ...management }: CanvasProps
         langCode="zh-CN"
         initialData={
           {
-            elements: scene.elements ?? [],
+            elements: initialScene.elements ?? [],
             appState: { theme: 'dark' },
             files,
           } as unknown as InitialData
         }
         excalidrawAPI={(instance) => {
           editor.current = instance;
+          setEditorReady(true);
         }}
         onChange={change}
         validateEmbeddable={(link) => link === ASIDE_URL || pageURL(link) !== null}
@@ -573,8 +641,10 @@ export default function CanvasSurface({ node, save, ...management }: CanvasProps
               : state === 'saved'
                 ? '已保存'
                 : state === 'error' && !conflict
-                  ? '保存失败，接着画还会再试'
-                  : null}
+                  ? '保存失败，将自动重试'
+                  : state === 'pending'
+                    ? '等待保存…'
+                    : null}
           </span>
           {conflict ? (
             <Button
@@ -642,7 +712,12 @@ export default function CanvasSurface({ node, save, ...management }: CanvasProps
                 </Button>
                 <Button
                   disabled={!draftSaved}
-                  onSelect={() => void readSketch(node.id).then(() => window.location.reload())}
+                  onSelect={() =>
+                    void readSketch(node.id).then(() => {
+                      clearDraft(node.id);
+                      window.location.reload();
+                    })
+                  }
                 >
                   加载新版
                 </Button>

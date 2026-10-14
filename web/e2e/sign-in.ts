@@ -4,6 +4,7 @@ import { expect, test, type Page } from '@playwright/test';
 export async function signIn(page: Page) {
   const sealed = process.env.XENICA_E2E_SESSIONS;
   if (sealed) {
+    test.setTimeout(Math.max(test.info().timeout, 90_000));
     const tokens = (JSON.parse(sealed) as Record<string, string[]>)[test.info().title];
     if (!tokens?.length || tokens.some((token) => !/^[a-f0-9]{64}$/.test(token)))
       throw new Error('当前场景缺少短期测试会话');
@@ -35,5 +36,5 @@ export async function signIn(page: Page) {
     await page.getByLabel('密码').fill('demo');
     await page.getByRole('button', { name: '登录', exact: true }).click();
   }
-  await expect(page.getByTestId('connection')).toContainText('已连接');
+  await expect(page.getByTestId('connection')).toContainText('已连接', { timeout: 30_000 });
 }

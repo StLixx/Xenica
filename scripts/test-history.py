@@ -15,6 +15,28 @@ identity_spec=importlib.util.spec_from_file_location('archive_identity',Path(__f
 identity=importlib.util.module_from_spec(identity_spec);identity_spec.loader.exec_module(identity)
 
 class HistoryTests(unittest.TestCase):
+    def test_removed_preview_releases_only_its_runtime_and_keeps_archives(self):
+        orphan='xenica-history-00000000-0000-4000-8000-000000000001'
+        active='xenica-history-00000000-0000-4000-8000-000000000002'
+        unknown='xenica-history-00000000-0000-4000-8000-000000000003'
+        def run(*args,**kwargs):
+            if args[:3]==('docker','ps','-a'):
+                if '--filter' in args:return '\n'.join(name+'-gateway' for name in (orphan,active,unknown))
+                return '\n'.join([orphan+'-gateway',active+'-gateway',unknown+'-gateway','xenica-sketch-app-1'])
+            if args[:2]==('docker','inspect'):
+                networks={orphan:{'xenica-pr-46_default':{}},active:{'xenica-sketch_default':{}},unknown:{'unrelated_default':{}}}
+                return json.dumps([{'Config':{'Labels':{}},'NetworkSettings':{'Networks':networks[args[2].removesuffix('-gateway')]}}])
+            raise AssertionError(args)
+        with tempfile.TemporaryDirectory() as folder:
+            snapshot=Path(folder)/'snapshot.sql';snapshot.write_text('permanent original')
+            with patch.object(history,'ROOT',Path(folder)),patch.object(history,'run',side_effect=run),patch.object(history.subprocess,'run') as mutate:
+                history.cleanup_orphans()
+            self.assertEqual(snapshot.read_text(),'permanent original')
+        commands=[call.args[0] for call in mutate.call_args_list]
+        removed=[command[-1] for command in commands if command[:3]==['docker','rm','-f']]
+        self.assertEqual(removed,[orphan+'-gateway',orphan+'-app',orphan+'-db'])
+        self.assertEqual(commands[-1],['docker','network','rm',orphan])
+
     def test_accepting_temporary_server_does_not_mean_target_database_ready(self):
         from types import SimpleNamespace
         attempts=iter([1,0])

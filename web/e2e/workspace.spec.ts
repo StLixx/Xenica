@@ -7,8 +7,17 @@ test('登录不公开凭据，目录简短，页面体验与画板保持同一�
   await expect(page.getByText('预览站示例账号：demo / demo')).toHaveCount(0);
   await signIn(page);
   await expect(page.getByTestId('connection')).toContainText('已连接');
+  let sessionRequests = 0;
+  await page.route('**/api/auth/session', (route) =>
+    ++sessionRequests === 1 ? route.abort() : route.continue(),
+  );
   await page.goto('/sketch');
+  await expect(page.getByRole('button', { name: '画布管理', exact: true })).toBeVisible({
+    timeout: 20_000,
+  });
   await page.getByRole('button', { name: '画布管理', exact: true }).click();
+  expect(sessionRequests).toBeGreaterThan(1);
+  await page.unroute('**/api/auth/session');
   await expect(page.getByRole('button', { name: /用户只负责开始前范围定义/ })).toHaveCount(0);
   await expect(page.getByText('--x-font-doc', { exact: true })).not.toBeVisible();
   await page.screenshot({ path: testInfo.outputPath('workspace-directory.png') });

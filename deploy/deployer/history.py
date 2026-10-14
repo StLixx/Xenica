@@ -42,13 +42,40 @@ def database_ready(name,password):
         '-v','ON_ERROR_STOP=1','-U','xenica','-d','xenica','-tAc','SELECT 1'],
         stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL).returncode==0
 
+def remove_runtime(name):
+    for service in ('gateway','app','db'):
+        subprocess.run(['docker','rm','-f',name+'-'+service],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,check=False)
+    subprocess.run(['docker','network','rm',name],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,check=False)
+
+def cleanup_orphans():
+    # 已关闭预览不再被 parents() 发现；它的历史运行实例仍会占用全局容量。
+    containers=set(run('docker','ps','-a','--format','{{.Names}}').splitlines())
+    gateways=run('docker','ps','-a','--filter','label=xenica.history=gateway','--format','{{.Names}}').splitlines()
+    for gateway in gateways:
+        try:
+            name=gateway.removesuffix('-gateway')
+            rid=uuid.UUID(name.removeprefix('xenica-history-'))
+            if gateway!='xenica-history-'+str(rid)+'-gateway':continue
+            info=json.loads(run('docker','inspect',gateway))[0]
+            parent=(info['Config'].get('Labels') or {}).get('xenica.history.parent')
+            if not parent:
+                # 已部署的旧网关没有父标签，只认唯一的 Xenica compose 父网络。
+                networks=[network.removesuffix('_default')+'-app-1'
+                    for network in info['NetworkSettings']['Networks']
+                    if re.fullmatch(r'xenica(?:-sketch|-pr-[1-9][0-9]*)?_default',network)]
+                if len(networks)!=1:continue
+                parent=networks[0]
+            if not re.fullmatch(r'xenica(?:-sketch|-pr-[1-9][0-9]*)?-app-1',parent):continue
+            if parent not in containers:remove_runtime(name)
+        except (ValueError,KeyError,IndexError,subprocess.CalledProcessError,json.JSONDecodeError):
+            # 父身份不明或 Docker 读取失败时保留实例，不误删其它工作区。
+            continue
+
 def stop(parent, runtime):
     name = names(runtime)
     if runtime['state'] != 'stopping':
         state(parent,runtime,'stopping')
-    for service in ('gateway','app','db'):
-        subprocess.run(['docker','rm','-f',name+'-'+service],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,check=False)
-    subprocess.run(['docker','network','rm',name],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,check=False)
+    remove_runtime(name)
     state(parent,runtime,'stopped')
     # 快照、目录、批注永不随运行实例删除。
 
@@ -92,6 +119,7 @@ def start(parent,runtime,version):
         time.sleep(1)
     else: raise RuntimeError('历史页面未就绪')
     run('docker','create','--name',name+'-gateway','--network',name,'--label','xenica.history=gateway',
+        '--label','xenica.history.parent='+parent,
         '--label','traefik.enable=true','--label','traefik.docker.network=xenica-edge',
         '--label',f'traefik.http.routers.history-{runtime["id"]}.rule=Host(`history-{runtime["id"]}.xenica.truebigsand.top`)',
         '--label',f'traefik.http.routers.history-{runtime["id"]}.entrypoints=web',
@@ -160,6 +188,7 @@ if __name__=='__main__':
     ROOT.mkdir(parents=True,exist_ok=True,mode=0o700)
     with (ROOT/'lock').open('w') as lock:
         fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
+        cleanup_orphans()
         for parent in parents(os.environ.get('XENICA_HISTORY_PARENT','auto')):
             if subprocess.run(['docker','inspect',parent],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL).returncode == 0:
                 reconcile(parent)
