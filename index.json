@@ -1280,6 +1280,15 @@
       "run": 38525144670,
       "attempt": 1,
       "previous": "76291b3623a5ea36ebd2066580d849b29154b14d455451960feca928450899fa"
+    },
+    {
+      "path": "records/bef8e4860424c890525c162450cfe68ecd115c562ceba478cf508bf2aae12ead.json",
+      "sha256": "bef8e4860424c890525c162450cfe68ecd115c562ceba478cf508bf2aae12ead",
+      "type": "acceptance",
+      "source": "ef2891742cd5e50e7597ee08464c30c08cdca576",
+      "run": 38525144670,
+      "attempt": 1,
+      "previous": "fff3e5f89dec78e5dd2d580e5e34d641b9d2e9403d91db7adec52f9a79f285eb"
     }
   ]
 }
