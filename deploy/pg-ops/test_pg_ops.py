@@ -46,6 +46,22 @@ class OperationsTests(unittest.TestCase):
             with self.assertRaises(RuntimeError):
                 ops.prune({"name": "test", "data_root": d}, {})
 
+    def test_retention_requires_acknowledged_replacement(self):
+        import time
+        with tempfile.TemporaryDirectory() as d, patch.object(ops, "STATE", Path(d) / "state"):
+            root = Path(d)
+            src = {"name": "test", "data_root": str(root / "data")}
+            paths = []
+            for i in range(8):
+                p = root / "data/pgops/base" / f"backup-{i}"
+                p.mkdir(parents=True)
+                (p / "complete.json").write_text(json.dumps({"start_wal": "000000010000000000000001"}))
+                paths.append(p)
+            ops.atomic_json(ops.STATE / "cloud.json", {"completed": time.time(), "bases": {"test": [p.name for p in paths[:-1]]}})
+            with self.assertRaises(RuntimeError):
+                ops.prune(src, {"keep_daily": 7})
+            self.assertTrue(all(p.exists() for p in paths))
+
     def test_secrets_are_not_logged_on_command_failure(self):
         with self.assertRaises(RuntimeError) as error:
             ops.run(["sh", "-c", "echo private-password >&2; exit 3"])

@@ -28,7 +28,8 @@ def synchronize():
          str(root / "shared") + "/", PEER + ":/var/lib/pg-ops/encrypted/shared/"], timeout=600)
     run(REMOTE + ["python3 -S /opt/pg-ops/source/pg_ops.py cloud"], timeout=1800)
     # 只在远端成功完成云端同步后确认 RPO 所依赖的复制回执。
-    atomic_json(STATE / "cloud.json", {"ok": True, "completed": time.time()})
+    receipt = json.loads(run(REMOTE + ["cat /var/lib/pg-ops/cloud.json"]))
+    atomic_json(STATE / "cloud.json", receipt)
     atomic_json(STATE / "replication.json", {"ok": True, "completed": time.time()})
 
 

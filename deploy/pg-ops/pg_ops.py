@@ -24,6 +24,13 @@ def run(args, *, input=None, timeout=120, output=None):
                             stderr=subprocess.PIPE, timeout=timeout)
     if result.returncode:
         # 命令及 stderr 可能包含凭据，不进入公开日志。
+        try:
+            STATE.mkdir(parents=True, exist_ok=True, mode=0o700)
+            private_error = STATE / "last-command-error.txt"
+            private_error.write_bytes(result.stderr)
+            os.chmod(private_error, 0o600)
+        except OSError:
+            pass
         raise RuntimeError(f"{Path(args[0]).name} failed ({result.returncode})")
     return result.stdout.decode().strip() if output is None else ""
 
@@ -159,7 +166,11 @@ def cloud(cfg):
         raise RuntimeError("refusing cloud synchronization without a completed backup")
     run(["rclone", "sync", cfg["encrypted_root"], cfg["cloud_remote"], "--checksum", "--delete-after",
          "--transfers", "2", "--checkers", "2", "--retries", "2", "--timeout", "30s"], timeout=1800)
-    atomic_json(STATE / "cloud.json", {"ok": True, "completed": time.time()})
+    bases = {}
+    for source in Path(cfg["encrypted_root"]).iterdir():
+        if source.is_dir():
+            bases[source.name] = sorted(p.parent.name for p in (source / "base").glob("*/complete.json.gpg"))
+    atomic_json(STATE / "cloud.json", {"ok": True, "completed": time.time(), "bases": bases})
 
 
 def prune(src, cfg):
@@ -171,6 +182,9 @@ def prune(src, cfg):
     if len(bases) <= keep:
         return
     retained = bases[-keep:]
+    acknowledged = set(json.loads(receipt.read_text()).get("bases", {}).get(src["name"], []))
+    if any(p.name not in acknowledged for p in retained):
+        raise RuntimeError("retained backup set is not confirmed at the independent destination")
     manifests = [json.loads((p / "complete.json").read_text()) for p in retained]
     # 单一时间线上的 WAL 按基础备份起点保留；未知时间线保留，不猜测。
     timelines = {}
@@ -199,7 +213,7 @@ def monitor(cfg):
     for src in cfg["sources"]:
         try:
             sample = json.loads(sql(src, "SELECT json_build_object(" 
-                "'recovery',pg_is_in_recovery(),'connections',(SELECT count(*) FROM pg_stat_activity WHERE backend_type='client backend'),"
+                "'recovery',pg_is_in_recovery(),'archive_mode',current_setting('archive_mode'),'connections',(SELECT count(*) FROM pg_stat_activity WHERE backend_type='client backend'),"
                 "'waiting',(SELECT count(*) FROM pg_stat_activity WHERE wait_event_type='Lock'),"
                 "'idle_transaction',(SELECT count(*) FROM pg_stat_activity WHERE state='idle in transaction' AND now()-xact_start>interval '60 seconds'),"
                 "'max_connections',current_setting('max_connections')::int,"
@@ -216,6 +230,8 @@ def monitor(cfg):
             if sample["waiting"] or sample["idle_transaction"]:
                 alerts.append(src["name"] + ": lock/transaction wait")
             if src.get("backup", True):
+                if sample["archive_mode"] != "on":
+                    alerts.append(src["name"] + ": WAL archiving is disabled")
                 state = STATE / "status" / f"{src['name']}-backup.json"
                 age = time.time() - json.loads(state.read_text())["completed"] if state.exists() else float("inf")
                 sample["backup_age_seconds"] = age if age != float("inf") else None
@@ -249,6 +265,14 @@ def monitor(cfg):
         age = time.time() - json.loads(p.read_text())["completed"] if p.exists() else float("inf")
         if age > 180:
             alerts.append("cloud copy missing/stale above 180s")
+    if cfg.get("cloud_remote"):
+        try:
+            quota = json.loads(run(["rclone", "about", cfg["cloud_remote"].split(":")[0] + ":", "--json",
+                                    "--retries", "1", "--low-level-retries", "1", "--timeout", "10s"], timeout=20))
+            if quota.get("free", 0) < 1024**3:
+                alerts.append("independent backup storage free below 1 GiB")
+        except Exception:
+            alerts.append("independent backup storage quota unavailable")
     p = STATE / "monitor.json"
     old = json.loads(p.read_text()).get("alerts", []) if p.exists() else []
     report = {"schema": 1, "checked": time.time(), "ok": not alerts, "alerts": alerts, "samples": samples}
@@ -348,7 +372,7 @@ def main():
     cfg = load_config()
     STATE.mkdir(parents=True, exist_ok=True, mode=0o700)
     with (STATE / (args.action + ".lock")).open("w") as lock:
-        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        fcntl.flock(lock, fcntl.LOCK_EX)
         sources = [s for s in cfg["sources"] if not args.source or s["name"] == args.source]
         if args.source and not sources:
             raise ValueError("unknown source")

@@ -39,11 +39,21 @@ def cloud_restore():
     core = json.loads(run(PEER + ["cat /etc/pg-ops/config.json"]))
     sources = [cfg["sources"][0]] + [s for s in core["sources"] if s["name"] in ["xenica", "xenica-sketch"]]
     probes = {s["name"]: prepare_probe(s, s["name"] != "shared") for s in sources}
+    independent_started = time.time()
     run([sys.executable, "/opt/pg-ops/source/replicate.py"], timeout=2400)
+    independently_copied = time.time()
     nonce = uuid.uuid4().hex[:12]
     download = "/var/lib/pg-ops/cloud-download-" + nonce
+    selections = []
+    for source in sources:
+        status = "/var/lib/pg-ops/status/" + source["name"] + "-backup.json"
+        content = run(PEER + ["cat " + status]) if source["name"] != "shared" else Path(status).read_text()
+        stamp = Path(json.loads(content)["path"]).name
+        selections += [" --include='" + source["name"] + "/base/" + stamp + "/**'",
+                       " --include='" + source["name"] + "/archive/**'"]
     run(PEER + ["mkdir -m 700 " + download + "; rclone copy drive02:PG-operations-v1 " + download +
-                " --checksum --transfers 2 --checkers 2 --retries 2 --timeout 30s"], timeout=1800)
+                "".join(selections) + " --checksum --transfers 4 --checkers 4 --multi-thread-streams 4"
+                " --multi-thread-cutoff 8M --retries 2 --timeout 30s"], timeout=1800)
     local = STATE / ("cloud-drill-" + nonce)
     local.mkdir(mode=0o700)
     run(["rsync", "-a", "--checksum", "root@100.100.1.103:" + download + "/", str(local / "encrypted") + "/"], timeout=600)
@@ -72,7 +82,7 @@ def cloud_restore():
                     if value != "before":
                         raise RuntimeError("PITR did not restore the value before the simulated mistake")
                     result["pitr_probe"] = "before"
-                    result["independent_copy_latency_seconds"] = round(time.time() - probe["created"], 2)
+                    result["independent_copy_latency_seconds"] = round(independently_copied - probe["created"], 2)
                 results.append(result)
             finally:
                 run(["docker", "stop", drill["container"]])
@@ -83,6 +93,7 @@ def cloud_restore():
         else:
             remote_python("import sys;sys.path.insert(0,'/opt/pg-ops/source');from pg_ops import sql;sql(" + repr(source) + "," + repr(cleanup) + ")")
     report = {"schema": 1, "ok": True, "completed": time.time(), "results": results,
+              "end_to_end_seconds": round(time.time() - independent_started, 2),
               "independent_source": "drive02:PG-operations-v1"}
     atomic_json(STATE / "cloud-restore-report.json", report)
     print(json.dumps(report))

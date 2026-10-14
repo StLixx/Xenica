@@ -19,3 +19,6 @@ if bad=$(grep -E '^(axum|xenica-server|utoipa-axum|tower-http) ' <<<"$deps"); th
   exit 1
 fi
 echo "architecture ok"
+
+# 运维代码也必须守住恢复目录、隔离旧主与备份清理边界。
+python3 -S -m unittest discover -s deploy/pg-ops -p 'test_pg_ops.py'
