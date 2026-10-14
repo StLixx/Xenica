@@ -9,6 +9,7 @@ import shutil
 import subprocess
 import tarfile
 import time
+from routing import database_command
 
 STATE = Path('/var/lib/penpot-ops')
 ROOT = Path('/mnt/HDD/penpot/backups')
@@ -46,16 +47,14 @@ def backup():
     ENCRYPTED.mkdir(parents=True, exist_ok=True, mode=0o700)
     destination = ROOT / stamp
     destination.mkdir(mode=0o700)
-    config = json.loads(Path('/etc/pg-ops/config.json').read_text())
-    source = next(s for s in config['sources'] if s['name'] == 'shared')
     paused = []
     try:
         for name in ['penpot-penpot-backend-1', 'penpot-penpot-exporter-1']:
             run(['docker', 'pause', name])
             paused.append(name)
         with (destination / 'database.dump').open('wb') as dump:
-            result = subprocess.run(['docker', 'exec', source['container'], 'pg_dump', '-U', source['admin'], '-Fc', 'penpot'],
-                                    stdout=dump, stderr=subprocess.PIPE, timeout=1200)
+            command, password = database_command('pg_dump', '-Fc', 'penpot')
+            result = subprocess.run(command, input=password, stdout=dump, stderr=subprocess.PIPE, timeout=1200)
         if result.returncode:
             (STATE / 'backup-error.log').write_bytes(result.stderr)
             (STATE / 'backup-error.log').chmod(0o600)
@@ -70,8 +69,9 @@ def backup():
                 archive.add('/etc/penpot-ops/' + name, arcname='private/' + name)
             for name in ['compose.yaml', '.env']:
                 archive.add('/opt/stacks/penpot/' + name, arcname='deployment/' + name)
-        inventory = json.loads(run(['docker', 'exec', source['container'], 'psql', '-XAt', '-U', source['admin'], '-d', 'penpot', '-c',
-                                   "select json_build_object('profiles',(select count(*) from profile),'files',(select count(*) from file),'media',(select count(*) from file_media_object));"]))
+        command, password = database_command('psql', '-XAt', '-d', 'penpot', '-c',
+                                              "select json_build_object('profiles',(select count(*) from profile),'files',(select count(*) from file),'media',(select count(*) from file_media_object));")
+        inventory = json.loads(run(command, input=password))
     finally:
         unpause_errors = []
         for name in reversed(paused):
@@ -90,7 +90,7 @@ def backup():
         run(['gpg', '--batch', '--yes', '--pinentry-mode', 'loopback', '--passphrase-file', '/etc/pg-ops/backup.key',
              '--symmetric', '--cipher-algo', 'AES256', '--output', str(temporary / (file.name + '.gpg')), str(file)])
     temporary.rename(ENCRYPTED / stamp)
-    atomic_json(STATE / 'backup.json', {'ok': True, 'stamp': stamp, 'completed': time.time(), 'inventory': inventory})
+    atomic_json(STATE / 'pending-backup.json', {'ok': True, 'stamp': stamp, 'completed': time.time(), 'inventory': inventory})
     synchronize()
     retained = sorted(p for p in ENCRYPTED.iterdir() if p.is_dir() and (p / 'complete.json.gpg').exists())[-7:]
     receipt = json.loads(run(['ssh', '-o', 'BatchMode=yes', PEER, 'cat /var/lib/pg-ops/cloud.json']))

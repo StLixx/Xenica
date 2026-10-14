@@ -63,16 +63,26 @@
     "independent": "existing OneDrive",
     "daily_at": "03:00 Asia/Shanghai",
     "retained_complete_sets": 7,
-    "consistent_database_assets": true
+    "consistent_database_assets": true,
+    "last_completed_stamp": "20261014T103621Z"
   },
   "unit_tests": {
     "failure_resumes_paused_containers": true,
-    "resume_failure_attempts_remaining_containers": true
+    "resume_failure_attempts_remaining_containers": true,
+    "unregistered_database_host_rejected": true,
+    "authenticated_standby_rejected": true,
+    "password_excluded_from_command_arguments": true
   },
   "known_limits": [
     "SMTP未启用，邮件邀请及密码找回不可用。",
     "原版编辑器在390px手机窄屏显示不完整，使用桌面浏览器编辑。",
     "配套数据库与文件每天备份；PG持续WAL不代表文件具有同样的恢复粒度。"
   ],
-  "acceptance": "pending user experience"
+  "acceptance": "pending user experience",
+  "database_routing": {
+    "registered_primary_verified": true,
+    "actual_core_standby_rejected": true,
+    "automatic_switch_hook_installed": true,
+    "backup_follows_application_uri": true
+  }
 }

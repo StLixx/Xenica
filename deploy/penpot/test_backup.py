@@ -28,6 +28,7 @@ class ResumeOnFailure(unittest.TestCase):
             config = json.dumps({'sources': [{'name': 'shared', 'container': 'unused', 'admin': 'unused'}]})
             with patch.object(backup, 'ROOT', root / 'plain'), patch.object(backup, 'ENCRYPTED', root / 'encrypted' / 'base'), \
                     patch.object(backup, 'STATE', root), patch.object(backup, 'run', run), \
+                    patch.object(backup, 'database_command', return_value=(['unused'], b'private-input')), \
                     patch.object(Path, 'read_text', return_value=config), \
                     patch.object(subprocess, 'run', return_value=subprocess.CompletedProcess([], 1, stderr=b'dump failed')):
                 with self.assertRaises(RuntimeError):

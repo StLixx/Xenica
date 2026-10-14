@@ -68,6 +68,9 @@ def switch_apps(host):
         p.write_text(text)
         os.chmod(p, 0o600)
     run(["systemctl", "restart", "njupt-console", "njupt-notice-dashboard", "njupt-notice-notifier"])
+    penpot = Path('/opt/penpot-ops/routing.py')
+    if penpot.exists() and Path('/etc/penpot-ops/backend.env').exists():
+        run(['python3', '-S', str(penpot), host])
     print(json.dumps({"applications_database_host": host}))
 
 
