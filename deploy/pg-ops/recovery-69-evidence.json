@@ -4,7 +4,7 @@
   "hosts": [
     {
       "schema": 1,
-      "recorded_at": "2026-10-15T16:23:33.869299+08:00",
+      "recorded_at": "2026-10-15T16:26:17.254177+08:00",
       "host": "infra-server",
       "sources": [
         {
@@ -87,13 +87,13 @@
         "failover_drill.py": "3dd801cb571f1b2ff792317bd655408f890e1556dd4cb0f9c2902d5f29531fa3"
       },
       "monitor": {
-        "checked": 1792052573.701636,
+        "checked": 1792052725.9805336,
         "ok": true,
         "alerts": []
       },
       "cloud": {
         "ok": true,
-        "completed": 1792052581.0561478,
+        "completed": 1792052706.7765386,
         "bases": {
           "xenica": [
             "20261014T050335Z",
@@ -281,7 +281,28 @@
       },
       "replication": {
         "ok": true,
-        "completed": 1792052581.1224806
+        "completed": 1792052706.8448806
+      },
+      "business_roles": {
+        "njupt-v2": [
+          {
+            "role": "njupt_notice_app",
+            "superuser": false,
+            "connection_limit": 32
+          },
+          {
+            "role": "njupt_console_app",
+            "superuser": false,
+            "connection_limit": 8
+          }
+        ],
+        "panel-main": [
+          {
+            "role": "penpot_app",
+            "superuser": false,
+            "connection_limit": 12
+          }
+        ]
       },
       "penpot_code_sha256": {
         "backup.py": "36f6c2f7c17a73cc67acd6296c3b06e8e8368fd6049c96528e2975c9795c9346",
@@ -319,7 +340,7 @@
     },
     {
       "schema": 1,
-      "recorded_at": "2026-10-15T16:23:35.079479+08:00",
+      "recorded_at": "2026-10-15T16:26:18.915017+08:00",
       "host": "core-server",
       "sources": [
         {
@@ -406,13 +427,13 @@
         "failover.py": "26de083d6802b69acc83f66f9adf226cc0c48fd73dc4482fc9cc219fecf6021d"
       },
       "monitor": {
-        "checked": 1792052573.6648316,
+        "checked": 1792052763.781359,
         "ok": true,
         "alerts": []
       },
       "cloud": {
         "ok": true,
-        "completed": 1792052581.0561478,
+        "completed": 1792052706.7765386,
         "bases": {
           "xenica": [
             "20261014T050335Z",
