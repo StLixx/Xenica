@@ -46,6 +46,7 @@ def promote(standby, receipt, confirm_fence):
         raise RuntimeError("fresh fence receipt required")
     if not confirm_fence():
         raise RuntimeError("old-primary isolation could not be reverified")
+    verify_identity(standby)
     if sql(standby, "SELECT pg_is_in_recovery();") != "t" or identity(standby) != receipt["system"]:
         raise RuntimeError("standby identity mismatch")
     lsn = receipt["flush_lsn"]

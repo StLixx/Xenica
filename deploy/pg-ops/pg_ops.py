@@ -207,7 +207,16 @@ def prune(src, cfg):
     receipt = STATE / "cloud.json"
     if not receipt.exists() or time.time() - json.loads(receipt.read_text())["completed"] > 600:
         raise RuntimeError("retention requires recent successful cloud copy")
-    bases = sorted(p for p in (root(src) / "base").glob("*") if (p / "complete.json").exists())
+    all_bases = sorted(p for p in (root(src) / "base").glob("*") if (p / "complete.json").exists())
+    bases = []
+    preserve_legacy = False
+    for p in all_bases:
+        recorded = json.loads((p / 'complete.json').read_text())
+        if src.get('system_id') and not recorded.get('system_id'):
+            preserve_legacy = True
+            continue
+        verify_manifest(src, recorded)
+        bases.append(p)
     keep = cfg.get("keep_daily", 7)
     if len(bases) <= keep:
         return
@@ -227,7 +236,7 @@ def prune(src, cfg):
         if directory.parent.resolve() != (root(src) / "base").resolve():
             raise RuntimeError("unsafe retention target")
         shutil.rmtree(directory)
-    for file in (root(src) / "archive").glob("*.gz"):
+    for file in ([] if preserve_legacy else (root(src) / "archive").glob("*.gz")):
         name = file.name[:-3]
         if re.fullmatch("[0-9A-F]{24}", name) and name[:8] in timelines and name < timelines[name[:8]]:
             file.unlink()
