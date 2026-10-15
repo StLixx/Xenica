@@ -9,6 +9,9 @@ test('接受约定的类型、可选范围和破坏性标记', () => {
 });
 
 test('拒绝非法类型、范围、空描述、英文描述和多行输入', () => {
+  for (const newline of ['\n', '\r', '\r\n', '\u2028', '\u2029']) {
+    assert.equal(validateTitle('feat(web): 登录页' + newline), false);
+  }
   for (const title of ['新增登录页', 'feature(web): 登录页', 'feat(unknown): 登录页', 'feat(web): ', 'feat(web): login', 'feat(web): 登录页\nfix: 其他', 'feat(web): 登录页\r其他', 'feat(web): 登录页\u2028其他', 'feat(web):登录页', 'feat(web):  登录页']) {
     assert.equal(validateTitle(title), false, title);
   }
