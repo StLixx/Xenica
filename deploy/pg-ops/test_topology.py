@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+import time
 from unittest.mock import patch
 import pg_ops as ops
 import maintenance
@@ -37,6 +38,28 @@ class TopologyGuards(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, 'port'):
             maintenance.primary_port({})
         self.assertEqual(maintenance.primary_port({'primary_port': 5434}), 5434)
+
+    def test_old_cloud_receipt_cannot_confirm_new_source(self):
+        with tempfile.TemporaryDirectory() as d, patch.object(ops, 'STATE', Path(d)):
+            src = {'name': 'new-source', 'system_id': '111', 'data_root': d}
+            ops.atomic_json(Path(d) / 'status/new-source-backup.json',
+                            {'ok': True, 'system_id': '111', 'completed': time.time(), 'path': '/backup/new-stamp'})
+            ops.atomic_json(Path(d) / 'cloud.json', {'completed': time.time(), 'bases': {'old-source': ['new-stamp']}})
+            sample = {'archive_mode': 'on', 'connections': 1, 'max_connections': 100,
+                      'waiting': 0, 'idle_transaction': 0, 'recovery': False}
+            def sql(_src, statement):
+                if 'system_identifier' in statement:
+                    return '111'
+                if 'json_build_object' in statement:
+                    return json.dumps(sample)
+                if 'json_agg' in statement:
+                    return '[]'
+                return '0'
+            with patch.object(ops, 'sql', side_effect=sql):
+                with self.assertRaises(RuntimeError):
+                    ops.monitor({'sources': [src], 'require_independent_copy': True})
+            report = json.loads((Path(d) / 'monitor.json').read_text())
+            self.assertIn('new-source: latest backup not independently confirmed', report['alerts'])
 
 
 if __name__ == '__main__':
