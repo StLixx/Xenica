@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Infra 发起跨机备份复制；不需要 core 持有新的 SSH 登录凭据。"""
 import json
+import os
 import fcntl
 from pathlib import Path
 import subprocess
@@ -10,7 +11,7 @@ from pg_ops import atomic_json, load_config, run as operation, STATE
 
 PEER = "root@100.100.1.103"
 SSH = ['ssh', '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=10', '-o', 'ControlMaster=auto',
-       '-o', 'ControlPersist=120', '-o', 'ControlPath=/run/pgops-core.sock']
+       '-o', 'ControlPersist=120', '-o', f'ControlPath=/run/pgops-{os.getpid()}.sock']
 REMOTE = SSH + [PEER]
 
 

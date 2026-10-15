@@ -1,0 +1,466 @@
+{
+  "schema": 1,
+  "scope": "当前双集群与两个 Xenica 主库保护链修复；没有合库或执行生产主备切换",
+  "hosts": [
+    {
+      "schema": 1,
+      "recorded_at": "2026-10-15T16:23:33.869299+08:00",
+      "host": "infra-server",
+      "sources": [
+        {
+          "name": "njupt-v2",
+          "container": "njupt_db",
+          "host": "100.100.1.202",
+          "port": 5434,
+          "primary_port": 5434,
+          "system_id": "7696289758828699687",
+          "image": "postgres@sha256:77f585114c32fbca283dc835b0596f4e52b51b4c6662d7810b2f4084f60a1873",
+          "image_id": "sha256:77f585114c32fbca283dc835b0596f4e52b51b4c6662d7810b2f4084f60a1873",
+          "backup_subdir": "pgops-v2",
+          "backup": true,
+          "require_standby": true,
+          "applications": [
+            "njupt"
+          ],
+          "data_root": "/opt/stacks/njupt-pg/data",
+          "measured": {
+            "system_id": "7696289758828699687",
+            "recovery": false,
+            "archive_mode": "on",
+            "replication": [
+              {
+                "state": "streaming",
+                "lag_bytes": 0
+              }
+            ]
+          },
+          "latest_backup": {
+            "ok": true,
+            "completed": 1792051550.533156,
+            "path": "/opt/stacks/njupt-pg/data/pgops-v2/base/20261015T080546Z",
+            "system_id": "7696289758828699687",
+            "seconds": 3.71
+          },
+          "manifest_sha256": "b25e33831709eaef3bf488892873e3058bdbb6e2a4d747f5feddd4f2bf159ddf"
+        },
+        {
+          "name": "panel-main",
+          "container": "1Panel-postgresql-euiI",
+          "host": "100.100.1.202",
+          "port": 5432,
+          "system_id": "7689904531301453863",
+          "image": "postgres@sha256:77f585114c32fbca283dc835b0596f4e52b51b4c6662d7810b2f4084f60a1873",
+          "image_id": "sha256:77f585114c32fbca283dc835b0596f4e52b51b4c6662d7810b2f4084f60a1873",
+          "backup_subdir": "pgops",
+          "backup": true,
+          "require_standby": false,
+          "applications": [
+            "penpot"
+          ],
+          "data_root": "/opt/1panel/apps/postgresql/postgresql/data",
+          "measured": {
+            "system_id": "7689904531301453863",
+            "recovery": false,
+            "archive_mode": "on",
+            "replication": null
+          },
+          "latest_backup": {
+            "ok": true,
+            "completed": 1792051575.7504349,
+            "path": "/opt/1panel/apps/postgresql/postgresql/data/pgops/base/20261015T080550Z",
+            "system_id": "7689904531301453863",
+            "seconds": 25.04
+          },
+          "manifest_sha256": "2367690ca4912603999ab5e00f96de21bdd5a251d5409181743509e87ee50f87"
+        }
+      ],
+      "code_sha256": {
+        "penpot_drill.py": "13648415a157b6812ebf58ff96d884825017ff1d5829225dfd8427ca832bc826",
+        "drill.py": "59f19dfafa4c5fc21ed06fee31410f5522e8221513c2b4c9a0116de85b8cbf9c",
+        "pg_ops.py": "a591cda7b1b2ac53d561b4297dbdd3ceb3de1c90b21308dcfc6fe91170deca78",
+        "permissions.py": "6ff528ee3b7bdc7f49a91d763c23371922fb58f72e044865d862aca94d3ba4b4",
+        "failover.py": "26de083d6802b69acc83f66f9adf226cc0c48fd73dc4482fc9cc219fecf6021d",
+        "maintenance.py": "b80e9122d6668da3fc0fe84f7a82413886a3b44fbdc6c0f4c4105828546b95d4",
+        "replicate.py": "14dcf3aba0dc5730831859f88291b8459133de854be45f55e83ec4fbc5701176",
+        "health.py": "3c767eb542605d479fa69dd0268b574cf0227e8b0d910c4aca3929cd25ab720b",
+        "fence_status.py": "b0123c23326c7e64639199c976f6fff206605a148dcfc847e30caf8860291c92",
+        "failover_drill.py": "3dd801cb571f1b2ff792317bd655408f890e1556dd4cb0f9c2902d5f29531fa3"
+      },
+      "monitor": {
+        "checked": 1792052573.701636,
+        "ok": true,
+        "alerts": []
+      },
+      "cloud": {
+        "ok": true,
+        "completed": 1792052581.0561478,
+        "bases": {
+          "xenica": [
+            "20261014T050335Z",
+            "20261014T051735Z",
+            "20261014T070144Z",
+            "20261014T183046Z",
+            "20261015T080653Z"
+          ],
+          "penpot-assets": [
+            "20261014T133443Z",
+            "20261014T140632Z",
+            "20261014T140941Z",
+            "20261014T144654Z",
+            "20261014T190200Z",
+            "20261015T080653Z",
+            "20261015T080914Z"
+          ],
+          "xenica-sketch": [
+            "20261014T050342Z",
+            "20261014T051738Z",
+            "20261014T070147Z",
+            "20261014T183048Z",
+            "20261015T080656Z"
+          ],
+          "njupt-v2": [
+            "20261015T080546Z"
+          ],
+          "shared": [
+            "20261014T050326Z",
+            "20261014T051725Z",
+            "20261014T055149Z",
+            "20261014T070143Z",
+            "20261014T183200Z"
+          ],
+          "panel-main": [
+            "20261015T080319Z",
+            "20261015T080550Z"
+          ]
+        }
+      },
+      "cloud-restore-report": {
+        "schema": 1,
+        "ok": true,
+        "completed": 1792052412.0021324,
+        "results": [
+          {
+            "ok": true,
+            "source": "njupt-v2",
+            "backup": "20261015T080546Z",
+            "system_id": "7696289758828699687",
+            "target": null,
+            "seconds": 2.74,
+            "databases": [
+              "postgres",
+              "njupt_notice",
+              "njupt_console"
+            ],
+            "container": "pgops-drill-bdb728f893cc",
+            "workspace": "/var/lib/pg-ops/drills/pgops-drill-bdb728f893cc"
+          },
+          {
+            "ok": true,
+            "source": "njupt-v2",
+            "backup": "20261015T080546Z",
+            "system_id": "7696289758828699687",
+            "target": "pgops_ee672d5ff237477596c6a8ef7fbc91d5",
+            "seconds": 3.75,
+            "databases": [
+              "postgres",
+              "njupt_notice",
+              "njupt_console"
+            ],
+            "container": "pgops-drill-4036c65f4ffa",
+            "workspace": "/var/lib/pg-ops/drills/pgops-drill-4036c65f4ffa",
+            "pitr_probe": "before",
+            "independent_copy_latency_seconds": 68.71
+          },
+          {
+            "ok": true,
+            "source": "panel-main",
+            "backup": "20261015T080550Z",
+            "system_id": "7689904531301453863",
+            "target": null,
+            "seconds": 4.86,
+            "databases": [
+              "postgres",
+              "root",
+              "SG",
+              "qqbot",
+              "yk2025",
+              "nsfz-library",
+              "njupt_notice",
+              "njupt_console",
+              "penpot"
+            ],
+            "container": "pgops-drill-359e4ad13135",
+            "workspace": "/var/lib/pg-ops/drills/pgops-drill-359e4ad13135"
+          },
+          {
+            "ok": true,
+            "source": "panel-main",
+            "backup": "20261015T080550Z",
+            "system_id": "7689904531301453863",
+            "target": "pgops_7e7e0a09c5b74917accb2d7460a098d2",
+            "seconds": 4.81,
+            "databases": [
+              "postgres",
+              "root",
+              "SG",
+              "qqbot",
+              "yk2025",
+              "nsfz-library",
+              "njupt_notice",
+              "njupt_console",
+              "penpot"
+            ],
+            "container": "pgops-drill-4a06e20f9e7b",
+            "workspace": "/var/lib/pg-ops/drills/pgops-drill-4a06e20f9e7b",
+            "pitr_probe": "before",
+            "independent_copy_latency_seconds": 68.51
+          },
+          {
+            "ok": true,
+            "source": "xenica",
+            "backup": "20261015T080653Z",
+            "system_id": "7693522593577447468",
+            "target": null,
+            "seconds": 11.11,
+            "databases": [
+              "postgres",
+              "xenica"
+            ],
+            "container": "pgops-drill-fd345a44c238",
+            "workspace": "/var/lib/pg-ops/drills/pgops-drill-fd345a44c238"
+          },
+          {
+            "ok": true,
+            "source": "xenica",
+            "backup": "20261015T080653Z",
+            "system_id": "7693522593577447468",
+            "target": "pgops_80fa57c110f24705bb04cb7bc6ceeacf",
+            "seconds": 2.63,
+            "databases": [
+              "postgres",
+              "xenica"
+            ],
+            "container": "pgops-drill-d84aaf2356d0",
+            "workspace": "/var/lib/pg-ops/drills/pgops-drill-d84aaf2356d0",
+            "pitr_probe": "before",
+            "independent_copy_latency_seconds": 68.16
+          },
+          {
+            "ok": true,
+            "source": "xenica-sketch",
+            "backup": "20261015T080656Z",
+            "system_id": "7695654494808752171",
+            "target": null,
+            "seconds": 2.1,
+            "databases": [
+              "postgres",
+              "xenica"
+            ],
+            "container": "pgops-drill-ea7a31c621a8",
+            "workspace": "/var/lib/pg-ops/drills/pgops-drill-ea7a31c621a8"
+          },
+          {
+            "ok": true,
+            "source": "xenica-sketch",
+            "backup": "20261015T080656Z",
+            "system_id": "7695654494808752171",
+            "target": "pgops_8300168f1d1a44c4afa6bf5fc7b15b22",
+            "seconds": 3.23,
+            "databases": [
+              "postgres",
+              "xenica"
+            ],
+            "container": "pgops-drill-7625f4ed3dd6",
+            "workspace": "/var/lib/pg-ops/drills/pgops-drill-7625f4ed3dd6",
+            "pitr_probe": "before",
+            "independent_copy_latency_seconds": 67.84
+          }
+        ],
+        "end_to_end_seconds": 409.49,
+        "independent_source": "drive02:PG-operations-v1"
+      },
+      "replication": {
+        "ok": true,
+        "completed": 1792052581.1224806
+      },
+      "penpot_code_sha256": {
+        "backup.py": "36f6c2f7c17a73cc67acd6296c3b06e8e8368fd6049c96528e2975c9795c9346",
+        "routing.py": "d3154c0190b702347a516dc7635a40b5229f7d61280c1a61d13b4abcbe3c652a",
+        "health.py": "9617bc4db3bf898244d518cf59c3cde8c54bc2ad8d95a80ca865508acbd69a91",
+        "restore.py": "68679de1cae7dbd2e3c924aa074302051ad7ea1906fb97fb2f4a479a96e575d8"
+      },
+      "penpot_backup": {
+        "ok": true,
+        "stamp": "20261015T080914Z",
+        "completed": 1792051980.753598,
+        "independent": true,
+        "inventory": {
+          "profiles": 1,
+          "files": 6,
+          "media": 3
+        }
+      },
+      "penpot_restore-report": {
+        "schema": 1,
+        "ok": true,
+        "source": "OneDrive",
+        "stamp": "20261015T080914Z",
+        "sha256_verified": true,
+        "asset_count": 15,
+        "inventory": {
+          "profiles": 1,
+          "files": 6,
+          "media": 3
+        },
+        "login_verified": true,
+        "backend_file_read_verified": true,
+        "seconds": 31.74
+      }
+    },
+    {
+      "schema": 1,
+      "recorded_at": "2026-10-15T16:23:35.079479+08:00",
+      "host": "core-server",
+      "sources": [
+        {
+          "name": "xenica",
+          "container": "xenica-db-1",
+          "system_id": "7693522593577447468",
+          "image": "postgres@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336",
+          "image_id": "sha256:29754c7520f4b9654cf8ff98e19ac73b88e255c3a53f6236ebe9d52249bb6df3",
+          "backup": true,
+          "data_root": "/var/lib/docker/volumes/xenica_db/_data",
+          "measured": {
+            "system_id": "7693522593577447468",
+            "recovery": false,
+            "archive_mode": "on",
+            "replication": null
+          },
+          "latest_backup": {
+            "ok": true,
+            "completed": 1792051616.168995,
+            "path": "/var/lib/docker/volumes/xenica_db/_data/pgops/base/20261015T080653Z",
+            "system_id": "7693522593577447468",
+            "seconds": 2.81
+          },
+          "manifest_sha256": "caa4159ec623a393b2cd2c7ceb5f9ff0460960c13b44bfe72c0443c94de57da0"
+        },
+        {
+          "name": "xenica-sketch",
+          "container": "xenica-sketch-db-1",
+          "system_id": "7695654494808752171",
+          "image": "postgres@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336",
+          "image_id": "sha256:29754c7520f4b9654cf8ff98e19ac73b88e255c3a53f6236ebe9d52249bb6df3",
+          "backup": true,
+          "data_root": "/var/lib/docker/volumes/xenica-sketch_db/_data",
+          "measured": {
+            "system_id": "7695654494808752171",
+            "recovery": false,
+            "archive_mode": "on",
+            "replication": null
+          },
+          "latest_backup": {
+            "ok": true,
+            "completed": 1792051663.1483152,
+            "path": "/var/lib/docker/volumes/xenica-sketch_db/_data/pgops/base/20261015T080656Z",
+            "system_id": "7695654494808752171",
+            "seconds": 46.61
+          },
+          "manifest_sha256": "cd78f9df9374ae6c246ad28e820ac2b4b0f4c5a92bf5fe229e8384c6eb292bf7"
+        },
+        {
+          "name": "njupt-v2-standby",
+          "container": "njupt_db",
+          "host": "100.100.1.103",
+          "port": 5434,
+          "primary_port": 5434,
+          "system_id": "7696289758828699687",
+          "image": "postgres@sha256:77f585114c32fbca283dc835b0596f4e52b51b4c6662d7810b2f4084f60a1873",
+          "image_id": "sha256:c293117fcecda7344b5480222e813b9f673d7abd69b1dd95eff239b768b04f59",
+          "backup_subdir": "pgops-v2",
+          "backup": false,
+          "data_root": "/opt/stacks/njupt-pg/data",
+          "measured": {
+            "system_id": "7696289758828699687",
+            "recovery": true,
+            "receiver": [
+              {
+                "status": "streaming",
+                "host": "100.100.1.202",
+                "port": 5434
+              }
+            ]
+          }
+        }
+      ],
+      "code_sha256": {
+        "penpot_drill.py": "13648415a157b6812ebf58ff96d884825017ff1d5829225dfd8427ca832bc826",
+        "permissions.py": "6ff528ee3b7bdc7f49a91d763c23371922fb58f72e044865d862aca94d3ba4b4",
+        "pg_ops.py": "a591cda7b1b2ac53d561b4297dbdd3ceb3de1c90b21308dcfc6fe91170deca78",
+        "failover_drill.py": "3dd801cb571f1b2ff792317bd655408f890e1556dd4cb0f9c2902d5f29531fa3",
+        "replicate.py": "14dcf3aba0dc5730831859f88291b8459133de854be45f55e83ec4fbc5701176",
+        "fence_status.py": "b0123c23326c7e64639199c976f6fff206605a148dcfc847e30caf8860291c92",
+        "health.py": "3c767eb542605d479fa69dd0268b574cf0227e8b0d910c4aca3929cd25ab720b",
+        "drill.py": "59f19dfafa4c5fc21ed06fee31410f5522e8221513c2b4c9a0116de85b8cbf9c",
+        "maintenance.py": "b80e9122d6668da3fc0fe84f7a82413886a3b44fbdc6c0f4c4105828546b95d4",
+        "failover.py": "26de083d6802b69acc83f66f9adf226cc0c48fd73dc4482fc9cc219fecf6021d"
+      },
+      "monitor": {
+        "checked": 1792052573.6648316,
+        "ok": true,
+        "alerts": []
+      },
+      "cloud": {
+        "ok": true,
+        "completed": 1792052581.0561478,
+        "bases": {
+          "xenica": [
+            "20261014T050335Z",
+            "20261014T051735Z",
+            "20261014T070144Z",
+            "20261014T183046Z",
+            "20261015T080653Z"
+          ],
+          "penpot-assets": [
+            "20261014T133443Z",
+            "20261014T140632Z",
+            "20261014T140941Z",
+            "20261014T144654Z",
+            "20261014T190200Z",
+            "20261015T080653Z",
+            "20261015T080914Z"
+          ],
+          "xenica-sketch": [
+            "20261014T050342Z",
+            "20261014T051738Z",
+            "20261014T070147Z",
+            "20261014T183048Z",
+            "20261015T080656Z"
+          ],
+          "njupt-v2": [
+            "20261015T080546Z"
+          ],
+          "shared": [
+            "20261014T050326Z",
+            "20261014T051725Z",
+            "20261014T055149Z",
+            "20261014T070143Z",
+            "20261014T183200Z"
+          ],
+          "panel-main": [
+            "20261015T080319Z",
+            "20261015T080550Z"
+          ]
+        }
+      }
+    }
+  ],
+  "recorded_on": "2026-10-15",
+  "limitations": [
+    "panel-main 有备份与 PITR，无热备",
+    "生产主备提升与旧主重建未执行；维护工具以负向测试与实测配置验证",
+    "未绑定身份的历史备份与 WAL 保留，不自动清理",
+    "恢复时间和独立副本延迟是本次样本，不是 SLA"
+  ],
+  "issue": 69
+}

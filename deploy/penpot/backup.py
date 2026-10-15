@@ -16,7 +16,7 @@ ROOT = Path('/mnt/HDD/penpot/backups')
 ENCRYPTED = Path('/mnt/HDD/pg-ops/encrypted/penpot-assets/base')
 PEER = 'root@100.100.1.103'
 SSH = ['ssh', '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=10', '-o', 'ControlMaster=auto',
-       '-o', 'ControlPersist=120', '-o', 'ControlPath=/run/pgops-core.sock']
+       '-o', 'ControlPersist=120', '-o', f'ControlPath=/run/penpot-backup-{os.getpid()}.sock']
 
 
 def run(args, **kwargs):

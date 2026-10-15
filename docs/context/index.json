@@ -181,10 +181,17 @@
       "task": 67
     },{
       "id": "pg-rebuilt-topology-backup-drift",
-      "status": "unverified",
-      "summary": "2026-10-15实际容器已变为njupt_db5434和1Panel5432；旧配置仍找njupt-pg，两机监控报警；新分流拓扑备份覆盖、切换和恢复待修复验证，跟踪69。",
+      "status": "historical",
+      "summary": "2026-10-15修复前发现njupt_db5434与1Panel5432分流，旧配置仍找njupt-pg，两机监控报警；原快照保留，修复后证据另列，不用旧成功覆盖当时故障。",
       "origin": "本日SSH只读Docker inspect、业务集群psql及8097健康接口",
       "references": ["docs/context/pg-inventory-2026-10-15.json", "docs/context/pg-operations.md"],
+      "task": 69
+    },{
+      "id": "pg-rebuilt-topology-recovery-69",
+      "status": "historical",
+      "summary": "2026-10-15保留双集群并绑定系统ID，恢复四主库备份/WAL/跨机云端和两机监控；云端全量/PITR共8次通过，Penpot配套恢复含原账号与设计读取通过。5432无热备，未执行生产切换或合库。",
+      "origin": "本日用户批准处理真实缺陷；Infra/core实测与OneDrive隔离恢复",
+      "references": ["specs/69-pg-source-recovery/spec.md", "deploy/pg-ops/recovery-69-evidence.json", "docs/context/pg-operations.md", "deploy/pg-ops/README.md"],
       "task": 69
     }
   ],
