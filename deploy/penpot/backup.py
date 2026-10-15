@@ -15,10 +15,22 @@ STATE = Path('/var/lib/penpot-ops')
 ROOT = Path('/mnt/HDD/penpot/backups')
 ENCRYPTED = Path('/mnt/HDD/pg-ops/encrypted/penpot-assets/base')
 PEER = 'root@100.100.1.103'
+SSH = ['ssh', '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=10', '-o', 'ControlMaster=auto',
+       '-o', 'ControlPersist=120', '-o', f'ControlPath=/run/penpot-backup-{os.getpid()}.sock']
 
 
 def run(args, **kwargs):
-    result = subprocess.run(args, capture_output=True, timeout=1200, **kwargs)
+    transport = args[0] in ['ssh', 'rsync']
+    if args[0] == 'ssh':
+        args = SSH + args[1:]
+    elif args[0] == 'rsync':
+        args = [args[0], '-e', ' '.join(SSH)] + args[1:]
+    for attempt in range(3 if transport else 1):
+        result = subprocess.run(args, capture_output=True, timeout=1200, **kwargs)
+        if result.returncode == 0:
+            return result.stdout
+        if transport and attempt < 2:
+            time.sleep(2)
     if result.returncode:
         (STATE / 'backup-error.log').write_bytes(result.stderr)
         (STATE / 'backup-error.log').chmod(0o600)

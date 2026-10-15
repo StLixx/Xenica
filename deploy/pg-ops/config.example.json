@@ -1,13 +1,39 @@
 {
   "sources": [
     {
-      "name": "shared",
-      "container": "njupt-pg",
+      "name": "njupt-v2",
+      "container": "njupt_db",
       "admin": "njupt",
       "data_root": "/opt/stacks/njupt-pg/data",
       "image": "postgres@sha256:replace-with-verified-digest",
+      "system_id": "replace-with-measured-system-identifier",
+      "backup_subdir": "pgops-v2",
+      "host": "100.100.1.202",
+      "port": 5434,
+      "primary_port": 5434,
+      "primary_name": "njupt-v2",
+      "standby_name": "njupt-v2-standby",
+      "compose_path": "/opt/stacks/njupt-pg/compose.yaml",
+      "replication_env": "/opt/stacks/njupt-pg/repl.env",
+      "replication_password_key": "REPLPASSWORD",
+      "app_env_paths": ["/opt/njupt/config/console.env", "/opt/njupt/config/notice.env"],
       "require_standby": true,
       "config_paths": ["/opt/stacks/njupt-pg/compose.yaml", "/etc/pg-ops/config.json"]
+    },
+    {
+      "name": "panel-main",
+      "container": "replace-with-measured-panel-container",
+      "admin": "root",
+      "data_root": "/opt/1panel/apps/postgresql/postgresql/data",
+      "image": "postgres@sha256:replace-with-verified-digest",
+      "image_id": "sha256:replace-with-measured-local-image-id",
+      "system_id": "replace-with-measured-system-identifier",
+      "host": "100.100.1.202",
+      "port": 5432,
+      "applications": ["penpot"],
+      "database_roles": {"penpot_app": ["penpot"]},
+      "approved_primary_hosts": ["100.100.1.202"],
+      "require_standby": false
     }
   ],
   "encrypted_root": "/var/lib/pg-ops/encrypted",

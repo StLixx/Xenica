@@ -1,6 +1,6 @@
 # Penpot 长期接续
 
-**后续状态提醒（2026-10-15）：PG容器及数据分流再次变化，旧pg-ops配置/监控失配。下文拓扑和恢复结论为原日期快照；操作前先读 [当前PG接管记录](pg-operations.md) 与缺陷69，不能据旧状态断言当前持续备份覆盖完整。**
+**后续状态（2026-10-15，缺陷69修复）：Penpot使用独立的1Panel PG5432，不随njupt5434主备工具切换。当前备份按明确端点选取镜像，四源保护链及Penpot配套云端恢复已重新验证，见 [当前PG接管记录](pg-operations.md) 与 [实测证据](../../deploy/pg-ops/recovery-69-evidence.json)。下文原日期的拓扑和演练记录继续保留为历史。**
 
 任务 [#65](https://github.com/StLixx/Xenica/issues/65) 属于 [#54](https://github.com/StLixx/Xenica/issues/54) 的 v0.2.5 开发脚手架搭建目标。2026-10-14 发布后追加；不属于已发布 Tag 的原源码树。决定见 [ADR 0017](../adr/0017-penpot-scaffolding.md)，设备及非敏感参数见 [清单](penpot-inventory.json)，记录方式见 [考证索引](penpot-recording.md)。设备数据是当日快照，操作前重新核验。
 

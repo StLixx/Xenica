@@ -8,24 +8,31 @@ from urllib.parse import urlparse, urlunparse
 
 HOSTS = {'100.100.1.202', '100.100.1.103'}
 PRIVATE = Path('/etc/penpot-ops')
+CONFIG = Path('/etc/pg-ops/config.json')
 
 
 def environment():
     return dict(line.split('=', 1) for line in (PRIVATE / 'backend.env').read_text().splitlines() if '=' in line)
 
 
-def database_access():
-    config = json.loads(Path('/etc/pg-ops/config.json').read_text())
-    source = next(s for s in config['sources'] if s['container'] == 'njupt-pg')
+def database_access(host=None):
+    config = json.loads(CONFIG.read_text())
     env = environment()
     uri = urlparse(env['PENPOT_DATABASE_URI'])
     if uri.hostname not in HOSTS or uri.path != '/penpot':
         raise RuntimeError('unapproved Penpot database endpoint')
+    target = host or uri.hostname
+    sources = [s for s in config['sources'] if 'penpot' in s.get('applications', [])
+               and target in s.get('approved_primary_hosts', [s.get('host')])
+               and s.get('port') == (uri.port or 5432)]
+    if len(sources) != 1:
+        raise RuntimeError('unapproved Penpot cluster endpoint')
+    source = sources[0]
     return source['image_id'], uri.hostname, str(uri.port or 5432), env['PENPOT_DATABASE_USERNAME'], env['PENPOT_DATABASE_PASSWORD']
 
 
 def database_command(tool, *args, host=None):
-    image, current, port, user, password = database_access()
+    image, current, port, user, password = database_access(host=host)
     if host is not None and host not in HOSTS:
         raise RuntimeError('unapproved database host')
     command = ['docker', 'run', '--rm', '-i', '--network', 'host', '--memory', '128m', '--cpus', '1',

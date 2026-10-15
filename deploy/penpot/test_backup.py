@@ -12,6 +12,19 @@ spec.loader.exec_module(backup)
 
 
 class ResumeOnFailure(unittest.TestCase):
+    def test_transport_retry_does_not_repeat_container_mutations(self):
+        with tempfile.TemporaryDirectory() as tmp, patch.object(backup, 'STATE', Path(tmp)), \
+                patch.object(backup.time, 'sleep'), patch.object(subprocess, 'run', side_effect=[
+                    subprocess.CompletedProcess([], 255, stderr=b'transient disconnect'),
+                    subprocess.CompletedProcess([], 0, stdout=b'copied')]) as invoke:
+            self.assertEqual(backup.run(['ssh', 'peer', 'true']), b'copied')
+            self.assertEqual(invoke.call_count, 2)
+        with tempfile.TemporaryDirectory() as tmp, patch.object(backup, 'STATE', Path(tmp)), \
+                patch.object(subprocess, 'run', return_value=subprocess.CompletedProcess([], 1, stderr=b'pause failed')) as invoke:
+            with self.assertRaises(RuntimeError):
+                backup.run(['docker', 'pause', 'example'])
+            self.assertEqual(invoke.call_count, 1)
+
     def exercise(self, fail_pause=False, fail_unpause=False):
         calls = []
 

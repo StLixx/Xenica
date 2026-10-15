@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 import re
 import time
-from pg_ops import atomic_json, load_config, run, sql, STATE
+from pg_ops import atomic_json, load_config, run, sql, STATE, verify_identity
 
 
 def identity(src):
@@ -14,6 +14,7 @@ def identity(src):
 
 
 def fence(src):
+    verify_identity(src)
     if sql(src, "SELECT pg_is_in_recovery();") != "f":
         raise RuntimeError("only the current primary can be fenced")
     system = identity(src)
@@ -45,6 +46,7 @@ def promote(standby, receipt, confirm_fence):
         raise RuntimeError("fresh fence receipt required")
     if not confirm_fence():
         raise RuntimeError("old-primary isolation could not be reverified")
+    verify_identity(standby)
     if sql(standby, "SELECT pg_is_in_recovery();") != "t" or identity(standby) != receipt["system"]:
         raise RuntimeError("standby identity mismatch")
     lsn = receipt["flush_lsn"]
