@@ -2,7 +2,7 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const gate = require('../gate.cjs');
 
-async function simulate(body, checks, mode = 'approve', selfTest = true) {
+async function simulate(body, checks, mode = 'approve', selfTest = true, title = 'test(ci): 验证门禁') {
   const events = [];
   const head = 'b'.repeat(40);
   const github = {
@@ -23,7 +23,7 @@ async function simulate(body, checks, mode = 'approve', selfTest = true) {
       checks: { listForRef: 'checks' },
       pulls: {
         listFiles: 'files',
-        get: async () => ({ data: { number: 1, state: 'open', draft: false, title: 'test', labels: [], head: { sha: head, repo: { full_name: 'owner/repo' } } } }),
+        get: async () => ({ data: { number: 1, state: 'open', draft: false, title, labels: [], head: { sha: head, repo: { full_name: 'owner/repo' } } } }),
         merge: async value => events.push({ type: 'merge', ...value }),
       },
       actions: { createWorkflowDispatch: async () => {} },
@@ -38,9 +38,14 @@ async function simulate(body, checks, mode = 'approve', selfTest = true) {
   });
   return events;
 }
-const green = ['rust', 'web', 'e2e', 'docker', 'screenshots', 'preview', 'delivery-history'].map((name, index) => ({
+const green = ['rust', 'web', 'e2e', 'docker', 'screenshots', 'preview', 'delivery-history', 'pr-title'].map((name, index) => ({
   name, id: index + 1, conclusion: 'success',
 }));
+
+test('标题检查后被改成非法标题，合并前仍拒绝', async () => {
+  const provenance = JSON.stringify({type:'product-acceptance',quote:'体验通过',origin:'chat:test/message',experiencedAt:'2026-10-11T00:00:00Z'});
+  await assert.rejects(simulate(`/验收 ${'b'.repeat(40)} product-${'c'.repeat(64)}\n${provenance}`, green, 'approve', true, 'invalid title'), /标题/);
+});
 test('旧提交验收不能批准新的头提交', async () => {
   const events = await simulate(`/验收 ${'a'.repeat(40)} product-${'c'.repeat(64)}`, green);
   assert.equal(events.some(e => e.type === 'merge'), false);
