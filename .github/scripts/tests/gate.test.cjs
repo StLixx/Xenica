@@ -2,7 +2,7 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const gate = require('../gate.cjs');
 
-async function simulate(body, checks, mode = 'approve', selfTest = true) {
+async function simulate(body, checks, mode = 'approve', selfTest = true, title = 'test(ci): 验证门禁') {
   const events = [];
   const head = 'b'.repeat(40);
   const github = {
@@ -23,7 +23,7 @@ async function simulate(body, checks, mode = 'approve', selfTest = true) {
       checks: { listForRef: 'checks' },
       pulls: {
         listFiles: 'files',
-        get: async () => ({ data: { number: 1, state: 'open', draft: false, title: 'test', labels: [], head: { sha: head, repo: { full_name: 'owner/repo' } } } }),
+        get: async () => ({ data: { number: 1, state: 'open', draft: false, title, labels: [], head: { sha: head, repo: { full_name: 'owner/repo' } } } }),
         merge: async value => events.push({ type: 'merge', ...value }),
       },
       actions: { createWorkflowDispatch: async () => {} },
