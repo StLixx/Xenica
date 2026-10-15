@@ -1,0 +1,490 @@
+{
+  "schema": 1,
+  "recorded_on": "2026-10-15",
+  "timezone": "Asia/Shanghai",
+  "scope": "只读接管快照；不是修复、重新恢复演练或完整备份成功声明",
+  "historical": {
+    "issue": 63,
+    "pr": 64,
+    "merge": "1c7d4b18140df04a551a19f9c9c1e723b24cd65e",
+    "evidence": "deploy/pg-ops/evidence.json"
+  },
+  "currentIncident": 69,
+  "hosts": [
+    {
+      "host": "infra-server",
+      "config": {
+        "encrypted_root": "/mnt/HDD/pg-ops/encrypted",
+        "keep_daily": 7,
+        "copy_interval_seconds": null,
+        "peer": null,
+        "cloud_remote": null
+      },
+      "sources": [
+        {
+          "name": "shared",
+          "container": "njupt-pg",
+          "admin": "njupt",
+          "data_root": "/opt/stacks/njupt-pg/data",
+          "image": "postgres@sha256:77f585114c32fbca283dc835b0596f4e52b51b4c6662d7810b2f4084f60a1873",
+          "backup": true,
+          "require_standby": true,
+          "config_paths": [
+            "/opt/stacks/njupt-pg/compose.yaml",
+            "/opt/stacks/njupt-pg/.env",
+            "/opt/stacks/njupt-pg/repl.env",
+            "/opt/stacks/njupt-pg/app.env",
+            "/opt/njupt-console/.env",
+            "/opt/njupt-console/config.local.toml",
+            "/opt/njupt-notice/app/.env",
+            "/etc/pg-ops/config.json",
+            "/etc/pg-ops/roles.json",
+            "/opt/pg-ops/source",
+            "/etc/systemd/system/pgops-development.slice",
+            "/var/lib/pg-ops/live",
+            "/etc/pg-ops/penpot.env",
+            "/etc/pg-ops/runtime-njupt_notice.env",
+            "/etc/pg-ops/runtime-njupt_console.env",
+            "/etc/systemd/system/njupt-console.service.d",
+            "/etc/systemd/system/njupt-notice-notifier.service.d",
+            "/etc/systemd/system/njupt-notice-dashboard.service.d"
+          ],
+          "runtime": {
+            "missing": true
+          }
+        }
+      ],
+      "config_keys": [
+        "sources",
+        "encrypted_root",
+        "key_file",
+        "keep_daily",
+        "require_independent_copy"
+      ],
+      "additional_containers": [
+        {
+          "container": "1Panel-postgresql-euiI",
+          "image": "postgres:18.6-alpine",
+          "image_id": "sha256:77f585114c32fbca283dc835b0596f4e52b51b4c6662d7810b2f4084f60a1873",
+          "ports": {
+            "5432/tcp": [
+              {
+                "HostIp": "0.0.0.0",
+                "HostPort": "5432"
+              },
+              {
+                "HostIp": "::",
+                "HostPort": "5432"
+              }
+            ]
+          },
+          "mounts": [
+            {
+              "source": "/opt/1panel/apps/postgresql/postgresql/data",
+              "destination": "/var/lib/postgresql"
+            }
+          ],
+          "compose_files": "/opt/1panel/apps/postgresql/postgresql/docker-compose.yml",
+          "sql": {
+            "version": "18.6",
+            "recovery": false,
+            "max_connections": "100",
+            "archive_mode": "off",
+            "archive_timeout": "0",
+            "max_slot_wal_keep_size": "-1",
+            "databases": [
+              {
+                "name": "postgres",
+                "bytes": 7861951
+              },
+              {
+                "name": "root",
+                "bytes": 7861951
+              },
+              {
+                "name": "SG",
+                "bytes": 49477311
+              },
+              {
+                "name": "qqbot",
+                "bytes": 32134847
+              },
+              {
+                "name": "yk2025",
+                "bytes": 41563839
+              },
+              {
+                "name": "nsfz-library",
+                "bytes": 238753471
+              },
+              {
+                "name": "njupt_notice",
+                "bytes": 18814655
+              },
+              {
+                "name": "njupt_console",
+                "bytes": 8263359
+              },
+              {
+                "name": "penpot",
+                "bytes": 12228287
+              }
+            ]
+          }
+        },
+        {
+          "container": "njupt_db",
+          "image": "postgres:18-alpine",
+          "image_id": "sha256:77f585114c32fbca283dc835b0596f4e52b51b4c6662d7810b2f4084f60a1873",
+          "ports": {
+            "5432/tcp": [
+              {
+                "HostIp": "100.100.1.202",
+                "HostPort": "5434"
+              },
+              {
+                "HostIp": "127.0.0.1",
+                "HostPort": "5434"
+              }
+            ]
+          },
+          "mounts": [
+            {
+              "source": "/opt/stacks/njupt-pg/data",
+              "destination": "/var/lib/postgresql"
+            }
+          ],
+          "compose_files": "/opt/stacks/njupt-pg/compose.yaml",
+          "sql": {
+            "version": "18.6",
+            "recovery": false,
+            "max_connections": "100",
+            "archive_mode": "on",
+            "archive_timeout": "1min",
+            "max_slot_wal_keep_size": "2GB",
+            "databases": [
+              {
+                "name": "postgres",
+                "bytes": 7993023
+              },
+              {
+                "name": "njupt_notice",
+                "bytes": 23910079
+              },
+              {
+                "name": "njupt_console",
+                "bytes": 8353471
+              }
+            ]
+          }
+        }
+      ],
+      "status_files": {
+        "shared-encrypted.json": {
+          "ok": true
+        },
+        "shared-backup.json": {
+          "ok": true
+        }
+      },
+      "files": [
+        "runtime-njupt_notice.env",
+        "config.json",
+        "roles.json",
+        "backup.key",
+        "penpot.env",
+        "runtime-njupt_console.env"
+      ],
+      "timers": "NEXT                        LEFT LAST                         PASSED UNIT                  ACTIVATES\nThu 2026-10-15 06:16:24 UTC  44s Thu 2026-10-15 06:14:51 UTC 47s ago pgops-replicate.timer pgops-replicate.service\nThu 2026-10-15 06:16:24 UTC  45s Thu 2026-10-15 06:15:24 UTC 15s ago pgops-monitor.timer   pgops-monitor.service\nThu 2026-10-15 18:30:07 UTC  12h Wed 2026-10-14 18:31:59 UTC 11h ago pgops-backup.timer    pgops-backup.service\nThu 2026-10-15 20:30:00 UTC  14h Wed 2026-10-14 20:30:00 UTC  9h ago pgops-prune.timer     pgops-prune.service\n\n4 timers listed.",
+      "source_hashes": {
+        "pgops-replicate.service": "4c9ba7696b012569b8bc697e8533978c616d331cd434cfaec749411482546dd5",
+        "penpot_drill.py": "13648415a157b6812ebf58ff96d884825017ff1d5829225dfd8427ca832bc826",
+        "drill.py": "82e5d50ccb8c0327e4ae6d44fc4164507b0de86c83a339d885aab1b65a87fd93",
+        "evidence.json": "10228173590bda27154e527e35082eb19fdfc88d0ea37204ea6a313b2d4d0f89",
+        "penpot.env.example": "ff29583cd1fbdae024176115bdb4b23a322f75aaa2fd5b67f8f7a564e9e92e48",
+        "pgops-backup.service": "e65abfec2bc2b1c059d5f16cd6ac60a1f060015e85125457e361921fc13babc7",
+        "pg_ops.py": "cab22d122006648cf8d02a2044c27c0bc951710b54dc1e4f82680d18e13b2421",
+        "pgops-health.service": "40a5bedff30089c96bfe7141e5b9f25218bdd49107185b2bb560112da2bc3475",
+        "test_pg_ops.py": "ae818c20afc1088929b7032d99d13a337f0a87430bc8a917a8f9ee1592bbcbd6",
+        "permissions.py": "6ff528ee3b7bdc7f49a91d763c23371922fb58f72e044865d862aca94d3ba4b4",
+        "pgops-replicate.timer": "6ab45f66635ca810ea007ce8687d75d120e7d619580e77b137fcc05f817a88aa",
+        "failover.py": "0f2c3e782043f1f435c14cef4a2b6983d44f6de72d29a146320f01e0f2ace72c",
+        "maintenance.py": "3806206976d30b8693a945efd180dbecce6ded64cbb6f8f57e5e12c402040a5e",
+        "replicate.py": "45ecc4f43cee6f9ba19fbc041d7a96bec5ad6f2b1dec331d1b6f3b6d5ca7cf64",
+        "pgops-development.slice": "f8b6d46b0e68e48dcedac9a03a51bd61313b376d9d8916175e5782447d35472c",
+        "pgops-prune.timer": "336f00f7479a309c254144ac83144c41c5541fed816842444880b2f49ba8216b",
+        "pgops-monitor.service": "d592c452341607617718d18ec0204124cb80dea394f47032646a5ed23dc34419",
+        "health.py": "3c767eb542605d479fa69dd0268b574cf0227e8b0d910c4aca3929cd25ab720b",
+        "fence_status.py": "cf3c48a9a53c5f0ebb2a44feda11e28bf40eabb942c32a745bc894a31ff527fb",
+        "README.md": "5df7fc4ed84b71bcc8d367b2578d1b6eeeb609342ce0773e69febb2a0a54ac3e",
+        "pgops-monitor.timer": "07d4158f3c6928fedb422dcdc4585de18ff682bcc104b5c892ef194276da9841",
+        "config.example.json": "b1167eef52d7cc1126aeee64d877f049c5fe61814522c691b83fde24527d3d83",
+        "infra-dev-run.sh": "ead77027192d386aae3b5ef70b2a863d6d4f8e2eba5a7609c5341e398931e3f5",
+        "pgops-prune.service": "b5fec6f13091c27e47c4a29aba35ea831d6ccbd5a849fb3b57747c1f001766b5",
+        "archive.sh": "2e950fae1bd61d88562a759c441192d78fc95061d63bf43b21bfea1108bb38a3",
+        "pgops-backup.timer": "382945f26b11d5d4936625701467974d41a950d30ed8292f5dbed29b4c3afb33",
+        ".gitattributes": "ad83196a57e0c674efddfa0711adacef647a4f181a528898798f7e81edcab483",
+        "failover_drill.py": "3dd801cb571f1b2ff792317bd655408f890e1556dd4cb0f9c2902d5f29531fa3"
+      }
+    },
+    {
+      "host": "core-server",
+      "config": {
+        "encrypted_root": "/var/lib/pg-ops/encrypted",
+        "keep_daily": 7,
+        "copy_interval_seconds": null,
+        "peer": null,
+        "cloud_remote": "drive02:PG-operations-v1"
+      },
+      "sources": [
+        {
+          "name": "xenica",
+          "container": "xenica-db-1",
+          "admin": "xenica",
+          "data_root": "/var/lib/docker/volumes/xenica_db/_data",
+          "image": "postgres@sha256:fc973eb97c9fd04bfa1840e0f510719a584ccb3be8debfe6a4144637a9dfe8cf",
+          "backup": true,
+          "require_standby": null,
+          "config_paths": [
+            "/opt/xenica/deploy/.env",
+            "/opt/xenica/deploy/compose.override.yaml",
+            "/etc/pg-ops/config.json",
+            "/etc/pg-ops/roles.json",
+            "/opt/pg-ops/source",
+            "/var/lib/pg-ops/live"
+          ],
+          "runtime": {
+            "image_id": "sha256:29754c7520f4b9654cf8ff98e19ac73b88e255c3a53f6236ebe9d52249bb6df3",
+            "ports": {
+              "5432/tcp": null
+            },
+            "memory": 536870912,
+            "nano_cpus": 2000000000,
+            "mounts": [
+              {
+                "source": "/var/lib/docker/volumes/xenica_db/_data",
+                "destination": "/var/lib/postgresql"
+              }
+            ]
+          },
+          "sql": {
+            "version": "18.6 (Debian 18.6-1.pgdg13+2)",
+            "recovery": false,
+            "max_connections": "100",
+            "archive_mode": "on",
+            "archive_timeout": "1min",
+            "max_slot_wal_keep_size": "-1",
+            "databases": [
+              {
+                "name": "postgres",
+                "bytes": 7993023
+              },
+              {
+                "name": "xenica",
+                "bytes": 11507391
+              }
+            ]
+          }
+        },
+        {
+          "name": "xenica-sketch",
+          "container": "xenica-sketch-db-1",
+          "admin": "xenica",
+          "data_root": "/var/lib/docker/volumes/xenica-sketch_db/_data",
+          "image": "postgres@sha256:fc973eb97c9fd04bfa1840e0f510719a584ccb3be8debfe6a4144637a9dfe8cf",
+          "backup": true,
+          "require_standby": null,
+          "config_paths": [
+            "/opt/xenica/deploy/.env",
+            "/opt/xenica/deploy/compose.override.yaml",
+            "/etc/pg-ops/config.json",
+            "/etc/pg-ops/roles.json",
+            "/opt/pg-ops/source",
+            "/var/lib/pg-ops/live"
+          ],
+          "runtime": {
+            "image_id": "sha256:29754c7520f4b9654cf8ff98e19ac73b88e255c3a53f6236ebe9d52249bb6df3",
+            "ports": {
+              "5432/tcp": null
+            },
+            "memory": 536870912,
+            "nano_cpus": 2000000000,
+            "mounts": [
+              {
+                "source": "/var/lib/docker/volumes/xenica-sketch_db/_data",
+                "destination": "/var/lib/postgresql"
+              }
+            ]
+          },
+          "sql": {
+            "version": "18.6 (Debian 18.6-1.pgdg13+2)",
+            "recovery": false,
+            "max_connections": "100",
+            "archive_mode": "on",
+            "archive_timeout": "1min",
+            "max_slot_wal_keep_size": "-1",
+            "databases": [
+              {
+                "name": "postgres",
+                "bytes": 7993023
+              },
+              {
+                "name": "xenica",
+                "bytes": 95778495
+              }
+            ]
+          }
+        },
+        {
+          "name": "shared-standby",
+          "container": "njupt-pg",
+          "admin": "njupt",
+          "data_root": "/opt/stacks/njupt-pg/data",
+          "image": "postgres@sha256:77f585114c32fbca283dc835b0596f4e52b51b4c6662d7810b2f4084f60a1873",
+          "backup": false,
+          "require_standby": null,
+          "config_paths": [
+            "/opt/stacks/njupt-pg/compose.yaml",
+            "/opt/stacks/njupt-pg/.env",
+            "/opt/stacks/njupt-pg/repl.env",
+            "/opt/stacks/njupt-pg/app.env",
+            "/etc/pg-ops/config.json"
+          ],
+          "runtime": {
+            "missing": true
+          }
+        }
+      ],
+      "config_keys": [
+        "sources",
+        "encrypted_root",
+        "key_file",
+        "keep_daily",
+        "cloud_remote",
+        "require_independent_copy"
+      ],
+      "additional_containers": [
+        {
+          "container": "njupt_db",
+          "image": "postgres:18-alpine",
+          "image_id": "sha256:c293117fcecda7344b5480222e813b9f673d7abd69b1dd95eff239b768b04f59",
+          "ports": {
+            "5432/tcp": [
+              {
+                "HostIp": "100.100.1.103",
+                "HostPort": "5434"
+              },
+              {
+                "HostIp": "127.0.0.1",
+                "HostPort": "5434"
+              }
+            ]
+          },
+          "mounts": [
+            {
+              "source": "/opt/stacks/njupt-pg/data",
+              "destination": "/var/lib/postgresql"
+            }
+          ],
+          "compose_files": "/opt/stacks/njupt-pg/compose.yaml",
+          "sql": {
+            "version": "18.6",
+            "recovery": true,
+            "max_connections": "100",
+            "archive_mode": "off",
+            "archive_timeout": "0",
+            "max_slot_wal_keep_size": "-1",
+            "databases": [
+              {
+                "name": "postgres",
+                "bytes": 7993023
+              },
+              {
+                "name": "njupt_notice",
+                "bytes": 23773711
+              },
+              {
+                "name": "njupt_console",
+                "bytes": 8192527
+              }
+            ]
+          }
+        }
+      ],
+      "status_files": {
+        "xenica-backup.json": {
+          "ok": true
+        },
+        "xenica-encrypted.json": {
+          "ok": true
+        },
+        "xenica-sketch-backup.json": {
+          "ok": true
+        },
+        "xenica-sketch-encrypted.json": {
+          "ok": true
+        }
+      },
+      "files": [
+        "fence-check-key",
+        "config.json",
+        "backup.key",
+        "roles.json",
+        "fence-check-key.pub"
+      ],
+      "timers": "NEXT                        LEFT LAST                         PASSED UNIT                ACTIVATES\nThu 2026-10-15 14:16:26 CST  56s Thu 2026-10-15 14:15:24 CST  5s ago pgops-monitor.timer pgops-monitor.service\nFri 2026-10-16 02:30:42 CST  12h Thu 2026-10-15 02:30:45 CST 11h ago pgops-backup.timer  pgops-backup.service\nFri 2026-10-16 04:30:00 CST  14h Thu 2026-10-15 04:30:00 CST  9h ago pgops-prune.timer   pgops-prune.service\n\n3 timers listed.",
+      "source_hashes": {
+        "penpot_drill.py": "13648415a157b6812ebf58ff96d884825017ff1d5829225dfd8427ca832bc826",
+        "pgops-prune.timer": "336f00f7479a309c254144ac83144c41c5541fed816842444880b2f49ba8216b",
+        "permissions.py": "6ff528ee3b7bdc7f49a91d763c23371922fb58f72e044865d862aca94d3ba4b4",
+        "pg_ops.py": "cab22d122006648cf8d02a2044c27c0bc951710b54dc1e4f82680d18e13b2421",
+        ".gitattributes": "ad83196a57e0c674efddfa0711adacef647a4f181a528898798f7e81edcab483",
+        "infra-dev-run.sh": "ead77027192d386aae3b5ef70b2a863d6d4f8e2eba5a7609c5341e398931e3f5",
+        "failover_drill.py": "3dd801cb571f1b2ff792317bd655408f890e1556dd4cb0f9c2902d5f29531fa3",
+        "replicate.py": "45ecc4f43cee6f9ba19fbc041d7a96bec5ad6f2b1dec331d1b6f3b6d5ca7cf64",
+        "penpot.env.example": "ff29583cd1fbdae024176115bdb4b23a322f75aaa2fd5b67f8f7a564e9e92e48",
+        "pgops-monitor.timer": "07d4158f3c6928fedb422dcdc4585de18ff682bcc104b5c892ef194276da9841",
+        "pgops-prune.service": "b5fec6f13091c27e47c4a29aba35ea831d6ccbd5a849fb3b57747c1f001766b5",
+        "pgops-monitor.service": "d592c452341607617718d18ec0204124cb80dea394f47032646a5ed23dc34419",
+        "pgops-replicate.service": "4c9ba7696b012569b8bc697e8533978c616d331cd434cfaec749411482546dd5",
+        "evidence.json": "10228173590bda27154e527e35082eb19fdfc88d0ea37204ea6a313b2d4d0f89",
+        "fence_status.py": "cf3c48a9a53c5f0ebb2a44feda11e28bf40eabb942c32a745bc894a31ff527fb",
+        "pgops-backup.service": "e65abfec2bc2b1c059d5f16cd6ac60a1f060015e85125457e361921fc13babc7",
+        "pgops-backup.timer": "382945f26b11d5d4936625701467974d41a950d30ed8292f5dbed29b4c3afb33",
+        "health.py": "3c767eb542605d479fa69dd0268b574cf0227e8b0d910c4aca3929cd25ab720b",
+        "pgops-replicate.timer": "6ab45f66635ca810ea007ce8687d75d120e7d619580e77b137fcc05f817a88aa",
+        "drill.py": "82e5d50ccb8c0327e4ae6d44fc4164507b0de86c83a339d885aab1b65a87fd93",
+        "maintenance.py": "3806206976d30b8693a945efd180dbecce6ded64cbb6f8f57e5e12c402040a5e",
+        "config.example.json": "b1167eef52d7cc1126aeee64d877f049c5fe61814522c691b83fde24527d3d83",
+        "test_pg_ops.py": "ae818c20afc1088929b7032d99d13a337f0a87430bc8a917a8f9ee1592bbcbd6",
+        "archive.sh": "2e950fae1bd61d88562a759c441192d78fc95061d63bf43b21bfea1108bb38a3",
+        "pgops-health.service": "40a5bedff30089c96bfe7141e5b9f25218bdd49107185b2bb560112da2bc3475",
+        "failover.py": "0f2c3e782043f1f435c14cef4a2b6983d44f6de72d29a146320f01e0f2ace72c",
+        "README.md": "5df7fc4ed84b71bcc8d367b2578d1b6eeeb609342ce0773e69febb2a0a54ac3e",
+        "pgops-development.slice": "f8b6d46b0e68e48dcedac9a03a51bd61313b376d9d8916175e5782447d35472c"
+      }
+    }
+  ],
+  "monitoring": {
+    "infra": {
+      "ok": false,
+      "alerts": [
+        "shared: docker failed (1)"
+      ],
+      "monitor_service_exit": 1
+    },
+    "core": {
+      "ok": false,
+      "alerts": [
+        "shared-standby: docker failed (1)"
+      ],
+      "monitor_service_exit": 1
+    }
+  },
+  "boundaries": [
+    "配置中原共享容器不存在；不能用旧状态文件ok或复制任务success推断当前数据受保护。",
+    "1Panel PG5432含Penpot，archive_mode=off；未证明它已纳入旧shared持续备份或主备链。",
+    "njupt_db5434两节点主备已只读观察，未重新执行故障切换、云端恢复或业务迁移验收。"
+  ]
+}
+
