@@ -9,9 +9,47 @@ import pg_ops as ops
 import maintenance
 import replicate
 import failover
+import access
 
 
 class TopologyGuards(unittest.TestCase):
+    def test_database_policy_precedes_public_allow_and_preserves_other_roles(self):
+        original = 'host all all 0.0.0.0/0 scram-sha-256\n'
+        result = access.restricted_hba(original, 'penpot_app', ['penpot'])
+        self.assertLess(result.index('host penpot penpot_app'), result.index('host all penpot_app'))
+        self.assertLess(result.index('host all penpot_app'), result.index(original))
+        self.assertIn('host all penpot_app ::/0 reject', result)
+        self.assertIn('local all penpot_app reject', result)
+        self.assertTrue(result.endswith(original))
+        self.assertEqual(access.restricted_hba(result, 'penpot_app', ['penpot']), result)
+
+    def test_database_policy_rejects_invalid_role_or_empty_allowlist(self):
+        for role, databases in [('bad role', ['penpot']), ('app', []), ('app', ['all\ntrust'])]:
+            with self.assertRaises(ValueError):
+                access.restricted_hba('', role, databases)
+
+    def test_invalid_authentication_file_is_rolled_back(self):
+        with tempfile.TemporaryDirectory() as d, patch.object(access, 'STATE', Path(d) / 'state'), \
+                patch.object(access, 'verify_identity'), patch.object(access, 'sql', side_effect=[
+                    '/var/lib/postgresql/18/docker/pg_hba.conf', 'f', '1', 't']):
+            path = Path(d) / '18/docker/pg_hba.conf'
+            path.parent.mkdir(parents=True)
+            original = 'host all all 0.0.0.0/0 scram-sha-256\n'
+            path.write_text(original)
+            with self.assertRaisesRegex(RuntimeError, 'parse'):
+                access.apply_policy({'name': 'panel', 'data_root': d, 'database_roles': {'app': ['penpot']}})
+            self.assertEqual(path.read_text(), original)
+
+    def test_administrator_cannot_be_restricted_as_business_role(self):
+        with tempfile.TemporaryDirectory() as d, patch.object(access, 'verify_identity'), \
+                patch.object(access, 'sql', side_effect=['/var/lib/postgresql/18/docker/pg_hba.conf', 't']):
+            path = Path(d) / '18/docker/pg_hba.conf'
+            path.parent.mkdir(parents=True)
+            path.write_text('original')
+            with self.assertRaisesRegex(RuntimeError, 'non-superuser'):
+                access.apply_policy({'name': 'panel', 'data_root': d, 'database_roles': {'admin': ['penpot']}})
+            self.assertEqual(path.read_text(), 'original')
+
     def test_wrong_registered_standby_cannot_be_promoted(self):
         with patch.object(failover, 'verify_identity', side_effect=RuntimeError('identity mismatch')), \
                 patch.object(failover, 'sql') as sql:

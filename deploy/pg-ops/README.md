@@ -5,6 +5,8 @@
 运行时配置与密钥放 `/etc/pg-ops/`（仅 root 可读），代码放 `/opt/pg-ops/source/`。
 `pg_ops.py` 支持 backup、encrypt、cloud、monitor、prune、restore-drill；配置示例不含秘密。
 
+`access.py --source <源名>` 只对配置中 `database_roles` 登记的非超级业务角色安装数据库白名单，保存原认证文件并检查解析结果后重载；其他角色规则保持原样。Penpot角色仅允许连接penpot库，不能用“非超级用户”代替实际跨库拒绝验证。认证规则改变后重新备份并用 `drill.py --source <源名>` 验证该源云端恢复。
+
 基础备份使用集群同版本 `pg_basebackup`，WAL 归档原子落盘并验证重复内容。配置与新清单绑定 PostgreSQL 系统 ID；重建集群使用独立名称及 `backup_subdir`，不能继承旧 WAL 或成功回执。清单含 SHA256、镜像摘要、起始 WAL 与数据库列表。保留七份每日完整备份及相应 WAL；清理前确认独立副本。未绑定身份的历史副本与 WAL 保留原样，不补造身份、重新发布或自动清理。
 
 恢复只允许新目录，在 Infra 的隔离容器校验官方 manifest、恢复数据库列表与指定恢复点。生产目录不允许覆盖；容器没有网络出口。恢复后先核验应用权限与配置，再执行受控切换。

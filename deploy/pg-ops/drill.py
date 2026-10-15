@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """从独立云端密文恢复三集群，并验证命名恢复点之前的状态。"""
 import json
+import argparse
 from pathlib import Path
 import subprocess
 import sys
@@ -33,7 +34,7 @@ SELECT pg_switch_wal();"""
     return {"target": target, "token": token, "created": time.time()}
 
 
-def cloud_restore():
+def cloud_restore(source_name=None):
     if subprocess.check_output(["hostname"], text=True).strip() != "infra-server":
         raise RuntimeError("all recovery drills run on Infra")
     cfg = load_config()
@@ -44,6 +45,10 @@ def cloud_restore():
     if len({s['name'] for s in sources}) != len(sources):
         raise RuntimeError('backup names must be unique across hosts')
     remote_names = {s['name'] for s in remote_sources}
+    if source_name is not None:
+        sources = [s for s in sources if s['name'] == source_name]
+        if not sources:
+            raise ValueError('unknown backup source')
     probes = {s["name"]: prepare_probe(s, s["name"] in remote_names) for s in sources}
     independent_started = time.time()
     run([sys.executable, "/opt/pg-ops/source/replicate.py"], timeout=2400)
@@ -100,9 +105,12 @@ def cloud_restore():
     report = {"schema": 1, "ok": True, "completed": time.time(), "results": results,
               "end_to_end_seconds": round(time.time() - independent_started, 2),
               "independent_source": "drive02:PG-operations-v1"}
-    atomic_json(STATE / "cloud-restore-report.json", report)
+    filename = 'cloud-restore-report' + ('-' + source_name if source_name else '') + '.json'
+    atomic_json(STATE / filename, report)
     print(json.dumps(report))
 
 
 if __name__ == "__main__":
-    cloud_restore()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--source')
+    cloud_restore(parser.parse_args().source)
