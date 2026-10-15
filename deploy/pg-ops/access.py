@@ -9,8 +9,9 @@ from pg_ops import load_config, sql, verify_identity, STATE
 
 
 def restricted_hba(original, role, databases):
-    if not re.fullmatch(r'[a-z_][a-z0-9_]*', role) or not databases or any(
-            not re.fullmatch(r'[A-Za-z_][A-Za-z0-9_-]*', d) for d in databases):
+    reserved = {'all', 'sameuser', 'samerole', 'samegroup', 'replication'}
+    if role in reserved or not re.fullmatch(r'[a-z_][a-z0-9_]*', role) or not databases or any(
+            d in reserved or not re.fullmatch(r'[A-Za-z_][A-Za-z0-9_-]*', d) for d in databases):
         raise ValueError('invalid database access policy')
     begin, end = f'# pgops {role} begin', f'# pgops {role} end'
     original = re.sub(re.escape(begin) + r'\n.*?' + re.escape(end) + r'\n?', '', original, flags=re.S)

@@ -24,7 +24,7 @@ class TopologyGuards(unittest.TestCase):
         self.assertEqual(access.restricted_hba(result, 'penpot_app', ['penpot']), result)
 
     def test_database_policy_rejects_invalid_role_or_empty_allowlist(self):
-        for role, databases in [('bad role', ['penpot']), ('app', []), ('app', ['all\ntrust'])]:
+        for role, databases in [('bad role', ['penpot']), ('all', ['penpot']), ('app', ['all']), ('app', []), ('app', ['all\ntrust'])]:
             with self.assertRaises(ValueError):
                 access.restricted_hba('', role, databases)
 
