@@ -120,13 +120,16 @@ async function merge({ github, owner, repo, pr }) {
   if (fresh.head.sha !== pr.head.sha || (pr.base && fresh.base?.sha !== pr.base.sha)) {
     throw new Error('合并前成果或主线已更新，需要重新检查');
   }
+  if (!require('./check-pr-title.cjs').validateTitle(fresh.title)) {
+    throw new Error('合并前 PR 标题不符合提交规范');
+  }
   await github.rest.pulls.merge({
     owner,
     repo,
     pull_number: pr.number,
     sha: pr.head.sha,
     merge_method: 'squash',
-    commit_title: `${pr.title} (#${pr.number})`,
+    commit_title: `${fresh.title} (#${pr.number})`,
   });
   // 用 GITHUB_TOKEN 合并不会触发 push，所以手动触发 master 校验；正式推广由 release.yml 单独执行。
   await github.rest.actions.createWorkflowDispatch({ owner, repo, workflow_id: 'ci.yml', ref: 'master' });

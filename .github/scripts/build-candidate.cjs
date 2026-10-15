@@ -7,6 +7,7 @@ function policyHash(root) {
   const files = [
     '.github/scripts/candidate.cjs', '.github/scripts/readiness.cjs', '.github/scripts/verify-delivery.cjs', '.github/scripts/gate.cjs', '.github/scripts/build-candidate.cjs',
     '.github/workflows/ci.yml', '.github/workflows/approve.yml',
+    '.github/scripts/check-pr-title.cjs',
     'web/.dependency-cruiser.cjs', 'web/eslint.config.js',
     'web/playwright.config.ts',
     'crates/server/src/auth.rs', 'crates/server/src/runtime_proxy.rs', 'deploy/deployer/workspace.sh', 'deploy/deployer/bootstrap-workspace.py',

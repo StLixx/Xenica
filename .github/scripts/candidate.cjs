@@ -1,6 +1,6 @@
 // 纯函数门禁：不访问网络，不依据 Agent 的判断推断证据。调用方负责证据来源认证。
 const { createHash } = require('node:crypto');
-const REQUIRED = ['rust', 'web', 'e2e', 'docker', 'screenshots', 'preview', 'delivery-history'];
+const REQUIRED = ['rust', 'web', 'e2e', 'docker', 'screenshots', 'preview', 'delivery-history', 'pr-title'];
 const SHA = /^[a-f0-9]{40}$/;
 const HASH = /^[a-f0-9]{64}$/;
 
