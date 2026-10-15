@@ -3,7 +3,7 @@ name: ci
 # 合并只集成并校验；正式版本推广由 release.yml 执行，见 ADR 0015。
 on:
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
+    types: [opened, synchronize, reopened, ready_for_review, edited]
   push:
     branches: [master]
   # 验收门用 GITHUB_TOKEN 合并后不会触发 push，由它手动触发 master 的这条流水线。
@@ -22,6 +22,19 @@ env:
   DATABASE_URL: postgres://postgres:postgres@localhost:5432/xenica
 
 jobs:
+  pr-title:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - name: PR 标题符合 Conventional Commits
+        if: github.event_name == 'pull_request'
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: node .github/scripts/check-pr-title.cjs
+
   rust:
     runs-on: ubuntu-latest
     services:
