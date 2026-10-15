@@ -103,14 +103,16 @@ def rejoin(src, host):
     receipt = json.loads(receipt_file.read_text())
     if not receipt.get("fenced"):
         raise RuntimeError("fencing receipt required")
-    values = dict(line.split("=", 1) for line in Path("/opt/stacks/njupt-pg/repl.env").read_text().splitlines() if "=" in line)
+    if src.get('system_id') and receipt.get('system') != src['system_id']:
+        raise RuntimeError('fencing receipt cluster identity mismatch')
+    values = dict(line.split("=", 1) for line in Path(src.get('replication_env', '/opt/stacks/njupt-pg/repl.env')).read_text().splitlines() if "=" in line)
     image = run(["docker", "inspect", "--format", "{{.Image}}", src["container"]])
     uid = int(run(["docker", "run", "--rm", "--network", "none", "--entrypoint", "id", image, "-u", "postgres"]))
     private = root(src)
     private.mkdir(exist_ok=True, mode=0o700)
     os.chown(private, uid, uid)
     passwd = private / "rejoin.pgpass"
-    passwd.write_text(host + ":" + str(port) + ":*:repl:" + values["PGPASSWORD"] + "\n")
+    passwd.write_text(host + ":" + str(port) + ":*:repl:" + values[src.get('replication_password_key', 'PGPASSWORD')] + "\n")
     os.chown(passwd, uid, uid)
     os.chmod(passwd, 0o600)
     replacement = Path(src["data_root"]) / "18" / ("docker.rejoin-" + uuid.uuid4().hex[:12])
