@@ -4,9 +4,24 @@ import tempfile
 from pathlib import Path
 from unittest.mock import patch
 import routing
+import json
 
 
 class RoutingGuards(unittest.TestCase):
+    def test_current_database_uses_explicit_cluster_not_old_container_name(self):
+        with tempfile.TemporaryDirectory() as directory:
+            config = Path(directory) / 'config.json'
+            config.write_text(json.dumps({'sources': [
+                {'container': 'njupt_db', 'image_id': 'wrong', 'host': '100.100.1.202', 'port': 5434},
+                {'container': 'panel', 'image_id': 'correct', 'host': '100.100.1.202', 'port': 5432, 'applications': ['penpot']},
+            ]}))
+            env = {'PENPOT_DATABASE_URI': 'postgresql://100.100.1.202:5432/penpot',
+                   'PENPOT_DATABASE_USERNAME': 'app', 'PENPOT_DATABASE_PASSWORD': 'private'}
+            with patch.object(routing, 'CONFIG', config), patch.object(routing, 'environment', return_value=env):
+                self.assertEqual(routing.database_access()[0], 'correct')
+                with self.assertRaisesRegex(RuntimeError, 'unapproved'):
+                    routing.database_access(host='100.100.1.103')
+
     def test_primary_switch_updates_backend_and_console_together(self):
         with tempfile.TemporaryDirectory() as directory:
             private = Path(directory)

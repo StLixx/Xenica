@@ -6,7 +6,7 @@ import subprocess
 import sys
 import time
 import uuid
-from pg_ops import atomic_json, load_config, restore_drill, run, sql, STATE
+from pg_ops import atomic_json, load_config, restore_drill, run, sql, root, verify_identity, STATE
 
 PEER = ["ssh", "-o", "BatchMode=yes", "root@100.100.1.103"]
 
@@ -28,6 +28,7 @@ SELECT pg_switch_wal();"""
         code = "import sys;sys.path.insert(0,'/opt/pg-ops/source');from pg_ops import sql;sql(" + repr(src) + "," + repr(query) + ")"
         remote_python(code)
     else:
+        verify_identity(src)
         sql(src, query)
     return {"target": target, "token": token, "created": time.time()}
 
@@ -37,8 +38,13 @@ def cloud_restore():
         raise RuntimeError("all recovery drills run on Infra")
     cfg = load_config()
     core = json.loads(run(PEER + ["cat /etc/pg-ops/config.json"]))
-    sources = [cfg["sources"][0]] + [s for s in core["sources"] if s["name"] in ["xenica", "xenica-sketch"]]
-    probes = {s["name"]: prepare_probe(s, s["name"] != "shared") for s in sources}
+    local_sources = [s for s in cfg['sources'] if s.get('backup', True)]
+    remote_sources = [s for s in core['sources'] if s.get('backup', True)]
+    sources = local_sources + remote_sources
+    if len({s['name'] for s in sources}) != len(sources):
+        raise RuntimeError('backup names must be unique across hosts')
+    remote_names = {s['name'] for s in remote_sources}
+    probes = {s["name"]: prepare_probe(s, s["name"] in remote_names) for s in sources}
     independent_started = time.time()
     run([sys.executable, "/opt/pg-ops/source/replicate.py"], timeout=2400)
     independently_copied = time.time()
@@ -47,7 +53,7 @@ def cloud_restore():
     selections = []
     for source in sources:
         status = "/var/lib/pg-ops/status/" + source["name"] + "-backup.json"
-        content = run(PEER + ["cat " + status]) if source["name"] != "shared" else Path(status).read_text()
+        content = run(PEER + ["cat " + status]) if source["name"] in remote_names else Path(status).read_text()
         stamp = Path(json.loads(content)["path"]).name
         selections += [" --include='" + source["name"] + "/base/" + stamp + "/**'",
                        " --include='" + source["name"] + "/archive/**'"]
@@ -59,7 +65,7 @@ def cloud_restore():
     run(["rsync", "-a", "--checksum", "root@100.100.1.103:" + download + "/", str(local / "encrypted") + "/"], timeout=600)
     restored = local / "decoded"
     for source in sources:
-        private = restored / source["name"] / "pgops"
+        private = root({**source, 'data_root': str(restored / source['name'])})
         private.mkdir(parents=True, mode=0o700)
         for cipher in (local / "encrypted" / source["name"]).rglob("*.gpg"):
             destination = private / str(cipher.relative_to(local / "encrypted" / source["name"]))[:-4]
@@ -69,11 +75,10 @@ def cloud_restore():
     results = []
     for source in sources:
         probe = probes[source["name"]]
-        private = restored / source["name"] / "pgops"
+        private = root({**source, 'data_root': str(restored / source['name'])})
         base = sorted(p.parent for p in (private / "base").glob("*/complete.json"))[-1]
         test_source = {**source, "data_root": str(private.parent)}
-        if source["name"] != "shared":
-            test_source["image_id"] = "sha256:6212886d93e58363f522dd45fd147b0628a2146fce438f408631e906a2c5060f"
+        test_source['image_id'] = source['image']
         for target in [None, probe["target"]]:
             drill, result = restore_drill(test_source, base, target)
             try:
@@ -88,7 +93,7 @@ def cloud_restore():
                 run(["docker", "stop", drill["container"]])
                 run(["docker", "rm", drill["container"]])
         cleanup = "DELETE FROM pgops_validation.marker WHERE id='" + probe["token"] + "';"
-        if source["name"] == "shared":
+        if source["name"] not in remote_names:
             sql(source, cleanup)
         else:
             remote_python("import sys;sys.path.insert(0,'/opt/pg-ops/source');from pg_ops import sql;sql(" + repr(source) + "," + repr(cleanup) + ")")

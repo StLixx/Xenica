@@ -1,6 +1,7 @@
 """从独立云端下载并隔离恢复 Penpot，不替换任何生产数据。"""
 import subprocess,json,time,hashlib,tarfile,os,uuid,urllib.request,http.cookiejar,re
 from pathlib import Path
+from routing import database_access
 STATE=Path('/var/lib/penpot-ops')
 def run(a,**kw):
  r=subprocess.run(a,capture_output=True,timeout=300,**kw)
@@ -36,7 +37,7 @@ network=prefix;db=prefix+'-db';redis=prefix+'-redis';backend=prefix+'-backend';a
 run(['docker','network','create','--internal',network])
 try:
  images=json.loads((STATE/'images.json').read_text())
- pg=json.loads(Path('/etc/pg-ops/config.json').read_text())['sources'][0]['image_id']
+ pg=database_access()[0]
  run(['docker','run','-d','--name',db,'--network',network,'--network-alias','restore-db','--memory','512m','--cpus','1','-e','POSTGRES_HOST_AUTH_METHOD=trust',pg])
  for _ in range(60):
   if subprocess.run(['docker','exec',db,'pg_isready','-h','127.0.0.1','-U','postgres'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL).returncode==0:break

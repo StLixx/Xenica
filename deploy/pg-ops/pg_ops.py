@@ -53,6 +53,12 @@ def load_config():
             raise ValueError("invalid source name")
         if not Path(src["data_root"]).is_absolute():
             raise ValueError("data root must be absolute")
+        if not re.fullmatch(r"[a-z0-9-]+", src.get("backup_subdir", "pgops")):
+            raise ValueError("invalid backup namespace")
+        if "system_id" in src and not re.fullmatch(r"[0-9]+", src["system_id"]):
+            raise ValueError("invalid system identity")
+    if len({s['name'] for s in cfg['sources']}) != len(cfg['sources']):
+        raise ValueError("duplicate source name")
     return cfg
 
 
@@ -63,11 +69,25 @@ def sql(src, statement, database="postgres"):
 
 
 def root(src):
-    return Path(src["data_root"]) / "pgops"
+    return Path(src["data_root"]) / src.get("backup_subdir", "pgops")
 
 
-def in_container(path):
-    return "/var/lib/postgresql/pgops/" + path
+def in_container(path, src=None):
+    return "/var/lib/postgresql/" + (src or {}).get("backup_subdir", "pgops") + "/" + path
+
+
+def verify_identity(src):
+    if not src.get("system_id"):
+        return None  # 未迁移的历史配置兼容；当前运行源均登记明确身份。
+    actual = sql(src, "SELECT system_identifier::text FROM pg_control_system();")
+    if actual != src["system_id"]:
+        raise RuntimeError("registered cluster identity mismatch")
+    return actual
+
+
+def verify_manifest(src, manifest):
+    if src.get("system_id") and manifest.get("system_id") != src["system_id"]:
+        raise RuntimeError("backup cluster identity mismatch")
 
 
 def source_state(src, kind, value):
@@ -83,6 +103,7 @@ def digest(path):
 
 
 def backup(src):
+    system = verify_identity(src)
     if sql(src, "SELECT pg_is_in_recovery();") != "f":
         raise RuntimeError("refusing backup of non-primary")
     stamp = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
@@ -90,7 +111,7 @@ def backup(src):
     if destination.exists():
         raise RuntimeError("backup destination exists")
     destination.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
-    container_path = in_container("base/" + stamp)
+    container_path = in_container("base/" + stamp, src)
     started = time.time()
     run(["docker", "exec", "--user", "postgres", src["container"], "pg_basebackup",
          "-U", src["admin"], "-D", container_path, "-Ft", "-z", "-X", "stream",
@@ -121,16 +142,18 @@ def backup(src):
         os.chmod(config, 0o600)
     files = {str(p.relative_to(destination)): digest(p)
              for p in destination.rglob("*") if p.is_file()}
-    manifest = {"schema": 1, "source": src["name"], "completed": time.time(),
+    manifest = {"schema": 1, "source": src["name"], "system_id": system, "completed": time.time(),
                 "started": started, "start_wal": start_wal, "image": src["image"],
                 "databases": databases, "files": files}
     atomic_json(destination / "complete.json", manifest)
     source_state(src, "backup", {"ok": True, "completed": time.time(), "path": str(destination),
+                                 "system_id": system,
                                  "seconds": round(time.time() - started, 2)})
     return destination
 
 
 def encrypt(src, cfg):
+    verify_identity(src)
     private = root(src)
     target = Path(cfg["encrypted_root"]) / src["name"]
     key = cfg["key_file"]
@@ -141,6 +164,9 @@ def encrypt(src, cfg):
                 continue
             if directory == "base" and not (private / "base" / path.relative_to(private / "base").parts[0] / "complete.json").exists():
                 continue
+            if directory == "base":
+                manifest = private / "base" / path.relative_to(private / "base").parts[0] / "complete.json"
+                verify_manifest(src, json.loads(manifest.read_text()))
             relative = path.relative_to(private)
             output = target / (str(relative) + ".gpg")
             if output.exists():
@@ -186,6 +212,8 @@ def prune(src, cfg):
     if any(p.name not in acknowledged for p in retained):
         raise RuntimeError("retained backup set is not confirmed at the independent destination")
     manifests = [json.loads((p / "complete.json").read_text()) for p in retained]
+    for manifest in manifests:
+        verify_manifest(src, manifest)
     # 单一时间线上的 WAL 按基础备份起点保留；未知时间线保留，不猜测。
     timelines = {}
     for manifest in manifests:
@@ -212,6 +240,7 @@ def monitor(cfg):
     samples = []
     for src in cfg["sources"]:
         try:
+            verify_identity(src)
             sample = json.loads(sql(src, "SELECT json_build_object(" 
                 "'recovery',pg_is_in_recovery(),'archive_mode',current_setting('archive_mode'),'connections',(SELECT count(*) FROM pg_stat_activity WHERE backend_type='client backend'),"
                 "'waiting',(SELECT count(*) FROM pg_stat_activity WHERE wait_event_type='Lock'),"
@@ -233,10 +262,16 @@ def monitor(cfg):
                 if sample["archive_mode"] != "on":
                     alerts.append(src["name"] + ": WAL archiving is disabled")
                 state = STATE / "status" / f"{src['name']}-backup.json"
-                age = time.time() - json.loads(state.read_text())["completed"] if state.exists() else float("inf")
+                saved = json.loads(state.read_text()) if state.exists() else {}
+                verify_manifest(src, saved)
+                age = time.time() - saved["completed"] if saved.get("ok") else float("inf")
                 sample["backup_age_seconds"] = age if age != float("inf") else None
                 if age > 26 * 3600:
                     alerts.append(src["name"] + ": backup missing/stale")
+                receipt = STATE / "cloud.json"
+                copied = json.loads(receipt.read_text()).get("bases", {}) if receipt.exists() else {}
+                if cfg.get("require_independent_copy") and Path(saved.get("path", "")).name not in copied.get(src["name"], []):
+                    alerts.append(src["name"] + ": latest backup not independently confirmed")
                 ready = Path(src["data_root"]) / "18/docker/pg_wal/archive_status"
                 pending = list(ready.glob("*.ready"))
                 if any(time.time() - f.stat().st_mtime > 180 for f in pending):
@@ -295,6 +330,7 @@ def unpack_backup(base, destination):
 
 def restore_drill(src, base, target_name=None):
     manifest = json.loads((base / "complete.json").read_text())
+    verify_manifest(src, manifest)
     for name, checksum in manifest["files"].items():
         if base.resolve() not in (base / name).resolve().parents:
             raise RuntimeError("manifest path escapes backup directory")
@@ -349,9 +385,11 @@ def restore_drill(src, base, target_name=None):
         else:
             raise RuntimeError("restore did not become ready")
         databases = json.loads(sql(drill, "SELECT json_agg(datname) FROM pg_database WHERE NOT datistemplate AND datallowconn;"))
+        verify_identity(drill)
         if sorted(databases) != sorted(manifest["databases"]):
             raise RuntimeError("restored database inventory mismatch")
         result = {"ok": True, "source": src["name"], "backup": base.name,
+                  "system_id": manifest.get("system_id"),
                   "target": target_name, "seconds": round(time.time() - started, 2),
                   "databases": databases, "container": identity, "workspace": str(workspace)}
         atomic_json(workspace / "result.json", result)
