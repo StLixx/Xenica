@@ -38,7 +38,7 @@ async function simulate(body, checks, mode = 'approve', selfTest = true) {
   });
   return events;
 }
-const green = ['rust', 'web', 'e2e', 'docker', 'screenshots', 'preview', 'delivery-history'].map((name, index) => ({
+const green = ['rust', 'web', 'e2e', 'docker', 'screenshots', 'preview', 'delivery-history', 'pr-title'].map((name, index) => ({
   name, id: index + 1, conclusion: 'success',
 }));
 test('旧提交验收不能批准新的头提交', async () => {

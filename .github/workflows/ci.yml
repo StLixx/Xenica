@@ -369,7 +369,7 @@ jobs:
   delivery-history:
     if: always() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
-    needs: [rust, web, e2e, screenshots, docker, preview]
+    needs: [pr-title, rust, web, e2e, screenshots, docker, preview]
     permissions:
       contents: write
       checks: read
@@ -388,7 +388,7 @@ jobs:
   gate:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
-    needs: [rust, web, e2e, screenshots, docker, preview, delivery-history]
+    needs: [pr-title, rust, web, e2e, screenshots, docker, preview, delivery-history]
     permissions:
       contents: write
       pull-requests: write
