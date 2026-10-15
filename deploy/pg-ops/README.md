@@ -1,5 +1,7 @@
 # PG 运维
 
+长期接管、设备与运行快照、历史优化和跨机迁移步骤见 [PostgreSQL接续](../../docs/context/pg-operations.md)。**2026-10-15核验发现旧shared容器配置失配，监控报警，详见缺陷69；以下原流程不能未经适配直接用于新拓扑。**
+
 运行时配置与密钥放 `/etc/pg-ops/`（仅 root 可读），代码放 `/opt/pg-ops/source/`。
 `pg_ops.py` 支持 backup、encrypt、cloud、monitor、prune、restore-drill；配置示例不含秘密。
 

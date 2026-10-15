@@ -172,6 +172,21 @@
       "references": ["docs/context/penpot-operations.md", "docs/context/penpot-inventory.json", "deploy/penpot/restore.py"],
       "task": 65
     }
+    ,{
+      "id": "pg-v025-operations-archive",
+      "status": "historical",
+      "summary": "原63/64实施了三源备份恢复、权限预算、受控切换与资源隔离；67/68补齐v0.2.5父目标归属、设备与迁移接管资料，不改旧发布。",
+      "origin": "2026-10-15 用户要求PostgreSQL全部长期资料按Penpot同样方式归档",
+      "references": ["docs/context/pg-operations.md", "deploy/pg-ops/evidence.json", "docs/adr/0016-pg-operations.md", "docs/context/pg-inventory-2026-10-15.json"],
+      "task": 67
+    },{
+      "id": "pg-rebuilt-topology-backup-drift",
+      "status": "unverified",
+      "summary": "2026-10-15实际容器已变为njupt_db5434和1Panel5432；旧配置仍找njupt-pg，两机监控报警；新分流拓扑备份覆盖、切换和恢复待修复验证，跟踪69。",
+      "origin": "本日SSH只读Docker inspect、业务集群psql及8097健康接口",
+      "references": ["docs/context/pg-inventory-2026-10-15.json", "docs/context/pg-operations.md"],
+      "task": 69
+    }
   ],
   "references": [
     {
