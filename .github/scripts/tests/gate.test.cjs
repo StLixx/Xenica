@@ -43,7 +43,8 @@ const green = ['rust', 'web', 'e2e', 'docker', 'screenshots', 'preview', 'delive
 }));
 
 test('标题检查后被改成非法标题，合并前仍拒绝', async () => {
-  await assert.rejects(simulate(`/验收 ${'b'.repeat(40)} product-${'c'.repeat(64)}`, green, 'approve', true, 'invalid title'), /标题/);
+  const provenance = JSON.stringify({type:'product-acceptance',quote:'体验通过',origin:'chat:test/message',experiencedAt:'2026-10-11T00:00:00Z'});
+  await assert.rejects(simulate(`/验收 ${'b'.repeat(40)} product-${'c'.repeat(64)}\n${provenance}`, green, 'approve', true, 'invalid title'), /标题/);
 });
 test('旧提交验收不能批准新的头提交', async () => {
   const events = await simulate(`/验收 ${'a'.repeat(40)} product-${'c'.repeat(64)}`, green);
