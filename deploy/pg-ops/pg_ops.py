@@ -166,7 +166,11 @@ def encrypt(src, cfg):
                 continue
             if directory == "base":
                 manifest = private / "base" / path.relative_to(private / "base").parts[0] / "complete.json"
-                verify_manifest(src, json.loads(manifest.read_text()))
+                recorded = json.loads(manifest.read_text())
+                # 旧格式副本保留原样，不补造身份，也不作为当前源重新发布。
+                if src.get('system_id') and not recorded.get('system_id'):
+                    continue
+                verify_manifest(src, recorded)
             relative = path.relative_to(private)
             output = target / (str(relative) + ".gpg")
             if output.exists():

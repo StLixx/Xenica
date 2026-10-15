@@ -7,9 +7,16 @@ import time
 from unittest.mock import patch
 import pg_ops as ops
 import maintenance
+import replicate
 
 
 class TopologyGuards(unittest.TestCase):
+    def test_transient_replication_disconnect_is_retried(self):
+        with patch.object(replicate, 'operation', side_effect=[RuntimeError('ssh failed'), 'copied']) as operation, \
+                patch.object(replicate.time, 'sleep'):
+            self.assertEqual(replicate.run(replicate.REMOTE + ['true']), 'copied')
+            self.assertEqual(operation.call_count, 2)
+
     def test_recreated_cluster_cannot_use_old_identity(self):
         with patch.object(ops, 'sql', return_value='222'):
             with self.assertRaisesRegex(RuntimeError, 'identity'):

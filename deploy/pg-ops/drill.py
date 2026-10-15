@@ -7,8 +7,8 @@ import sys
 import time
 import uuid
 from pg_ops import atomic_json, load_config, restore_drill, run, sql, root, verify_identity, STATE
+from replicate import REMOTE as PEER, run as transport
 
-PEER = ["ssh", "-o", "BatchMode=yes", "root@100.100.1.103"]
 
 
 def remote_python(code):
@@ -37,7 +37,7 @@ def cloud_restore():
     if subprocess.check_output(["hostname"], text=True).strip() != "infra-server":
         raise RuntimeError("all recovery drills run on Infra")
     cfg = load_config()
-    core = json.loads(run(PEER + ["cat /etc/pg-ops/config.json"]))
+    core = json.loads(transport(PEER + ["cat /etc/pg-ops/config.json"]))
     local_sources = [s for s in cfg['sources'] if s.get('backup', True)]
     remote_sources = [s for s in core['sources'] if s.get('backup', True)]
     sources = local_sources + remote_sources
@@ -53,16 +53,16 @@ def cloud_restore():
     selections = []
     for source in sources:
         status = "/var/lib/pg-ops/status/" + source["name"] + "-backup.json"
-        content = run(PEER + ["cat " + status]) if source["name"] in remote_names else Path(status).read_text()
+        content = transport(PEER + ["cat " + status]) if source["name"] in remote_names else Path(status).read_text()
         stamp = Path(json.loads(content)["path"]).name
         selections += [" --include='" + source["name"] + "/base/" + stamp + "/**'",
                        " --include='" + source["name"] + "/archive/**'"]
-    run(PEER + ["mkdir -m 700 " + download + "; rclone copy drive02:PG-operations-v1 " + download +
+    transport(PEER + ["mkdir -p " + download + "; chmod 700 " + download + "; rclone copy drive02:PG-operations-v1 " + download +
                 "".join(selections) + " --checksum --transfers 4 --checkers 4 --multi-thread-streams 4"
                 " --multi-thread-cutoff 8M --retries 2 --timeout 30s"], timeout=1800)
     local = STATE / ("cloud-drill-" + nonce)
     local.mkdir(mode=0o700)
-    run(["rsync", "-a", "--checksum", "root@100.100.1.103:" + download + "/", str(local / "encrypted") + "/"], timeout=600)
+    transport(["rsync", "-a", "--checksum", "root@100.100.1.103:" + download + "/", str(local / "encrypted") + "/"], timeout=600)
     restored = local / "decoded"
     for source in sources:
         private = root({**source, 'data_root': str(restored / source['name'])})
