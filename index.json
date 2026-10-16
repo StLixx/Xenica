@@ -2525,6 +2525,15 @@
       "run": 38928643403,
       "attempt": 2,
       "previous": "7f982641f63b51ba24548e3adc5271e8fb8777e0fde941d26326279c89a08d08"
+    },
+    {
+      "path": "records/bc8e6bae5e479ec2a56dcbdadcc758780815a1acffd4249c157b1473eb675f04.json",
+      "sha256": "bc8e6bae5e479ec2a56dcbdadcc758780815a1acffd4249c157b1473eb675f04",
+      "type": "acceptance",
+      "source": "73f3608d698ff69589fd75d53ba001b5cce6dfc8",
+      "run": 38928643403,
+      "attempt": 2,
+      "previous": "99ca13fbc5b952baffb92bbbdf1985d36eef3b2d9dd0377560c61052d54b163c"
     }
   ]
 }
