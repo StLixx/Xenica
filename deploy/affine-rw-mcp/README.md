@@ -73,3 +73,5 @@ python3 /opt/affine-rw-mcp/source/revoke.py --client-name Notion
 ChatGPT：Personal Plugins → **AFFiNE Read Write** → Try in chat。Notion：Settings → Connections → Developer connections，URL 填固定 MCP 地址，OAuth，允许 `affine:read affine:write`。正常 Notion AI Chat 已能使用该连接；无需把 AFFiNE 复制成 Notion 页面。
 
 浏览器授权先登录 AFFiNE 所有者。若授权页提示失效，回客户端重新连接；不要复用过期回调地址。Edge 顶层表单提交失败已通过带 nonce 的同源提交规避，不关闭浏览器安全保护。Notion OAuth 弹窗输入无响应时，可在同浏览器普通标签页打开它正在显示的授权地址完成同一请求，然后刷新 Notion。读取显示空对象时确认网关输出同时包含 MCP 文本与 `structuredContent`。旧 `revision` 拒绝后重新读取并使用新幂等键；不确定写入结果则保持原键与原参数重试。
+
+`revision` 是完整 CRDT 的不透明标记，网页补充块创建 / 修改元数据也会改变它，即使 Markdown 文本相同。写入返回值是该次确认时的状态；需要继续编辑时重新读取，不把之前写入返回值当作永久有效版本。最终镜像双端追加与刷新通过，后续各两次连续读取版本一致。
