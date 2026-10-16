@@ -17,7 +17,7 @@ Agent 通过仓库所有者身份在关联 PR 写 `/自检 <完整提交 SHA>`�
 
 当前候选预览的临时部署入口与正式上线清理步骤见 [预览接续](context/preview-bootstrap.md)；不能把预览的部署结果登记成正式推广。
 
-`delivery-records/index.json` 串联同仓库 `records/<sha256>.json`。包含候选身份、真实检查的 run/attempt/job、部署身份、Agent 自检、用户体验验收及推广。原始设计和数据库快照在服务器持久目录中，身份、校验值与恢复入口随目录保存；原件和凭据不进公开 Git。记录写入失败即阻止放行。
+`delivery-records/index.json` 串联同仓库 `records/<sha256>.json`。包含候选身份、真实检查的 run/attempt/job、部署身份、Agent 自检、用户体验验收及推广。正式采用且可公开的设计源文件、素材与恢复方式进入 GitHub；原始数据库、隐私原件和凭据另存私有备份，身份、校验值与恢复入口随仓库记录保存。服务器副本不能代替仓库事实源（ADR 0018）。记录写入失败即阻止放行。
 
 产品验收内部格式是 `/验收 <完整源码 SHA> <product-id>`，下一行 JSON：`{type:"product-acceptance",quote:"用户实际原话",origin:"chat:<session>/<message>",experiencedAt:"ISO时间"}`。Agent 必须从真实用户消息取原话；范围批准不属于此类型。相同产物重跑工程检查可复用产品验收，产物改变需重新体验。
 

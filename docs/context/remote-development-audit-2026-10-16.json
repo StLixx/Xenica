@@ -16,8 +16,8 @@
   ],
   "remote_workspace": "/opt/xenica-workspace/main",
   "ssh_fetch_push_verified": true,
-  "local_cleanup": "pending_cloud_restore",
-  "private_cloud_restore": "pending",
+  "local_cleanup": "completed",
+  "private_cloud_restore": "downloaded_decrypted_sha256_matches",
   "native_remote_chat": "not_connected",
   "online_penpot_drafts": "untouched",
   "validation": {
@@ -27,5 +27,14 @@
     "web_tests": 27,
     "storybook": "passed",
     "format_lint_typecheck_arch_build": "passed"
+  },
+  "local_entry_total_bytes": 14061,
+  "local_git_repositories_remaining_in_audited_roots": 0,
+  "all_original_branch_and_tag_tips_preserved": 28,
+  "native_remote_cli": {
+    "version": "0.163.0",
+    "app_server_available": true,
+    "authenticated": false,
+    "release_sha256": "beb339e8ecd9ba057a6bb2dc81ad8ca474812edfbf0fc5056ca818797648dde4"
   }
 }
