@@ -1,0 +1,158 @@
+{
+  "schema": 1,
+  "verified_at": "2026-10-16T17:09:38.750616+00:00",
+  "status": "deployed-agent-verified-awaiting-user-acceptance",
+  "endpoint": "https://affine.truebigsand.top/rw-mcp",
+  "stable_affine_version": "0.27.4",
+  "stable_affine_changed": false,
+  "upstream_source": "b4c8548c09da21b2898443559a5b846f0ccf5dd8",
+  "fork_repository": "https://github.com/StLixx/AFFiNE",
+  "fork_commit": "9e3141ad4d56c7709d8eee6f20a64cd9b0d414b3",
+  "fork_tree": "7dfe2a3b440ce36c330ce56346ff51745932b3a9",
+  "fork_pull_request": "https://github.com/StLixx/AFFiNE/pull/1",
+  "xenica_pull_request": "https://github.com/StLixx/Xenica/pull/80",
+  "containers": [
+    {
+      "name": "affine-rw-mcp-bridge-1",
+      "image_id": "sha256:7ce9bb38b5b6161ce70ee6a92820d5ffd7fccd63bcf487281498e1218cf42c48",
+      "status": "running",
+      "health": "healthy",
+      "started_at": "2026-10-16T16:57:23.308828214Z"
+    },
+    {
+      "name": "affine-rw-mcp-gateway-1",
+      "image_id": "sha256:76a30ea90c27cb7e694a46f8a17b30f33a663966e3493944d8536f9cb4116e1d",
+      "status": "running",
+      "health": "healthy",
+      "started_at": "2026-10-16T16:57:53.996682214Z"
+    }
+  ],
+  "gateway_dependency_cache": {
+    "base_image": "sha256:246c362a7d46eceb6551c32830ac9138dc9df1341e94fd924822216e098fe5d9",
+    "exact_requirements_matched": 29,
+    "default_clean_build": "Dockerfile pinned Python base and requirements"
+  },
+  "automated_tests": {
+    "native_document_regressions": 9,
+    "oauth_gateway_regressions": 7,
+    "xenica_rust": 70,
+    "xenica_web_unit": 27,
+    "xenica_e2e_passed": 22,
+    "xenica_e2e_history_skipped": 1,
+    "xenica_component_screenshots_local": 24,
+    "openapi_drift": false,
+    "context_entries": 22,
+    "python_operations_regressions": 27
+  },
+  "clients": {
+    "ChatGPT": {
+      "oauth": true,
+      "search": true,
+      "read": true,
+      "create": true,
+      "body_update": true,
+      "title_update": true,
+      "final_read": true,
+      "doc_id": "mcp_Z0Hs8qkgf4oxI-NBOQtXC",
+      "read_after_service_restart": true,
+      "cross_client_read_notion_document": true
+    },
+    "Notion AI": {
+      "oauth": true,
+      "search": true,
+      "read": true,
+      "create": true,
+      "body_update": true,
+      "title_update": true,
+      "final_read": true,
+      "cross_client_read_chatgpt_document": true,
+      "doc_id": "mcp_sttERFosA-vvvjOVK79Tg",
+      "read_after_service_restart": true
+    }
+  },
+  "successful_synthetic_writes": [
+    {
+      "time": "2026-10-16T16:27:36.608Z",
+      "tool": "create_document",
+      "doc_id": "mcp_FsxYzc6EAYqAGV3RXhTrb",
+      "outcome": "success"
+    },
+    {
+      "time": "2026-10-16T16:27:36.819Z",
+      "tool": "update_document",
+      "doc_id": "mcp_FsxYzc6EAYqAGV3RXhTrb",
+      "outcome": "success"
+    },
+    {
+      "time": "2026-10-16T16:27:36.978Z",
+      "tool": "update_document_meta",
+      "doc_id": "mcp_FsxYzc6EAYqAGV3RXhTrb",
+      "outcome": "success"
+    },
+    {
+      "time": "2026-10-16T16:40:36.216Z",
+      "tool": "create_document",
+      "doc_id": "mcp_Z0Hs8qkgf4oxI-NBOQtXC",
+      "outcome": "success"
+    },
+    {
+      "time": "2026-10-16T16:42:07.167Z",
+      "tool": "update_document",
+      "doc_id": "mcp_Z0Hs8qkgf4oxI-NBOQtXC",
+      "outcome": "success"
+    },
+    {
+      "time": "2026-10-16T16:42:48.959Z",
+      "tool": "update_document_meta",
+      "doc_id": "mcp_Z0Hs8qkgf4oxI-NBOQtXC",
+      "outcome": "success"
+    },
+    {
+      "time": "2026-10-16T16:49:47.918Z",
+      "tool": "create_document",
+      "doc_id": "mcp_sttERFosA-vvvjOVK79Tg",
+      "outcome": "success"
+    },
+    {
+      "time": "2026-10-16T16:50:04.369Z",
+      "tool": "update_document",
+      "doc_id": "mcp_sttERFosA-vvvjOVK79Tg",
+      "outcome": "success"
+    },
+    {
+      "time": "2026-10-16T16:50:20.386Z",
+      "tool": "update_document_meta",
+      "doc_id": "mcp_sttERFosA-vvvjOVK79Tg",
+      "outcome": "success"
+    }
+  ],
+  "backup": {
+    "ok": true,
+    "stamp": "20261016T170825Z",
+    "completed": 1792170513.3400323,
+    "online_snapshot": true,
+    "independent_copy": true,
+    "cloud_roundtrip": true,
+    "decrypted_sqlite_integrity": true,
+    "sha256": "0db6f11630d98a07b26271454d4fd014ad269e0307fd45591e40e40bb8a1a85f"
+  },
+  "limits": [
+    "Simple one-note Markdown body editing only; rich blocks and nonempty canvas refused",
+    "No atomic compare-and-swap in upstream sync API; same-paragraph concurrent edits follow Yjs rules",
+    "Live scan maximum 1000 documents; no external full-text index",
+    "OAuth connection maximum 30 days; access token 1 hour with refresh",
+    "MCP snapshot restore is independent of original AFFiNE database and attachment recovery"
+  ],
+  "fork_targeted_ci": {
+    "run": 38935908868,
+    "conclusion": "success",
+    "commit": "9e3141ad4d56c7709d8eee6f20a64cd9b0d414b3"
+  },
+  "verification_notes": [
+    "Isolated Xenica E2E uses http://localhost:18079; an initial 127.0.0.1 run failed because Playwright API requests did not send Secure cookies there. Rerun with localhost passed 22 tests; no application changes.",
+    "History E2E skipped because this isolated synthetic database has no history archives. Deployment history is unchanged.",
+    "Local component screenshots matched 24 existing Infra baselines from the previous task; GitHub CI official container remains authoritative.",
+    "Both OAuth clients retained authorization after service restart and read the other client document.",
+    "Encrypted online snapshot was copied to an independent host and cloud, downloaded, hash checked, decrypted and both SQLite integrity checks passed. No full-machine rebuild claim."
+  ]
+}

@@ -1,0 +1,11 @@
+[Unit]
+Description=Read-only check of isolated AFFiNE MCP sync, authorization and routing
+After=docker.service network-online.target
+[Service]
+Type=oneshot
+UMask=0077
+WorkingDirectory=/opt/affine-rw-mcp/source
+ExecStart=/usr/bin/python3 /opt/affine-rw-mcp/source/check.py
+TimeoutStartSec=90
+NoNewPrivileges=true
+PrivateTmp=true

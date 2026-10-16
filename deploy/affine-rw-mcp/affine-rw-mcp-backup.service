@@ -1,0 +1,11 @@
+[Unit]
+Description=Online encrypted backup of isolated AFFiNE MCP state
+After=docker.service network-online.target
+[Service]
+Type=oneshot
+UMask=0077
+WorkingDirectory=/opt/affine-rw-mcp/source
+ExecStart=/usr/bin/python3 /opt/affine-rw-mcp/source/backup.py
+TimeoutStartSec=15min
+NoNewPrivileges=true
+PrivateTmp=true
