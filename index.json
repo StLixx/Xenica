@@ -2498,6 +2498,15 @@
       "run": 38929937639,
       "attempt": 1,
       "previous": "f15e42bd98dc8883cd528e7c88c48c79fa90ee2941f57ebc132d1be8da659af8"
+    },
+    {
+      "path": "records/93b2e2d1372aac4dc034d7f1d9287dbb9e79b0d43e65e3dafee3eba773805e85.json",
+      "sha256": "93b2e2d1372aac4dc034d7f1d9287dbb9e79b0d43e65e3dafee3eba773805e85",
+      "type": "candidate",
+      "source": "56c0853fd10e0bc5594f801d597a625555b6f19e",
+      "run": 38929937639,
+      "attempt": 2,
+      "previous": "84ad858cd63e2971de18f1f58813f2ada69dad338ce653918252284130dada66"
     }
   ]
 }
