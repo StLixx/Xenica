@@ -1,0 +1,9 @@
+[Unit]
+Description=AFFiNE private business and backup health
+After=docker.service network-online.target
+[Service]
+ExecStart=/usr/bin/python3 -S /opt/affine-ops/health.py --serve
+Restart=on-failure
+UMask=0077
+[Install]
+WantedBy=multi-user.target

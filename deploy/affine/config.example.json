@@ -1,0 +1,8 @@
+{
+  "server": {"name": "AFFiNE", "externalUrl": "https://affine.truebigsand.top", "https": true, "host": "affine.truebigsand.top", "port": 3010, "listenAddr": "0.0.0.0"},
+  "auth": {"allowSignup": false, "allowSignupForOauth": false},
+  "copilot": {"enabled": false},
+  "indexer": {"enabled": false},
+  "metrics": {"enabled": false},
+  "payment": {"enabled": false}
+}
