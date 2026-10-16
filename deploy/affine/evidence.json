@@ -2,8 +2,14 @@
   "schema": 1,
   "date": "2026-10-16",
   "checked_at": "2026-10-16T14:13:27Z",
-  "status": "agent-verified-awaiting-user-acceptance",
-  "user_acceptance": "pending",
+  "status": "agent-verified-user-approved-for-merge",
+  "user_acceptance": {
+    "deployment_quote": "没什么问题不用介入 AI 但要确认 MCP 可配置",
+    "merge_quote": "建文档、修改正文和修改标题这三个写入工具\n是只有这 3 个吗？那就不管了先提交合并到 v0.2.5 吧",
+    "origin": "chat:01a144d4-bf6d-76c1-8f47-5c6ddf4ebb41/msg_01a1456b-dcb1-71d3-817a-b0a0a38deafe",
+    "scope": "stable deployment only; MCP integration deferred; no tag or Release mutation",
+    "experiencedAt": "2026-10-16T15:54:19.185Z"
+  },
   "url": "https://affine.truebigsand.top",
   "scope_reference": "specs/76-affine-deployment/spec.md",
   "images": {
@@ -167,5 +173,37 @@
     "No SMTP, OAuth provider, AI provider, or new notification channel configured",
     "No whole-machine loss, cross-version recovery, or failover test",
     "Database PITR is separate from daily consistent asset backups"
-  ]
+  ],
+  "mcp": {
+    "status": "deferred-by-user",
+    "chatgpt_chat_verified": false,
+    "upstream_credential_revoked": true,
+    "temporary_proxy_removed": true,
+    "temporary_services_stopped": true,
+    "stable_configuration_restored": true,
+    "details": "docs/context/affine-mcp-investigation.md"
+  },
+  "closeout_access": {
+    "ok": true,
+    "version": "0.27.4",
+    "https_login": true,
+    "authenticated_workspace_access": true,
+    "anonymous_workspace_denied": true,
+    "setup_closed": true,
+    "signup_configuration_disabled": true,
+    "unknown_account_denied": true,
+    "role_allowed_count": 1,
+    "role_denied_count": 7,
+    "completed": 1792166184.7189832
+  },
+  "closeout_health": {
+    "ok": true,
+    "alerts": []
+  },
+  "closeout_checked_at": "2026-10-16T15:57:45.456865+00:00",
+  "closeout_validation": {
+    "infra_full_repository_checks": "passed",
+    "screenshots_generated": 24,
+    "note": "Initial rerun found the previous ephemeral test database had already been removed; recreated its isolated localhost test fixture and reran the full check successfully. Production databases were not used for repository tests."
+  }
 }

@@ -17,8 +17,8 @@
 ```sh
 cd /opt/stacks/affine
 docker compose config --quiet
-docker compose run --rm affine-migration
-docker compose up -d affine-server
+docker compose run --rm migration
+docker compose up -d affine
 curl --fail http://100.100.1.202:9018/health
 ```
 
@@ -63,3 +63,7 @@ systemctl list-timers affine-backup.timer affine-monitor.timer
 ## 回退边界
 
 PG 更新前的原 compose/配置在 `/var/lib/affine-ops/pre-pg-upgrade/`。自动更新失败会恢复当时旧配置；上线后不能整体覆盖旧 PG ops 配置，否则会丢掉 AFFiNE 的新权限映射。先停 AFFiNE、备份当前配置，比较后只调整明确的镜像项，并保留当前数据卷。已有 vector 对象的数据库依赖扩展二进制，旧裸 PG 镜像不能作为 AFFiNE 的可用回退；优先使用已验证镜像或从一致备份隔离恢复。所有回退保留新旧数据和原始证据。
+
+## MCP 状态
+
+本次 MCP/ChatGPT 集成已按用户决定搁置。当前稳定运行配置关闭 Copilot 与索引器；临时网关已停用，凭据已撤销。完整能力、开发分支 CI 结论、未完成项及回退记录见 [MCP 调查](../../docs/context/affine-mcp-investigation.md)，不能把创建了插件条目当作 Chat 页面调用成功。后续不要直接恢复旧临时配置。
