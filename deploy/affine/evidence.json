@@ -1,6 +1,171 @@
 {
   "schema": 1,
   "date": "2026-10-16",
-  "status": "verification-in-progress",
-  "user_acceptance": "pending"
+  "checked_at": "2026-10-16T14:13:27Z",
+  "status": "agent-verified-awaiting-user-acceptance",
+  "user_acceptance": "pending",
+  "url": "https://affine.truebigsand.top",
+  "scope_reference": "specs/76-affine-deployment/spec.md",
+  "images": {
+    "AFFINE_IMAGE": "ghcr.nju.edu.cn/toeverything/affine@sha256:b649f5ce2384ffdf13c23bccf81d759e15973d59d0b0058af65d895a84373099",
+    "REDIS_IMAGE": "redis@sha256:858f009f9709ce576febc734aa78b8f6d624b82571f9ddb6bda4377c833b3499",
+    "PG_IMAGE": "sha256:f2017424de7f9f527b5e0751e611d6ef03d58caf55d9974a9df6bde152a059c0",
+    "upstream_affine": "ghcr.io/toeverything/affine@sha256:b649f5ce2384ffdf13c23bccf81d759e15973d59d0b0058af65d895a84373099",
+    "pgvector_source": "f37c13f68b57d2c3472b2214fbcff699d6d34876"
+  },
+  "pg_image_preflight": {
+    "ok": true,
+    "image": "sha256:f2017424de7f9f527b5e0751e611d6ef03d58caf55d9974a9df6bde152a059c0",
+    "backup": "20261016T132058Z",
+    "system_id": "7689904531301453863",
+    "pg_version": "18.6",
+    "pgvector": "0.8.7",
+    "distance_query": true,
+    "restart": true,
+    "penpot_authenticated": true,
+    "penpot_cross_database_rejected": true,
+    "completed": 1792157325.9311574
+  },
+  "pg_upgrade": {
+    "ok": true,
+    "system_id": "7689904531301453863",
+    "old_image": "postgres@sha256:77f585114c32fbca283dc835b0596f4e52b51b4c6662d7810b2f4084f60a1873",
+    "image": "sha256:f2017424de7f9f527b5e0751e611d6ef03d58caf55d9974a9df6bde152a059c0",
+    "elapsed": 1.96,
+    "completed": 1792157361.6406157
+  },
+  "compatibility": {
+    "ok": true,
+    "system_id": "7689904531301453863",
+    "original_databases_present": 7,
+    "penpot_authenticated_profile_query": true,
+    "penpot_to_affine_denied": true,
+    "penpot_business_health": true,
+    "completed": 1792159397.828872
+  },
+  "access": {
+    "ok": true,
+    "version": "0.27.4",
+    "https_login": true,
+    "authenticated_workspace_access": true,
+    "anonymous_workspace_denied": true,
+    "setup_closed": true,
+    "signup_configuration_disabled": true,
+    "unknown_account_denied": true,
+    "role_allowed_count": 1,
+    "role_denied_count": 7,
+    "completed": 1792159931.7472591
+  },
+  "backup": {
+    "ok": true,
+    "stamp": "20261016T140317Z",
+    "completed": 1792159684.564397,
+    "independent": true,
+    "tables": 91,
+    "files": 44
+  },
+  "restore": {
+    "ok": true,
+    "source": "OneDrive",
+    "stamp": "20261016T140317Z",
+    "sha256_verified": true,
+    "inventory_verified": true,
+    "document_bytes_verified": true,
+    "pgvector_verified": true,
+    "file_count": 44,
+    "login_verified": true,
+    "workspace_count": 1,
+    "seconds": 26.59
+  },
+  "runtime_archive": {
+    "ok": true,
+    "image_id": "sha256:f2017424de7f9f527b5e0751e611d6ef03d58caf55d9974a9df6bde152a059c0",
+    "sha256": "174467845a619c3080614e95887226ff575a1d9bba06911e2b514fa790d27376",
+    "cloud_download_verified": true,
+    "bytes": 119243211,
+    "archive_identity_verified": true
+  },
+  "pg_cloud_recovery": {
+    "ok": true,
+    "backup": "20261016T134423Z",
+    "independent_source": "OneDrive",
+    "end_to_end_seconds": 1477.98,
+    "modes": [
+      {
+        "mode": "full",
+        "ok": true,
+        "seconds": 4.86,
+        "pitr_marker": null
+      },
+      {
+        "mode": "pitr",
+        "ok": true,
+        "seconds": 4.67,
+        "pitr_marker": "before"
+      }
+    ]
+  },
+  "pg_vector_recovery": {
+    "ok": true,
+    "completed": 1792159927.0918202,
+    "results": [
+      {
+        "mode": "full",
+        "vector_query": true,
+        "business_roles": 2,
+        "cross_database_rejected": true
+      },
+      {
+        "mode": "pitr",
+        "vector_query": true,
+        "business_roles": 2,
+        "cross_database_rejected": true
+      }
+    ]
+  },
+  "browser": {
+    "browsers": [
+      "Codex in-app browser",
+      "Microsoft Edge"
+    ],
+    "normal_login": true,
+    "anonymous_document_denied": true,
+    "chinese_edit": true,
+    "image_upload": true,
+    "fresh_browser_image_loaded": true,
+    "attachment_upload_rename_download": true,
+    "attachment_download_bytes_match": true,
+    "cross_browser_document_and_attachment": true,
+    "refresh_persistence": true,
+    "application_restart_persistence": true,
+    "screenshot": "deploy/affine/browser-verification.png"
+  },
+  "monitor": {
+    "health_ok": true,
+    "business_role_probe": true,
+    "cluster_identity_probe": true,
+    "backup_freshness": true,
+    "health_port": 9018,
+    "timer": "60s",
+    "backup_timer": "03:20 Asia/Shanghai",
+    "notification": "state changes in systemd journal"
+  },
+  "validation": {
+    "affine_operations_tests": 5,
+    "rust_fmt_clippy_tests": "passed",
+    "architecture_and_existing_operations": "passed",
+    "web_format_lint_typecheck_unit_arch_build": "passed",
+    "storybook_screenshot_generation": 24,
+    "repository_e2e_passed": 22,
+    "repository_e2e_skipped": 1,
+    "e2e_origin": "http://localhost:18076",
+    "notes": "Initial 127.0.0.1 APIRequestContext rejected Secure cookies; rerun uses CI-equivalent localhost. Screenshot comparison is separately checked in CI."
+  },
+  "boundaries": [
+    "No permanent PostgreSQL instance added",
+    "Other Xenica PG instances not migrated or given vector extension",
+    "No SMTP, OAuth provider, AI provider, or new notification channel configured",
+    "No whole-machine loss, cross-version recovery, or failover test",
+    "Database PITR is separate from daily consistent asset backups"
+  ]
 }

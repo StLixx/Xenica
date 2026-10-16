@@ -45,6 +45,8 @@ python3 -S /opt/affine-ops/backup.py
 python3 -S /opt/affine-ops/restore.py
 python3 -S /opt/affine-ops/archive_image.py
 python3 -S /opt/affine-ops/verify_access.py
+python3 -S /opt/affine-ops/verify_compatibility.py
+python3 -S /opt/affine-ops/verify_pg_recovery.py
 python3 -S /opt/affine-ops/health.py
 journalctl -u affine-monitor.service
 systemctl list-timers affine-backup.timer affine-monitor.timer
@@ -56,7 +58,7 @@ systemctl list-timers affine-backup.timer affine-monitor.timer
 
 `restore.py` 从实际云端重新下载密文，校验摘要，在 `--internal` 临时网络启动 PG/Redis/AFFiNE，按业务角色恢复并验证行数、文档字节、附件、向量运算、原账号和工作区，finally 清理容器/网络。pgvector 由管理员安装，TOC 排除扩展及其注释，业务角色不获得超级权限。无业务公开端口、SMTP 或 AI 出网。临时演练材料保存在私有目录供排错，可在核对后定期清理。
 
-`archive_image.py` 保存并加密确切 PG 镜像，云端重新下载并核对压缩包 SHA-256。恢复新主机时从该密文解密后 `gzip -dc … | docker load`，核对 `images.json` 的 PG_IMAGE；AFFiNE 使用官方固定摘要，国内镜像站只作为同摘要传输路径。密钥须按现有私有应急规则另行保管，不能只留在丢失的主机。整机丢失与跨版本恢复本次未演练。
+`archive_image.py` 核对 OCI 索引身份（错误旧包会拒绝复用），保存并加密确切 PG 镜像，云端重新下载并核对压缩包 SHA-256。恢复新主机时从该密文解密后 `gzip -dc … | docker load`，核对 `images.json` 的 PG_IMAGE；AFFiNE 使用官方固定摘要，国内镜像站只作为同摘要传输路径。密钥须按现有私有应急规则另行保管，不能只留在丢失的主机。整机丢失与跨版本恢复本次未演练。
 
 ## 回退边界
 

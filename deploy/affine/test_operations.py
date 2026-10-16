@@ -5,9 +5,23 @@ import unittest
 from unittest.mock import patch
 import backup
 import health
+import archive_image
+import tarfile
+import io
+import hashlib
 from restore import restore_toc
 
 class ProtectionTests(unittest.TestCase):
+    def test_runtime_archive_rejects_a_different_or_corrupt_image(self):
+        payload=b'fixed OCI index';image='sha256:'+hashlib.sha256(payload).hexdigest()
+        with tempfile.TemporaryDirectory() as tmp:
+            path=Path(tmp)/'runtime.tar.gz'
+            with tarfile.open(path,'w:gz') as archive:
+                for name,data in [('index.json',json.dumps({'manifests':[{'digest':image}]}).encode()),('blobs/sha256/'+image[7:],payload)]:
+                    info=tarfile.TarInfo(name);info.size=len(data);archive.addfile(info,io.BytesIO(data))
+            archive_image.verify_image_identity(path,image)
+            with self.assertRaisesRegex(RuntimeError,'another image'):archive_image.verify_image_identity(path,'sha256:'+'0'*64)
+
     def test_dump_failure_always_unpauses_application(self):
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp);calls=[]
