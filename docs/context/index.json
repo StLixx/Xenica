@@ -48,11 +48,12 @@
     {
       "id": "infra-only-development",
       "status": "confirmed",
-      "summary": "构建、编译、测试与重型环境只在 Infra；Windows 用于编辑、SSH 和查看。",
-      "origin": "用户长期偏好与 2026-10-11 项目指令",
+      "summary": "源码阅读、修改、构建、测试与容器环境都在 Infra；Windows 只保留 SSH、浏览器和轻量入口，不维护源码副本。",
+      "origin": "2026-10-16 用户明确要求完全远程开发，替代此前 Windows 可编辑的约定",
       "references": [
         "AGENTS.md",
-        "specs/54-delivery-system/spec.md"
+        "docs/adr/0018-repository-fact-source.md",
+        "docs/context/remote-development.md"
       ]
     },
     {
@@ -234,6 +235,29 @@
         "deploy/pg-ops/README.md"
       ],
       "task": 69
+    },
+    {
+      "id": "github-only-long-term-fact-source",
+      "status": "confirmed",
+      "summary": "GitHub 是唯一长期事实源；服务器与部署实例可重建。源码、用户决定、角色、部署维护经验、后续和可公开案例回到仓库，会话和本机记忆只作检索线索。",
+      "origin": "2026-10-16 当前会话用户明确说明项目从早期持续保留的载体与脚手架目标",
+      "references": [
+        "AGENTS.md",
+        "docs/adr/0018-repository-fact-source.md",
+        "docs/context/remote-development.md"
+      ],
+      "task": 74
+    },
+    {
+      "id": "adopted-designs-and-case-files-in-git",
+      "status": "confirmed",
+      "summary": "正式采用且可公开的设计原件、素材和未来管理工具资料须进入仓库并有恢复方式；隐私另做私有备份。当前 Penpot Design Token 与页面只是测试 Draft，不纳入成果归档；新设计与优化留到下一版本。",
+      "origin": "2026-10-16 用户区分长期文件、私密内容和当前测试 Draft",
+      "references": [
+        "docs/adr/0018-repository-fact-source.md",
+        "docs/context/remote-development.md"
+      ],
+      "task": 74
     },
     {
       "id": "affine-existing-pgvector-deployment",

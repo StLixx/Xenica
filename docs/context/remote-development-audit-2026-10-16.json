@@ -1,0 +1,40 @@
+{
+  "schema": 1,
+  "date": "2026-10-16",
+  "source_repository": "https://github.com/StLixx/Xenica",
+  "baseline_commit": "b6e4d5c88254412228543fde910a51f1c320457a",
+  "local_primary_commit": "bdcaf6101e067d71807ed583ac4cfb7c8571dbe2",
+  "directories_verified": 7,
+  "files_archived_and_verified": 3884,
+  "non_git_files_rechecked": 2122,
+  "tracked_content_changes": 0,
+  "metadata_only_modified_files": 10,
+  "archive_sha256": "97818728b29def6bbc2aab6a29e5a4486be7c44a2609e77479c9dc235584c2b2",
+  "historical_branches_preserved": [
+    "codex/archive-windows-20261016-preview-smoke",
+    "codex/archive-windows-20261016-deprecated-v1"
+  ],
+  "remote_workspace": "/opt/xenica-workspace/main",
+  "ssh_fetch_push_verified": true,
+  "local_cleanup": "completed",
+  "private_cloud_restore": "downloaded_decrypted_sha256_matches",
+  "native_remote_chat": "not_connected",
+  "online_penpot_drafts": "untouched",
+  "validation": {
+    "context_references": 20,
+    "pg_operations_tests": 26,
+    "penpot_tests": 12,
+    "web_tests": 27,
+    "storybook": "passed",
+    "format_lint_typecheck_arch_build": "passed"
+  },
+  "local_entry_total_bytes": 14061,
+  "local_git_repositories_remaining_in_audited_roots": 0,
+  "all_original_branch_and_tag_tips_preserved": 28,
+  "native_remote_cli": {
+    "version": "0.163.0",
+    "app_server_available": true,
+    "authenticated": false,
+    "release_sha256": "beb339e8ecd9ba057a6bb2dc81ad8ca474812edfbf0fc5056ca818797648dde4"
+  }
+}
