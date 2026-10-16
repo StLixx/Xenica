@@ -23,7 +23,9 @@ def archive():
         temp.replace(output)
     encrypted=ENCRYPTED.parent/'runtime';encrypted.mkdir(mode=0o700,exist_ok=True)
     cipher=encrypted/(output.name+'.gpg')
-    run(['gpg','--batch','--yes','--pinentry-mode','loopback','--passphrase-file','/etc/pg-ops/backup.key','--symmetric','--cipher-algo','AES256','--output',str(cipher),str(output)])
+    pending=cipher.with_suffix('.partial')
+    run(['gpg','--batch','--yes','--pinentry-mode','loopback','--passphrase-file','/etc/pg-ops/backup.key','--symmetric','--cipher-algo','AES256','--output',str(pending),str(output)])
+    pending.replace(cipher)
     atomic(encrypted/'manifest.json',{'image_id':image,'sha256':sha(output),'pgvector_source':images['pgvector_source']})
     synchronize()
     remote='/var/lib/pg-ops/affine-image-verification'
