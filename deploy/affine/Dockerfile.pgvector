@@ -1,0 +1,11 @@
+ARG PG_BASE=postgres@sha256:77f585114c32fbca283dc835b0596f4e52b51b4c6662d7810b2f4084f60a1873
+FROM ${PG_BASE} AS builder
+ARG PGVECTOR_VERSION=0.8.7
+RUN sed -i "s|https://dl-cdn.alpinelinux.org|https://mirrors.ustc.edu.cn|g" /etc/apk/repositories
+RUN apk add --no-cache build-base git
+COPY pgvector-source /tmp/pgvector
+RUN cd /tmp/pgvector && make with_llvm=no -j2 OPTFLAGS='' && make with_llvm=no DESTDIR=/out install
+FROM ${PG_BASE}
+COPY --from=builder /out/ /
+LABEL org.opencontainers.image.source="https://github.com/StLixx/Xenica" \
+      org.opencontainers.image.description="Existing PostgreSQL 18.6 Alpine with pgvector 0.8.7"

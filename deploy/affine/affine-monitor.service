@@ -1,0 +1,8 @@
+[Unit]
+Description=AFFiNE state-change monitoring
+After=affine-health.service
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 -S /opt/affine-ops/health.py --monitor
+TimeoutStartSec=90
+UMask=0077

@@ -50,7 +50,10 @@
       "status": "confirmed",
       "summary": "构建、编译、测试与重型环境只在 Infra；Windows 用于编辑、SSH 和查看。",
       "origin": "用户长期偏好与 2026-10-11 项目指令",
-      "references": ["AGENTS.md", "specs/54-delivery-system/spec.md"]
+      "references": [
+        "AGENTS.md",
+        "specs/54-delivery-system/spec.md"
+      ]
     },
     {
       "id": "managed-excalidraw-source",
@@ -97,7 +100,9 @@
       "status": "unverified",
       "summary": "本轮修复接口与交付体系，新 Notion 模型会话验收继续延期，尚未证明任何新会话自动具备全部访问能力。",
       "origin": "用户选择本轮先修复接口，稍后验收 Notion；本轮计划明确延期",
-      "references": ["specs/54-delivery-system/continuation.md"]
+      "references": [
+        "specs/54-delivery-system/continuation.md"
+      ]
     },
     {
       "id": "private-test-workspace",
@@ -142,7 +147,14 @@
       "status": "confirmed",
       "summary": "Penpot 的部署、设备、运维、决定与考证信息归入 v0.2.5 开发脚手架父任务54/子任务65；用户明确要求提交并合并，发布后追加记录保留独立日期和源码/部署身份。",
       "origin": "2026-10-14 当前会话明确的长期归档与合并指令，原话见 penpot-recording.md",
-      "references": ["docs/adr/0017-penpot-scaffolding.md", "docs/context/penpot-operations.md", "docs/context/penpot-inventory.json", "docs/context/penpot-recording.md", "specs/65-penpot-deployment/spec.md", "deploy/penpot/README.md"],
+      "references": [
+        "docs/adr/0017-penpot-scaffolding.md",
+        "docs/context/penpot-operations.md",
+        "docs/context/penpot-inventory.json",
+        "docs/context/penpot-recording.md",
+        "specs/65-penpot-deployment/spec.md",
+        "deploy/penpot/README.md"
+      ],
       "task": 65,
       "parentTask": 54,
       "implementation": "deployed"
@@ -152,7 +164,12 @@
       "status": "confirmed",
       "summary": "官方MCP及个人ChatGPT无限期密钥、API Token/Webhooks、公网admin-console启用；公开注册/Google/SMTP关闭，同学仅预留，许可不激活。密码、密钥和原设计只存私有位置，用户采用的验证文件必须保留。",
       "origin": "2026-10-14 本会话逐项决定与无限期密钥单独授权",
-      "references": ["specs/65-penpot-deployment/spec.md", "deploy/penpot/compose.yaml", "deploy/penpot/integrations-evidence.json", "docs/context/penpot-inventory.json"],
+      "references": [
+        "specs/65-penpot-deployment/spec.md",
+        "deploy/penpot/compose.yaml",
+        "deploy/penpot/integrations-evidence.json",
+        "docs/context/penpot-inventory.json"
+      ],
       "task": 65,
       "implementation": "deployed"
     },
@@ -161,7 +178,12 @@
       "status": "historical",
       "summary": "共享PG重建为5432，Penpot旧5433连接拒绝使get-profile500；原权限401探针漏检。同步两个组件URI并增加profile负向回归，两个浏览器及新云端恢复通过。",
       "origin": "2026-10-14 用户report.txt与服务器实测；不是浏览器或双栈故障的推断",
-      "references": ["deploy/penpot/access-recovery-evidence.json", "deploy/penpot/health.py", "deploy/penpot/test_health.py", "docs/context/penpot-recording.md"],
+      "references": [
+        "deploy/penpot/access-recovery-evidence.json",
+        "deploy/penpot/health.py",
+        "deploy/penpot/test_health.py",
+        "docs/context/penpot-recording.md"
+      ],
       "task": 65
     },
     {
@@ -169,30 +191,64 @@
       "status": "unverified",
       "summary": "整机双服务器丢失及跨版本恢复未验证；SVG和缺少原始URL的其他素材案例未独立通过；Xenica内嵌/生产Webhook接收未实施。已验证OneDrive同版本隔离恢复不扩大为这些结论。",
       "origin": "2026-10-14 归档核对实际演练依赖与原始证据",
-      "references": ["docs/context/penpot-operations.md", "docs/context/penpot-inventory.json", "deploy/penpot/restore.py"],
+      "references": [
+        "docs/context/penpot-operations.md",
+        "docs/context/penpot-inventory.json",
+        "deploy/penpot/restore.py"
+      ],
       "task": 65
-    }
-    ,{
+    },
+    {
       "id": "pg-v025-operations-archive",
       "status": "historical",
       "summary": "原63/64实施了三源备份恢复、权限预算、受控切换与资源隔离；67/68补齐v0.2.5父目标归属、设备与迁移接管资料，不改旧发布。",
       "origin": "2026-10-15 用户要求PostgreSQL全部长期资料按Penpot同样方式归档",
-      "references": ["docs/context/pg-operations.md", "deploy/pg-ops/evidence.json", "docs/adr/0016-pg-operations.md", "docs/context/pg-inventory-2026-10-15.json"],
+      "references": [
+        "docs/context/pg-operations.md",
+        "deploy/pg-ops/evidence.json",
+        "docs/adr/0016-pg-operations.md",
+        "docs/context/pg-inventory-2026-10-15.json"
+      ],
       "task": 67
-    },{
+    },
+    {
       "id": "pg-rebuilt-topology-backup-drift",
       "status": "historical",
       "summary": "2026-10-15修复前发现njupt_db5434与1Panel5432分流，旧配置仍找njupt-pg，两机监控报警；原快照保留，修复后证据另列，不用旧成功覆盖当时故障。",
       "origin": "本日SSH只读Docker inspect、业务集群psql及8097健康接口",
-      "references": ["docs/context/pg-inventory-2026-10-15.json", "docs/context/pg-operations.md"],
+      "references": [
+        "docs/context/pg-inventory-2026-10-15.json",
+        "docs/context/pg-operations.md"
+      ],
       "task": 69
-    },{
+    },
+    {
       "id": "pg-rebuilt-topology-recovery-69",
       "status": "historical",
       "summary": "2026-10-15保留双集群并绑定系统ID，恢复四主库备份/WAL/跨机云端和两机监控；全量/PITR共8次及权限补修后5432重验2次通过，Penpot账号在生产与云端副本均只可连接自身库。配套素材/原账号/设计读取通过。5432无热备，未生产切换或合库。",
       "origin": "本日用户批准处理真实缺陷；Infra/core实测与OneDrive隔离恢复",
-      "references": ["specs/69-pg-source-recovery/spec.md", "deploy/pg-ops/recovery-69-evidence.json", "docs/context/pg-operations.md", "deploy/pg-ops/README.md"],
+      "references": [
+        "specs/69-pg-source-recovery/spec.md",
+        "deploy/pg-ops/recovery-69-evidence.json",
+        "docs/context/pg-operations.md",
+        "deploy/pg-ops/README.md"
+      ],
       "task": 69
+    },
+    {
+      "id": "affine-existing-pgvector-deployment",
+      "status": "confirmed",
+      "summary": "用户批准按Penpot标准部署AFFiNE；复用panel-main原PG18.6实例补充pgvector0.8.7，独立业务库/受限角色、HTTPS、加密云备份与隔离恢复，交互验收待用户确认；Xenica其他实例不迁移。",
+      "origin": "2026-10-16 当前会话用户明确要求复用现有数据库并回复开始",
+      "references": [
+        "docs/adr/0019-affine-shared-pgvector.md",
+        "docs/context/affine-operations.md",
+        "specs/76-affine-deployment/spec.md",
+        "deploy/affine/README.md",
+        "deploy/affine/evidence.json"
+      ],
+      "task": 76,
+      "implementation": "deployed-awaiting-acceptance"
     }
   ],
   "references": [

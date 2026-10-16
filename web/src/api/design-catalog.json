@@ -136,6 +136,18 @@
         "deploy/penpot/integrations-evidence.json",
         "docs/context/penpot-inventory.json"
       ]
+    },
+    {
+      "id": "affine-existing-pgvector-deployment",
+      "title": "用户批准按Penpot标准部署AFFiNE；复用panel-main原PG18.6实例补充pgvector0.8.7，独立业务库/受限角色、HTTPS、加密云备份与隔离恢复，交互验收待用户确认；Xenica其他实例不迁移。",
+      "source": "docs/context/index.json",
+      "references": [
+        "docs/adr/0019-affine-shared-pgvector.md",
+        "docs/context/affine-operations.md",
+        "specs/76-affine-deployment/spec.md",
+        "deploy/affine/README.md",
+        "deploy/affine/evidence.json"
+      ]
     }
   ],
   "components": [

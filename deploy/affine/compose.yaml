@@ -1,0 +1,56 @@
+name: affine
+services:
+  affine:
+    image: ${AFFINE_IMAGE:?fixed image required}
+    container_name: affine-server
+    restart: unless-stopped
+    mem_limit: 2g
+    cpus: 2
+    ports:
+      - '127.0.0.1:3010:3010'
+      - '100.100.1.202:3010:3010'
+    env_file: /etc/affine-ops/server.env
+    volumes:
+      - /mnt/HDD/affine/storage:/root/.affine/storage
+      - /etc/affine-ops/config:/root/.affine/config
+    depends_on:
+      redis:
+        condition: service_healthy
+      migration:
+        condition: service_completed_successfully
+    networks: [affine]
+  migration:
+    image: ${AFFINE_IMAGE:?fixed image required}
+    container_name: affine-migration
+    restart: 'no'
+    mem_limit: 1g
+    cpus: 1
+    command: ['sh', '-c', 'node ./scripts/self-host-predeploy.js']
+    env_file: /etc/affine-ops/server.env
+    volumes:
+      - /mnt/HDD/affine/storage:/root/.affine/storage
+      - /etc/affine-ops/config:/root/.affine/config
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks: [affine]
+  redis:
+    image: ${REDIS_IMAGE:?fixed image required}
+    container_name: affine-redis
+    restart: unless-stopped
+    mem_limit: 256m
+    cpus: 1
+    command: ['redis-server', '--appendonly', 'yes', '--maxmemory', '160mb', '--maxmemory-policy', 'noeviction']
+    volumes:
+      - /mnt/HDD/affine/redis:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks: [affine]
+networks:
+  affine:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: br-affine
