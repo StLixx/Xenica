@@ -7,8 +7,8 @@
   "stable_affine_changed": false,
   "upstream_source": "b4c8548c09da21b2898443559a5b846f0ccf5dd8",
   "fork_repository": "https://github.com/StLixx/AFFiNE",
-  "fork_commit": "9e3141ad4d56c7709d8eee6f20a64cd9b0d414b3",
-  "fork_tree": "7dfe2a3b440ce36c330ce56346ff51745932b3a9",
+  "fork_commit": "14546dcb156b58fc16fa2e1b6d6ded48c08c76c1",
+  "fork_tree": "3aaab19bb3df226e0e28571bd921caaf461fde3e",
   "fork_pull_request": "https://github.com/StLixx/AFFiNE/pull/1",
   "xenica_pull_request": "https://github.com/StLixx/Xenica/pull/80",
   "containers": [
@@ -144,15 +144,18 @@
     "MCP snapshot restore is independent of original AFFiNE database and attachment recovery"
   ],
   "fork_targeted_ci": {
-    "run": 38935908868,
+    "run": 38938239844,
     "conclusion": "success",
-    "commit": "9e3141ad4d56c7709d8eee6f20a64cd9b0d414b3"
+    "commit": "14546dcb156b58fc16fa2e1b6d6ded48c08c76c1"
   },
   "verification_notes": [
     "Isolated Xenica E2E uses http://localhost:18079; an initial 127.0.0.1 run failed because Playwright API requests did not send Secure cookies there. Rerun with localhost passed 22 tests; no application changes.",
     "History E2E skipped because this isolated synthetic database has no history archives. Deployment history is unchanged.",
     "Local component screenshots matched 24 existing Infra baselines from the previous task; GitHub CI official container remains authoritative.",
     "Both OAuth clients retained authorization after service restart and read the other client document.",
-    "Encrypted online snapshot was copied to an independent host and cloud, downloaded, hash checked, decrypted and both SQLite integrity checks passed. No full-machine rebuild claim."
-  ]
+    "Encrypted online snapshot was copied to an independent host and cloud, downloaded, hash checked, decrypted and both SQLite integrity checks passed. No full-machine rebuild claim.",
+    "Fork workspace yarn.lock registration was corrected after full upstream setup rejected the new workspace as an immutable-lock drift. Bridge source tree is identical to the deployed build; targeted clean Docker build and 9 regressions passed at the final Fork commit."
+  ],
+  "deployed_bridge_source_commit": "9e3141ad4d56c7709d8eee6f20a64cd9b0d414b3",
+  "bridge_code_tree": "3e0936bc299daabc5ca5765fdf2247f44269179e"
 }
