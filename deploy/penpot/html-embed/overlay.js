@@ -85,6 +85,64 @@ function matrixFor(shape, vbox, zoom) {
   ];
 }
 
+function polygonArea(points) {
+  return points.reduce((sum, p, i) => {
+    const q = points[(i + 1) % points.length];
+    return sum + p.x * q.y - q.x * p.y;
+  }, 0);
+}
+function pointInPolygon(point, polygon) {
+  if (polygon.length < 3) return false;
+  const sign = polygonArea(polygon) >= 0 ? 1 : -1;
+  return polygon.every((a, i) => {
+    const b = polygon[(i + 1) % polygon.length];
+    return (
+      sign * ((b.x - a.x) * (point.y - a.y) - (b.y - a.y) * (point.x - a.x)) >=
+      -0.01
+    );
+  });
+}
+function intersectPolygons(subject, clip) {
+  const sign = polygonArea(clip) >= 0 ? 1 : -1;
+  for (let i = 0; i < clip.length && subject.length; i++) {
+    const a = clip[i],
+      b = clip[(i + 1) % clip.length],
+      input = subject;
+    subject = [];
+    const cross = (p) =>
+      sign * ((b.x - a.x) * (p.y - a.y) - (b.y - a.y) * (p.x - a.x));
+    let previous = input[input.length - 1],
+      pc = cross(previous);
+    for (const current of input) {
+      const cc = cross(current);
+      if (cc >= 0 !== pc >= 0) {
+        const t = pc / (pc - cc);
+        subject.push({
+          x: previous.x + t * (current.x - previous.x),
+          y: previous.y + t * (current.y - previous.y),
+        });
+      }
+      if (cc >= 0) subject.push(current);
+      previous = current;
+      pc = cc;
+    }
+  }
+  return subject;
+}
+function clipPolygonFor(clips, vbox, zoom) {
+  const polygons = (clips || [])
+    .map((c) =>
+      c.points?.map((p) => ({
+        x: (p.x - vbox.x) * zoom,
+        y: (p.y - vbox.y) * zoom,
+      })),
+    )
+    .filter((p) => p?.length === 4);
+  return polygons.length
+    ? polygons.slice(1).reduce(intersectPolygons, polygons[0])
+    : null;
+}
+
 class HtmlEmbedLayer extends HTMLElement {
   constructor() {
     super();
@@ -94,11 +152,12 @@ class HtmlEmbedLayer extends HTMLElement {
     this.active = null;
     this.shadowRoot.innerHTML = `<style>
 :host{position:absolute;inset:0;overflow:clip;pointer-events:none;z-index:2;font:13px system-ui;color:#eceef4}
-*{box-sizing:border-box}.bar{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:8px;padding:8px;background:#222630;border:1px solid #454b59;border-radius:12px;box-shadow:0 4px 24px #0005;pointer-events:auto;white-space:nowrap;max-width:calc(100% - 24px)}button{font:inherit;color:inherit;background:#343a47;border:1px solid #50596a;border-radius:7px;padding:8px 12px;cursor:pointer}button:hover{background:#464e60}button:focus-visible,textarea:focus-visible{outline:2px solid #a9efd1;outline-offset:2px}.primary{background:#a9efd1;color:#14271e;border-color:#a9efd1}.primary:hover{background:#c3f5e0}.hint{color:#bcc4d3}.card{position:absolute;left:0;top:0;transform-origin:0 0;overflow:hidden;border:1px solid #667180;background:#16181d;pointer-events:none}.card[data-active=true]{outline:2px solid #a9efd1}.select-embed{position:absolute;right:8px;top:8px;pointer-events:auto;font-size:11px;padding:5px 8px;background:#293b36;color:#b8f4d8;border-color:#698d7c}.card[data-active=true] .select-embed{display:none}.card iframe{width:100%;height:100%;border:0;display:block;pointer-events:none}.card[data-active=true] iframe{pointer-events:auto}.dialog{position:absolute;inset:16px;margin:auto;max-width:780px;max-height:650px;background:#20232c;border:1px solid #596273;border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:12px;pointer-events:auto;box-shadow:0 12px 60px #0009}.dialog h2{margin:0;font-size:20px}.dialog p{color:#bdc5d4;margin:0;line-height:1.6}.dialog textarea{width:100%;flex:1;min-height:150px;resize:none;background:#11141a;color:#e9edf5;border:1px solid #50596a;border-radius:8px;padding:14px;font:13px/1.6 monospace}.actions{display:flex;gap:8px;justify-content:flex-end}.error{color:#ffb0b0;min-height:18px}.shade{position:absolute;inset:0;background:#0006;pointer-events:auto}.badge{font-size:11px;color:#a9efd1}@media(max-width:600px){.hint{display:none}.bar{gap:4px;padding:6px}button{padding:8px}.dialog{inset:8px;padding:14px}}
-:host([data-compact]) .bar{bottom:104px}:host([data-compact]) .hint{display:none}
+*{box-sizing:border-box}.bar{position:absolute;bottom:var(--embed-bottom,16px);left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:8px;padding:8px;background:#222630;border:1px solid #454b59;border-radius:12px;box-shadow:0 4px 24px #0005;pointer-events:auto;white-space:nowrap;max-width:calc(100% - 24px)}button{font:inherit;color:inherit;background:#343a47;border:1px solid #50596a;border-radius:7px;padding:8px 12px;cursor:pointer}button:hover{background:#464e60}button:focus-visible,textarea:focus-visible{outline:2px solid #a9efd1;outline-offset:2px}.primary{background:#a9efd1;color:#14271e;border-color:#a9efd1}.primary:hover{background:#c3f5e0}.hint{color:#bcc4d3}.clip{position:absolute;inset:0;pointer-events:none}.card{position:absolute;left:0;top:0;transform-origin:0 0;overflow:hidden;border:1px solid #667180;background:#16181d;pointer-events:none}.card[data-active=true]{outline:2px solid #a9efd1}.select-embed{position:absolute;right:8px;top:8px;pointer-events:auto;font-size:11px;padding:5px 8px;background:#293b36;color:#b8f4d8;border-color:#698d7c}.card[data-active=true] .select-embed{display:none}.card iframe{width:100%;height:100%;border:0;display:block;pointer-events:none}.card[data-active=true] iframe{pointer-events:auto}.dialog{position:absolute;inset:16px;margin:auto;max-width:780px;max-height:650px;background:#20232c;border:1px solid #596273;border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:12px;pointer-events:auto;box-shadow:0 12px 60px #0009}.dialog h2{margin:0;font-size:20px}.dialog p{color:#bdc5d4;margin:0;line-height:1.6}.dialog textarea{width:100%;flex:1;min-height:150px;resize:none;background:#11141a;color:#e9edf5;border:1px solid #50596a;border-radius:8px;padding:14px;font:13px/1.6 monospace}.actions{display:flex;gap:8px;justify-content:flex-end}.error{color:#ffb0b0;min-height:18px}.shade{position:absolute;inset:0;background:#0006;pointer-events:auto}.badge{font-size:11px;color:#a9efd1}@media(max-width:600px){.hint{display:none}.bar{gap:4px;padding:6px}button{padding:8px}.dialog{inset:8px;padding:14px}}
+:host([data-compact]) .bar{bottom:max(104px,var(--embed-bottom,16px))}:host([data-compact]) .hint{display:none}
 </style><div class="cards"></div><div class="bar" role="toolbar" aria-label="HTML 嵌入工具"><span class="badge">HTML EMBED</span></div>`;
     this.onMessage = this.onMessage.bind(this);
     this.onDoubleClick = this.onDoubleClick.bind(this);
+    this.onNativePointerDown = this.onNativePointerDown.bind(this);
     const bar = this.shadowRoot.querySelector(".bar");
     for (const type of ["pointerdown", "pointerup", "wheel"])
       bar.addEventListener(type, (e) => e.stopPropagation());
@@ -107,6 +166,11 @@ class HtmlEmbedLayer extends HTMLElement {
     this.tabIndex = -1;
     this.viewport = this.closest('[data-testid="viewport"]');
     this.viewport?.addEventListener("dblclick", this.onDoubleClick, true);
+    this.viewport?.addEventListener(
+      "pointerdown",
+      this.onNativePointerDown,
+      true,
+    );
     window.addEventListener("message", this.onMessage);
     this.sizeObserver = new ResizeObserver(() => {
       this.toggleAttribute("data-compact", this.clientWidth < 620);
@@ -116,6 +180,11 @@ class HtmlEmbedLayer extends HTMLElement {
   disconnectedCallback() {
     this.sizeObserver?.disconnect();
     this.viewport?.removeEventListener("dblclick", this.onDoubleClick, true);
+    this.viewport?.removeEventListener(
+      "pointerdown",
+      this.onNativePointerDown,
+      true,
+    );
     window.removeEventListener("message", this.onMessage);
   }
   button(label, action, primary = false) {
@@ -128,6 +197,23 @@ class HtmlEmbedLayer extends HTMLElement {
       action();
     };
     return b;
+  }
+  onNativePointerDown(event) {
+    if (!this.active || this.context.viewer || event.button !== 0) return;
+    if (
+      event
+        .composedPath()
+        .some(
+          (el) =>
+            el?.classList?.contains("bar") || el?.classList?.contains("dialog"),
+        )
+    )
+      return;
+    // Pointer events inside the iframe stay in its document. A pointerdown
+    // reaching the native canvas starts a canvas gesture, so release the iframe.
+    this.active = null;
+    this.updateActive();
+    this.updateBar();
   }
   onDoubleClick(event) {
     if (!this.context || this.context.viewer || event.button !== 0) return;
@@ -142,6 +228,14 @@ class HtmlEmbedLayer extends HTMLElement {
       return;
     const host = this.getBoundingClientRect();
     for (const [id, card] of [...this.cards].reverse()) {
+      if (
+        card.visiblePolygon &&
+        !pointInPolygon(
+          { x: event.clientX - host.x, y: event.clientY - host.y },
+          card.visiblePolygon,
+        )
+      )
+        continue;
       const point = new DOMPoint(
         event.clientX - host.x,
         event.clientY - host.y,
@@ -197,14 +291,24 @@ class HtmlEmbedLayer extends HTMLElement {
         this.context.pageId !== context.pageId)
     ) {
       this.active = null;
-      for (const c of this.cards.values()) c.element.remove();
+      for (const c of this.cards.values()) c.root.remove();
       this.cards.clear();
     }
     this.context = context;
+    this.style.setProperty(
+      "--embed-bottom",
+      `${16 + (Number(context.paletteSize) || 0)}px`,
+    );
+    if (
+      this.active &&
+      !context.viewer &&
+      !context.selected?.includes(this.active)
+    )
+      this.active = null;
     const ids = new Set(context.shapes.map((s) => s.id));
     for (const [id, c] of this.cards)
       if (!ids.has(id)) {
-        c.element.remove();
+        c.root.remove();
         this.cards.delete(id);
         if (this.active === id) this.active = null;
       }
@@ -226,8 +330,11 @@ class HtmlEmbedLayer extends HTMLElement {
         for (const type of ["pointerdown", "pointerup"])
           choose.addEventListener(type, (e) => e.stopPropagation());
         element.append(iframe, choose);
-        this.shadowRoot.querySelector(".cards").append(element);
-        c = { element, iframe, html: null };
+        const root = document.createElement("div");
+        root.className = "clip";
+        root.append(element);
+        this.shadowRoot.querySelector(".cards").append(root);
+        c = { root, element, iframe, html: null };
         iframe.addEventListener("load", () => {
           iframe.contentWindow?.postMessage(
             { type: "xenica-html-zoom", zoom: c.zoom || 1 },
@@ -244,6 +351,16 @@ class HtmlEmbedLayer extends HTMLElement {
           context.zoom || 1,
         );
       }
+      c.visiblePolygon = clipPolygonFor(
+        shape.clips,
+        context.vbox || { x: 0, y: 0 },
+        context.zoom || 1,
+      );
+      c.root.style.clipPath = c.visiblePolygon
+        ? c.visiblePolygon.length
+          ? `polygon(${c.visiblePolygon.map((p) => `${p.x}px ${p.y}px`).join(",")})`
+          : "polygon(0px 0px,0px 0px,0px 0px)"
+        : "none";
       const m = matrixFor(
         shape,
         context.vbox || { x: 0, y: 0 },
@@ -283,6 +400,7 @@ class HtmlEmbedLayer extends HTMLElement {
       this.context.viewer,
       this.active,
       chosen?.id,
+      chosen?.frameId,
     ]);
     if (this.barSignature === signature) return;
     this.barSignature = signature;
@@ -326,6 +444,10 @@ class HtmlEmbedLayer extends HTMLElement {
           ),
         );
     }
+    if (chosen?.frameId && !this.context.readOnly && !this.active)
+      bar.append(
+        this.button("适配 Board", () => this.context.fit?.(chosen.id)),
+      );
     const hint = document.createElement("span");
     hint.className = "hint";
     hint.textContent = this.active
@@ -403,4 +525,13 @@ class HtmlEmbedLayer extends HTMLElement {
   }
 }
 customElements.define("xenica-html-embed-layer", HtmlEmbedLayer);
-export { documentFor, matrixFor, geometryFor, sample, MAX_HTML, MAX_STATE };
+export {
+  documentFor,
+  matrixFor,
+  geometryFor,
+  clipPolygonFor,
+  pointInPolygon,
+  sample,
+  MAX_HTML,
+  MAX_STATE,
+};

@@ -8,7 +8,7 @@
 
 `bridge.cljs` 接入 Penpot 原生图形创建、plugin-data 更新、选择、几何修改预览与原型查看。`overlay.js` 是原生 Web Component，独立于 Penpot 编译器，负责 HTML 编辑、iframe 与坐标/交互模式。`apply.py <Penpot源码根目录>` 将这两个源文件和三个调用点装入基线；重复运行不会重复添加。补丁不需要数据库迁移。
 
-在 Infra 的独立构建源执行 apply，再在官方 devenv 中完成 CLJS 格式/lint、`VERSION_TAG=2.18.3-html81-r6 PENPOT_BUILD_OPTIMIZATIONS=simple clojure -M:dev:shadow-cljs release main worker`，使用同一 VERSION_TAG 和 `VERSION=2.18.3 NODE_ENV=production` 调用 `_helpers.js` 的 `compileTemplates()`，运行 `node scripts/build-libs.js`。构建前后固定源码和校验值；运行 `verify_artifact.py <frontend/resources/public>`，不能跳过页面/编译版本一致性。
+在 Infra 的独立构建源执行 apply，再在官方 devenv 中完成 CLJS 格式/lint、`VERSION_TAG=2.18.3-html81-r7 PENPOT_BUILD_OPTIMIZATIONS=simple clojure -M:dev:shadow-cljs release main worker`，使用同一 VERSION_TAG 和 `VERSION=2.18.3 NODE_ENV=production` 调用 `_helpers.js` 的 `compileTemplates()`，运行 `node scripts/build-libs.js`。构建前后固定源码和校验值；运行 `verify_artifact.py <frontend/resources/public>`，不能跳过页面/编译版本一致性。
 
 Dockerfile 上下文包含 public/js、index.html/render.html/rasterizer.html，以及原有已验证 MCP 插件 dist（plugin/）。镜像同时保留旧插件路径并添加新版本路径，避免七天缓存造成旧插件误连。构建源码及日志在 Infra `/opt/penpot-multi-session/html-embed-source`，新任务不得改写原来的 build-source。
 
@@ -31,3 +31,9 @@ iframe 仅允许脚本，使用独立不透明来源；内联 HTML/CSS/JS 可运
 `native-regression.mjs` 在固定体验文件验证原生复制/删除/撤销、全新浏览器上下文恢复和 Dashboard 无嵌入工具条。当前独立镜像归档同时包含新旧前端，校验值和独立副本位置见 evidence.json；恢复时校验归档后 docker load，再按部署回执恢复旧前端环境并只重建 frontend，不还原数据库覆盖新内容。
 
 双击 HTML 块可直接进入交互；已有原生 path 从四角恢复 HTML 几何，不改写文件类型。录屏反馈回归见 feedback-smoke.mjs（连续滚轮、Space 平移、原文件刷新），doubleclick-smoke.mjs 只允许操作独立回归副本，验证新块双击保持 rect。部署命令为 `python3 deploy.py <候选镜像ID> <预期当前镜像ID>`，校验运行身份后才切换，并从候选标签核对实际页面版本。
+
+第二次录屏修复：原生画布/手柄按下时自动退出 iframe 交互，避免向内缩小时鼠标事件被网页截走；点击网页内部仍正常交互。新建块默认适配选中 Board（页面只有一个 Board 时自动选用），已有块可点击「适配 Board」，以原生可撤销变更对齐四角并设置双向拉伸约束，不改 HTML 和状态。HTML 层继承所有未开启溢出的祖先 Board 裁剪，工具条避让底部颜色/字体面板。
+
+`board-smoke.mjs` 仅在独立回归副本运行，覆盖实际输入持久化、旧 path 适配、交互后向内缩小/向外放大、Board 四角、刷新约束、新建适配、窄屏及只读查看。原体验文件只执行一次可撤销适配，保留原 HTML/状态和 Board 几何，并验证服务端刷新恢复。
+
+独立归档必须放入 core 的托管同步源 `/var/lib/pg-ops/encrypted/penpot-artifacts/`，不能只写到云端目录之外再手动上传：既有 PG 云同步采用删除镜像语义。前端归档只含公开构建产物，无用户设计或凭据；发布后从托管源对云端执行逐文件校验。并发上传可能返回 409，等待已有同步完成后执行 check，不能把失败重试当成验证成功。

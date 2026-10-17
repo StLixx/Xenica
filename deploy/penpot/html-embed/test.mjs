@@ -5,9 +5,10 @@ import { test } from "node:test";
 globalThis.HTMLElement = class {};
 globalThis.customElements = { define() {} };
 const source = readFileSync(new URL("./overlay.js", import.meta.url), "utf8");
-const { documentFor, matrixFor, sample } = await import(
-  "data:text/javascript;base64," + Buffer.from(source).toString("base64")
-);
+const { documentFor, matrixFor, sample, clipPolygonFor, pointInPolygon } =
+  await import(
+    "data:text/javascript;base64," + Buffer.from(source).toString("base64")
+  );
 test("canvas translation and zoom", () =>
   assert.deepEqual(
     matrixFor({ x: 150, y: 100, width: 400, height: 200 }, { x: 50, y: 20 }, 2),
@@ -83,4 +84,24 @@ test("converted path with omitted rectangle fields keeps finite geometry", () =>
     2,
   );
   assert.deepEqual(result, [2, 0, 0, 2, 130, 230]);
+});
+
+test("nested Board clips intersect in viewport coordinates", () => {
+  const rect = (x, y, w, h) => ({
+    points: [
+      { x, y },
+      { x: x + w, y },
+      { x: x + w, y: y + h },
+      { x, y: y + h },
+    ],
+  });
+  const polygon = clipPolygonFor(
+    [rect(0, 0, 100, 100), rect(50, 50, 100, 100)],
+    { x: 10, y: 20 },
+    2,
+  );
+  assert.equal(pointInPolygon({ x: 130, y: 110 }, polygon), true);
+  assert.equal(pointInPolygon({ x: 30, y: 10 }, polygon), false);
+  assert.equal(pointInPolygon({ x: 190, y: 190 }, polygon), false);
+  assert.equal(clipPolygonFor([], { x: 0, y: 0 }, 1), null);
 });

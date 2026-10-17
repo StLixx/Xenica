@@ -43,8 +43,14 @@ try {
     );
   const page = await context.newPage();
   page.on("pageerror", (e) => report.errors.push(e.message));
-  await page.goto(process.env.TEST_URL || evidence.publicReport.url);
+  await page.goto(
+    process.env.TEST_URL || evidence.experienceUrl || evidence.publicReport.url,
+  );
   await page.locator('iframe[title="HTML 交互块"]').waitFor();
+  const initialCount = await page
+    .frameLocator('iframe[title="HTML 交互块"]')
+    .locator("#count")
+    .innerText();
   const check = async () => {
     const result = await page
       .locator("xenica-html-embed-layer")
@@ -126,7 +132,7 @@ try {
   await page.reload();
   await page.locator('iframe[title="HTML 交互块"]').waitFor();
   await check();
-  assert.equal(await frame.locator("#count").innerText(), "3");
+  assert.equal(await frame.locator("#count").innerText(), initialCount);
   await page.screenshot({
     path: new URL(
       "../../../output/playwright/html81-feedback.png",

@@ -17,14 +17,15 @@ for name, modifiers in [("viewport.cljs", "modifiers"), ("viewport_wasm.cljs", "
     if "html-embed/layer*" not in source:
         assert marker in source, name
         source = source.replace(marker, marker + call, 1)
+    source = source.replace(":modifiers " + modifiers + " :read-only", ":modifiers " + modifiers + " :palette-size palete-size :read-only")
     path.write_text(source)
 for template in [root / "frontend/resources/templates/index.mustache", root / "frontend/resources/public/index.html"]:
     if not template.exists():
         continue
     source = template.read_text()
-    source = re.sub(r'/js/xenica-html-embed\.js[^\"]*', '/js/xenica-html-embed.js?v=81-r6', source)
+    source = re.sub(r'/js/xenica-html-embed\.js[^\"]*', '/js/xenica-html-embed.js?v=81-r7', source)
     if "xenica-html-embed.js" not in source:
-        source = source.replace("</head>", '<script type="module" src="/js/xenica-html-embed.js?v=81-r6"></script>\n</head>')
+        source = source.replace("</head>", '<script type="module" src="/js/xenica-html-embed.js?v=81-r7"></script>\n</head>')
     template.write_text(source)
 print("Applied HTML embed workspace patch")
 

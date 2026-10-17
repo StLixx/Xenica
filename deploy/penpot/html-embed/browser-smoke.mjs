@@ -103,6 +103,9 @@ try {
     await page.frameLocator("iframe").locator("#count").innerText(),
     "2",
   );
+  await page.mouse.click(300, 50);
+  await page.getByRole("button", { name: "进入交互", exact: true }).waitFor();
+  await page.getByRole("button", { name: "进入交互", exact: true }).click();
   await page.evaluate(() => {
     window.ctx.zoom = 0.5;
     document.querySelector("xenica-html-embed-layer").setContext(window.ctx);
@@ -147,6 +150,18 @@ try {
   await page.getByRole("button", { name: "保存 HTML", exact: true }).click();
   assert.equal(await page.getByRole("alert").innerText(), "请输入 HTML 内容。");
   await page.getByRole("button", { name: "取消", exact: true }).click();
+  await page.evaluate(() => {
+    window.ctx.paletteSize = 80;
+    document.querySelector("xenica-html-embed-layer").setContext(window.ctx);
+  });
+  const bottomGap = await page
+    .locator("xenica-html-embed-layer")
+    .evaluate(
+      (el) =>
+        el.getBoundingClientRect().bottom -
+        el.shadowRoot.querySelector(".bar").getBoundingClientRect().bottom,
+    );
+  assert.ok(bottomGap >= 96, "toolbar must clear native palette");
   assert.deepEqual(errors, []);
   console.log(
     JSON.stringify({

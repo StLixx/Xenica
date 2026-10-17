@@ -4,73 +4,31 @@
   "upstream": "ff7a66f51938b2293260ea27a64e2c4e0833b5e3",
   "multiSessionSource": "1a82a80abd369eaa0983dd91cdd8324cfa383517",
   "baseImageId": "sha256:cafee5958514cc0648c3b1989f1b70f740e6d6bdf58de0cefc6ac32cbed2bd94",
-  "imageId": "sha256:c09d72eaa7242ac6021ea97bfff959e0fbdacbd0d384b091712ef056cfe4e3e5",
-  "pageVersion": "2.18.3-html81-r6",
+  "imageId": "sha256:120014dfa8a9033b83681f603f0b28f80bae7ae57c3017f9cfb8f239ef9ef8d5",
+  "pageVersion": "2.18.3-html81-r7",
   "schemaChange": false,
   "sourceHashes": {
-    "bridge.cljs": "da2f3ec314ee2b5a9ba78473681d2cae962f5ff23844de906ae174e0b9bfc0e2",
-    "overlay.js": "d5f3c753c1dc7bee644ca5b6d18abd26c9b15056f8e27b5a35b097ce256bbe20",
-    "apply.py": "3a12602e8d5a779b547e1fed4826fcf5534c213713ea64734195a5112156ef8a",
-    "Dockerfile": "46d2c40937845bb596bac86379db813be3f4cbc8817d92122cf4726fe8fdc89c"
+    "bridge.cljs": "d3bedd116b872b744d151eecfe04cf0d718b3a2cbe624f2a68afe97773eb915f",
+    "overlay.js": "9e91f631c5a7a44c25ae2a08a03923c8de6fa540c3dbeea6cb042e76540027f9",
+    "apply.py": "901d8b4680f7751c9d3d43f2e1a8750220360bd6e9faa0adaf1f6911addfe0fc",
+    "Dockerfile": "53a4cc6b139af5ef28f18274404821be01c6963f85e7d732147999d665161bdb"
   },
   "candidateReport": {
     "ok": true,
-    "scenarios": [
-      "input, buttons and persisted state bridge",
-      "native drag with live HTML alignment",
-      "native width and height edits",
-      "canvas zoom alignment",
-      "server file reload restores HTML, geometry and state",
-      "narrow desktop toolbar",
-      "prototype viewer interaction without file writes"
-    ],
     "errors": [],
-    "drag": {
-      "before": {
-        "id": "13fe1aba-db42-8012-8008-cd496e22ab92",
-        "x": 0,
-        "y": 70,
-        "width": 640,
-        "height": 420,
-        "state": "{\"count\":3,\"idea\":\"画板内 <HTML>，刷新后仍在\"}",
-        "zoom": 0.8607142857142858
-      },
-      "moved": {
-        "id": "13fe1aba-db42-8012-8008-cd496e22ab92",
-        "x": 64.99997973936723,
-        "y": 115.00000506515823,
-        "width": 640,
-        "height": 420,
-        "state": "{\"count\":3,\"idea\":\"画板内 <HTML>，刷新后仍在\"}",
-        "zoom": 0.8607142857142858
-      },
-      "during": {
-        "x": 564.3035888671875,
-        "y": 358.9821472167969,
-        "width": 548.8436279296875,
-        "height": 359.5000305175781
-      },
-      "afterBox": {
-        "x": 564.3035888671875,
-        "y": 358.9821472167969,
-        "width": 548.8436279296875,
-        "height": 359.5000305175781
-      }
-    },
-    "viewer": "https://penpot.truebigsand.top/#/view?file-id=21312d73-8dbe-8051-8008-cd6a4d3f9784&page-id=21312d73-8dbe-8051-8008-cd4942b4b992&section=interactions&frame-id=13fe1aba-db42-8012-8008-cd496d70b0d2&index=0",
-    "url": "https://penpot.truebigsand.top/#/workspace?team-id=8fa64b17-9fc4-8078-8008-c9bd47e80f37&file-id=21312d73-8dbe-8051-8008-cd6a4d3f9784&page-id=21312d73-8dbe-8051-8008-cd4942b4b992&board-id=13fe1aba-db42-8012-8008-cd496d70b0d2",
-    "geometry": {
-      "id": "13fe1aba-db42-8012-8008-cd496e22ab92",
-      "x": 64.99997973936723,
-      "y": 115.00000506515823,
-      "width": 680,
-      "height": 440,
-      "state": "{\"count\":3,\"idea\":\"画板内 <HTML>，刷新后仍在\"}",
-      "zoom": 1.0954545454545455
-    }
+    "scenarios": [
+      "actual input and button state persist through native file changes",
+      "existing path fits Board without changing HTML or state",
+      "inward native handle drag releases active iframe and shrinks",
+      "outward native handle drag enlarges after shrinking",
+      "all four Board corner handles keep HTML aligned in position and size",
+      "Board geometry and stretch constraints survive reload",
+      "new HTML defaults to selected Board size and alignment",
+      "narrow toolbar and interactive readonly viewer keep Board clipping"
+    ]
   },
   "checks": {
-    "javascriptTests": 8,
+    "javascriptTests": 9,
     "isolatedBrowser": true,
     "upstreamFrontendTests": 746,
     "upstreamAssertions": 2775,
@@ -78,16 +36,16 @@
     "cljsCompileWarnings": 0,
     "rollbackOldFrontendReadsNewFile": true,
     "mcpButtonPreserved": true,
-    "upstreamTestCarryForward": "746 tests and 2775 assertions on a8797e9; no CLJS behavior or upstream source changed in this JS correction"
+    "upstreamTestRun": "r7: 746 tests, 2775 assertions, zero failures or errors; extension behavior covered separately by browser regression"
   },
-  "localBackup": "20261017T063956Z",
+  "localBackup": "20261017T070719Z",
   "promotion": {
     "schema": 1,
-    "previousImage": "sha256:ba1f659115a3655766ef01ffd552e5d419e78715ddc9a37236d62dc4d128e326",
-    "candidateImage": "sha256:c09d72eaa7242ac6021ea97bfff959e0fbdacbd0d384b091712ef056cfe4e3e5",
-    "rollbackPath": "/mnt/HDD/penpot/rollback/html81-20261017T064543Z",
+    "previousImage": "sha256:c09d72eaa7242ac6021ea97bfff959e0fbdacbd0d384b091712ef056cfe4e3e5",
+    "candidateImage": "sha256:120014dfa8a9033b83681f603f0b28f80bae7ae57c3017f9cfb8f239ef9ef8d5",
+    "rollbackPath": "/mnt/HDD/penpot/rollback/html81-20261017T071633Z",
     "schemaChange": false,
-    "pageVersion": "2.18.3-html81-r6",
+    "pageVersion": "2.18.3-html81-r7",
     "promoted": true
   },
   "userAcceptance": {
@@ -96,83 +54,42 @@
   },
   "publicReport": {
     "ok": true,
-    "scenarios": [
-      "input, buttons and persisted state bridge",
-      "native drag with live HTML alignment",
-      "native width and height edits",
-      "canvas zoom alignment",
-      "server file reload restores HTML, geometry and state",
-      "narrow desktop toolbar",
-      "prototype viewer interaction without file writes"
-    ],
     "errors": [],
-    "drag": {
-      "before": {
-        "id": "13fe1aba-db42-8012-8008-cd496e22ab92",
-        "x": 0,
-        "y": 70,
-        "width": 640,
-        "height": 420,
-        "state": "{\"count\":3,\"idea\":\"画板内 <HTML>，刷新后仍在\"}",
-        "zoom": 0.8607142857142858
-      },
-      "moved": {
-        "id": "13fe1aba-db42-8012-8008-cd496e22ab92",
-        "x": 64.99997973936723,
-        "y": 115.00000506515823,
-        "width": 640,
-        "height": 420,
-        "state": "{\"count\":3,\"idea\":\"画板内 <HTML>，刷新后仍在\"}",
-        "zoom": 0.8607142857142858
-      },
-      "during": {
-        "x": 564.3035888671875,
-        "y": 358.9821472167969,
-        "width": 548.8436279296875,
-        "height": 359.5000305175781
-      },
-      "afterBox": {
-        "x": 564.3035888671875,
-        "y": 358.9821472167969,
-        "width": 548.8436279296875,
-        "height": 359.5000305175781
-      }
-    },
-    "viewer": "https://penpot.truebigsand.top/#/view?file-id=21312d73-8dbe-8051-8008-cd6a4d3f9784&page-id=21312d73-8dbe-8051-8008-cd4942b4b992&section=interactions&frame-id=13fe1aba-db42-8012-8008-cd496d70b0d2&index=0",
-    "url": "https://penpot.truebigsand.top/#/workspace?team-id=8fa64b17-9fc4-8078-8008-c9bd47e80f37&file-id=21312d73-8dbe-8051-8008-cd6a4d3f9784&page-id=21312d73-8dbe-8051-8008-cd4942b4b992&board-id=13fe1aba-db42-8012-8008-cd496d70b0d2",
-    "geometry": {
-      "id": "13fe1aba-db42-8012-8008-cd496e22ab92",
-      "x": 64.99997973936723,
-      "y": 115.00000506515823,
-      "width": 680,
-      "height": 440,
-      "state": "{\"count\":3,\"idea\":\"画板内 <HTML>，刷新后仍在\"}",
-      "zoom": 1.0954545454545455
-    }
+    "scenarios": [
+      "actual input and button state persist through native file changes",
+      "existing path fits Board without changing HTML or state",
+      "inward native handle drag releases active iframe and shrinks",
+      "outward native handle drag enlarges after shrinking",
+      "all four Board corner handles keep HTML aligned in position and size",
+      "Board geometry and stretch constraints survive reload",
+      "new HTML defaults to selected Board size and alignment",
+      "narrow toolbar and interactive readonly viewer keep Board clipping"
+    ]
   },
   "independentBackup": {
-    "stamp": "20261017T063956Z",
+    "stamp": "20261017T070719Z",
     "verified": true
   },
   "artifactArchive": {
-    "path": "/mnt/HDD/penpot/artifacts/html-embed-81-r6/frontend-images.tar.gz",
-    "sha256": "85c1f0b80017fb637ce2eb0e499303cb04ab37e5ce71d95b2a9ffdbba7dda688",
+    "path": "/mnt/HDD/penpot/artifacts/html-embed-81-r7/frontend-images.tar.gz",
+    "sha256": "eb6495ffa3d4219191a6bb480a54b05a02581acf23b1515689f68b43619e7bea",
     "contains": [
-      "r6 candidate frontend",
-      "r4 previous frontend"
+      "r7 candidate frontend",
+      "r6 previous frontend"
     ],
-    "independentPath": "drive02:PG-operations-v1/penpot-artifacts/2.18.3-html81-r6",
+    "managedIndependentSource": "/var/lib/pg-ops/encrypted/penpot-artifacts/2.18.3-html81-r7",
+    "independentPath": "drive02:PG-operations-v1/penpot-artifacts/2.18.3-html81-r7",
     "independentStatus": "verified",
     "independentCheck": {
       "matchingFiles": 2,
-      "differences": 0
+      "differences": 0,
+      "checkedAt": "2026-10-17T15:24:14+08:00"
     }
   },
   "screenshots": [
-    "evidence/desktop.png",
-    "evidence/narrow.png",
-    "evidence/viewer.png",
-    "evidence/feedback.png"
+    "evidence/board.png",
+    "evidence/board-narrow.png",
+    "evidence/board-viewer.png"
   ],
   "nativeRegression": {
     "ok": true,
@@ -185,9 +102,9 @@
     "errors": []
   },
   "previous": {
-    "imageId": "sha256:ba1f659115a3655766ef01ffd552e5d419e78715ddc9a37236d62dc4d128e326",
-    "pageVersion": "2.18.3-html81-r4",
-    "source": "a8797e9d9b3006bb8efa2722c63a595b68750189"
+    "imageId": "sha256:c09d72eaa7242ac6021ea97bfff959e0fbdacbd0d384b091712ef056cfe4e3e5",
+    "pageVersion": "2.18.3-html81-r6",
+    "source": "da73e197fd277e15fbcace7b5248c109318dd6ff"
   },
   "experienceUrl": "https://penpot.truebigsand.top/#/workspace?team-id=8fa64b17-9fc4-8078-8008-c9bd47e80f37&file-id=21312d73-8dbe-8051-8008-cd4942b4b991&page-id=21312d73-8dbe-8051-8008-cd4942b4b992&board-id=13fe1aba-db42-8012-8008-cd496d70b0d2",
   "feedbackRegression": {
@@ -196,42 +113,68 @@
       "ok": true,
       "errors": [],
       "samples": 40,
-      "maxPositionError": 0.00021777603615191765,
-      "maxSizeError": 0.014923307995559298,
+      "maxPositionError": 0.00021590275810012827,
+      "maxSizeError": 0.015383181602601326,
       "zooms": [
-        1.1022727272727273,
-        0.8660714285714286,
-        1.3103660714285714,
-        1.9825838660714283,
-        2.9996493893660707,
-        4.538469526110864,
-        6.866704393005738,
-        10.38932374661768,
-        15.71904682863255,
-        23.782917851721045,
-        35.98355470965394,
-        54.443118275706404,
-        82.37243795114378,
-        124.62949862008053,
-        2.9996493893660703,
-        1.982583866071428,
-        1.310366071428571,
-        0.8660714285714284
+        0.8412836079791848,
+        0.6963388370423547,
+        1.0535606604450825,
+        1.5940372792534097,
+        2.4117784035104086,
+        3.649020724511248,
+        5.520968356185518,
+        8.353225122908688,
+        12.638429610960843,
+        19.121944001383753,
+        28.931501274093616,
+        43.77336142770364,
+        66.2290958401156,
+        100.20462200609491,
+        28.93150127409362,
+        19.121944001383756,
+        12.638429610960845,
+        5.520968356185517,
+        3.6490207245112476,
+        2.411778403510408,
+        1.5940372792534094,
+        1.0535606604450822,
+        0.6963388370423544
       ],
-      "finalZoom": 0.8660714285714284,
-      "initialZoom": 0.8660714285714286,
-      "panDelta": -152.41237113402067
+      "finalZoom": 0.6963388370423544,
+      "initialZoom": 0.6963388370423547,
+      "panDelta": -189.56288659793927
     },
     "newRectangleDoubleClick": {
       "ok": true,
       "nativeType": ":rect",
       "scenario": "native double click enters HTML without converting the new rectangle to a vector path"
     },
-    "originalExperienceFileUnchanged": true,
     "failureBeforeFix": "matrix [1360,0,0,880,130,230] instead of [2,0,0,2,130,230]",
     "window": {
       "width": 1606,
       "height": 1820
     }
+  },
+  "boardFeedback": {
+    "causes": [
+      "active iframe intercepts inward native resize gestures",
+      "native child constraints were absent and overlay omitted ancestor Board clipping"
+    ],
+    "originalExperienceFit": {
+      "ok": true,
+      "originalHtmlAndStatePreserved": true,
+      "originalBoardGeometryPreserved": true,
+      "alignedOnAllFourCorners": true,
+      "reloadPreserved": true,
+      "undoableNativeFileChange": true
+    },
+    "contentPreserved": true,
+    "boardGeometryPreserved": true,
+    "nativeUndoableFit": true,
+    "newBlocksFitSelectedBoard": true,
+    "constraints": [
+      "leftright",
+      "topbottom"
+    ]
   }
 }
