@@ -4,17 +4,21 @@
 
 决定与边界：[ADR 0020](../../docs/adr/0020-affine-read-write-mcp.md)。长期接续：[读写 MCP](../../docs/context/affine-rw-mcp.md)。验证与精确身份：[evidence.json](evidence.json)。原稳定应用、PostgreSQL 与附件保护链继续见 [AFFiNE 运维](../../docs/context/affine-operations.md)。
 
+## 原生创作扩展（任务 #91）
+
+在原 6 项工具上新增 57 项原生工具；块、表格/数据库、图片像素、导图/白板及整理能力见 [原生适配手册](authoring/README.md)、[固定上游](authoring/source.json) 与 [实测证据](authoring/evidence.json)。独立 `authoring` 服务复用固定所有者/工作区和 OAuth 网关，配置/状态新增同名目录；三个 SQLite 纳入备份。以下原桥接的能力与测试数量是初版基线，新扩展与当前数量以该手册和证据为准。旧 Markdown 整篇替换仍保留复杂块保护。
+
 ## 部署结构
 
-| 部件 | 源码 / 位置 | 职责 |
-| --- | --- | --- |
-| AFFiNE 0.27.4 | 原 `affine-server` | 网页、认证、CRDT 同步与持久化，未更换或重启 |
-| Node 桥接 | [用户 AFFiNE Fork](https://github.com/StLixx/AFFiNE/tree/xenica/mcp-rw-0.27.4/tools/xenica-mcp) | 固定所有者 / 工作区，原生文档转换、Socket.IO，同步确认和幂等记录 |
-| Python 网关 | 本目录 | MCP、OAuth 2.1 / S256 PKCE、所有者授权、权限过滤、刷新与撤销 |
-| HTTPS 精确路由 | `edge.py` | 只增加 `/rw-mcp`、`/rw-oauth/` 与对应两个 well-known 地址 |
-| 私有配置 | `/etc/affine-rw-mcp/{bridge,gateway}.json` | 内部凭据、上游账号和固定工作区；不得入 Git |
-| 状态 | `/mnt/HDD/affine-rw-mcp/{bridge,gateway}/` | 写入意图 / 结果和 OAuth 状态；包含文档内容，私有备份 |
-| 运行 / 维护副本 | `/opt/stacks/affine-rw-mcp/`、`/opt/affine-rw-mcp/source/` | Compose 与仓库内维护脚本的部署副本，不是额外事实源 |
+| 部件            | 源码 / 位置                                                                                     | 职责                                                             |
+| --------------- | ----------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| AFFiNE 0.27.4   | 原 `affine-server`                                                                              | 网页、认证、CRDT 同步与持久化，未更换或重启                      |
+| Node 桥接       | [用户 AFFiNE Fork](https://github.com/StLixx/AFFiNE/tree/xenica/mcp-rw-0.27.4/tools/xenica-mcp) | 固定所有者 / 工作区，原生文档转换、Socket.IO，同步确认和幂等记录 |
+| Python 网关     | 本目录                                                                                          | MCP、OAuth 2.1 / S256 PKCE、所有者授权、权限过滤、刷新与撤销     |
+| HTTPS 精确路由  | `edge.py`                                                                                       | 只增加 `/rw-mcp`、`/rw-oauth/` 与对应两个 well-known 地址        |
+| 私有配置        | `/etc/affine-rw-mcp/{bridge,gateway}.json`                                                      | 内部凭据、上游账号和固定工作区；不得入 Git                       |
+| 状态            | `/mnt/HDD/affine-rw-mcp/{bridge,gateway}/`                                                      | 写入意图 / 结果和 OAuth 状态；包含文档内容，私有备份             |
+| 运行 / 维护副本 | `/opt/stacks/affine-rw-mcp/`、`/opt/affine-rw-mcp/source/`                                      | Compose 与仓库内维护脚本的部署副本，不是额外事实源               |
 
 仅 Infra 执行开发与运维。桥接不发布宿主端口；网关绑定 Infra 私有地址与本机 `3043`，hikari HTTPS 反代到它。专用 Docker 网络、只读根目录、资源上限、移除 capabilities 和自动重启只作用于新服务。Python 以 UID/GID `65532` 运行；其配置文件与状态目录所有者须匹配，配置 `0600`、目录 `0700`。不要为了权限错误改为全局可读。
 

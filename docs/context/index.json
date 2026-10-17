@@ -297,10 +297,12 @@
         "specs/91-affine-mcp-authoring/spec.md",
         "docs/adr/0021-affine-native-authoring.md",
         "deploy/affine-rw-mcp/authoring/source.json",
-        "deploy/affine-rw-mcp/authoring/policy.json"
+        "deploy/affine-rw-mcp/authoring/policy.json",
+        "deploy/affine-rw-mcp/authoring/README.md",
+        "deploy/affine-rw-mcp/authoring/evidence.json"
       ],
       "task": 91,
-      "implementation": "in-progress"
+      "implementation": "deployed-agent-verified-awaiting-user-acceptance"
     }
   ],
   "references": [
