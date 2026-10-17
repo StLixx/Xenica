@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "status": "candidate-passed-public-verification-in-progress",
+  "status": "deployed-self-tested-awaiting-user-acceptance",
   "upstream": "ff7a66f51938b2293260ea27a64e2c4e0833b5e3",
   "multiSessionSource": "1a82a80abd369eaa0983dd91cdd8324cfa383517",
   "baseImageId": "sha256:cafee5958514cc0648c3b1989f1b70f740e6d6bdf58de0cefc6ac32cbed2bd94",
@@ -76,7 +76,8 @@
     "upstreamAssertions": 2775,
     "upstreamFailures": 0,
     "cljsCompileWarnings": 0,
-    "rollbackOldFrontendReadsNewFile": true
+    "rollbackOldFrontendReadsNewFile": true,
+    "mcpButtonPreserved": true
   },
   "localBackup": "20261017T050123Z",
   "promotion": {
@@ -90,5 +91,78 @@
   "userAcceptance": {
     "status": "pending",
     "scopeApprovalIsNotAcceptance": true
-  }
+  },
+  "publicReport": {
+    "ok": true,
+    "scenarios": [
+      "input, buttons and persisted state bridge",
+      "native drag with live HTML alignment",
+      "native width and height edits",
+      "canvas zoom alignment",
+      "server file reload restores HTML, geometry and state",
+      "narrow desktop toolbar",
+      "prototype viewer interaction without file writes"
+    ],
+    "errors": [],
+    "drag": {
+      "before": {
+        "id": "13fe1aba-db42-8012-8008-cd496e22ab92",
+        "x": 0,
+        "y": 70,
+        "width": 640,
+        "height": 420,
+        "state": "{\"count\":3,\"idea\":\"画板内 <HTML>，刷新后仍在\"}",
+        "zoom": 0.8607142857142858
+      },
+      "moved": {
+        "id": "13fe1aba-db42-8012-8008-cd496e22ab92",
+        "x": 64.99997973936723,
+        "y": 115.00000506515823,
+        "width": 640,
+        "height": 420,
+        "state": "{\"count\":3,\"idea\":\"画板内 <HTML>，刷新后仍在\"}",
+        "zoom": 0.8607142857142858
+      },
+      "during": {
+        "x": 564.3035888671875,
+        "y": 358.9821472167969,
+        "width": 548.8436279296875,
+        "height": 359.5000305175781
+      },
+      "afterBox": {
+        "x": 564.3035888671875,
+        "y": 358.9821472167969,
+        "width": 548.8436279296875,
+        "height": 359.5000305175781
+      }
+    },
+    "viewer": "https://penpot.truebigsand.top/#/view?file-id=21312d73-8dbe-8051-8008-cd4942b4b991&page-id=21312d73-8dbe-8051-8008-cd4942b4b992&section=interactions&frame-id=13fe1aba-db42-8012-8008-cd496d70b0d2&index=0",
+    "url": "https://penpot.truebigsand.top/#/workspace?team-id=8fa64b17-9fc4-8078-8008-c9bd47e80f37&file-id=21312d73-8dbe-8051-8008-cd4942b4b991&page-id=21312d73-8dbe-8051-8008-cd4942b4b992&board-id=13fe1aba-db42-8012-8008-cd496d70b0d2",
+    "geometry": {
+      "id": "13fe1aba-db42-8012-8008-cd496e22ab92",
+      "x": 64.99997973936729,
+      "y": 115.00000506515823,
+      "width": 680,
+      "height": 440,
+      "state": "{\"count\":3,\"idea\":\"画板内 <HTML>，刷新后仍在\"}",
+      "zoom": 1.0954545454545455
+    }
+  },
+  "independentBackup": {
+    "stamp": "20261017T050123Z",
+    "verified": true
+  },
+  "artifactArchive": {
+    "path": "/mnt/HDD/penpot/artifacts/html-embed-81/frontend-images.tar.gz",
+    "sha256": "f73487bf6a93108c2512b5e39f7048df6feb8e7ed5d7d64e25917817e2a6771c",
+    "contains": [
+      "candidate frontend",
+      "previous frontend"
+    ]
+  },
+  "screenshots": [
+    "evidence/desktop.png",
+    "evidence/narrow.png",
+    "evidence/viewer.png"
+  ]
 }
