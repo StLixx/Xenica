@@ -172,6 +172,18 @@
         "deploy/affine/evidence.json",
         "docs/context/affine-mcp-investigation.md"
       ]
+    },
+    {
+      "id": "affine-read-write-mcp",
+      "title": "用户重新授权先 ChatGPT Plugin/Chat 后 Notion AI 的读写接入；独立复用 0.27.4 同步与原生 CRDT，保留稳定应用，Xenica 管部署维护与证据、用户 AFFiNE Fork 管适配代码。两端真实读写通过，交互体验待本人确认；#76 的 MCP 搁置状态为历史。",
+      "source": "docs/context/index.json",
+      "references": [
+        "docs/adr/0020-affine-read-write-mcp.md",
+        "docs/context/affine-rw-mcp.md",
+        "specs/79-affine-rw-mcp/spec.md",
+        "deploy/affine-rw-mcp/README.md",
+        "deploy/affine-rw-mcp/evidence.json"
+      ]
     }
   ],
   "components": [

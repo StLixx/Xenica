@@ -1,0 +1,207 @@
+{
+  "schema": 1,
+  "verified_at": "2026-10-16T17:33:54.963931+00:00",
+  "status": "deployed-agent-verified-awaiting-user-acceptance",
+  "endpoint": "https://affine.truebigsand.top/rw-mcp",
+  "stable_affine_version": "0.27.4",
+  "stable_affine_changed": false,
+  "upstream_source": "b4c8548c09da21b2898443559a5b846f0ccf5dd8",
+  "fork_repository": "https://github.com/StLixx/AFFiNE",
+  "fork_commit": "d0d29b5e67fccb3c278fc83629f6e1de03517a93",
+  "fork_tree": "7ae234ba38d770c070f172042449e3626e8fe831",
+  "fork_pull_request": "https://github.com/StLixx/AFFiNE/pull/1",
+  "xenica_pull_request": "https://github.com/StLixx/Xenica/pull/80",
+  "containers": [
+    {
+      "name": "affine-rw-mcp-bridge-1",
+      "image_id": "sha256:16f66f036e5c4cd255abf0d2f8f7ff3ac1d796fec7eb96a198d158114e9dc0ae",
+      "status": "running",
+      "health": "healthy",
+      "started_at": "2026-10-16T17:25:11.690624377Z"
+    },
+    {
+      "name": "affine-rw-mcp-gateway-1",
+      "image_id": "sha256:76a30ea90c27cb7e694a46f8a17b30f33a663966e3493944d8536f9cb4116e1d",
+      "status": "running",
+      "health": "healthy",
+      "started_at": "2026-10-16T16:57:53.996682214Z"
+    }
+  ],
+  "gateway_dependency_cache": {
+    "base_image": "sha256:246c362a7d46eceb6551c32830ac9138dc9df1341e94fd924822216e098fe5d9",
+    "exact_requirements_matched": 29,
+    "default_clean_build": "Dockerfile pinned Python base and requirements"
+  },
+  "automated_tests": {
+    "native_document_regressions": 9,
+    "oauth_gateway_regressions": 7,
+    "xenica_rust": 70,
+    "xenica_web_unit": 27,
+    "xenica_e2e_passed": 22,
+    "xenica_e2e_history_skipped": 1,
+    "xenica_component_screenshots_local": 24,
+    "openapi_drift": false,
+    "context_entries": 22,
+    "python_operations_regressions": 27
+  },
+  "clients": {
+    "ChatGPT": {
+      "oauth": true,
+      "search": true,
+      "read": true,
+      "create": true,
+      "body_update": true,
+      "title_update": true,
+      "final_read": true,
+      "doc_id": "mcp_Z0Hs8qkgf4oxI-NBOQtXC",
+      "read_after_service_restart": true,
+      "cross_client_read_notion_document": true,
+      "final_deployed_image_body_append_and_read": true,
+      "web_reload_persisted": true,
+      "consecutive_read_revision_equal": true
+    },
+    "Notion AI": {
+      "oauth": true,
+      "search": true,
+      "read": true,
+      "create": true,
+      "body_update": true,
+      "title_update": true,
+      "final_read": true,
+      "cross_client_read_chatgpt_document": true,
+      "doc_id": "mcp_sttERFosA-vvvjOVK79Tg",
+      "read_after_service_restart": true,
+      "final_deployed_image_body_append_and_read": true,
+      "web_reload_persisted": true,
+      "consecutive_read_revision_equal": true
+    }
+  },
+  "successful_synthetic_writes": [
+    {
+      "time": "2026-10-16T16:27:36.608Z",
+      "tool": "create_document",
+      "doc_id": "mcp_FsxYzc6EAYqAGV3RXhTrb",
+      "outcome": "success"
+    },
+    {
+      "time": "2026-10-16T16:27:36.819Z",
+      "tool": "update_document",
+      "doc_id": "mcp_FsxYzc6EAYqAGV3RXhTrb",
+      "outcome": "success"
+    },
+    {
+      "time": "2026-10-16T16:27:36.978Z",
+      "tool": "update_document_meta",
+      "doc_id": "mcp_FsxYzc6EAYqAGV3RXhTrb",
+      "outcome": "success"
+    },
+    {
+      "time": "2026-10-16T16:40:36.216Z",
+      "tool": "create_document",
+      "doc_id": "mcp_Z0Hs8qkgf4oxI-NBOQtXC",
+      "outcome": "success"
+    },
+    {
+      "time": "2026-10-16T16:42:07.167Z",
+      "tool": "update_document",
+      "doc_id": "mcp_Z0Hs8qkgf4oxI-NBOQtXC",
+      "outcome": "success"
+    },
+    {
+      "time": "2026-10-16T16:42:48.959Z",
+      "tool": "update_document_meta",
+      "doc_id": "mcp_Z0Hs8qkgf4oxI-NBOQtXC",
+      "outcome": "success"
+    },
+    {
+      "time": "2026-10-16T16:49:47.918Z",
+      "tool": "create_document",
+      "doc_id": "mcp_sttERFosA-vvvjOVK79Tg",
+      "outcome": "success"
+    },
+    {
+      "time": "2026-10-16T16:50:04.369Z",
+      "tool": "update_document",
+      "doc_id": "mcp_sttERFosA-vvvjOVK79Tg",
+      "outcome": "success"
+    },
+    {
+      "time": "2026-10-16T16:50:20.386Z",
+      "tool": "update_document_meta",
+      "doc_id": "mcp_sttERFosA-vvvjOVK79Tg",
+      "outcome": "success"
+    }
+  ],
+  "backup": {
+    "ok": true,
+    "stamp": "20261016T173222Z",
+    "completed": 1792171949.6999097,
+    "online_snapshot": true,
+    "independent_copy": true,
+    "cloud_roundtrip": true,
+    "decrypted_sqlite_integrity": true,
+    "sha256": "3b30debb7058baeecfdcc8a0cb4faa8e9f290fc9bb3214b01148fb66516195b6"
+  },
+  "limits": [
+    "Simple one-note Markdown body editing only; rich blocks and nonempty canvas refused",
+    "No atomic compare-and-swap in upstream sync API; same-paragraph concurrent edits follow Yjs rules",
+    "Live scan maximum 1000 documents; no external full-text index",
+    "OAuth connection maximum 30 days; access token 1 hour with refresh",
+    "MCP snapshot restore is independent of original AFFiNE database and attachment recovery"
+  ],
+  "fork_targeted_ci": {
+    "run": 38939482407,
+    "conclusion": "success",
+    "commit": "d0d29b5e67fccb3c278fc83629f6e1de03517a93"
+  },
+  "verification_notes": [
+    "Isolated Xenica E2E uses http://localhost:18079; an initial 127.0.0.1 run failed because Playwright API requests did not send Secure cookies there. Rerun with localhost passed 22 tests; no application changes.",
+    "History E2E skipped because this isolated synthetic database has no history archives. Deployment history is unchanged.",
+    "Local component screenshots matched 24 existing Infra baselines from the previous task; GitHub CI official container remains authoritative.",
+    "Both OAuth clients retained authorization after service restart and read the other client document.",
+    "Encrypted online snapshot was copied to an independent host and cloud, downloaded, hash checked, decrypted and both SQLite integrity checks passed. No full-machine rebuild claim.",
+    "Fork immutable-lock/workspace generated catalog and lint integration issues were corrected. Final deployed bridge built from d0d29b5, targeted clean Docker build with 9 regressions passed, and full upstream Lint and Typecheck/codegen passed. Full upstream native/E2E workflow still running at recording.",
+    "Both clients performed real body append and independent read on the final image; AFFiNE browser reload preserved the appended line. Each client then performed two read-only calls and returned equal revisions."
+  ],
+  "deployed_bridge_source_commit": "d0d29b5e67fccb3c278fc83629f6e1de03517a93",
+  "bridge_code_tree": "93a4bfcbc703db73e8118a6dfcc042bd401e0605",
+  "health": {
+    "ok": true,
+    "completed": 1792171942.382889,
+    "upstream_sync_checked": true,
+    "containers": [
+      "affine-rw-mcp-bridge-1",
+      "affine-rw-mcp-gateway-1"
+    ],
+    "metadata": true,
+    "anonymous_denied": true
+  },
+  "fork_upstream_checks": {
+    "run": 38939482528,
+    "commit": "d0d29b5e67fccb3c278fc83629f6e1de03517a93",
+    "lint": "success",
+    "typecheck_and_codegen": "success",
+    "full_workflow": "in_progress_at_recording"
+  },
+  "xenica_previous_ci": {
+    "run": 38938425379,
+    "commit": "896020284ca4541a07f11b90f183575317ee43fd",
+    "conclusion": "success",
+    "actual_preview_e2e_passed": 23,
+    "note": "Final evidence-only commit has separate checks linked in PR self-check report."
+  },
+  "revision_observation": {
+    "includes_crdt_structure_and_metadata": true,
+    "new_block_metadata_added_by_other_client": true,
+    "fields": [
+      "createdAt",
+      "createdBy",
+      "updatedAt",
+      "updatedBy"
+    ],
+    "consecutive_direct_reads_equal": 4,
+    "ChatGPT_final_revision": "1bd2a3705dc399775a5c1b07fe6d7775f0c203db4bbba33e1e8c7877dc5f9f92",
+    "Notion_final_revision": "bcd86a6fa5cdcabf7bff3bd60bb50b39a0042b00b6f2c2309be8c7a9085b21db",
+    "note": "Native write delta adds a paragraph without metadata; current CRDT contains metadata for the new block authored by a different client. Two independent MCP reads per client are stable and preserve all body text."
+  }
+}

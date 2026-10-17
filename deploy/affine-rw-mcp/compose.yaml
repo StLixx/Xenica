@@ -1,0 +1,51 @@
+name: affine-rw-mcp
+services:
+  bridge:
+    image: ${BRIDGE_IMAGE:?fixed bridge image required}
+    restart: unless-stopped
+    mem_limit: 512m
+    cpus: 1
+    pids_limit: 128
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    volumes:
+      - /etc/affine-rw-mcp/bridge.json:/private/bridge.json:ro
+      - /mnt/HDD/affine-rw-mcp/bridge:/state
+    tmpfs: [/tmp:size=16m]
+    networks: [mcp]
+    healthcheck:
+      test: [CMD, node, -e, "fetch('http://127.0.0.1:8892/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+  gateway:
+    image: ${GATEWAY_IMAGE:?fixed gateway image required}
+    restart: unless-stopped
+    mem_limit: 256m
+    cpus: 0.5
+    pids_limit: 64
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    ports:
+      - 100.100.1.202:3043:8891
+      - 127.0.0.1:3043:8891
+    environment:
+      AFFINE_MCP_CONFIG: /private/gateway.json
+      AFFINE_MCP_STORE: /state/oauth.sqlite3
+      PYTHONDONTWRITEBYTECODE: "1"
+    volumes:
+      - /etc/affine-rw-mcp/gateway.json:/private/gateway.json:ro
+      - /mnt/HDD/affine-rw-mcp/gateway:/state
+    tmpfs: [/tmp:size=16m]
+    networks: [mcp]
+    depends_on:
+      bridge: {condition: service_healthy}
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8891/health',timeout=5)"]
+      interval: 30s
+      timeout: 6s
+      retries: 3
+networks:
+  mcp: {}
