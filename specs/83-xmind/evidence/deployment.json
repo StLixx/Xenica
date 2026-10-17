@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "url": "https://xmind.truebigsand.top",
+  "service": "xmind.service",
+  "runtime_files": {
+    "server.py": "080b5acf85468a823c1ee838705003d6147c18902623814890bc6b5c9fd03a3c",
+    "backup.py": "db999fcd69bfa7af660a61f722e104816d8d3de805c01efb9f3d038d894187fb",
+    "backup_job.py": "6d33e529c167c7e5f06dd62654a4732cc7a30ce057a298e13a31032409823a26",
+    "web/index.html": "b0e7d98fc3115869ed21fa992c736666035e2199f0a22fe25cf97d083ec824e4",
+    "web/app.js": "969fa5306af7c46440a5e72744fc5cf8d49efb3b788a051d165ad1ee71f5b052",
+    "web/app.css": "cbe2d5d8942f59292d6659aad0ea2b1579d7ef24ba09d172c1f73a9329550f0b",
+    "web/native.js": "67bc3d3146647a5c17c01a888dadcec3880b4d68420a1cd98b4b0954ade3fa7d",
+    "xmind.service": "cc008779fa24ed5932364bfbd180987de8a54d5cd1a1c1fe83e536419ba93a4d",
+    "xmind-backup.service": "379d9c7a3731da08dfd50a97e89e52a178b6741811edb65dde40843ea97b8a53",
+    "xmind-backup.timer": "2e4ac977512453d16c4d1973ea16290e28953d2118305798a2f9537a474c19b8"
+  },
+  "native_inventory_sha256": "76379aa69c0b39701c786f434a322bd25443970aa7951ebe6557b7fc57f45120",
+  "artifact_sha256": "0ed1176d1e07c127264e6990141c1abe77c17c5545cb8ed915e10dc2a1a7e1b4",
+  "checks": {
+    "source_equal": true,
+    "public_assets_equal": true,
+    "native_file_hashes": 490,
+    "anonymous_rejected": true,
+    "healthz": true
+  },
+  "status": "deployed-awaiting-user-acceptance"
+}

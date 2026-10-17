@@ -1,0 +1,69 @@
+{
+  "schema": 1,
+  "native": {
+    "content": [
+      {
+        "id": "fixture-sheet",
+        "class": "sheet",
+        "title": "原生结构回归",
+        "rootTopic": {
+          "class": "topic",
+          "structureClass": "org.xmind.ui.map.clockwise",
+          "id": "fixture-topic-0",
+          "title": "中心主题",
+          "children": {
+            "attached": [
+              {
+                "id": "fixture-topic-4",
+                "title": "分支主题",
+                "children": {
+                  "attached": [
+                    {
+                      "id": "fixture-topic-6",
+                      "title": "分支主题"
+                    },
+                    {
+                      "id": "fixture-topic-5",
+                      "title": "分支主题"
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "fixture-topic-3",
+                "title": "分支主题",
+                "image": {
+                  "src": "xap:resources/fixture.png"
+                }
+              },
+              {
+                "id": "fixture-topic-2",
+                "title": "分支主题"
+              },
+              {
+                "id": "fixture-topic-1",
+                "title": "分支主题"
+              }
+            ]
+          }
+        },
+        "relationships": [
+          {
+            "id": "fixture-relation-0",
+            "end1Id": "fixture-topic-4",
+            "end2Id": "fixture-topic-3"
+          }
+        ]
+      }
+    ],
+    "metadata": {
+      "dataStructureVersion": "3"
+    }
+  },
+  "resources": {
+    "resources/fixture.png": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGP4z8DwHwAFAAH/iZk9HQAAAABJRU5ErkJggg=="
+  },
+  "view": {
+    "activeSheetId": "fixture-sheet"
+  }
+}

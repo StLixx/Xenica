@@ -1,0 +1,28 @@
+[Unit]
+Description=Private XMind native editor host
+After=network-online.target tailscaled.service
+Wants=network-online.target
+
+[Service]
+User=xmind
+Group=xmind
+EnvironmentFile=/var/lib/xmind-ops/service.env
+WorkingDirectory=/var/lib/xmind/app
+ExecStart=/usr/bin/python3 /var/lib/xmind/app/server.py
+Restart=on-failure
+RestartSec=3
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+BindPaths=/mnt/HDD/xenica-private/xmind:/var/lib/xmind/state
+ReadWritePaths=/var/lib/xmind/state
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+MemoryMax=384M
+TasksMax=96
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

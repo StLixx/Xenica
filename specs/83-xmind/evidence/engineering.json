@@ -1,0 +1,353 @@
+{
+  "rust_tests": 70,
+  "web_tests": 27,
+  "e2e": {
+    "status": "passed",
+    "exit_code": 0,
+    "seconds": 94.31,
+    "authorization": "isolated short-lived test sessions",
+    "history": "local isolated fixture may skip historical deployments"
+  },
+  "passed": [
+    "cargo-fmt",
+    "web-format",
+    "cargo-clippy",
+    "web-lint",
+    "web-typecheck",
+    "web-test",
+    "web-arch",
+    "web-build",
+    "cargo-test",
+    "cargo-build",
+    "arch",
+    "docs",
+    "storybook",
+    "context",
+    "release",
+    "design-catalog",
+    "gates",
+    "regression-excalidraw-archive",
+    "regression-deployer",
+    "regression-history",
+    "regression-workspace",
+    "regression-release-deployment",
+    "regression-preview-access",
+    "sqlx-offline"
+  ],
+  "screenshots": {
+    "host_comparison": "4 passed;20 differ;host font environment differs from official CI image",
+    "ci_container": "local image acquisition stopped as requested; 206836863 bytes of this run temporary layers removed; logs preserved",
+    "baseline": {
+      "artifact_id": 12084996856,
+      "run_id": 38990921086,
+      "head_sha": "098053ec1eb12bfac6fec835f2cd19d510159579",
+      "artifact_sha256": "fbf444570eebe4c7ff907400ecc169b657cd0ab05ad36cc0f2962d9000d0ce58",
+      "files": 24
+    },
+    "verified_existing_ci": {
+      "head": "101b4c5f63d2878facd8253bf52bad2e497e9821",
+      "run_id": 39017244522,
+      "job_id": 117354015759,
+      "job_url": "https://github.com/StLixx/Xenica/actions/runs/39017244522/job/117354015759",
+      "result": "24 passed",
+      "changed_stories": [],
+      "container": "mcr.microsoft.com/playwright:v1.63.0-noble",
+      "observed_log_lines": [
+        "2026-10-17T08:37:56.0895564Z   24 passed (7.9s)",
+        "2026-10-17T08:37:56.1379743Z 有变化的 story：[]"
+      ],
+      "limitation": "Existing CI run is independently verified. Local host comparison remains failed due to a different font/platform environment; it is not relabeled passed."
+    },
+    "authoritative_candidate": "final submitted SHA CI screenshots required; existing HEAD CI is corroborating evidence only"
+  },
+  "attempts": {
+    "cargo-fmt": {
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 0.22,
+      "argv": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--check"
+      ]
+    },
+    "web-format": {
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 2.02,
+      "argv": [
+        "pnpm",
+        "format:check"
+      ]
+    },
+    "cargo-clippy": {
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 3.62,
+      "argv": [
+        "cargo",
+        "clippy",
+        "--workspace",
+        "--all-targets",
+        "--locked",
+        "--",
+        "-D",
+        "warnings"
+      ]
+    },
+    "web-lint": {
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 5.13,
+      "argv": [
+        "pnpm",
+        "lint"
+      ]
+    },
+    "web-typecheck": {
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 5.43,
+      "argv": [
+        "pnpm",
+        "typecheck"
+      ]
+    },
+    "web-test": {
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 4.89,
+      "argv": [
+        "pnpm",
+        "test",
+        "--maxWorkers=2"
+      ]
+    },
+    "web-arch": {
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 1.42,
+      "argv": [
+        "pnpm",
+        "arch"
+      ]
+    },
+    "web-build": {
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 8.01,
+      "argv": [
+        "pnpm",
+        "build"
+      ]
+    },
+    "cargo-test": {
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 27.95,
+      "argv": [
+        "cargo",
+        "test",
+        "--workspace",
+        "--locked"
+      ]
+    },
+    "cargo-build": {
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 0.32,
+      "argv": [
+        "cargo",
+        "build",
+        "--locked",
+        "-p",
+        "xenica-server"
+      ]
+    },
+    "arch": {
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 0.67,
+      "argv": [
+        "bash",
+        "scripts/check-arch.sh"
+      ]
+    },
+    "docs": {
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 0.02,
+      "argv": [
+        "bash",
+        "scripts/check-docs.sh"
+      ]
+    },
+    "storybook": {
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 5.9,
+      "argv": [
+        "pnpm",
+        "build-storybook",
+        "--quiet"
+      ]
+    },
+    "context": {
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 0.03,
+      "argv": [
+        "node",
+        "scripts/check-context.cjs"
+      ]
+    },
+    "release": {
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 0.03,
+      "argv": [
+        "node",
+        ".github/scripts/check-release.cjs"
+      ]
+    },
+    "design-catalog": {
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 0.06,
+      "argv": [
+        "node",
+        "scripts/generate-design-catalog.cjs",
+        "--check"
+      ]
+    },
+    "gates": {
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 0.21,
+      "argv": [
+        "bash",
+        "-c",
+        "node --test .github/scripts/tests/*.test.cjs"
+      ]
+    },
+    "screenshots": {
+      "status": "failed",
+      "exit_code": 1,
+      "seconds": 20.99,
+      "argv": [
+        "pnpm",
+        "screenshots",
+        "--workers=2"
+      ]
+    },
+    "e2e": {
+      "status": "blocked",
+      "reason": "isolated server did not become healthy"
+    },
+    "screenshots-master": {
+      "status": "failed",
+      "exit_code": 1,
+      "seconds": 20.9,
+      "argv": [
+        "pnpm",
+        "--config.verifyDepsBeforeRun=false",
+        "screenshots",
+        "--workers=2"
+      ]
+    },
+    "e2e-isolated": {
+      "status": "failed",
+      "exit_code": -2,
+      "seconds": 154.79,
+      "argv": [
+        "pnpm",
+        "--config.verifyDepsBeforeRun=false",
+        "e2e",
+        "--workers=1"
+      ]
+    },
+    "regression-excalidraw-archive": {
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 0.07,
+      "argv": [
+        "python3",
+        "scripts/test-excalidraw-archive.py"
+      ]
+    },
+    "regression-deployer": {
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 3.12,
+      "argv": [
+        "python3",
+        "scripts/test-deployer.py"
+      ]
+    },
+    "regression-history": {
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 0.52,
+      "argv": [
+        "python3",
+        "scripts/test-history.py"
+      ]
+    },
+    "regression-workspace": {
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 0.22,
+      "argv": [
+        "python3",
+        "scripts/test-workspace.py"
+      ]
+    },
+    "regression-release-deployment": {
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 0.11,
+      "argv": [
+        "python3",
+        "scripts/test-release-deployment.py"
+      ]
+    },
+    "regression-preview-access": {
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 0.11,
+      "argv": [
+        "python3",
+        "scripts/test-preview-access.py"
+      ]
+    },
+    "sqlx-offline": {
+      "status": "passed",
+      "exit_code": 0,
+      "seconds": 2.97,
+      "argv": [
+        "cargo",
+        "sqlx",
+        "prepare",
+        "--workspace",
+        "--check"
+      ]
+    }
+  },
+  "clipboard_contract": {
+    "status": "passed",
+    "checks": 5,
+    "script": "/var/lib/rea-ops/xmind-clipboard-contract-check.mjs",
+    "scope": "host Clipboard API adapter contract with mocked API; browser permission UI and native integration verified separately by root"
+  },
+  "native_syntax": {
+    "status": "passed",
+    "command": "Node 24.22.0 --check deploy/xmind/web/native.js"
+  },
+  "freeze_contract": {
+    "status": "passed",
+    "checks": 7,
+    "evidence": "/var/lib/rea-ops/xmind-freeze-checks.json",
+    "note": "includes later CLI dangling-symlink refusal"
+  }
+}

@@ -184,6 +184,17 @@
         "deploy/affine-rw-mcp/README.md",
         "deploy/affine-rw-mcp/evidence.json"
       ]
+    },
+    {
+      "id": "xmind-current-native-editor",
+      "title": "用户要求复刻现版XMind核心操作并部署xmind.truebigsand.top，Web/桌面按便利性选用；采用同版Web原生编辑布局内核和独立宿主/持久保存，REA通过Infra插件辅助分析。官方云、AI与完整Xenica跨图实体迁移不在本轮范围，实际交互验收待用户确认。",
+      "source": "docs/context/index.json",
+      "references": [
+        "docs/adr/0021-xmind-native-editor.md",
+        "specs/83-xmind/spec.md",
+        "deploy/xmind/README.md",
+        "specs/83-xmind/evidence/rea-ledger.json"
+      ]
     }
   ],
   "components": [
