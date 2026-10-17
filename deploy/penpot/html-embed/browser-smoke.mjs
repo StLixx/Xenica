@@ -24,7 +24,7 @@ try {
         : "text/html",
       body: route.request().url().endsWith(".js")
         ? script
-        : '<html><head><script type="module" src="/overlay.js"></script></head><body><div style="position:relative;margin-left:250px;height:900px;overflow:hidden;pointer-events:none"><xenica-html-embed-layer></xenica-html-embed-layer></div></body></html>',
+        : '<html><head><script type="module" src="/overlay.js"></script></head><body><div data-testid="viewport" style="position:relative;margin-left:250px;height:900px;overflow:hidden;pointer-events:none"><div style="position:absolute;inset:0;pointer-events:auto"></div><xenica-html-embed-layer></xenica-html-embed-layer></div></body></html>',
     }),
   );
   await page.goto("http://embed.test/");
@@ -68,7 +68,9 @@ try {
   });
   await page.getByRole("button", { name: "＋ HTML", exact: true }).click();
   await page.getByRole("button", { name: "插入画板", exact: true }).click();
-  await page.getByRole("button", { name: "进入交互", exact: true }).click();
+  const initialBox = await page.locator("iframe").boundingBox();
+  await page.mouse.dblclick(initialBox.x + 40, initialBox.y + 40);
+  await page.getByRole("button", { name: "返回画布", exact: true }).waitFor();
   const frame = page.frameLocator('iframe[title="HTML 交互块"]');
   await frame.getByLabel("我的想法").fill("刷新后仍在");
   await frame.getByRole("button", { name: "点击 +1", exact: true }).click();

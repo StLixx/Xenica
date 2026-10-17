@@ -32,7 +32,36 @@ window.addEventListener('keydown',e=>{if(e.key==='Escape')parent.postMessage({ty
   );
 }
 
+// Penpot converts a rectangle to a path on native double-click. Paths keep
+// their corner points but intentionally omit x/y/width/height.
+function geometryFor(shape) {
+  const points =
+    shape.points?.length === 4 &&
+    shape.points.every((p) => Number.isFinite(p.x) && Number.isFinite(p.y))
+      ? shape.points
+      : null;
+  const side = (i) =>
+    points
+      ? Math.hypot(points[i].x - points[0].x, points[i].y - points[0].y)
+      : 1;
+  return {
+    ...shape,
+    x: Number.isFinite(shape.x) ? shape.x : points?.[0].x || 0,
+    y: Number.isFinite(shape.y) ? shape.y : points?.[0].y || 0,
+    width:
+      Number.isFinite(shape.width) && shape.width > 0
+        ? shape.width
+        : Math.max(1, side(1)),
+    height:
+      Number.isFinite(shape.height) && shape.height > 0
+        ? shape.height
+        : Math.max(1, side(3)),
+    points,
+  };
+}
+
 function matrixFor(shape, vbox, zoom) {
+  shape = geometryFor(shape);
   const w = Math.max(1, shape.width),
     h = Math.max(1, shape.height);
   const p = shape.points;
@@ -69,12 +98,15 @@ class HtmlEmbedLayer extends HTMLElement {
 :host([data-compact]) .bar{bottom:104px}:host([data-compact]) .hint{display:none}
 </style><div class="cards"></div><div class="bar" role="toolbar" aria-label="HTML 嵌入工具"><span class="badge">HTML EMBED</span></div>`;
     this.onMessage = this.onMessage.bind(this);
+    this.onDoubleClick = this.onDoubleClick.bind(this);
     const bar = this.shadowRoot.querySelector(".bar");
     for (const type of ["pointerdown", "pointerup", "wheel"])
       bar.addEventListener(type, (e) => e.stopPropagation());
   }
   connectedCallback() {
     this.tabIndex = -1;
+    this.viewport = this.closest('[data-testid="viewport"]');
+    this.viewport?.addEventListener("dblclick", this.onDoubleClick, true);
     window.addEventListener("message", this.onMessage);
     this.sizeObserver = new ResizeObserver(() => {
       this.toggleAttribute("data-compact", this.clientWidth < 620);
@@ -83,6 +115,7 @@ class HtmlEmbedLayer extends HTMLElement {
   }
   disconnectedCallback() {
     this.sizeObserver?.disconnect();
+    this.viewport?.removeEventListener("dblclick", this.onDoubleClick, true);
     window.removeEventListener("message", this.onMessage);
   }
   button(label, action, primary = false) {
@@ -95,6 +128,39 @@ class HtmlEmbedLayer extends HTMLElement {
       action();
     };
     return b;
+  }
+  onDoubleClick(event) {
+    if (!this.context || this.context.viewer || event.button !== 0) return;
+    if (
+      event
+        .composedPath()
+        .some(
+          (el) =>
+            el?.classList?.contains("bar") || el?.classList?.contains("dialog"),
+        )
+    )
+      return;
+    const host = this.getBoundingClientRect();
+    for (const [id, card] of [...this.cards].reverse()) {
+      const point = new DOMPoint(
+        event.clientX - host.x,
+        event.clientY - host.y,
+      ).matrixTransform(new DOMMatrix(card.element.style.transform).inverse());
+      if (
+        point.x < 0 ||
+        point.y < 0 ||
+        point.x > card.element.offsetWidth ||
+        point.y > card.element.offsetHeight
+      )
+        continue;
+      event.preventDefault();
+      event.stopPropagation();
+      this.context.select?.(id);
+      this.active = id;
+      this.updateActive();
+      this.updateBar();
+      return;
+    }
   }
   onMessage(event) {
     const found = [...this.cards].find(
@@ -124,6 +190,7 @@ class HtmlEmbedLayer extends HTMLElement {
     this.context.save(id, "state", value);
   }
   setContext(context) {
+    context.shapes = context.shapes.map(geometryFor);
     if (
       this.context &&
       (this.context.fileId !== context.fileId ||
@@ -336,4 +403,4 @@ class HtmlEmbedLayer extends HTMLElement {
   }
 }
 customElements.define("xenica-html-embed-layer", HtmlEmbedLayer);
-export { documentFor, matrixFor, sample, MAX_HTML, MAX_STATE };
+export { documentFor, matrixFor, geometryFor, sample, MAX_HTML, MAX_STATE };

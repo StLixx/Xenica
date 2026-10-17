@@ -4,14 +4,14 @@
   "upstream": "ff7a66f51938b2293260ea27a64e2c4e0833b5e3",
   "multiSessionSource": "1a82a80abd369eaa0983dd91cdd8324cfa383517",
   "baseImageId": "sha256:cafee5958514cc0648c3b1989f1b70f740e6d6bdf58de0cefc6ac32cbed2bd94",
-  "imageId": "sha256:ba1f659115a3655766ef01ffd552e5d419e78715ddc9a37236d62dc4d128e326",
-  "pageVersion": "2.18.3-html81-r4",
+  "imageId": "sha256:c09d72eaa7242ac6021ea97bfff959e0fbdacbd0d384b091712ef056cfe4e3e5",
+  "pageVersion": "2.18.3-html81-r6",
   "schemaChange": false,
   "sourceHashes": {
     "bridge.cljs": "da2f3ec314ee2b5a9ba78473681d2cae962f5ff23844de906ae174e0b9bfc0e2",
-    "overlay.js": "85009202e60975cceaa0f5f2e1f3da6b50d3d069c21eedac2b512d0dfeec533b",
-    "apply.py": "d175c680c6cfc910ff3e921ca168b78e886df035324e65652988ba6476d259ab",
-    "Dockerfile": "3815f6d74a0f8c17b6b89b74dd993d0cbc103ded4343b34e65ce52e9f352664e"
+    "overlay.js": "d5f3c753c1dc7bee644ca5b6d18abd26c9b15056f8e27b5a35b097ce256bbe20",
+    "apply.py": "3a12602e8d5a779b547e1fed4826fcf5534c213713ea64734195a5112156ef8a",
+    "Dockerfile": "46d2c40937845bb596bac86379db813be3f4cbc8817d92122cf4726fe8fdc89c"
   },
   "candidateReport": {
     "ok": true,
@@ -57,11 +57,11 @@
         "height": 359.5000305175781
       }
     },
-    "viewer": "https://penpot.truebigsand.top/#/view?file-id=21312d73-8dbe-8051-8008-cd4942b4b991&page-id=21312d73-8dbe-8051-8008-cd4942b4b992&section=interactions&frame-id=13fe1aba-db42-8012-8008-cd496d70b0d2&index=0",
-    "url": "https://penpot.truebigsand.top/#/workspace?team-id=8fa64b17-9fc4-8078-8008-c9bd47e80f37&file-id=21312d73-8dbe-8051-8008-cd4942b4b991&page-id=21312d73-8dbe-8051-8008-cd4942b4b992&board-id=13fe1aba-db42-8012-8008-cd496d70b0d2",
+    "viewer": "https://penpot.truebigsand.top/#/view?file-id=21312d73-8dbe-8051-8008-cd6a4d3f9784&page-id=21312d73-8dbe-8051-8008-cd4942b4b992&section=interactions&frame-id=13fe1aba-db42-8012-8008-cd496d70b0d2&index=0",
+    "url": "https://penpot.truebigsand.top/#/workspace?team-id=8fa64b17-9fc4-8078-8008-c9bd47e80f37&file-id=21312d73-8dbe-8051-8008-cd6a4d3f9784&page-id=21312d73-8dbe-8051-8008-cd4942b4b992&board-id=13fe1aba-db42-8012-8008-cd496d70b0d2",
     "geometry": {
       "id": "13fe1aba-db42-8012-8008-cd496e22ab92",
-      "x": 64.99997973936729,
+      "x": 64.99997973936723,
       "y": 115.00000506515823,
       "width": 680,
       "height": 440,
@@ -70,22 +70,24 @@
     }
   },
   "checks": {
-    "javascriptTests": 7,
+    "javascriptTests": 8,
     "isolatedBrowser": true,
     "upstreamFrontendTests": 746,
     "upstreamAssertions": 2775,
     "upstreamFailures": 0,
     "cljsCompileWarnings": 0,
     "rollbackOldFrontendReadsNewFile": true,
-    "mcpButtonPreserved": true
+    "mcpButtonPreserved": true,
+    "upstreamTestCarryForward": "746 tests and 2775 assertions on a8797e9; no CLJS behavior or upstream source changed in this JS correction"
   },
-  "localBackup": "20261017T050123Z",
+  "localBackup": "20261017T063956Z",
   "promotion": {
     "schema": 1,
-    "previousImage": "sha256:cafee5958514cc0648c3b1989f1b70f740e6d6bdf58de0cefc6ac32cbed2bd94",
-    "candidateImage": "sha256:ba1f659115a3655766ef01ffd552e5d419e78715ddc9a37236d62dc4d128e326",
-    "rollbackPath": "/mnt/HDD/penpot/rollback/html81-20261017T050643Z",
+    "previousImage": "sha256:ba1f659115a3655766ef01ffd552e5d419e78715ddc9a37236d62dc4d128e326",
+    "candidateImage": "sha256:c09d72eaa7242ac6021ea97bfff959e0fbdacbd0d384b091712ef056cfe4e3e5",
+    "rollbackPath": "/mnt/HDD/penpot/rollback/html81-20261017T064543Z",
     "schemaChange": false,
+    "pageVersion": "2.18.3-html81-r6",
     "promoted": true
   },
   "userAcceptance": {
@@ -136,11 +138,11 @@
         "height": 359.5000305175781
       }
     },
-    "viewer": "https://penpot.truebigsand.top/#/view?file-id=21312d73-8dbe-8051-8008-cd4942b4b991&page-id=21312d73-8dbe-8051-8008-cd4942b4b992&section=interactions&frame-id=13fe1aba-db42-8012-8008-cd496d70b0d2&index=0",
-    "url": "https://penpot.truebigsand.top/#/workspace?team-id=8fa64b17-9fc4-8078-8008-c9bd47e80f37&file-id=21312d73-8dbe-8051-8008-cd4942b4b991&page-id=21312d73-8dbe-8051-8008-cd4942b4b992&board-id=13fe1aba-db42-8012-8008-cd496d70b0d2",
+    "viewer": "https://penpot.truebigsand.top/#/view?file-id=21312d73-8dbe-8051-8008-cd6a4d3f9784&page-id=21312d73-8dbe-8051-8008-cd4942b4b992&section=interactions&frame-id=13fe1aba-db42-8012-8008-cd496d70b0d2&index=0",
+    "url": "https://penpot.truebigsand.top/#/workspace?team-id=8fa64b17-9fc4-8078-8008-c9bd47e80f37&file-id=21312d73-8dbe-8051-8008-cd6a4d3f9784&page-id=21312d73-8dbe-8051-8008-cd4942b4b992&board-id=13fe1aba-db42-8012-8008-cd496d70b0d2",
     "geometry": {
       "id": "13fe1aba-db42-8012-8008-cd496e22ab92",
-      "x": 64.99997973936729,
+      "x": 64.99997973936723,
       "y": 115.00000506515823,
       "width": 680,
       "height": 440,
@@ -149,26 +151,24 @@
     }
   },
   "independentBackup": {
-    "stamp": "20261017T050123Z",
+    "stamp": "20261017T063956Z",
     "verified": true
   },
   "artifactArchive": {
-    "path": "/mnt/HDD/penpot/artifacts/html-embed-81/frontend-images.tar.gz",
-    "sha256": "f73487bf6a93108c2512b5e39f7048df6feb8e7ed5d7d64e25917817e2a6771c",
+    "path": "/mnt/HDD/penpot/artifacts/html-embed-81-r6/frontend-images.tar.gz",
+    "sha256": "85c1f0b80017fb637ce2eb0e499303cb04ab37e5ce71d95b2a9ffdbba7dda688",
     "contains": [
-      "candidate frontend",
-      "previous frontend"
+      "r6 candidate frontend",
+      "r4 previous frontend"
     ],
-    "independentPath": "drive02:PG-operations-v1/penpot-artifacts/2.18.3-html81-r4",
-    "independentCheck": {
-      "differences": 0,
-      "matchingFiles": 2
-    }
+    "independentPath": "drive02:PG-operations-v1/penpot-artifacts/2.18.3-html81-r6",
+    "independentStatus": "transfer-in-progress"
   },
   "screenshots": [
     "evidence/desktop.png",
     "evidence/narrow.png",
-    "evidence/viewer.png"
+    "evidence/viewer.png",
+    "evidence/feedback.png"
   ],
   "nativeRegression": {
     "ok": true,
@@ -179,5 +179,55 @@
       "dashboard has no canvas HTML toolbar"
     ],
     "errors": []
+  },
+  "previous": {
+    "imageId": "sha256:ba1f659115a3655766ef01ffd552e5d419e78715ddc9a37236d62dc4d128e326",
+    "pageVersion": "2.18.3-html81-r4",
+    "source": "a8797e9d9b3006bb8efa2722c63a595b68750189"
+  },
+  "experienceUrl": "https://penpot.truebigsand.top/#/workspace?team-id=8fa64b17-9fc4-8078-8008-c9bd47e80f37&file-id=21312d73-8dbe-8051-8008-cd4942b4b991&page-id=21312d73-8dbe-8051-8008-cd4942b4b992&board-id=13fe1aba-db42-8012-8008-cd496d70b0d2",
+  "feedbackRegression": {
+    "rootCause": "native double click converts rectangle into a path with omitted rectangle fields",
+    "continuousGestures": {
+      "ok": true,
+      "errors": [],
+      "samples": 40,
+      "maxPositionError": 0.00021777603615191765,
+      "maxSizeError": 0.014923307995559298,
+      "zooms": [
+        1.1022727272727273,
+        0.8660714285714286,
+        1.3103660714285714,
+        1.9825838660714283,
+        2.9996493893660707,
+        4.538469526110864,
+        6.866704393005738,
+        10.38932374661768,
+        15.71904682863255,
+        23.782917851721045,
+        35.98355470965394,
+        54.443118275706404,
+        82.37243795114378,
+        124.62949862008053,
+        2.9996493893660703,
+        1.982583866071428,
+        1.310366071428571,
+        0.8660714285714284
+      ],
+      "finalZoom": 0.8660714285714284,
+      "initialZoom": 0.8660714285714286,
+      "panDelta": -152.41237113402067
+    },
+    "newRectangleDoubleClick": {
+      "ok": true,
+      "nativeType": ":rect",
+      "scenario": "native double click enters HTML without converting the new rectangle to a vector path"
+    },
+    "originalExperienceFileUnchanged": true,
+    "failureBeforeFix": "matrix [1360,0,0,880,130,230] instead of [2,0,0,2,130,230]",
+    "window": {
+      "width": 1606,
+      "height": 1820
+    }
   }
 }

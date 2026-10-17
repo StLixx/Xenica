@@ -64,3 +64,23 @@ test("saved state preserves angle brackets without executing markup", () => {
     expected,
   );
 });
+
+test("converted path with omitted rectangle fields keeps finite geometry", () => {
+  const result = matrixFor(
+    {
+      x: null,
+      y: null,
+      width: null,
+      height: null,
+      points: [
+        { x: 65, y: 115 },
+        { x: 745, y: 115 },
+        { x: 745, y: 555 },
+        { x: 65, y: 555 },
+      ],
+    },
+    { x: 0, y: 0 },
+    2,
+  );
+  assert.deepEqual(result, [2, 0, 0, 2, 130, 230]);
+});

@@ -8,7 +8,7 @@
 
 `bridge.cljs` 接入 Penpot 原生图形创建、plugin-data 更新、选择、几何修改预览与原型查看。`overlay.js` 是原生 Web Component，独立于 Penpot 编译器，负责 HTML 编辑、iframe 与坐标/交互模式。`apply.py <Penpot源码根目录>` 将这两个源文件和三个调用点装入基线；重复运行不会重复添加。补丁不需要数据库迁移。
 
-在 Infra 的独立构建源执行 apply，再在官方 devenv 中完成 CLJS 格式/lint、`VERSION_TAG=2.18.3-html81-r4 PENPOT_BUILD_OPTIMIZATIONS=simple clojure -M:dev:shadow-cljs release main worker`，使用同一 VERSION_TAG 和 `VERSION=2.18.3 NODE_ENV=production` 调用 `_helpers.js` 的 `compileTemplates()`，运行 `node scripts/build-libs.js`。构建前后固定源码和校验值；运行 `verify_artifact.py <frontend/resources/public>`，不能跳过页面/编译版本一致性。
+在 Infra 的独立构建源执行 apply，再在官方 devenv 中完成 CLJS 格式/lint、`VERSION_TAG=2.18.3-html81-r6 PENPOT_BUILD_OPTIMIZATIONS=simple clojure -M:dev:shadow-cljs release main worker`，使用同一 VERSION_TAG 和 `VERSION=2.18.3 NODE_ENV=production` 调用 `_helpers.js` 的 `compileTemplates()`，运行 `node scripts/build-libs.js`。构建前后固定源码和校验值；运行 `verify_artifact.py <frontend/resources/public>`，不能跳过页面/编译版本一致性。
 
 Dockerfile 上下文包含 public/js、index.html/render.html/rasterizer.html，以及原有已验证 MCP 插件 dist（plugin/）。镜像同时保留旧插件路径并添加新版本路径，避免七天缓存造成旧插件误连。构建源码及日志在 Infra `/opt/penpot-multi-session/html-embed-source`，新任务不得改写原来的 build-source。
 
@@ -29,3 +29,5 @@ iframe 仅允许脚本，使用独立不透明来源；内联 HTML/CSS/JS 可运
 部署前保存一致备份及原镜像，先在仅本机可见的候选前端验证，再在原固定网址更新前端。回退只恢复前端镜像；不恢复旧数据库覆盖新文件，不触碰其他用户设计。
 
 `native-regression.mjs` 在固定体验文件验证原生复制/删除/撤销、全新浏览器上下文恢复和 Dashboard 无嵌入工具条。当前独立镜像归档同时包含新旧前端，校验值和独立副本位置见 evidence.json；恢复时校验归档后 docker load，再按部署回执恢复旧前端环境并只重建 frontend，不还原数据库覆盖新内容。
+
+双击 HTML 块可直接进入交互；已有原生 path 从四角恢复 HTML 几何，不改写文件类型。录屏反馈回归见 feedback-smoke.mjs（连续滚轮、Space 平移、原文件刷新），doubleclick-smoke.mjs 只允许操作独立回归副本，验证新块双击保持 rect。部署命令为 `python3 deploy.py <候选镜像ID> <预期当前镜像ID>`，校验运行身份后才切换，并从候选标签核对实际页面版本。
