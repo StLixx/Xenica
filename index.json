@@ -3282,6 +3282,15 @@
       "run": 39031926573,
       "attempt": 1,
       "previous": "ed7ccb7f7a9fef60baf3a6a9fa020788f14c9dfe93e41f7602139303bb3f7fa6"
+    },
+    {
+      "path": "records/f76c38d07c3467c93744ae81cb1598dbc6dbaf844a37a891dd9debf7c8d45e03.json",
+      "sha256": "f76c38d07c3467c93744ae81cb1598dbc6dbaf844a37a891dd9debf7c8d45e03",
+      "type": "candidate",
+      "source": "1c5af86346665053db6e517864fad784e99b664e",
+      "run": 39031926573,
+      "attempt": 2,
+      "previous": "206b118fdc1a386fbe6daf9469dceb67d3e8d0db7af9176da0d9bd201b9fda3c"
     }
   ]
 }
