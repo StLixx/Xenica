@@ -1,0 +1,3871 @@
+From 8efbd9b5d3fc7f3b0b174efcc6c665033318dcad Mon Sep 17 00:00:00 2001
+From: "Dr. Dominik Jain" <dominik.jain@oraios-ai.de>
+Date: Fri, 2 Oct 2026 14:22:52 +0200
+Subject: [PATCH] :tada: Allow MCP to work with multiple files in parallel
+ (#11927)
+
+* :tada: Add multi-file session routing to the MCP server
+
+Session routing:
+- Track each user's Penpot connections by session ID.
+- Dispatch explicit sessions directly; otherwise discover the sole session.
+- Return a retryable error when discovery fails or is incomplete.
+
+Plugin and tools:
+- Initialize connections with a fresh session ID and file metadata.
+- Share the optional sessionId schema and place it last in tool inputs.
+
+Validation:
+- 84 tests, server type checking, and MCP formatting checks pass.
+- Disable test logging to avoid the logging worker shutdown hang.
+
+AI-assisted-by: gpt-6
+
+* :tada: Support independent MCP connections
+
+- Require explicit connection intent for each integrated workspace.
+- Derive short session IDs from the Penpot app instance and file.
+- Show and copy session IDs in the MCP menu and standalone plugin UI.
+- Stop stale callbacks and reconnect attempts after disconnect.
+
+Validate with frontend and plugin tests, type checking, live multi-tab
+checks, and standalone UI checks with a simulated connection. Server
+tests pass with --test-force-exit; the normal runner can hang on shutdown.
+
+AI-assisted-by: gpt-6
+
+* :books: Document multi-file MCP sessions
+
+- Explain independent connections, session selection, and copying IDs.
+- Describe session ID lifetimes for integrated and standalone plugins.
+- Correct browser focus, connection, and recovery guidance.
+
+Validate with the documentation site build and diff checks.
+
+AI-assisted-by: gpt-6
+
+* :sparkles: Change behavior on session ID duplication
+
+* :sparkles: Open MCP toolbar menu on hover and match menu style
+
+---------
+
+Co-authored-by: alonso.torres <alonso.torres@kaleidos.net>
+Co-authored-by: elhombretecla <delacruzgarciajuan@gmail.com>
+---
+ .serena/memories/mcp/core.md                  |   5 +-
+ docs/mcp/index.md                             |  46 +-
+ frontend/src/app/main/data/workspace/mcp.cljs | 121 ++---
+ .../app/main/ui/workspace/top_toolbar.cljs    |  93 +++-
+ .../app/main/ui/workspace/top_toolbar.scss    |  24 +-
+ .../data/workspace_mcp_test.cljs              |  67 ++-
+ frontend/translations/en.po                   |  12 +
+ mcp/README.md                                 |  20 +-
+ mcp/packages/common/src/types.ts              |  13 +
+ mcp/packages/plugin/index.html                |  16 +
+ mcp/packages/plugin/public/manifest.json      |   2 +-
+ .../plugin/src/ConnectionMetadata.test.ts     | 293 ++++++++++++
+ mcp/packages/plugin/src/SessionId.test.ts     |  14 +
+ mcp/packages/plugin/src/SessionId.ts          |  21 +
+ .../plugin/src/SessionIdDisplay.test.ts       |  77 ++++
+ mcp/packages/plugin/src/SessionIdDisplay.ts   |  41 ++
+ mcp/packages/plugin/src/index.d.ts            |   3 +-
+ mcp/packages/plugin/src/main.ts               | 101 ++++-
+ mcp/packages/plugin/src/plugin.ts             |  25 +-
+ mcp/packages/plugin/src/style.css             |  11 +
+ mcp/packages/server/package.json              |   2 +-
+ mcp/packages/server/src/PenpotConnection.ts   |  22 +
+ .../server/src/PenpotMcpServer.http.test.ts   |  17 +
+ .../server/src/PluginBridge.sessions.test.ts  | 145 ++++++
+ mcp/packages/server/src/PluginBridge.ts       | 420 +++++++++---------
+ mcp/packages/server/src/PluginTask.ts         |   2 +-
+ mcp/packages/server/src/RedisBridge.test.ts   | 245 ++++++++++
+ mcp/packages/server/src/RedisBridge.ts        | 185 +++++++-
+ mcp/packages/server/src/Tool.ts               |  10 +
+ .../server/src/UserPenpotConnections.ts       |  43 ++
+ .../MultiInstanceTaskDispatcher.test.ts       | 371 ++++++++++++++++
+ .../dispatch/MultiInstanceTaskDispatcher.ts   | 216 +++++++++
+ .../dispatch/SingleInstanceTaskDispatcher.ts  |  27 ++
+ .../server/src/dispatch/TaskDispatcher.ts     |  49 ++
+ .../server/src/tools/ExecuteCodeTool.ts       |   5 +-
+ .../server/src/tools/ExportShapeTool.ts       |   5 +-
+ .../server/src/tools/ImportImageTool.ts       |   5 +-
+ 37 files changed, 2432 insertions(+), 342 deletions(-)
+ create mode 100644 mcp/packages/plugin/src/ConnectionMetadata.test.ts
+ create mode 100644 mcp/packages/plugin/src/SessionId.test.ts
+ create mode 100644 mcp/packages/plugin/src/SessionId.ts
+ create mode 100644 mcp/packages/plugin/src/SessionIdDisplay.test.ts
+ create mode 100644 mcp/packages/plugin/src/SessionIdDisplay.ts
+ create mode 100644 mcp/packages/server/src/PenpotConnection.ts
+ create mode 100644 mcp/packages/server/src/PluginBridge.sessions.test.ts
+ create mode 100644 mcp/packages/server/src/RedisBridge.test.ts
+ create mode 100644 mcp/packages/server/src/UserPenpotConnections.ts
+ create mode 100644 mcp/packages/server/src/dispatch/MultiInstanceTaskDispatcher.test.ts
+ create mode 100644 mcp/packages/server/src/dispatch/MultiInstanceTaskDispatcher.ts
+ create mode 100644 mcp/packages/server/src/dispatch/SingleInstanceTaskDispatcher.ts
+ create mode 100644 mcp/packages/server/src/dispatch/TaskDispatcher.ts
+
+diff --git a/.serena/memories/mcp/core.md b/.serena/memories/mcp/core.md
+index 9d55a131050..feb218b5d3f 100644
+--- a/.serena/memories/mcp/core.md
++++ b/.serena/memories/mcp/core.md
+@@ -98,5 +98,6 @@ For parallel devenvs, prefer same-origin MCP routing: each Penpot instance shoul
+ ## Plugin reconnect policy
+ 
+ - The plugin treats WebSocket close code `1008` (policy violation) as terminal: it stops auto-reconnecting and stays disconnected until the user explicitly reconnects. Other close codes keep the capped-backoff retry. The decision lives in `ReconnectPolicy.ts` (`shouldReconnectAfterClose`), kept as a pure module so it is unit-testable without DOM/CSS.
+-- The MCP server emits `1008` for a duplicate connection on the same user token (`PluginBridge`) and for a missing `userToken` in multi-user mode.
+-- A tab rejected with `1008` never reaches `connected`, so the frontend's 60s reconnect watcher (`start-reconnect-watcher` in `app.main.data.workspace.mcp`, started only on `connected`) does not engage; recovery is manual via "Connect here".
++- The MCP server emits `1008` for a missing `userToken` in multi-user mode, for missing/invalid connection metadata, and to close a connection displaced by a newer one with the same user and session ID.
++- Session IDs are deterministic per tab and file, so a reconnect reuses its ID while the old socket may be half-open: the newest connection wins (`PluginBridge.displaceConnection`). Across instances, each new connection publishes a session claim on a per-user Redis channel; an instance displaces its local connection only on a foreign claim that arrives after its own claim (channel order, no clocks). Discovery deduplicates by session ID.
++- A tab rejected with `1008` never reaches `connected`, so the frontend's 60s reconnect watcher (`start-reconnect-watcher` in `app.main.data.workspace.mcp`, started only on `connected`) does not engage; recovery is manual via the MCP menu.
+diff --git a/docs/mcp/index.md b/docs/mcp/index.md
+index 3f11995d2b3..815a468fea7 100644
+--- a/docs/mcp/index.md
++++ b/docs/mcp/index.md
+@@ -64,7 +64,7 @@ Watch more applications in the **[Penpot MCP video playlist](https://www.youtube
+ There are three key pieces:
+ 
+ * **MCP server**: a service that exposes tools to your AI client. It receives requests from the client and forwards them to Penpot.
+-* **MCP plugin in Penpot**: a plugin that runs inside Penpot and connects your open file to the MCP server. It is what allows the server to access the currently focused page.
++* **MCP plugin in Penpot**: a plugin that runs inside Penpot and connects your open file to the MCP server. It allows the server to access that file and its pages.
+ * **MCP client**: the tool where you write prompts (Cursor, Claude Code, Copilot-style tools, etc.). It connects to the MCP server using a server URL and an MCP key (or your active Penpot session in the current local setup).
+ 
+ ![How the AI client, Penpot MCP server, plugin, and design file connect](/img/mcp/mcp-flow.webp)
+@@ -74,8 +74,23 @@ There are three key pieces:
+ Some important concepts for users:
+ * **Integrations page**: MCP is configured under **Your account → Integrations → MCP Server**. Here you enable or disable MCP, get the server URL and manage the MCP key.
+ * **MCP key**: a personal, non-recoverable token that authenticates your AI client with the MCP server. Only one key can exist per user at a time. This is used by the remote MCP setup.
+-* **Currently focused page**: MCP always operates on the page you have in focus in Penpot. If you change the focused page (even in another browser window), the MCP context follows that page.
+-* **Active MCP tab**: MCP can only be active in one browser tab at a time. If you have Penpot open in several tabs, you choose explicitly which one owns MCP before running agents.
++* **MCP session**: a connection from a Penpot tab to the MCP server, identified by a short session ID. Several tabs can connect independently, including tabs showing the same file.
++* **Current page**: the page open in the selected session. Switching browser focus to another tab does not change which session the agent uses.
++
++### Working with multiple files
++
++Connect the tabs you want to use:
++
++* **Remote MCP**: open each file and choose **MCP → Connect** in the toolbar. Use **Disconnect** in the same menu to disconnect that tab.
++* **Local MCP**: run the plugin in each file and connect it to your local server. Each plugin connection has its own session ID.
++* Connecting or disconnecting one tab does not disconnect the others.
++
++Choose a session for your agent:
++
++* With exactly one connected session, the server selects it automatically when the agent does not specify a session ID.
++* With several connected sessions, the server lists them and asks the agent to have you select one. The agent then passes that session ID with its requests.
++* You can also give the agent an ID directly. For remote MCP, open the toolbar's **MCP** menu and choose **Copy session ID**. For local MCP, use **Copy** beside the session ID in the plugin window.
++* For example: "Use Penpot session `o37vgcqsvt` and list the pages in that file."
+ 
+ ### Tools and capabilities
+ 
+@@ -98,7 +113,7 @@ Because **remote MCP** does not expose local file-system access:
+ 
+ ### Agents can edit designs
+ 
+-**Be mindful:** when MCP is connected, your AI client can run **write operations** that change the currently focused Penpot page (create, rename, move, delete, restyle, etc.). To stay safe:
++**Be mindful:** when MCP is connected, your AI client can run **write operations** that change the file in the selected session (create, rename, move, delete, restyle, etc.). To stay safe:
+ 
+ * Start with **read-only** actions (inspect, list, export) to verify your setup.
+ * Ask the agent to **describe the intended changes** before applying them.
+@@ -142,7 +157,7 @@ If you just want to try Penpot AI workflows quickly through the MCP, follow this
+    See the section **Connect your MCP client** for more details on how to connect.
+ 
+ 5. #### Open a Penpot file and connect MCP
+-   In Penpot, open a design file and use **File → MCP Server → Connect** to connect the plugin to your current file.
++   In Penpot, open a design file and choose **MCP → Connect** in the toolbar. Enabling MCP does not connect a file automatically.
+ 
+ ![Managing MCP Server from Penpot Integrations](/img/mcp/mcp-manage.webp)
+ 
+@@ -156,9 +171,12 @@ When this happens, MCP fails fast instead of waiting for a long task timeout:
+ 
+ * In Chrome and Chromium-based browsers, the plugin can report when the tab is being frozen.
+ * In Firefox, Safari, and other browsers that do not expose the same freeze event, MCP uses plugin heartbeats. If the browser stops running the plugin JavaScript, the heartbeat becomes stale and the MCP server reports that the Penpot tab appears to be suspended.
+-* If the browser unloads the tab completely, the plugin disconnects and MCP reports that no Penpot plugin instance is connected.
++* If the browser unloads the tab completely, its plugin disconnects and that session is no longer available. Other connected sessions remain available.
++
++To recover:
+ 
+-To recover, open or focus the Penpot tab again, wait until MCP reconnects, and retry the prompt.
++* If the tab was only suspended, focus it, wait until MCP reconnects, and retry the prompt.
++* If the tab was unloaded or reloaded, open the file and connect again. Copy the new session ID if your agent was using the previous one.
+ 
+ To reduce the chances of the browser putting Penpot to sleep during long MCP sessions:
+ 
+@@ -239,7 +257,7 @@ Note: For clients that do not support HTTP servers directly (like Claude Desktop
+ 
+ ### Final check
+ 
+-In Penpot, open a file and connect the plugin from **File → MCP Server → Connect**, then run a read-only prompt first.
++In Penpot, open a file and choose **MCP → Connect** in the toolbar, then run a read-only prompt first.
+ 
+ 
+ ***
+@@ -253,7 +271,7 @@ Remote MCP is the easiest way to start using AI agents with Penpot. It's hosted
+ 
+ 1. Open **Your account → Integrations**.
+ 2. In the **MCP Server** section, read the short description to confirm that feature is available for your account.
+-3. Use the **Status** toggle to enable MCP Server. Penpot remembers this state per user across sessions.
++3. Use the **Status** toggle to enable MCP Server. Penpot remembers this state per user across sessions. You still need to connect each file explicitly.
+ 4. If this is your first time, Penpot will ask you to **generate an MCP key**. The key is shown only once, store it safely.
+    * Treat the MCP key like a password/token: do not share it in screenshots, logs, or code samples.
+ 5. Once enabled, you will see:
+@@ -309,11 +327,11 @@ Once everything is configured, day-to-day use of Penpot MCP follows a simple pat
+ 1. **Enable MCP**
+    * Go to **Your account → Integrations → MCP Server** and set **Status** to **Enabled**.
+ 2. **Connect plugin**:
+-   * Open a design file and use **File → MCP Server → Connect**.
++   * Open a design file and choose **MCP → Connect** in the toolbar. Repeat in each tab you want the agent to access.
+ 3. **Run prompts**:
+    * Open your MCP client and start with read-only prompts first (`list`, `inspect`, `analyze`), then continue with write actions.
+ 
+-MCP always acts on the **currently focused page** in the active Penpot tab.
++Requests target the selected MCP session. See [Working with multiple files](#working-with-multiple-files) to choose a session.
+ 
+ #### Manage
+ 
+@@ -343,7 +361,7 @@ Security recommendations to highlight in the Help Center:
+ 
+ * Treat your MCP key like a password or access token, do not share it in screenshots or code samples.
+ * Regenerate the key if you suspect it may have leaked.
+-* Remember that disabling MCP Server or disconnecting the plugin stops agents from modifying your files, even if a client is still configured.
++* Disabling MCP Server disconnects your integrated sessions. Disconnecting one tab stops access through that connection; other connected sessions remain available.
+ 
+ ***
+ 
+@@ -375,7 +393,7 @@ Leave this terminal running while you use MCP.
+ 
+ 5. Run the plugin and click **Connect to MCP server**.
+ 
+-6. Make sure the plugin shows **Connected** and keep the plugin window open while working with AI agents.
++6. Make sure the plugin shows **Connected** and keep the plugin window open while working with AI agents. The plugin displays the session ID and a **Copy** button.
+ 
+ > Some Chromium-based browsers may block the connection from `https://design.penpot.app` to `http://localhost`. If that happens, explicitly allow local network access or use a browser like Firefox.
+ 
+@@ -420,7 +438,7 @@ Once everything is configured, day-to-day use of Penpot MCP follows a simple pat
+ 
+    Open your MCP client and start with read-only prompts first (`list`, `inspect`, `analyze`), then continue with write actions.
+ 
+-MCP always acts on the **currently focused page** in the active Penpot tab.
++Requests target the selected MCP session. See [Working with multiple files](#working-with-multiple-files) to choose a session.
+ 
+ #### Manage
+ 
+diff --git a/frontend/src/app/main/data/workspace/mcp.cljs b/frontend/src/app/main/data/workspace/mcp.cljs
+index bc7ef868eb8..74884289c42 100644
+--- a/frontend/src/app/main/data/workspace/mcp.cljs
++++ b/frontend/src/app/main/data/workspace/mcp.cljs
+@@ -37,7 +37,8 @@
+    :description "This plugin enables interaction with the Penpot MCP server"
+    :allow-background true
+    :permissions
+-   #{"library:read" "library:write"
++   #{"user:read"
++     "library:read" "library:write"
+      "comment:read" "comment:write"
+      "content:write" "content:read"}})
+ 
+@@ -47,10 +48,20 @@
+ (defn connect-mcp
+   []
+   (ptk/reify ::connect-mcp
++    ptk/UpdateEvent
++    (update [_ state]
++      (if (and (get-in state [:mcp :enabled])
++               (get-in state [:mcp :token-valid]))
++        (update state :mcp assoc
++                :connection-requested true
++                :connection-status "connecting")
++        state))
++
+     ptk/WatchEvent
+-    (watch [_ _ _]
+-      (rx/of (mbc/event :mcp/force-disconnect {})
+-             (ptk/data-event ::connect)))))
++    (watch [_ state _]
++      (if (get-in state [:mcp :connection-requested])
++        (rx/of (ptk/data-event ::connect))
++        (rx/empty)))))
+ 
+ (defn- start-reconnect-watcher
+   []
+@@ -63,8 +74,9 @@
+         ;; Slow app-level fallback. The plugin owns normal WebSocket
+         ;; reconnects; this only restarts it if the app remains in a
+         ;; failed connection state.
+-        (when (contains? reconnect-fallback-statuses
+-                         (-> @st/state :mcp :connection-status))
++        (when (and (get-in @st/state [:mcp :connection-requested])
++                   (contains? reconnect-fallback-statuses
++                              (-> @st/state :mcp :connection-status)))
+           (.log js/console "Reconnecting to MCP...")
+           (st/emit! (ptk/data-event ::connect))))))))
+ 
+@@ -74,6 +86,8 @@
+     (rx/dispose! @interval-sub)
+     (reset! interval-sub nil)))
+ 
++(declare user-disconnect-mcp)
++
+ ;; This event will arrive when the mcp is enabled in the dashboard
+ (defn update-mcp-status
+   [value]
+@@ -86,37 +100,37 @@
+ 
+     ptk/WatchEvent
+     (watch [_ _ _]
+-      (case value
+-        true  (rx/of (connect-mcp))
+-        false (rx/of (ptk/data-event ::disconnect))
+-        nil))))
++      (if (false? value)
++        (rx/of (user-disconnect-mcp))
++        (rx/empty)))))
+ 
+ (defn update-mcp-connection-status
+-  [value]
+-  (ptk/reify ::update-mcp-plugin-connection
+-    ptk/UpdateEvent
+-    (update [_ state]
+-      (update state :mcp assoc :connection-status value))
+-
+-    ptk/WatchEvent
+-    (watch [_ _ _]
+-      ;; Only one MCP plugin instance may be active across browser tabs.
+-      ;; When this tab becomes connected, tell every other tab to
+-      ;; disconnect (which also stops their reconnect watcher). Otherwise
+-      ;; several tabs stay connected at once and the MCP server reports
+-      ;; "multiple instances connected" and the agent fails.
+-      (when (= "connected" value)
+-        (rx/of (mbc/event :mcp/force-disconnect {}))))))
++  ([value]
++   (update-mcp-connection-status value nil))
++  ([value session-id]
++   (ptk/reify ::update-mcp-plugin-connection
++     ptk/UpdateEvent
++     (update [_ state]
++       (if (get-in state [:mcp :connection-requested])
++         (update state :mcp assoc
++                 :connection-status value
++                 :session-id session-id)
++         state)))))
+ 
+ ;; This event will arrive when the user selects disconnect on the menu
+-;; or there is a broadcast message for disconnection
+ (defn user-disconnect-mcp
+   []
+   (ptk/reify ::user-disconnect-mcp
++    ptk/UpdateEvent
++    (update [_ state]
++      (update state :mcp assoc
++              :connection-requested false
++              :connection-status "disconnected"
++              :session-id nil))
++
+     ptk/WatchEvent
+     (watch [_ _ _]
+-      (rx/of (ptk/data-event ::disconnect)
+-             (update-mcp-connection-status "disconnected")))
++      (rx/of (ptk/data-event ::disconnect)))
+ 
+     ptk/EffectEvent
+     (effect [_ _ _]
+@@ -134,30 +148,43 @@
+ 
+             stopper-s (rx/merge
+                        (rx/filter (ptk/type? ::dw/finalize-workspace) stream)
+-                       (rx/filter (ptk/type? ::stop-mcp-plugin) stream))
++                       (rx/filter (ptk/type? ::stop-mcp-plugin) stream)
++                       (rx/filter (ptk/type? ::init) stream))
+ 
++            active?   (atom true)
+             extension #js {:getToken (constantly token)
+                            :getServerUrl #(str cf/mcp-ws-uri)
++                           :isConnectionRequested #(and @active?
++                                                        (get-in @st/state [:mcp :connection-requested]))
+                            :setMcpStatus
+-                           (fn [status]
+-                             (when (= status "connected")
+-                               (start-reconnect-watcher))
+-                             (st/emit! (update-mcp-connection-status status))
+-                             (log/info :hint "MCP STATUS" :status status))
++                           (fn [status session-id]
++                             (when @active?
++                               (when (and (= status "connected")
++                                          (get-in @st/state [:mcp :connection-requested]))
++                                 (start-reconnect-watcher))
++                               (st/emit! (update-mcp-connection-status status session-id))
++                               (log/info :hint "MCP STATUS" :status status)))
+ 
+                            :on
+                            (fn [event cb]
+                              (when-let [event
+-                                        (case event
+-                                          "disconnect" ::disconnect
+-                                          "connect" ::connect
+-                                          nil)]
++                                        (when @active?
++                                          (case event
++                                            "disconnect" ::disconnect
++                                            "connect" ::connect
++                                            nil))]
+ 
+                                (->> stream
+                                     (rx/filter (ptk/type? event))
+                                     (rx/take-until stopper-s)
+                                     (rx/subs! (fn [_] (cb))))))}]
+ 
++        (->> stopper-s
++             (rx/take 1)
++             (rx/subs! (fn [_]
++                         (reset! active? false)
++                         (stop-reconnect-watcher!)
++                         (dp/close-plugin! default-manifest))))
+         (dp/start-plugin! manifest #js {:mcp extension})))))
+ 
+ (defn- stop-mcp-plugin
+@@ -198,7 +225,11 @@
+     (update [_ state]
+       (let [profile      (get state :profile)
+             mcp-enabled? (-> profile :props :mcp-enabled boolean)]
+-        (update state :mcp assoc :enabled mcp-enabled?)))
++        (update state :mcp assoc
++                :enabled mcp-enabled?
++                :connection-requested false
++                :connection-status "disconnected"
++                :session-id nil)))
+ 
+     ptk/WatchEvent
+     (watch [_ state stream]
+@@ -206,7 +237,6 @@
+                         (rx/filter (ptk/type? ::dw/finalize-workspace) stream)
+                         (rx/filter (ptk/type? ::init) stream))
+ 
+-            session-id (get state :session-id)
+             mcp-state  (get state :mcp)]
+ 
+         (->> (rx/merge
+@@ -229,19 +259,10 @@
+                      (rx/map init-mcp-plugin))
+                 (rx/empty))
+ 
+-              (->> mbc/stream
+-                   (rx/filter (mbc/type? :mcp/force-disconnect))
+-                   (rx/filter (fn [{:keys [id]}]
+-                                (not= session-id id)))
+-                   (rx/map deref)
+-                   (rx/map (fn [] (user-disconnect-mcp))))
+-
+               (->> mbc/stream
+                    (rx/filter (mbc/type? :mcp/enable))
+                    (rx/mapcat (fn [_]
+-                                ;; Re-init so the force-disconnect
+-                                ;; listener is set up now that MCP
+-                                ;; is enabled.
++                                ;; initialize the idle plugin now that MCP is enabled
+                                 (rx/of (update-mcp-status true)
+                                        (init)))))
+ 
+diff --git a/frontend/src/app/main/ui/workspace/top_toolbar.cljs b/frontend/src/app/main/ui/workspace/top_toolbar.cljs
+index f3d843000dc..0a10cf095de 100644
+--- a/frontend/src/app/main/ui/workspace/top_toolbar.cljs
++++ b/frontend/src/app/main/ui/workspace/top_toolbar.cljs
+@@ -12,6 +12,7 @@
+    [app.config :as cf]
+    [app.main.data.event :as ev]
+    [app.main.data.modal :as modal]
++   [app.main.data.notifications :as ntf]
+    [app.main.data.workspace :as dw]
+    [app.main.data.workspace.common :as dwc]
+    [app.main.data.workspace.drawing.common :as dwdc]
+@@ -28,6 +29,7 @@
+    [app.main.ui.ds.buttons.button :refer [button*]]
+    [app.main.ui.ds.buttons.icon-button :refer [icon-button*]]
+    [app.main.ui.ds.foundations.assets.icon :as i]
++   [app.util.clipboard :as clipboard]
+    [app.util.dom :as dom]
+    [app.util.i18n :refer [tr]]
+    [app.util.keyboard :as kbd]
+@@ -298,29 +300,83 @@
+ (mf/defc mcp-tool*
+   {::mf/private true
+    ::mf/wrap [mf/memo]}
+-  [{:keys [is-mcp-connected]}]
+-  (let [menu-open*   (mf/use-state false)
++  [{:keys [is-mcp-connected is-connection-requested session-id]}]
++  (let [copied-text (tr "workspace.toolbar.mcp-session-copied")
++        copy-error (tr "errors.clipboard-api-unavailable")
++        menu-open*   (mf/use-state false)
+         menu-open?   (deref menu-open*)
+ 
+-        on-toggle-menu
++        open-timer*  (mf/use-ref nil)
++        close-timer* (mf/use-ref nil)
++
++        on-open-menu
+         (mf/use-fn
+          (fn [event]
+            (dom/stop-propagation event)
+-           (swap! menu-open* not)))
++           (cancel-timer! open-timer*)
++           (cancel-timer! close-timer*)
++           (reset! menu-open* true)))
+ 
+         on-close-menu
+         (mf/use-fn
+-         #(reset! menu-open* false))
++         (fn []
++           (cancel-timer! open-timer*)
++           (cancel-timer! close-timer*)
++           (reset! menu-open* false)))
++
++        on-display-menu
++        (mf/use-fn
++         (fn []
++           (cancel-timer! close-timer*)
++           (cancel-timer! open-timer*)
++           (mf/set-ref-val!
++            open-timer*
++            (ts/schedule 350
++                         #(do
++                            (reset! menu-open* true)
++                            (mf/set-ref-val! open-timer* nil))))))
++
++        on-hide-menu
++        (mf/use-fn
++         (fn []
++           (cancel-timer! open-timer*)
++           (cancel-timer! close-timer*)
++           (mf/set-ref-val!
++            close-timer*
++            (ts/schedule 350
++                         #(do
++                            (reset! menu-open* false)
++                            (mf/set-ref-val! close-timer* nil))))))
+ 
+         on-connect
+         (mf/use-fn
+          #(st/emit! (mcp/connect-mcp)
+                     (ev/event {::ev/name "connect-mcp-plugin"
+-                               ::ev/origin "workspace:toolbar"})))]
++                               ::ev/origin "workspace:toolbar"})))
+ 
+-    [:*
++        on-disconnect
++        (mf/use-fn
++         #(st/emit! (mcp/user-disconnect-mcp)))
++
++        on-copy-session
++        (mf/use-fn
++         (mf/deps session-id copied-text copy-error)
++         (fn []
++           (-> (clipboard/to-clipboard session-id)
++               (.then #(st/emit! (ntf/info copied-text)))
++               (.catch #(st/emit! (ntf/error copy-error))))))]
++
++    (mf/with-effect []
++      (fn []
++        (cancel-timer! open-timer*)
++        (cancel-timer! close-timer*)))
++
++    [:div {:on-pointer-enter on-display-menu
++           :on-pointer-leave on-hide-menu}
+      [:> button* {:variant "ghost"
+-                  :on-click on-toggle-menu
++                  :on-click on-open-menu
++                  :aria-haspopup true
++                  :aria-expanded menu-open?
+                   :aria-pressed menu-open?
+                   :data-tool "mcp"
+                   :data-testid "mcp-btn"}
+@@ -336,13 +392,22 @@
+       [:> dropdown-menu* {:show menu-open?
+                           :on-close on-close-menu
+                           :class (stl/css :toolbar-mcp-dropdown)}
+-       (if is-mcp-connected
++       (when (or is-mcp-connected session-id)
+          [:li {:class (stl/css :toolbar-mcp-dropdown-info)
+                :role "presentation"}
+-          (tr "workspace.toolbar.mcp-connected")]
++          (when is-mcp-connected
++            [:span (tr "workspace.toolbar.mcp-connected")])
++          (when session-id
++            [:span (tr "workspace.toolbar.mcp-session-id" session-id)])])
++       (when session-id
+          [:> dropdown-menu-item* {:class (stl/css :toolbar-mcp-dropdown-item)
+-                                  :on-click on-connect}
+-          (tr "workspace.toolbar.mcp-connect-here")])]]]))
++                                  :on-click on-copy-session}
++          (tr "workspace.toolbar.mcp-copy-session-id")])
++       [:> dropdown-menu-item* {:class (stl/css :toolbar-mcp-dropdown-item)
++                                :on-click (if is-connection-requested on-disconnect on-connect)}
++        (if is-connection-requested
++          (tr "workspace.header.menu.mcp.plugin.status.disconnect")
++          (tr "workspace.header.menu.mcp.plugin.status.connect"))]]]]))
+ 
+ (mf/defc top-toolbar*
+   {::mf/wrap [mf/memo]}
+@@ -480,7 +545,9 @@
+ 
+         (when mcp-show?
+           [:li {:class (stl/css :toolbar-option)}
+-           [:> mcp-tool* {:is-mcp-connected mcp-connected?}]])]
++           [:> mcp-tool* {:is-mcp-connected mcp-connected?
++                          :is-connection-requested (:connection-requested mcp)
++                          :session-id (:session-id mcp)}]])]
+ 
+        [:button {:title (tr "workspace.toolbar.toggle-toolbar")
+                  :aria-label (tr "workspace.toolbar.toggle-toolbar")
+diff --git a/frontend/src/app/main/ui/workspace/top_toolbar.scss b/frontend/src/app/main/ui/workspace/top_toolbar.scss
+index 23581afc994..7f5637c8f54 100644
+--- a/frontend/src/app/main/ui/workspace/top_toolbar.scss
++++ b/frontend/src/app/main/ui/workspace/top_toolbar.scss
+@@ -83,7 +83,7 @@
+   inset-inline-start: 50%;
+   transform: translateX(-50%);
+   margin-block-start: var(--sp-xxs);
+-  padding: var(--sp-xxs) 0;
++  padding: var(--sp-xxs);
+   border-radius: $br-8;
+   border: #{$b-1} solid var(--menu-border-color);
+   background-color: var(--menu-background-color);
+@@ -158,21 +158,35 @@
+   top: $sz-36;
+ }
+ 
++// Same look as the workspace main menu (`.base-menu` in main_menu.scss).
++// The toolbar overrides `--menu-background-color`, so restore the global
++// menu value here.
+ .toolbar-mcp-dropdown {
+-  box-shadow: 0 0 $sz-12 0 var(--color-shadow-dark);
++  --menu-background-color: var(--color-background-tertiary);
++
++  display: flex;
++  flex-direction: column;
++  gap: var(--sp-xs);
+   z-index: var(--z-index-dropdown);
+   margin: 0;
+   padding: var(--sp-xs);
+-  border: $b-1 solid var(--panel-border-color);
++  border: $b-2 solid var(--panel-border-color);
+   border-radius: $br-8;
+   background-color: var(--menu-background-color);
++  box-shadow: 0 0 $sz-12 0 var(--menu-shadow-color);
+ }
+ 
+ .toolbar-mcp-dropdown-info {
+   @include t.use-typography("body-small");
+ 
++  display: flex;
++  flex-direction: column;
++  gap: var(--sp-xs);
+   padding: var(--sp-s) var(--sp-m);
++  border-radius: $br-8;
+   color: var(--color-foreground-secondary);
++  background-color: var(--color-background-primary);
++  font-size: px2rem(11);
+   white-space: nowrap;
+ }
+ 
+@@ -184,10 +198,12 @@
+   padding: var(--sp-s) var(--sp-m);
+   border-radius: $br-8;
+   color: var(--menu-foreground-color);
++  background-color: var(--menu-background-color);
+   white-space: nowrap;
+ 
+   &:hover {
+-    background-color: var(--menu-background-color-hover);
++    --menu-foreground-color: var(--menu-foreground-color-hover);
++    --menu-background-color: var(--menu-background-color-hover);
+   }
+ }
+ 
+diff --git a/frontend/test/frontend_tests/data/workspace_mcp_test.cljs b/frontend/test/frontend_tests/data/workspace_mcp_test.cljs
+index 76b8fbd9484..8bd36d07aa5 100644
+--- a/frontend/test/frontend_tests/data/workspace_mcp_test.cljs
++++ b/frontend/test/frontend_tests/data/workspace_mcp_test.cljs
+@@ -8,9 +8,12 @@
+   (:require
+    [app.common.time :as ct]
+    [app.common.uuid :as uuid]
++   [app.main.data.plugins :as dp]
+    [app.main.data.profile :as du]
+    [app.main.data.workspace.mcp :as mcp]
++   [beicon.v2.core :as rx]
+    [cljs.test :as t :include-macros true]
++   [frontend-tests.helpers.async :as a]
+    [potok.v2.core :as ptk]))
+ 
+ (t/deftest test-update-mcp-status
+@@ -28,12 +31,12 @@
+ 
+ (t/deftest test-update-mcp-connection-status
+   (t/testing "sets connection status to connected"
+-    (let [state  {:mcp {:connection-status "disconnected"}}
++    (let [state  {:mcp {:connection-requested true :connection-status "disconnected"}}
+           result (ptk/update (mcp/update-mcp-connection-status "connected") state)]
+       (t/is (= "connected" (get-in result [:mcp :connection-status])))))
+ 
+   (t/testing "sets connection status to disconnected"
+-    (let [state  {:mcp {:connection-status "connected"}}
++    (let [state  {:mcp {:connection-requested true :connection-status "connected"}}
+           result (ptk/update (mcp/update-mcp-connection-status "disconnected") state)]
+       (t/is (= "disconnected" (get-in result [:mcp :connection-status]))))))
+ 
+@@ -123,3 +126,63 @@
+             event  (du/delete-access-token {:id (uuid/next)})
+             result (ptk/update event state)]
+         (t/is (= 2 (count (:access-tokens result))))))))
++
++(t/deftest ^:async test-enable-does-not-connect
++  (let [events (atom [])]
++    (await (a/observe (ptk/watch (mcp/update-mcp-status true) {} (rx/empty))
++                      :on-next #(swap! events conj %)))
++    (t/is (empty? @events))))
++
++(t/deftest ^:async test-connect-is-local
++  (let [event  (mcp/connect-mcp)
++        state  (ptk/update event {:mcp {:enabled true :token-valid true}})
++        events (atom [])]
++    (t/is (true? (get-in state [:mcp :connection-requested])))
++    (await (a/observe (ptk/watch event state (rx/empty))
++                      :on-next #(swap! events conj (ptk/type %))))
++    (t/is (= [:app.main.data.workspace.mcp/connect] @events))))
++
++(t/deftest test-disconnect-clears-connection-intent
++  (let [state  {:mcp {:connection-requested true
++                      :connection-status "connecting"
++                      :session-id "pq3gxqddgj"}}
++        result (ptk/update (mcp/user-disconnect-mcp) state)]
++    (t/is (false? (get-in result [:mcp :connection-requested])))
++    (t/is (= "disconnected" (get-in result [:mcp :connection-status])))
++    (t/is (nil? (get-in result [:mcp :session-id])))))
++
++(t/deftest test-init-clears-previous-file-connection
++  (let [state  {:profile {:props {:mcp-enabled true}}
++                :mcp {:connection-requested true
++                      :connection-status "connected"
++                      :session-id "pq3gxqddgj"}}
++        result (ptk/update (mcp/init) state)]
++    (t/is (false? (get-in result [:mcp :connection-requested])))
++    (t/is (= "disconnected" (get-in result [:mcp :connection-status])))
++    (t/is (nil? (get-in result [:mcp :session-id])))))
++
++(t/deftest test-late-status-cannot-reconnect
++  (let [state {:mcp {:connection-requested false :connection-status "disconnected"}}]
++    (t/is (= state (ptk/update (mcp/update-mcp-connection-status "connected") state)))))
++
++(t/deftest test-plugin-callbacks-stop-with-workspace
++  (doseq [stop-event [:app.main.data.workspace/finalize-workspace
++                      :app.main.data.workspace.mcp/init]]
++    (let [stream    (rx/subject)
++          extension (atom nil)
++          calls     (atom 0)
++          closed    (atom 0)]
++      (with-redefs [dp/start-plugin! (fn [_ extensions]
++                                       (reset! extension (.-mcp extensions)))
++                    dp/close-plugin! (fn [_] (swap! closed inc))]
++        (ptk/effect (#'mcp/init-mcp-plugin {:token "test-token"}) nil stream)
++        (.on @extension "connect" #(swap! calls inc))
++        (rx/push! stream (ptk/data-event :app.main.data.workspace.mcp/connect))
++        (t/is (= 1 @calls))
++        (rx/push! stream (ptk/data-event stop-event))
++        (t/is (= 1 @closed))
++        (t/is (false? (.isConnectionRequested @extension)))
++        (.on @extension "connect" #(swap! calls inc))
++        (rx/push! stream (ptk/data-event :app.main.data.workspace.mcp/connect))
++        (t/is (= 1 @calls))
++        (rx/end! stream)))))
+diff --git a/frontend/translations/en.po b/frontend/translations/en.po
+index b25cf8ed434..f51ef644596 100644
+--- a/frontend/translations/en.po
++++ b/frontend/translations/en.po
+@@ -9218,6 +9218,18 @@ msgstr "Connect here"
+ msgid "workspace.toolbar.mcp-connected"
+ msgstr "MCP connected"
+ 
++#: src/app/main/ui/workspace/top_toolbar.cljs
++msgid "workspace.toolbar.mcp-copy-session-id"
++msgstr "Copy session ID"
++
++#: src/app/main/ui/workspace/top_toolbar.cljs
++msgid "workspace.toolbar.mcp-session-copied"
++msgstr "Session ID copied"
++
++#: src/app/main/ui/workspace/top_toolbar.cljs
++msgid "workspace.toolbar.mcp-session-id"
++msgstr "Session ID: %s"
++
+ #: src/app/main/ui/workspace/top_toolbar.cljs:65, src/app/main/ui/workspace/top_toolbar.cljs:425
+ msgid "workspace.toolbar.move"
+ msgstr "Move (%s)"
+diff --git a/mcp/README.md b/mcp/README.md
+index 0e24eef43cd..1661f0d019e 100644
+--- a/mcp/README.md
++++ b/mcp/README.md
+@@ -143,7 +143,7 @@ This bootstrap command will:
+ 4. Load the plugin using the development URL (`http://localhost:4400/manifest.json` by default)
+ 5. Open the plugin UI
+ 6. In the plugin UI, click "Connect to MCP server".
+-   The connection status should change from "Not connected" to "Connected to MCP server".
++   The connection status should change from "Not connected" to "Connected".
+    (Check the browser's developer console for WebSocket connection logs.
+    Check the MCP server terminal for WebSocket connection messages.)
+ 
+@@ -238,6 +238,24 @@ After updating the configuration file, restart Claude Desktop completely for the
+ After the restart, you should see the MCP server listed when clicking on the "Search and tools" icon at the bottom
+ of the prompt input area.
+ 
++### Working with Multiple Files
++
++Connect the files you want to use:
++
++* Open each file in a separate Penpot tab, run the plugin, and connect it to the same MCP server.
++* Each connection has its own short session ID, shown in the plugin UI with a **Copy** button.
++* Multiple tabs can connect to the same file. Connecting or disconnecting one tab does not disconnect the others.
++
++Choose a session for your agent:
++
++* With exactly one connected session, the server selects it automatically when the agent omits the session ID.
++* With several connected sessions, the server lists them and asks the agent to have you select one.
++* You can also copy an ID from the plugin and include it in your prompt, for example:
++  "Use Penpot session `o37vgcqsvt` and list the pages in that file."
++
++For integrated remote MCP connection controls and session behavior, see the
++[Help Center guide](../docs/mcp/index.md#working-with-multiple-files).
++
+ ## Repository Structure
+ 
+ This repository is a monorepo containing four main components:
+diff --git a/mcp/packages/common/src/types.ts b/mcp/packages/common/src/types.ts
+index 36e52cc5315..3809a14fdd0 100644
+--- a/mcp/packages/common/src/types.ts
++++ b/mcp/packages/common/src/types.ts
+@@ -1,3 +1,16 @@
++/** Metadata identifying one connected Penpot plugin session. */
++export interface PenpotSession {
++    sessionId: string;
++    fileId: string;
++    fileName: string;
++}
++
++/** First message sent by the plugin on each new WebSocket connection. */
++export interface PluginConnectionInit {
++    type: "initialize";
++    session: PenpotSession;
++}
++
+ /**
+  * Result of a plugin task execution.
+  *
+diff --git a/mcp/packages/plugin/index.html b/mcp/packages/plugin/index.html
+index de2ff5853cc..bb525e16839 100644
+--- a/mcp/packages/plugin/index.html
++++ b/mcp/packages/plugin/index.html
+@@ -23,6 +23,22 @@
+                 Disconnect MCP Server
+             </button>
+ 
++            <div id="session-id" hidden>
++                <div class="session-id-row">
++                    <span class="body-s">Session ID</span>
++                    <code id="session-id-value"></code>
++                    <button
++                        type="button"
++                        id="copy-session-id-btn"
++                        data-appearance="secondary"
++                        aria-label="Copy session ID"
++                    >
++                        Copy
++                    </button>
++                </div>
++                <span id="session-id-feedback" class="body-s" role="status"></span>
++            </div>
++
+             <details class="collapsible-section" id="execution-status">
+                 <summary class="collapsible-header">
+                     <svg
+diff --git a/mcp/packages/plugin/public/manifest.json b/mcp/packages/plugin/public/manifest.json
+index aa97095b301..022c7ece9c8 100644
+--- a/mcp/packages/plugin/public/manifest.json
++++ b/mcp/packages/plugin/public/manifest.json
+@@ -4,5 +4,5 @@
+     "icon": "icon.jpg",
+     "version": 2,
+     "description": "This plugin enables interaction with the Penpot MCP server",
+-    "permissions": ["content:read", "content:write", "library:read", "library:write", "comment:read", "comment:write"]
++    "permissions": ["user:read", "content:read", "content:write", "library:read", "library:write", "comment:read", "comment:write"]
+ }
+diff --git a/mcp/packages/plugin/src/ConnectionMetadata.test.ts b/mcp/packages/plugin/src/ConnectionMetadata.test.ts
+new file mode 100644
+index 00000000000..954eefeb9ff
+--- /dev/null
++++ b/mcp/packages/plugin/src/ConnectionMetadata.test.ts
+@@ -0,0 +1,293 @@
++import assert from "node:assert/strict";
++import { randomUUID } from "node:crypto";
++import { readFileSync } from "node:fs";
++import test from "node:test";
++import { runInNewContext } from "node:vm";
++import ts from "typescript";
++import { shouldReconnectAfterClose } from "./ReconnectPolicy.ts";
++import { SessionId } from "./SessionId.ts";
++import { SessionIdDisplay } from "./SessionIdDisplay.ts";
++
++/** Compiles the actual plugin entry point for a simulated browser boundary. */
++function compile(name: string) {
++    return ts.transpileModule(readFileSync(new URL(name, import.meta.url), "utf8"), {
++        compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 },
++    }).outputText;
++}
++
++function pluginUi() {
++    const messages: any[] = [];
++    const sockets: FakeSocket[] = [];
++    const events = new Map<string, (event?: any) => void>();
++    const timers = new Map<number, () => void>();
++    let timerId = 0;
++    class FakeSocket {
++        static OPEN = 1;
++        static CONNECTING = 0;
++        readyState = 0;
++        sent: any[] = [];
++        onopen?: () => void;
++        onclose?: (event: any) => void;
++        onmessage?: (event: any) => void;
++        constructor(_url: string) {
++            sockets.push(this);
++        }
++        open() {
++            this.readyState = 1;
++            this.onopen?.();
++        }
++        send(raw: string) {
++            this.sent.push(JSON.parse(raw));
++        }
++        close() {
++            this.readyState = 3;
++            this.onclose?.({ code: 1000 });
++        }
++        receive(message: any) {
++            this.onmessage?.({ data: JSON.stringify(message) });
++        }
++    }
++    const addEventListener = (name: string, handler: (event?: any) => void) => events.set(name, handler);
++    runInNewContext(compile("main.ts"), {
++        exports: {},
++        require: (name: string) => {
++            if (name === "./style.css") return {};
++            if (name === "./ReconnectPolicy") return { shouldReconnectAfterClose };
++            if (name === "./SessionId") return { SessionId };
++            if (name === "./SessionIdDisplay") return { SessionIdDisplay };
++            throw new Error(`Unexpected import: ${name}`);
++        },
++        console: { log() {}, error() {}, warn() {} },
++        crypto: { randomUUID },
++        URLSearchParams,
++        WebSocket: FakeSocket,
++        window: { location: { hash: "" }, addEventListener },
++        document: { body: { dataset: {} }, getElementById: () => null, addEventListener },
++        parent: { postMessage: (message: any) => messages.push(JSON.parse(JSON.stringify(message))) },
++        setTimeout: (callback: () => void) => {
++            timers.set(++timerId, callback);
++            return timerId;
++        },
++        clearTimeout: (id: number) => timers.delete(id),
++        setInterval: () => ++timerId,
++        clearInterval: () => {},
++        PENPOT_MCP_WEBSOCKET_URL: "ws://localhost:4402",
++    });
++    const message = (data: any) => events.get("message")!({ data });
++    const connect = () => {
++        message({ type: "start-server" });
++        sockets.at(-1)!.open();
++        return messages.filter((message) => message.type === "connection-metadata-request").at(-1)!.sessionId;
++    };
++    return { messages, sockets, events, timers, message, connect };
++}
++
++test("sends file metadata before marking a plugin connection ready", async () => {
++    const ui = pluginUi();
++    const sessionId = ui.connect();
++    const initialization = {
++        type: "initialize",
++        penpotUserSessionId: "tab-1",
++        session: { sessionId, fileId: "file-1", fileName: "Design" },
++    };
++    await ui.message(initialization);
++    const registeredSession = ui.sockets[0].sent[0].session;
++    assert.equal(registeredSession.sessionId, "pq3gxqddgj");
++    assert.notEqual(registeredSession.sessionId, sessionId);
++    assert.deepEqual(registeredSession, { ...initialization.session, sessionId: registeredSession.sessionId });
++    assert.equal(
++        ui.messages.some((message) => message.status === "connected"),
++        false
++    );
++    ui.sockets[0].receive({ type: "initialized" });
++    assert.equal(ui.messages.at(-1).status, "connected");
++});
++
++test("reconnects with the same session ID and ignores metadata for the old socket", async () => {
++    const ui = pluginUi();
++    const firstId = ui.connect();
++    await ui.message({
++        type: "initialize",
++        penpotUserSessionId: "tab-1",
++        session: { sessionId: firstId, fileId: "file-1", fileName: "Design" },
++    });
++    const sessionId = ui.sockets[0].sent[0].session.sessionId;
++    ui.sockets[0].close();
++    const reconnect = [...ui.timers.values()][0];
++    reconnect();
++    ui.sockets[1].open();
++    const secondId = ui.messages.filter((message) => message.type === "connection-metadata-request").at(-1).sessionId;
++    assert.notEqual(firstId, secondId);
++    await ui.message({
++        type: "initialize",
++        penpotUserSessionId: "tab-1",
++        session: { sessionId: firstId, fileId: "old", fileName: "Old file" },
++    });
++    assert.deepEqual(ui.sockets[1].sent, []);
++    await ui.message({
++        type: "initialize",
++        penpotUserSessionId: "tab-1",
++        session: { sessionId: secondId, fileId: "file-1", fileName: "Design" },
++    });
++    assert.equal(ui.sockets[1].sent[0].session.sessionId, sessionId);
++    assert.notEqual(ui.sockets[1].sent[0].session.sessionId, secondId);
++});
++
++test("resume and freeze events cannot send liveness messages before initialization", () => {
++    const ui = pluginUi();
++    ui.connect();
++    ui.events.get("resume")!();
++    ui.events.get("freeze")!();
++    assert.deepEqual(ui.sockets[0].sent, []);
++    ui.sockets[0].receive({ type: "initialized" });
++    ui.events.get("resume")!();
++    assert.deepEqual(ui.sockets[0].sent, [{ type: "heartbeat" }]);
++});
++
++test("plugin reads the current file for each connection metadata request", () => {
++    let onMessage!: (message: any) => void;
++    const messages: any[] = [];
++    const penpot = {
++        currentFile: { id: "file-1", name: "First design" },
++        currentUser: { sessionId: "tab-1" },
++        theme: "dark",
++        ui: {
++            open() {},
++            onMessage: (handler: (message: any) => void) => {
++                onMessage = handler;
++            },
++            sendMessage: (message: any) => messages.push(JSON.parse(JSON.stringify(message))),
++        },
++        on() {},
++    };
++    runInNewContext(compile("plugin.ts"), {
++        exports: {},
++        penpot,
++        mcp: undefined,
++        require: () => ({ ExecuteCodeTaskHandler: class {} }),
++    });
++    onMessage({ type: "connection-metadata-request", sessionId: "first" });
++    penpot.currentFile = { id: "file-2", name: "Second design" };
++    onMessage({ type: "connection-metadata-request", sessionId: "second" });
++    assert.deepEqual(messages, [
++        {
++            type: "initialize",
++            penpotUserSessionId: "tab-1",
++            session: { sessionId: "first", fileId: "file-1", fileName: "First design" },
++        },
++        {
++            type: "initialize",
++            penpotUserSessionId: "tab-1",
++            session: { sessionId: "second", fileId: "file-2", fileName: "Second design" },
++        },
++    ]);
++});
++
++test("integrated connections reuse the short ID across reconnects", async () => {
++    const ui = pluginUi();
++    ui.message({ type: "mcp-mode", integratedRemoteMcp: true });
++    const initialize = async (requestId: string) => {
++        await ui.message({
++            type: "initialize",
++            penpotUserSessionId: "tab-1",
++            session: { sessionId: requestId, fileId: "file-1", fileName: "Design" },
++        });
++    };
++    await initialize(ui.connect());
++    assert.equal(ui.sockets[0].sent[0].session.sessionId, "pq3gxqddgj");
++    ui.sockets[0].receive({ type: "initialized" });
++    assert.equal(ui.messages.at(-1).sessionId, "pq3gxqddgj");
++    ui.sockets[0].close();
++    [...ui.timers.values()][0]();
++    ui.sockets[1].open();
++    const requestId = ui.messages.filter((message) => message.type === "connection-metadata-request").at(-1).sessionId;
++    await initialize(requestId);
++    assert.equal(ui.sockets[1].sent[0].session.sessionId, "pq3gxqddgj");
++});
++
++test("disconnect cancels metadata initialization and ignores a late acknowledgement", async () => {
++    const ui = pluginUi();
++    ui.message({ type: "mcp-mode", integratedRemoteMcp: true });
++    const requestId = ui.connect();
++    const pending = ui.message({
++        type: "initialize",
++        penpotUserSessionId: "tab-1",
++        session: { sessionId: requestId, fileId: "file-1", fileName: "Design" },
++    });
++    ui.message({ type: "stop-server" });
++    await pending;
++    ui.sockets[0].receive({ type: "initialized" });
++    assert.deepEqual(ui.sockets[0].sent, []);
++    assert.equal(ui.messages.at(-1).status, "disconnected");
++    assert.equal(ui.timers.size, 0);
++});
++
++test("integrated plugin stays idle until explicitly connected, including while the UI loads", () => {
++    let onMessage!: (message: any) => void;
++    const events = new Map<string, () => void>();
++    const messages: any[] = [];
++    const statuses: string[] = [];
++    runInNewContext(compile("plugin.ts"), {
++        exports: {},
++        console: { log() {} },
++        PENPOT_MCP_VERSION: "0.0.0",
++        penpot: {
++            theme: "dark",
++            version: "0.0.0",
++            ui: {
++                open() {},
++                onMessage: (handler: (message: any) => void) => {
++                    onMessage = handler;
++                },
++                sendMessage: (message: any) => messages.push(message),
++            },
++            on() {},
++        },
++        mcp: {
++            getToken: () => "test-token",
++            getServerUrl: () => "ws://localhost:4402",
++            isConnectionRequested: () => false,
++            setMcpStatus: (status: string) => statuses.push(status),
++            on: (event: string, callback: () => void) => events.set(event, callback),
++        },
++        require: () => ({ ExecuteCodeTaskHandler: class {} }),
++    });
++    assert.ok(!statuses.includes("connecting"));
++    events.get("connect")!();
++    events.get("disconnect")!();
++    onMessage({ type: "ui-initialized" });
++    assert.ok(!messages.some((message) => message.type === "start-server"));
++    events.get("connect")!();
++    assert.equal(messages.at(-1).type, "start-server");
++});
++
++test("standalone session ID survives reconnects and plugin restarts in the same app instance", async () => {
++    const ui = pluginUi();
++    const firstRequestId = ui.connect();
++    await ui.message({
++        type: "initialize",
++        penpotUserSessionId: "tab-1",
++        session: { sessionId: firstRequestId, fileId: "file-1", fileName: "Design" },
++    });
++    const sessionId = ui.sockets[0].sent[0].session.sessionId;
++    ui.message({ type: "stop-server" });
++    assert.equal(ui.messages.at(-1).sessionId, null);
++    const secondRequestId = ui.connect();
++    await ui.message({
++        type: "initialize",
++        penpotUserSessionId: "tab-1",
++        session: { sessionId: secondRequestId, fileId: "file-1", fileName: "Design" },
++    });
++    assert.equal(ui.sockets[1].sent[0].session.sessionId, sessionId);
++    ui.sockets[1].receive({ type: "initialized" });
++    assert.equal(ui.messages.at(-1).sessionId, sessionId);
++
++    const next = pluginUi();
++    const nextRequestId = next.connect();
++    await next.message({
++        type: "initialize",
++        penpotUserSessionId: "tab-1",
++        session: { sessionId: nextRequestId, fileId: "file-1", fileName: "Design" },
++    });
++    assert.equal(next.sockets[0].sent[0].session.sessionId, sessionId);
++});
+diff --git a/mcp/packages/plugin/src/SessionId.test.ts b/mcp/packages/plugin/src/SessionId.test.ts
+new file mode 100644
+index 00000000000..8837fc7d2bb
+--- /dev/null
++++ b/mcp/packages/plugin/src/SessionId.test.ts
+@@ -0,0 +1,14 @@
++import assert from "node:assert/strict";
++import test from "node:test";
++import { SessionId } from "./SessionId.ts";
++
++test("derives a stable 50-bit Base32 identifier from the Penpot user session and file", async () => {
++    assert.equal(await SessionId.forFile("tab-1", "file-1"), "pq3gxqddgj");
++    assert.equal(await SessionId.forFile("tab-1", "file-1"), "pq3gxqddgj");
++    assert.equal(await SessionId.forFile("tab-2", "file-1"), "jablgbun4p");
++    assert.equal(await SessionId.forFile("tab-1", "file-2"), "7s3kow4ucx");
++});
++
++test("encodes the Penpot user session and file without ambiguous boundaries", async () => {
++    assert.notEqual(await SessionId.forFile("ab", "c"), await SessionId.forFile("a", "bc"));
++});
+diff --git a/mcp/packages/plugin/src/SessionId.ts b/mcp/packages/plugin/src/SessionId.ts
+new file mode 100644
+index 00000000000..e81f3e5a59f
+--- /dev/null
++++ b/mcp/packages/plugin/src/SessionId.ts
+@@ -0,0 +1,21 @@
++/** Short routing identifier for a Penpot session. */
++export class SessionId {
++    private static readonly ALPHABET = "abcdefghijklmnopqrstuvwxyz234567";
++
++    public static async forFile(penpotUserSessionId: string, fileId: string): Promise<string> {
++        const input = new TextEncoder().encode(JSON.stringify([penpotUserSessionId, fileId]));
++        const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", input));
++        return SessionId.encode(digest);
++    }
++
++    protected static encode(bytes: Uint8Array): string {
++        let result = "";
++        for (let bit = 0; bit < 50; bit += 5) {
++            const byte = Math.floor(bit / 8);
++            const offset = bit % 8;
++            const value = ((bytes[byte] << 8) | bytes[byte + 1]) >> (11 - offset);
++            result += SessionId.ALPHABET[value & 31];
++        }
++        return result;
++    }
++}
+diff --git a/mcp/packages/plugin/src/SessionIdDisplay.test.ts b/mcp/packages/plugin/src/SessionIdDisplay.test.ts
+new file mode 100644
+index 00000000000..ea584607719
+--- /dev/null
++++ b/mcp/packages/plugin/src/SessionIdDisplay.test.ts
+@@ -0,0 +1,77 @@
++import assert from "node:assert/strict";
++import test from "node:test";
++import { SessionIdDisplay } from "./SessionIdDisplay.ts";
++
++class DisplayFixture {
++    public readonly value = { textContent: "" };
++    public readonly feedback = { textContent: "" };
++    public onCopy!: () => Promise<void>;
++    public readonly button = {
++        disabled: true,
++        addEventListener: (_event: string, listener: () => Promise<void>) => {
++            this.onCopy = listener;
++        },
++    };
++    public readonly root = {
++        hidden: true,
++        querySelector: (selector: string) =>
++            ({
++                "#session-id-value": this.value,
++                "#copy-session-id-btn": this.button,
++                "#session-id-feedback": this.feedback,
++            })[selector],
++    };
++    public readonly copied: string[] = [];
++    public readonly display: SessionIdDisplay;
++
++    constructor(
++        writeText = async (text: string) => {
++            this.copied.push(text);
++        }
++    ) {
++        this.display = new SessionIdDisplay(this.root as unknown as HTMLElement, { writeText });
++    }
++}
++
++test("shows and copies the exact session ID, then clears it on disconnect", async () => {
++    const ui = new DisplayFixture();
++    ui.display.setSessionId("pq3gxqddgj");
++    assert.equal(ui.root.hidden, false);
++    assert.equal(ui.value.textContent, "pq3gxqddgj");
++    await ui.onCopy();
++    assert.deepEqual(ui.copied, ["pq3gxqddgj"]);
++    assert.equal(ui.feedback.textContent, "Copied");
++    ui.display.setSessionId(null);
++    assert.equal(ui.root.hidden, true);
++    assert.equal(ui.value.textContent, "");
++    assert.equal(ui.feedback.textContent, "");
++    assert.equal(ui.button.disabled, true);
++    await ui.onCopy();
++    assert.equal(ui.copied.length, 1);
++});
++
++test("reports clipboard denial and keeps the ID available for manual copying", async () => {
++    const ui = new DisplayFixture(async () => {
++        throw new Error("Permission denied");
++    });
++    ui.display.setSessionId("pq3gxqddgj");
++    await ui.onCopy();
++    assert.match(ui.feedback.textContent, /Could not copy/);
++    assert.equal(ui.value.textContent, "pq3gxqddgj");
++});
++
++test("ignores late clipboard feedback after the session changes", async () => {
++    let finish!: () => void;
++    const ui = new DisplayFixture(
++        () =>
++            new Promise<void>((resolve) => {
++                finish = resolve;
++            })
++    );
++    ui.display.setSessionId("pq3gxqddgj");
++    const pending = ui.onCopy();
++    ui.display.setSessionId("jablgbun4p");
++    finish();
++    await pending;
++    assert.equal(ui.feedback.textContent, "");
++});
+diff --git a/mcp/packages/plugin/src/SessionIdDisplay.ts b/mcp/packages/plugin/src/SessionIdDisplay.ts
+new file mode 100644
+index 00000000000..561daa00864
+--- /dev/null
++++ b/mcp/packages/plugin/src/SessionIdDisplay.ts
+@@ -0,0 +1,41 @@
++/** Displays the active session ID and provides clipboard feedback. */
++export class SessionIdDisplay {
++    private sessionId: string | null = null;
++    private readonly value: HTMLElement;
++    private readonly button: HTMLButtonElement;
++    private readonly feedback: HTMLElement;
++
++    private readonly root: HTMLElement;
++    private readonly clipboard: Pick<Clipboard, "writeText">;
++
++    constructor(root: HTMLElement, clipboard: Pick<Clipboard, "writeText">) {
++        this.root = root;
++        this.clipboard = clipboard;
++        this.value = root.querySelector<HTMLElement>("#session-id-value")!;
++        this.button = root.querySelector<HTMLButtonElement>("#copy-session-id-btn")!;
++        this.feedback = root.querySelector<HTMLElement>("#session-id-feedback")!;
++        this.button.addEventListener("click", () => this.copy());
++        this.setSessionId(null);
++    }
++
++    public setSessionId(sessionId: string | null): void {
++        this.sessionId = sessionId;
++        this.root.hidden = sessionId === null;
++        this.value.textContent = sessionId ?? "";
++        this.button.disabled = sessionId === null;
++        this.feedback.textContent = "";
++    }
++
++    protected async copy(): Promise<void> {
++        const sessionId = this.sessionId;
++        if (!sessionId) return;
++        try {
++            await this.clipboard.writeText(sessionId);
++            if (this.sessionId === sessionId) this.feedback.textContent = "Copied";
++        } catch {
++            if (this.sessionId === sessionId) {
++                this.feedback.textContent = "Could not copy. Select the ID to copy it manually.";
++            }
++        }
++    }
++}
+diff --git a/mcp/packages/plugin/src/index.d.ts b/mcp/packages/plugin/src/index.d.ts
+index a0eda651e1b..1fa11567bb6 100644
+--- a/mcp/packages/plugin/src/index.d.ts
++++ b/mcp/packages/plugin/src/index.d.ts
+@@ -1,7 +1,8 @@
+ interface McpOptions {
+     getToken(): string;
+     getServerUrl(): string;
+-    setMcpStatus(status: string);
++    isConnectionRequested(): boolean;
++    setMcpStatus(status: string, sessionId?: string);
+     on(eventType: "disconnect" | "connect", cb: () => void);
+ }
+ 
+diff --git a/mcp/packages/plugin/src/main.ts b/mcp/packages/plugin/src/main.ts
+index f787cd92985..29e5c0a2861 100644
+--- a/mcp/packages/plugin/src/main.ts
++++ b/mcp/packages/plugin/src/main.ts
+@@ -1,5 +1,8 @@
+ import "./style.css";
+ import { shouldReconnectAfterClose } from "./ReconnectPolicy";
++import { SessionId } from "./SessionId";
++import { SessionIdDisplay } from "./SessionIdDisplay";
++import type { PluginConnectionInit } from "../../common/src";
+ 
+ /**
+  * the maximum allowed size for task responses sent back to the MCP server in the integrated remote MCP mode.
+@@ -17,6 +20,9 @@ document.body.dataset.theme = searchParams.get("theme") ?? "light";
+ 
+ // WebSocket connection to the MCP server
+ let ws: WebSocket | null = null;
++let connectionSessionId: string | null = null;
++let connectionRequestId: string | null = null;
++let connectionReady = false;
+ 
+ const HEARTBEAT_INTERVAL_MS = 10_000;
+ const RECONNECT_BASE_DELAY_MS = 1_000;
+@@ -46,6 +52,8 @@ const connectBtn = document.getElementById("connect-btn") as HTMLButtonElement;
+ const disconnectBtn = document.getElementById("disconnect-btn") as HTMLButtonElement;
+ const versionWarningEl = document.getElementById("version-warning") as HTMLElement;
+ const versionWarningTextEl = document.getElementById("version-warning-text") as HTMLElement;
++const sessionIdEl = document.getElementById("session-id");
++const sessionIdDisplay = sessionIdEl ? new SessionIdDisplay(sessionIdEl, navigator.clipboard) : null;
+ 
+ /**
+  * Updates the status pill and button visibility based on connection state.
+@@ -62,6 +70,7 @@ function updateConnectionStatus(code: string, label: string): void {
+     }
+ 
+     const isConnected = code === "connected";
++    sessionIdDisplay?.setSessionId(isConnected ? connectionSessionId : null);
+     if (connectBtn) connectBtn.hidden = isConnected;
+     if (disconnectBtn) disconnectBtn.hidden = !isConnected;
+ 
+@@ -69,6 +78,7 @@ function updateConnectionStatus(code: string, label: string): void {
+         {
+             type: "update-connection-status",
+             status: code,
++            sessionId: connectionSessionId,
+         },
+         "*"
+     );
+@@ -138,7 +148,7 @@ function sendTaskResponse(response: any): void {
+  * page JavaScript is frozen and unable to run MCP tasks.
+  */
+ function sendHeartbeat(): boolean {
+-    if (ws && ws.readyState === WebSocket.OPEN) {
++    if (connectionReady && ws?.readyState === WebSocket.OPEN) {
+         ws.send(JSON.stringify({ type: "heartbeat" }));
+         return true;
+     }
+@@ -201,7 +211,7 @@ function connectToMcpServer(baseUrl?: string, token?: string): void {
+     lastConnectionToken = token;
+ 
+     if (ws?.readyState === WebSocket.OPEN) {
+-        updateConnectionStatus("connected", "Connected");
++        if (connectionReady) updateConnectionStatus("connected", "Connected");
+         return;
+     }
+     if (ws?.readyState === WebSocket.CONNECTING) {
+@@ -217,23 +227,30 @@ function connectToMcpServer(baseUrl?: string, token?: string): void {
+         }
+ 
+         ws = new WebSocket(wsUrl);
++        const socket = ws;
++        connectionRequestId = crypto.randomUUID();
++        connectionSessionId = null;
++        connectionReady = false;
+         updateConnectionStatus("connecting", "Connecting...");
+ 
+         ws.onopen = () => {
+-            cancelReconnect();
+-            startHeartbeat();
+-            setTimeout(() => {
+-                if (ws) {
+-                    console.log("Connected to MCP server");
+-                    updateConnectionStatus("connected", "Connected");
+-                }
+-            }, 100);
++            if (ws !== socket) return;
++            parent.postMessage({ type: "connection-metadata-request", sessionId: connectionRequestId }, "*");
+         };
+ 
+         ws.onmessage = (event) => {
++            if (ws !== socket) return;
+             try {
+                 console.log("Received from MCP server:", event.data);
+                 const request = JSON.parse(event.data);
++                if (request.type === "initialized") {
++                    if (ws !== socket) return;
++                    connectionReady = true;
++                    cancelReconnect();
++                    startHeartbeat();
++                    updateConnectionStatus("connected", "Connected");
++                    return;
++                }
+                 // Track the current task received from the MCP server
+                 if (request.task) {
+                     updateCurrentTask(request.task);
+@@ -247,6 +264,7 @@ function connectToMcpServer(baseUrl?: string, token?: string): void {
+         };
+ 
+         ws.onclose = (event: CloseEvent) => {
++            if (ws !== socket) return;
+             stopHeartbeat();
+             // keep the explicit error state if one was already shown
+             if (!wsError) {
+@@ -256,11 +274,10 @@ function connectToMcpServer(baseUrl?: string, token?: string): void {
+                 updateCurrentTask(null);
+             }
+             ws = null;
++            connectionSessionId = null;
++            connectionReady = false;
+             if (!shouldReconnectAfterClose(event.code)) {
+-                // Policy violation (e.g. duplicate connection for the same user
+-                // token - another tab already holds the connection). Retrying
+-                // would be refused again immediately, so stay disconnected
+-                // until the user explicitly reconnects.
++                // a policy violation requires the user to correct the connection settings
+                 shouldReconnect = false;
+                 cancelReconnect();
+                 return;
+@@ -287,7 +304,14 @@ function disconnectFromMcpServer(): void {
+     shouldReconnect = false;
+     cancelReconnect();
+     stopHeartbeat();
+-    ws?.close();
++    const socket = ws;
++    ws = null;
++    connectionRequestId = null;
++    connectionSessionId = null;
++    connectionReady = false;
++    socket?.close();
++    updateConnectionStatus("disconnected", "Disconnected");
++    updateCurrentTask(null);
+ }
+ 
+ copyCodeBtn?.addEventListener("click", () => {
+@@ -309,7 +333,50 @@ disconnectBtn?.addEventListener("click", () => {
+ });
+ 
+ // Listen plugin.ts messages
+-window.addEventListener("message", (event) => {
++window.addEventListener("message", async (event) => {
++    if (event.data.type === "initialize") {
++        const initialization = event.data as PluginConnectionInit & { penpotUserSessionId?: string };
++        const socket = ws;
++        const requestId = connectionRequestId;
++        if (
++            !shouldReconnect ||
++            socket?.readyState !== WebSocket.OPEN ||
++            initialization.session.sessionId !== requestId
++        ) {
++            return;
++        }
++        try {
++            if (!initialization.penpotUserSessionId) {
++                throw new Error("Missing Penpot user session ID");
++            }
++            const sessionId = await SessionId.forFile(
++                initialization.penpotUserSessionId,
++                initialization.session.fileId
++            );
++            if (
++                !shouldReconnect ||
++                ws !== socket ||
++                connectionRequestId !== requestId ||
++                socket.readyState !== WebSocket.OPEN
++            ) {
++                return;
++            }
++            connectionSessionId = sessionId;
++            socket.send(
++                JSON.stringify({
++                    type: "initialize",
++                    session: { ...initialization.session, sessionId },
++                })
++            );
++        } catch (error) {
++            console.error("Failed to initialize MCP session:", error);
++            if (ws === socket) {
++                disconnectFromMcpServer();
++                updateConnectionStatus("error", "Failed to initialize MCP session");
++            }
++        }
++        return;
++    }
+     if (event.data.type === "mcp-mode") {
+         isIntegratedRemoteMcp = event.data.integratedRemoteMcp;
+     }
+@@ -354,7 +421,7 @@ function handleTabResumed(): void {
+ 
+ // Chrome: about to pause page JavaScript.
+ document.addEventListener("freeze", () => {
+-    if (ws && ws.readyState === WebSocket.OPEN) {
++    if (connectionReady && ws?.readyState === WebSocket.OPEN) {
+         ws.send(JSON.stringify({ type: "freeze" }));
+     }
+ });
+diff --git a/mcp/packages/plugin/src/plugin.ts b/mcp/packages/plugin/src/plugin.ts
+index 502116707fc..eb01d2d571d 100644
+--- a/mcp/packages/plugin/src/plugin.ts
++++ b/mcp/packages/plugin/src/plugin.ts
+@@ -1,6 +1,7 @@
+ import { ExecuteCodeTaskHandler } from "./task-handlers/ExecuteCodeTaskHandler";
+ import { Task, TaskHandler } from "./TaskHandler";
+ import { formatTaskError } from "./ErrorUtils";
++import type { PluginConnectionInit } from "../../common/src";
+ 
+ /**
+  * indicates whether the plugin is running in an environment with the Penpot-integrated remote MCP server
+@@ -19,7 +20,7 @@ function extractVersionPrefix(version: string): string {
+     return match ? match[1] : version;
+ }
+ 
+-mcp?.setMcpStatus("connecting");
++let uiInitialized = false;
+ 
+ /**
+  * Registry of all available task handlers.
+@@ -34,8 +35,11 @@ penpot.ui.open("Penpot MCP Plugin", `?theme=${penpot.theme}`, {
+ } as any);
+ 
+ // Register message handlers
+-penpot.ui.onMessage<string | { id: string; type?: string; status?: string; task: string; params: any }>((message) => {
++penpot.ui.onMessage<
++    string | { id: string; type?: string; status?: string; sessionId?: string; task: string; params: any }
++>((message) => {
+     if (typeof message === "object" && message.type === "ui-initialized") {
++        uiInitialized = true;
+         // Inform the UI about the operating mode
+         penpot.ui.sendMessage({
+             type: "mcp-mode",
+@@ -53,16 +57,26 @@ penpot.ui.onMessage<string | { id: string; type?: string; status?: string; task:
+                 penpotVersion: penpotVersionPrefix,
+             });
+         }
+-        // Initiate connection to remote MCP server (if enabled)
+-        if (isIntegratedRemoteMcp) {
++        // connect only when requested in this workspace
++        if (isIntegratedRemoteMcp && mcp?.isConnectionRequested()) {
+             penpot.ui.sendMessage({
+                 type: "start-server",
+                 url: mcp?.getServerUrl(),
+                 token: mcp?.getToken(),
+             });
+         }
++    } else if (typeof message === "object" && message.type === "connection-metadata-request") {
++        const file = penpot.currentFile;
++        if (file && message.sessionId) {
++            const initialization: PluginConnectionInit & { penpotUserSessionId?: string } = {
++                type: "initialize",
++                session: { sessionId: message.sessionId, fileId: file.id, fileName: file.name },
++                penpotUserSessionId: penpot.currentUser.sessionId,
++            };
++            penpot.ui.sendMessage(initialization);
++        }
+     } else if (typeof message === "object" && message.type === "update-connection-status") {
+-        mcp?.setMcpStatus(message.status || "unknown");
++        mcp?.setMcpStatus(message.status || "unknown", message.sessionId);
+     } else if (typeof message === "object" && message.task && message.id) {
+         // Handle plugin tasks submitted by the MCP server
+         handlePluginTaskRequest(message).catch((error) => {
+@@ -113,6 +127,7 @@ if (mcp) {
+         });
+     });
+     mcp.on("connect", async () => {
++        if (!uiInitialized) return;
+         penpot.ui.sendMessage({
+             type: "start-server",
+             url: mcp?.getServerUrl(),
+diff --git a/mcp/packages/plugin/src/style.css b/mcp/packages/plugin/src/style.css
+index 53e0a9da3d8..a0941a5247c 100644
+--- a/mcp/packages/plugin/src/style.css
++++ b/mcp/packages/plugin/src/style.css
+@@ -188,3 +188,14 @@ details[open] > .collapsible-header .collapsible-arrow {
+     width: 100%;
+     margin-top: var(--spacing-4);
+ }
++
++.session-id-row {
++    display: flex;
++    align-items: center;
++    gap: var(--spacing-8);
++}
++
++#session-id-value {
++    flex: 1;
++    user-select: all;
++}
+diff --git a/mcp/packages/server/package.json b/mcp/packages/server/package.json
+index 455b2784ba8..e9eaa9cc75d 100644
+--- a/mcp/packages/server/package.json
++++ b/mcp/packages/server/package.json
+@@ -12,7 +12,7 @@
+     "start:multi-user": "node dist/index.js --multi-user",
+     "start:dev": "node --import ts-node/register src/index.ts",
+     "start:dev:multi-user": "node --loader ts-node/esm src/index.ts --multi-user",
+-    "test": "tsx --test src/*.test.ts",
++    "test": "tsx --test \"src/**/*.test.ts\"",
+     "test:integration:export-sema": "tsx scripts/integration-test-export-image-semaphore.ts",
+     "types:check": "tsc --noEmit",
+     "clean": "rm -rf dist/"
+diff --git a/mcp/packages/server/src/PenpotConnection.ts b/mcp/packages/server/src/PenpotConnection.ts
+new file mode 100644
+index 00000000000..267c1b159b0
+--- /dev/null
++++ b/mcp/packages/server/src/PenpotConnection.ts
+@@ -0,0 +1,22 @@
++import type { WebSocket } from "ws";
++import type { PenpotSession } from "@penpot/mcp-common";
++
++/**
++ * Observable liveness state of a plugin connection.
++ */
++export interface PluginLivenessState {
++    /** timestamp of the last plugin message, in ms since epoch. */
++    lastHeartbeat: number;
++    /** whether the plugin reported a browser freeze. */
++    frozen: boolean;
++}
++
++/** One local Penpot WebSocket connection and its session metadata. */
++export interface PenpotConnection extends PluginLivenessState {
++    readonly socket: WebSocket;
++    readonly userToken: string | null;
++    readonly session: PenpotSession;
++    readonly pingInterval: NodeJS.Timeout;
++    /** whether initialization and dispatch subscriptions have completed. */
++    ready: boolean;
++}
+diff --git a/mcp/packages/server/src/PenpotMcpServer.http.test.ts b/mcp/packages/server/src/PenpotMcpServer.http.test.ts
+index e738a49a2d9..2a72ed5305f 100644
+--- a/mcp/packages/server/src/PenpotMcpServer.http.test.ts
++++ b/mcp/packages/server/src/PenpotMcpServer.http.test.ts
+@@ -106,6 +106,23 @@ test("isolates user tokens across overlapping tool calls with the same request I
+     assert.equal(server.getSessionContext(), undefined);
+ });
+ 
++test("passes an explicit Penpot session ID from the tool call to plugin dispatch", async (t) => {
++    t.mock.method(server.pluginBridge, "executePluginTask", async (_task: unknown, sessionId?: string) => ({
++        data: sessionId,
++    }));
++    const response = await modernRequest(
++        "tools/call",
++        {
++            name: "execute_code",
++            arguments: { code: "return penpot.currentFile.id;", sessionId: "chosen-tab" },
++        },
++        "?userToken=alice"
++    );
++    assert.equal(response.status, 200);
++    const body = await response.json();
++    assert.match(JSON.stringify(body), /chosen-tab/);
++});
++
+ test("supports older Streamable HTTP clients without allocating a session", async () => {
+     const client = new Client({ name: "legacy-test", version: "1" });
+     const transport = new StreamableHTTPClientTransport(new URL(`${baseUrl}/mcp`));
+diff --git a/mcp/packages/server/src/PluginBridge.sessions.test.ts b/mcp/packages/server/src/PluginBridge.sessions.test.ts
+new file mode 100644
+index 00000000000..1472353588b
+--- /dev/null
++++ b/mcp/packages/server/src/PluginBridge.sessions.test.ts
+@@ -0,0 +1,145 @@
++import assert from "node:assert/strict";
++import { once } from "node:events";
++import { afterEach, beforeEach, test } from "node:test";
++import { WebSocket } from "ws";
++import { PluginBridge } from "./PluginBridge";
++import { PluginTask } from "./PluginTask";
++import type { PenpotMcpServer } from "./PenpotMcpServer";
++
++let bridge: PluginBridge;
++let port = 17_600;
++let userToken: string | undefined;
++let multiUser: boolean;
++let sockets: WebSocket[];
++
++beforeEach(() => {
++    port++;
++    userToken = "alice";
++    multiUser = true;
++    sockets = [];
++    bridge = new PluginBridge(
++        {
++            host: "127.0.0.1",
++            isMultiUserMode: () => multiUser,
++            getSessionContext: () => ({ userToken }),
++        } as PenpotMcpServer,
++        port,
++        1
++    );
++});
++
++afterEach(async () => {
++    for (const socket of sockets) socket.terminate();
++    await bridge.close();
++});
++
++async function connect(sessionId: string, token = "alice", fileName = "Design", reply = sessionId) {
++    const socket = new WebSocket(`ws://127.0.0.1:${port}?userToken=${token}`);
++    sockets.push(socket);
++    await once(socket, "open");
++    const initialized = once(socket, "message", { signal: AbortSignal.timeout(1500) });
++    socket.send(JSON.stringify({ type: "initialize", session: { sessionId, fileId: "file-1", fileName } }));
++    const [message] = await initialized;
++    assert.equal(JSON.parse(message.toString()).type, "initialized");
++    socket.on("message", (raw) => {
++        const request = JSON.parse(raw.toString());
++        socket.send(JSON.stringify({ id: request.id, success: true, data: reply }));
++    });
++    return socket;
++}
++
++test("keeps two tabs for the same file and dispatches to the selected session", async () => {
++    await connect("tab-1");
++    await connect("tab-2");
++    const result = await bridge.executePluginTask(new PluginTask("test", {}), "tab-2");
++    assert.equal(result.data, "tab-2");
++});
++
++test("requires user selection when more than one session is connected", async () => {
++    await connect("tab-1", "alice", "First design");
++    await connect("tab-2", "alice", "Second design");
++    await assert.rejects(bridge.executePluginTask(new PluginTask("test", {})), (error: Error) => {
++        assert.match(error.message, /Ask the user/);
++        assert.match(error.message, /tab-1.*First design/);
++        assert.match(error.message, /tab-2.*Second design/);
++        return true;
++    });
++});
++
++test("implicitly selects the only session belonging to the requesting user", async () => {
++    await connect("alice-tab");
++    await connect("bob-tab", "bob");
++    const result = await bridge.executePluginTask(new PluginTask("test", {}));
++    assert.equal(result.data, "alice-tab");
++});
++
++test("does not dispatch to another user's session", async () => {
++    await connect("alice-tab");
++    await connect("bob-tab", "bob");
++    await assert.rejects(bridge.executePluginTask(new PluginTask("test", {}), "bob-tab"), /not connected/);
++});
++
++test("reports no sessions when no plugin has initialized", async () => {
++    await assert.rejects(bridge.executePluginTask(new PluginTask("test", {})), /No Penpot.*connected/);
++});
++
++test("regular plugins without user tokens can select among multiple sessions", async () => {
++    multiUser = false;
++    await connect("first", "");
++    await connect("second", "");
++    await assert.rejects(bridge.executePluginTask(new PluginTask("test", {})), /Ask the user/);
++    assert.equal((await bridge.executePluginTask(new PluginTask("test", {}), "second")).data, "second");
++});
++
++test("disconnecting one session leaves its sibling available for implicit selection", async () => {
++    const first = await connect("first");
++    await connect("second");
++    const closed = once(first, "close");
++    first.close();
++    await closed;
++    assert.equal((await bridge.executePluginTask(new PluginTask("test", {}))).data, "second");
++    await assert.rejects(bridge.executePluginTask(new PluginTask("test", {}), "first"), /not connected/);
++});
++
++test("a reconnect with the same session ID replaces the previous connection", async () => {
++    const previous = await connect("tab", "alice", "Design", "previous");
++    const closed = once(previous, "close");
++    await connect("tab", "alice", "Design", "current");
++    const [code] = await closed;
++    assert.equal(code, 1008);
++    assert.equal((await bridge.executePluginTask(new PluginTask("test", {}))).data, "current");
++    assert.equal((await bridge.executePluginTask(new PluginTask("test", {}), "tab")).data, "current");
++});
++
++test("a half-open previous connection does not block a reconnect with the same session ID", async () => {
++    const previous = await connect("tab", "alice", "Design", "previous");
++    // stop answering, as a socket whose network path is gone would
++    previous.pause();
++    await connect("tab", "alice", "Design", "current");
++    assert.equal((await bridge.executePluginTask(new PluginTask("test", {}), "tab")).data, "current");
++});
++
++test("replacing a session does not affect another user's session with the same ID", async () => {
++    await connect("tab", "bob", "Design", "bob");
++    await connect("tab", "alice", "Design", "alice");
++    userToken = "bob";
++    assert.equal((await bridge.executePluginTask(new PluginTask("test", {}), "tab")).data, "bob");
++});
++
++test("uninitialized sockets are not candidates for discovery", async () => {
++    await connect("ready");
++    const pending = new WebSocket(`ws://127.0.0.1:${port}?userToken=alice`);
++    sockets.push(pending);
++    await once(pending, "open");
++    assert.equal((await bridge.executePluginTask(new PluginTask("test", {}))).data, "ready");
++});
++
++test("invalid initialization metadata cannot register a session", async () => {
++    const socket = new WebSocket(`ws://127.0.0.1:${port}?userToken=alice`);
++    sockets.push(socket);
++    await once(socket, "open");
++    const closed = once(socket, "close");
++    socket.send(JSON.stringify({ type: "initialize", session: { sessionId: "bad", fileId: 42 } }));
++    assert.equal((await closed)[0], 1008);
++    await assert.rejects(bridge.executePluginTask(new PluginTask("test", {})), /No Penpot sessions/);
++});
+diff --git a/mcp/packages/server/src/PluginBridge.ts b/mcp/packages/server/src/PluginBridge.ts
+index 305f5dc35ec..f53ed3f8498 100644
+--- a/mcp/packages/server/src/PluginBridge.ts
++++ b/mcp/packages/server/src/PluginBridge.ts
+@@ -1,13 +1,19 @@
+ import { WebSocket, WebSocketServer } from "ws";
+ import * as http from "http";
++import { z } from "zod";
+ import { AbstractPluginTask, PluginTask } from "./PluginTask";
+-import { RemotePluginTask } from "./RemotePluginTask";
+-import { PluginTaskRequest, PluginTaskResponse, PluginTaskResult } from "@penpot/mcp-common";
++import { PluginTaskResponse, PluginTaskResult } from "@penpot/mcp-common";
+ import { createLogger } from "./logger";
+ import type { PenpotMcpServer } from "./PenpotMcpServer";
+ import type { RedisBridge } from "./RedisBridge";
++import type { PenpotConnection, PluginLivenessState } from "./PenpotConnection";
++import { UserPenpotConnections } from "./UserPenpotConnections";
++import type { TaskDispatcher, TaskDispatchHost } from "./dispatch/TaskDispatcher";
++import { SingleInstanceTaskDispatcher } from "./dispatch/SingleInstanceTaskDispatcher";
++import { MultiInstanceTaskDispatcher } from "./dispatch/MultiInstanceTaskDispatcher";
+ 
+ const KEEP_ALIVE_TIME = 30000; // 30 seconds
++const INITIALIZATION_TIMEOUT_MS = 10_000;
+ 
+ /**
+  * Maximum plugin heartbeat age before a connection is stale.
+@@ -17,21 +23,14 @@ const KEEP_ALIVE_TIME = 30000; // 30 seconds
+  */
+ export const HEARTBEAT_STALE_THRESHOLD_MS = 30000;
+ 
+-/**
+- * Observable liveness state of a plugin connection.
+- */
+-export interface PluginLivenessState {
+-    /** timestamp of the last plugin message, in ms since epoch. */
+-    lastHeartbeat: number;
+-    /** whether the plugin reported a browser freeze. */
+-    frozen: boolean;
+-}
+-
+-interface ClientConnection extends PluginLivenessState {
+-    socket: WebSocket;
+-    userToken: string | null;
+-    pingInterval: NodeJS.Timeout;
+-}
++const connectionInitSchema = z.object({
++    type: z.literal("initialize"),
++    session: z.object({
++        sessionId: z.string().min(1).max(128),
++        fileId: z.string().min(1).max(128),
++        fileName: z.string(),
++    }),
++});
+ 
+ /**
+  * Throws if the plugin tab cannot currently run tasks.
+@@ -65,16 +64,19 @@ export function assertPluginResponsive(
+  * Manages WebSocket connections to Penpot plugin instances and handles plugin tasks
+  * over these connections.
+  */
+-export class PluginBridge {
++export class PluginBridge implements TaskDispatchHost {
+     public static readonly MULTIUSER_CONNECTION_ERROR_MESSAGE = `No Penpot instance connected for user token. Please ensure that Penpot is connected and that the MCP client connection is using the correct token.`;
+ 
+     private readonly logger = createLogger("PluginBridge");
+     private readonly wsServer: WebSocketServer;
+ 
+-    private readonly connectedClients: Map<WebSocket, ClientConnection> = new Map();
+-    private readonly clientsByToken: Map<string, ClientConnection> = new Map();
++    private readonly connectionsBySocket: Map<WebSocket, PenpotConnection> = new Map();
++    private readonly userPenpotConnectionsByToken: Map<string, UserPenpotConnections> = new Map();
++    private readonly singleUserConnections = new UserPenpotConnections();
+     private readonly pendingTasks: Map<string, AbstractPluginTask<any, any>> = new Map();
+     private readonly taskTimeouts: Map<string, NodeJS.Timeout> = new Map();
++    private readonly taskConnections: Map<string, PenpotConnection> = new Map();
++    private readonly dispatcher: TaskDispatcher;
+ 
+     /**
+      * Creates the plugin bridge and starts its WebSocket server.
+@@ -94,6 +96,9 @@ export class PluginBridge {
+         private readonly taskTimeoutSecs: number,
+         private readonly redisBridge?: RedisBridge
+     ) {
++        this.dispatcher = redisBridge
++            ? new MultiInstanceTaskDispatcher(this, redisBridge)
++            : new SingleInstanceTaskDispatcher(this);
+         this.wsServer = new WebSocketServer({ port: port, host: mcpServer.host });
+         this.setupWebSocketHandlers();
+     }
+@@ -123,50 +128,42 @@ export class PluginBridge {
+                 this.logger.info("New WebSocket connection established");
+             }
+ 
+-            // start the per-connection keep-alive ping interval
+-            const pingInterval = setInterval(() => {
+-                ws.ping();
+-            }, KEEP_ALIVE_TIME);
+-
+-            // register the client connection with both indexes
+-            const connection: ClientConnection = {
+-                socket: ws,
+-                userToken,
+-                pingInterval,
+-                lastHeartbeat: Date.now(),
+-                frozen: false,
+-            };
+-            this.connectedClients.set(ws, connection);
+-            if (userToken) {
+-                // ensure only one connection per userToken
+-                if (this.clientsByToken.has(userToken)) {
+-                    this.logger.warn("Duplicate connection for given user token; rejecting new connection");
+-                    this.removeConnection(ws);
+-                    ws.close(1008, "Duplicate connection for given user token; close previous connection first.");
+-                    return;
+-                }
+-
+-                this.clientsByToken.set(userToken, connection);
+-
+-                // In multi-instance mode, subscribe to this token's Redis request channel so
+-                // that task requests issued by other instances are dispatched to this plugin.
+-                if (this.redisBridge) {
+-                    const tokenForSubscription = userToken;
+-                    this.redisBridge
+-                        .subscribeToTasks(userToken, (request) =>
+-                            this.dispatchForwardedTask(tokenForSubscription, request)
+-                        )
+-                        .catch((error) => this.logger.error(error, "Failed to subscribe to Redis task channel"));
+-                }
+-            }
+-
++            // require metadata before registering a connection for dispatch
++            const initializationTimeout = setTimeout(() => {
++                ws.close(1008, "Connection initialization timed out; please update the Penpot MCP plugin.");
++            }, INITIALIZATION_TIMEOUT_MS);
++            let initializing = false;
+             ws.on("message", (data: Buffer) => {
+                 this.logger.debug("Received WebSocket message: %s", data.toString());
+                 try {
++                    const message = JSON.parse(data.toString());
++                    const connection = this.connectionsBySocket.get(ws);
++                    if (!connection) {
++                        if (initializing) {
++                            return;
++                        }
++                        const initialization = connectionInitSchema.safeParse(message);
++                        if (!initialization.success) {
++                            ws.close(1008, "Expected connection metadata; please update the Penpot MCP plugin.");
++                            return;
++                        }
++                        initializing = true;
++                        void this.initializeConnection(
++                            ws,
++                            this.mcpServer.isMultiUserMode() ? userToken : null,
++                            initialization.data.session
++                        )
++                            .then(() => clearTimeout(initializationTimeout))
++                            .catch((error) => {
++                                this.logger.error(error, "Failed to initialize Penpot connection");
++                                clearTimeout(initializationTimeout);
++                                this.removeConnection(ws);
++                                ws.close(1011, "Failed to initialize Penpot connection; please retry.");
++                            });
++                        return;
++                    }
+                     // any plugin message proves the page event loop is running
+                     connection.lastHeartbeat = Date.now();
+-
+-                    const message = JSON.parse(data.toString());
+                     if (message?.type === "freeze") {
+                         connection.frozen = true;
+                         this.logger.info("Plugin tab reported it is being frozen by the browser");
+@@ -176,7 +173,7 @@ export class PluginBridge {
+                     if (message?.type === "heartbeat") {
+                         return;
+                     }
+-                    this.handlePluginTaskResponse(message as PluginTaskResponse<any>);
++                    this.handlePluginTaskResponse(message as PluginTaskResponse<any>, connection);
+                 } catch (error) {
+                     this.logger.error(error, "Failure while processing WebSocket message");
+                 }
+@@ -184,50 +181,100 @@ export class PluginBridge {
+ 
+             ws.on("close", () => {
+                 this.logger.info("WebSocket connection closed");
++                clearTimeout(initializationTimeout);
+                 this.removeConnection(ws);
+             });
+ 
+             ws.on("error", (error) => {
+                 this.logger.error(error, "WebSocket connection error");
++                clearTimeout(initializationTimeout);
+                 this.removeConnection(ws);
++                ws.terminate();
+             });
+         });
+ 
+         this.logger.info("WebSocket mcpServer started on port %d", this.port);
+     }
+ 
++    private async initializeConnection(
++        ws: WebSocket,
++        userToken: string | null,
++        session: PenpotConnection["session"]
++    ): Promise<void> {
++        let connections = this.getUserConnections(userToken);
++        if (!connections) {
++            connections = new UserPenpotConnections();
++            this.userPenpotConnectionsByToken.set(userToken!, connections);
++        }
++        // start the per-connection keep-alive ping interval
++        const pingInterval = setInterval(() => {
++            ws.ping();
++        }, KEEP_ALIVE_TIME);
++
++        // register the client connection with both indexes
++        const connection: PenpotConnection = {
++            socket: ws,
++            userToken,
++            pingInterval,
++            session,
++            ready: false,
++            lastHeartbeat: Date.now(),
++            frozen: false,
++        };
++        // the same tab reconnecting reuses its session ID while its previous socket may still be half-open
++        const replaced = connections.add(connection);
++        this.connectionsBySocket.set(ws, connection);
++        if (replaced) {
++            this.displaceConnection(replaced);
++        }
++        await this.dispatcher.onNewConnection(connection);
++        // disconnect may have removed this connection while subscriptions were pending
++        if (ws.readyState === WebSocket.OPEN && this.connectionsBySocket.get(ws) === connection) {
++            connection.ready = true;
++            ws.send(JSON.stringify({ type: "initialized" }));
++        }
++    }
++
++    /**
++     * Closes a connection superseded by a newer connection for the same session.
++     *
++     * Uses close code 1008 so that a still-running plugin behind the old socket stops
++     * reconnecting instead of competing with the newer connection for the session.
++     *
++     * @param connection - The superseded connection
++     */
++    public displaceConnection(connection: PenpotConnection): void {
++        this.logger.info("Closing connection replaced by a newer connection for the same session");
++        this.removeConnection(connection.socket);
++        connection.socket.close(1008, "Replaced by a newer connection for this Penpot session.");
++    }
++
+     /**
+      * Removes a client connection and releases all resources associated with it.
+      *
+      * Clears the per-connection keep-alive interval and removes the connection from the
+-     * socket-keyed index. The token-keyed index entry (and, in multi-instance mode, the
+-     * token's Redis task subscription) is removed only if it is owned by the given
+-     * connection. Safe to call with a socket that is not (or no longer) registered.
++     * socket-keyed index and the user's session collection. The token-keyed index entry
++     * is removed only when the user's last local connection closes. Safe to call with a
++     * socket that is not (or no longer) registered.
+      *
+      * @param ws - The WebSocket whose connection state should be removed
+      */
+     private removeConnection(ws: WebSocket): void {
+-        const connection = this.connectedClients.get(ws);
++        const connection = this.connectionsBySocket.get(ws);
+         if (!connection) {
+             return;
+         }
++        connection.ready = false;
+         clearInterval(connection.pingInterval);
+-        this.connectedClients.delete(ws);
+-        if (connection.userToken) {
+-            // Perform the token-keyed cleanup only if this connection owns the token registration.
+-            // A connection rejected as a duplicate carries the same token but must not remove token associations.
+-            if (this.clientsByToken.get(connection.userToken) !== connection) {
+-                this.logger.debug("Removed connection does not own its token registration; skipping token cleanup");
+-            } else {
+-                this.clientsByToken.delete(connection.userToken);
+-
+-                if (this.redisBridge) {
+-                    this.redisBridge
+-                        .unsubscribeFromTasks(connection.userToken)
+-                        .catch((error) => this.logger.error(error, "Failed to unsubscribe from Redis task channel"));
+-                }
+-            }
++        this.connectionsBySocket.delete(ws);
++        const connections = this.getUserConnections(connection.userToken)!;
++        connections.remove(connection);
++        if (connection.userToken !== null && connections.size === 0) {
++            this.userPenpotConnectionsByToken.delete(connection.userToken);
+         }
++        void this.dispatcher
++            .onConnectionClosed(connection)
++            .catch((error) => this.logger.error(error, "Failed to remove connection subscriptions"));
+     }
+ 
+     /**
+@@ -237,14 +284,19 @@ export class PluginBridge {
+      * based on the execution result.
+      *
+      * @param response - The plugin task response containing ID and result
++     * @param connection - The responding local connection, or undefined for Redis responses
+      */
+-    private handlePluginTaskResponse(response: PluginTaskResponse<any>): void {
++    private handlePluginTaskResponse(response: PluginTaskResponse<any>, connection?: PenpotConnection): void {
+         const task = this.pendingTasks.get(response.id);
+         if (!task) {
+             this.logger.info(`Received response for unknown task ID: ${response.id}`);
+             return;
+         }
+ 
++        if (this.taskConnections.get(response.id) !== connection) {
++            return;
++        }
++
+         // Clear the timeout and remove the task from pending tasks
+         const timeoutHandle = this.taskTimeouts.get(response.id);
+         if (timeoutHandle) {
+@@ -252,6 +304,7 @@ export class PluginBridge {
+             this.taskTimeouts.delete(response.id);
+         }
+         this.pendingTasks.delete(response.id);
++        this.taskConnections.delete(response.id);
+ 
+         // Resolve or reject the task's promise based on the result
+         if (response.success) {
+@@ -287,52 +340,15 @@ export class PluginBridge {
+             this.taskTimeouts.delete(taskId);
+         }
+         this.pendingTasks.delete(taskId);
++        this.taskConnections.delete(taskId);
+ 
+         pendingTask.rejectWithError(error);
+         this.logger.info(`Task ${taskId} rejected: ${error.message}`);
+         return true;
+     }
+ 
+-    /**
+-     * Determines the client connection to use for executing a task.
+-     *
+-     * In single-user mode, returns the single connected client.
+-     * In multi-user mode, returns the client matching the session's userToken.
+-     *
+-     * @returns The client connection to use
+-     * @throws Error if no suitable connection is found or if configuration is invalid
+-     */
+-    private getClientConnection(): ClientConnection {
+-        if (this.mcpServer.isMultiUserMode()) {
+-            const sessionContext = this.mcpServer.getSessionContext();
+-            if (!sessionContext?.userToken) {
+-                throw new Error("No userToken found in session context. Multi-user mode requires authentication.");
+-            }
+-
+-            const connection = this.clientsByToken.get(sessionContext.userToken);
+-            if (!connection) {
+-                throw new Error(PluginBridge.MULTIUSER_CONNECTION_ERROR_MESSAGE);
+-            }
+-
+-            return connection;
+-        } else {
+-            // single-user mode: return the single connected client
+-            if (this.connectedClients.size === 0) {
+-                throw new Error(
+-                    `No Penpot plugin instances are currently connected. Please ensure the plugin is running and connected.`
+-                );
+-            }
+-            if (this.connectedClients.size > 1) {
+-                throw new Error(
+-                    `Multiple (${this.connectedClients.size}) Penpot MCP Plugin instances are connected. ` +
+-                        `Ask the user to ensure that only one instance is connected at a time.`
+-                );
+-            }
+-
+-            // return the first (and only) connection
+-            const connection = this.connectedClients.values().next().value;
+-            return <ClientConnection>connection;
+-        }
++    getUserConnections(userToken: string | null): UserPenpotConnections | undefined {
++        return userToken === null ? this.singleUserConnections : this.userPenpotConnectionsByToken.get(userToken);
+     }
+ 
+     /**
+@@ -341,18 +357,32 @@ export class PluginBridge {
+      * and awaiting the result.
+      *
+      * @param task - The plugin task to execute
++     * @param sessionId - The target session; when omitted, discovery must yield exactly one session
+      * @throws Error if no plugin instances are connected or available
+      */
+     public async executePluginTask<TResult extends PluginTaskResult<any>>(
+-        task: PluginTask<any, TResult>
++        task: PluginTask<any, TResult>,
++        sessionId?: string
+     ): Promise<TResult> {
+-        this.sendPluginTask(task, this.redisBridge !== undefined);
+-        return await task.getResultPromise();
++        let userToken: string | null = null;
++        if (this.mcpServer.isMultiUserMode()) {
++            const sessionContext = this.mcpServer.getSessionContext();
++            if (!sessionContext?.userToken) {
++                throw new Error("No userToken found in session context. Multi-user mode requires authentication.");
++            }
++            userToken = sessionContext.userToken;
++        }
++        // attach the result handler before dispatch can reject the task
++        const result = task.getResultPromise();
++        void this.dispatcher.dispatch(task, userToken, sessionId).catch((error) => {
++            task.rejectWithError(error instanceof Error ? error : new Error(String(error)));
++        });
++        return await result;
+     }
+ 
+     /**
+-     * Registers a task for response correlation, sends its request over the appropriate
+-     * transport, and arms a timeout that rejects the task if no response is received.
++     * Registers a task for response correlation, sends its request over Redis,
++     * and arms a timeout that rejects the task if no response is received.
+      *
+      * The response (whether arriving over the local WebSocket or over Redis) is later
+      * matched by ID in {@link handlePluginTaskResponse}, which settles the task via its
+@@ -361,60 +391,60 @@ export class PluginBridge {
+      *
+      * When routing via Redis, the task is rejected immediately (rather than timing out)
+      * if the published request reached no instance, i.e. if no instance holds a plugin
+-     * connection for the session's user token, or if publishing fails outright.
++     * connection for the user's session, or if publishing fails outright.
+      *
+      * @param task - The task to dispatch
+-     * @param useRedis - Whether to route the request via Redis (multi-instance) rather
+-     *   than directly over the local WebSocket connection
+-     * @param connection - The connection to use for a local (non-remote) dispatch; when
+-     *   omitted, the session's connection is resolved via {@link getClientConnection}.
+-     *   Ignored when `useRedis` is true.
+-     * @throws Error if a local dispatch is required but no suitable connection is available
++     * @param userToken - The user token identifying the target session's owner
++     * @param sessionId - The target Penpot session
+      */
+-    private sendPluginTask(task: AbstractPluginTask<any, any>, useRedis: boolean, connection?: ClientConnection): void {
+-        let onTimeout: (() => void) | undefined;
+-
+-        if (useRedis) {
+-            const sessionContext = this.mcpServer.getSessionContext();
+-            if (!sessionContext?.userToken) {
+-                throw new Error("No userToken found in session context. Multi-user mode requires authentication.");
+-            }
+-            const userToken = sessionContext.userToken;
+-            const redisBridge = this.redisBridge!;
+-            this.logger.debug("Dispatching task %s via Redis", task.id);
+-
+-            // register the task for result correlation, then publish the request via Redis
+-            this.pendingTasks.set(task.id, task);
+-            void redisBridge
+-                .sendTaskRequest(userToken, task.toRequest(), (response) => this.handlePluginTaskResponse(response))
+-                .then((receiverCount) => {
+-                    // fail fast when no instance received the request (no connection with matching user token in any instance)
+-                    if (receiverCount === 0) {
+-                        this.rejectPendingTask(task.id, new Error(PluginBridge.MULTIUSER_CONNECTION_ERROR_MESSAGE));
+-                    }
+-                })
+-                .catch((error) => {
+-                    this.rejectPendingTask(task.id, error instanceof Error ? error : new Error(String(error)));
+-                });
+-
+-            // on timeout, release the response-channel subscription, since no response
+-            // will arrive to trigger its self-unsubscribe.
+-            onTimeout = () => void redisBridge.unsubscribeFromResponse(task.id);
+-        } else {
+-            const target = connection ?? this.getClientConnection();
+-            if (target.socket.readyState !== 1) {
+-                // WebSocket is not open
+-                throw new Error(`Plugin instance is disconnected. Task could not be sent.`);
+-            }
++    public sendRemoteTask(task: AbstractPluginTask, userToken: string, sessionId: string): void {
++        const redisBridge = this.redisBridge!;
++        this.logger.debug("Dispatching task %s via Redis", task.id);
++
++        // register the task for result correlation, then publish the request via Redis
++        this.pendingTasks.set(task.id, task);
++        void redisBridge
++            .sendTaskRequest(userToken, sessionId, task.toRequest(), (response) =>
++                this.handlePluginTaskResponse(response)
++            )
++            .then((receiverCount) => {
++                // fail fast when no instance received the request (no connection with matching user token and session ID in any instance)
++                if (receiverCount === 0) {
++                    this.rejectPendingTask(
++                        task.id,
++                        new Error(`Penpot session ${JSON.stringify(sessionId)} is not connected for this user.`)
++                    );
++                }
++            })
++            .catch((error) => {
++                this.rejectPendingTask(task.id, error instanceof Error ? error : new Error(String(error)));
++            });
+ 
+-            // the socket can be open while browser-throttled plugin JS cannot run tasks
+-            assertPluginResponsive(target, Date.now());
++        // on timeout, release the response-channel subscription, since no response
++        // will arrive to trigger its self-unsubscribe.
++        this.startTaskTimeout(task, () => void redisBridge.unsubscribeFromResponse(task.id));
++    }
+ 
+-            // register the task for result correlation, then send over the socket
+-            this.pendingTasks.set(task.id, task);
+-            target.socket.send(JSON.stringify(task.toRequest()));
++    /** Sends a task directly to a ready local connection, with execution tracking. */
++    public sendLocalTask(task: AbstractPluginTask, connection: PenpotConnection): void {
++        const target = connection;
++        if (!target.ready || target.socket.readyState !== 1) {
++            // WebSocket is not open
++            throw new Error(`Plugin instance is disconnected. Task could not be sent.`);
+         }
+ 
++        // the socket can be open while browser-throttled plugin JS cannot run tasks
++        assertPluginResponsive(target, Date.now());
++
++        // register the task for result correlation, then send over the socket
++        this.pendingTasks.set(task.id, task);
++        this.taskConnections.set(task.id, target);
++        target.socket.send(JSON.stringify(task.toRequest()));
++        this.startTaskTimeout(task);
++    }
++
++    /** Arms the shared execution timeout for a locally or remotely dispatched task. */
++    private startTaskTimeout(task: AbstractPluginTask<any, any>, onTimeout?: () => void): void {
+         // Set up a timeout to reject the task if no response is received
+         const timeoutHandle = setTimeout(() => {
+             if (
+@@ -431,47 +461,19 @@ export class PluginBridge {
+         this.logger.info(`Sent task ${task.id}`);
+     }
+ 
+-    /**
+-     * Dispatches a task request received over Redis to the locally-connected plugin.
+-     *
+-     * Invoked on the instance subscribed to a user token's request channel when another
+-     * instance (or this one) issues a task request. A {@link RemotePluginTask} is created
+-     * so that, once the plugin responds, the outcome is published back to the issuing
+-     * instance's Redis response channel via the standard response-handling path.
+-     *
+-     * On failure to dispatch (e.g. the plugin is not connected here), an error response
+-     * is published immediately so the requester need not wait for its timeout.
+-     *
+-     * @param userToken - The user token on whose request channel the request arrived;
+-     *   identifies the locally-connected plugin to dispatch to
+-     * @param request - The serialized task request, passed through from Redis
+-     */
+-    private dispatchForwardedTask(userToken: string, request: PluginTaskRequest): void {
+-        if (!this.redisBridge) {
+-            return;
+-        }
+-
+-        // The response is published on the channel keyed by the original request ID.
+-        const task = new RemotePluginTask(request.task, request.params, this.redisBridge, request.id);
+-        this.logger.debug("Dispatching remote task %s as %s to Penpot via WebSocket", request.id, task.id);
+-
+-        const connection = this.clientsByToken.get(userToken);
+-        if (!connection) {
+-            task.rejectWithError(new Error("Plugin not connected on the receiving instance"));
+-            return;
+-        }
+-
+-        try {
+-            this.sendPluginTask(task, false, connection);
+-        } catch (error) {
+-            task.rejectWithError(error instanceof Error ? error : new Error(String(error)));
+-        }
+-    }
+-
+     /**
+      * Closes the WebSocket server and all connected client sockets.
++     * Also releases task tracking and dispatch subscriptions.
+      */
+     public async close(): Promise<void> {
++        for (const socket of this.wsServer.clients) {
++            this.removeConnection(socket);
++            socket.terminate();
++        }
++        for (const taskId of this.pendingTasks.keys()) {
++            this.rejectPendingTask(taskId, new Error("MCP server is shutting down."));
++        }
++        await this.dispatcher.close();
+         return new Promise((resolve) => {
+             this.wsServer.close(() => {
+                 this.logger.info("WebSocket server closed");
+diff --git a/mcp/packages/server/src/PluginTask.ts b/mcp/packages/server/src/PluginTask.ts
+index 0e0d327564c..30a88c73de8 100644
+--- a/mcp/packages/server/src/PluginTask.ts
++++ b/mcp/packages/server/src/PluginTask.ts
+@@ -10,7 +10,7 @@ import { randomUUID } from "crypto";
+ 
+ /**
+  * Abstract base for plugin tasks, defining the parts that the plugin dispatch and
+- * response-correlation machinery (`PluginBridge.sendPluginTask` /
++ * response-correlation machinery (`PluginBridge.sendLocalTask` /
+  * `PluginBridge.handlePluginTaskResponse`) depend upon.
+  *
+  * The dispatch path only needs to serialize a task to a request and, upon receiving
+diff --git a/mcp/packages/server/src/RedisBridge.test.ts b/mcp/packages/server/src/RedisBridge.test.ts
+new file mode 100644
+index 00000000000..52080fcc3cf
+--- /dev/null
++++ b/mcp/packages/server/src/RedisBridge.test.ts
+@@ -0,0 +1,245 @@
++import assert from "node:assert/strict";
++import { once } from "node:events";
++import { beforeEach, test, type TestContext } from "node:test";
++import Redis, { type Command } from "ioredis";
++import { WebSocket } from "ws";
++import { RedisBridge } from "./RedisBridge";
++import { PluginBridge } from "./PluginBridge";
++import { PluginTask } from "./PluginTask";
++import type { PenpotMcpServer } from "./PenpotMcpServer";
++
++// Replace only the Redis command boundary; exercise the real transport,
++// dispatchers, task tracking, and WebSockets above it.
++let subscriptions: Map<string, Set<Redis>>;
++let failDiscoverySubscription: boolean;
++beforeEach((context) => {
++    // These hooks run for tests, so mocks live through each test's cleanup hooks.
++    const { mock } = context as TestContext;
++    subscriptions = new Map();
++    failDiscoverySubscription = false;
++    mock.method(Redis.prototype, "connect", async function (this: Redis) {
++        this.status = "ready";
++    });
++    mock.method(Redis.prototype, "sendCommand", async function (this: Redis, command: Command) {
++        const [channel, message] = command.args.map(String);
++        if (command.name === "subscribe") {
++            const subscribers = subscriptions.get(channel) ?? new Set();
++            subscribers.add(this);
++            subscriptions.set(channel, subscribers);
++            if (failDiscoverySubscription && channel.includes(".discovery.req.")) {
++                failDiscoverySubscription = false;
++                throw new Error("Subscription failed");
++            }
++            return subscribers.size;
++        }
++        if (command.name === "unsubscribe") {
++            subscriptions.get(channel)?.delete(this);
++            return 0;
++        }
++        if (command.name === "publish") {
++            const subscribers = [...(subscriptions.get(channel) ?? [])];
++            for (const subscriber of subscribers) subscriber.emit("message", channel, message);
++            return subscribers.length;
++        }
++        if (command.name === "quit") {
++            for (const subscribers of subscriptions.values()) subscribers.delete(this);
++            return "OK";
++        }
++        throw new Error(`Unexpected Redis command: ${command.name}`);
++    });
++});
++
++function transport(t: TestContext, tenant = "test") {
++    const bridge = new RedisBridge("redis://localhost:6379", tenant);
++    t.after(() => bridge.close());
++    return bridge;
++}
++
++test("Redis task channels isolate users, sessions, and tenants without delimiter collisions", async (t) => {
++    const owner = transport(t);
++    const caller = transport(t);
++    const otherTenant = transport(t, "other");
++    const delivered: unknown[] = [];
++    await owner.subscribeToTasks("alice.one", "two", (request) => {
++        owner.publishTaskResponse(request.id, { id: request.id, success: true, data: "selected" });
++    });
++    for (const [token, session] of [
++        ["alice", "one.two"],
++        ["bob", "two"],
++        ["alice.one", "other"],
++    ]) {
++        assert.equal(
++            await caller.sendTaskRequest(token, session, { id: "missing", task: "test", params: {} }, () => {}),
++            0
++        );
++    }
++    assert.equal(
++        await otherTenant.sendTaskRequest(
++            "alice.one",
++            "two",
++            { id: "other-tenant", task: "test", params: {} },
++            () => {}
++        ),
++        0
++    );
++    assert.equal(
++        await caller.sendTaskRequest("alice.one", "two", { id: "selected", task: "test", params: {} }, (response) =>
++            delivered.push(response.data)
++        ),
++        1
++    );
++    assert.deepEqual(delivered, ["selected"]);
++});
++
++test("Redis discovery receives one reply per subscribed instance and returns publish's recipient count", async (t) => {
++    const first = transport(t);
++    const second = transport(t);
++    const requester = transport(t);
++    await first.subscribeToDiscovery("alice", ({ id }) => {
++        first.publishDiscoveryResponse(id, {
++            instanceId: "first",
++            sessions: [{ sessionId: "one", fileId: "file", fileName: "Design" }],
++        });
++    });
++    await second.subscribeToDiscovery("alice", ({ id }) => {
++        second.publishDiscoveryResponse(id, { instanceId: "second", sessions: [] });
++    });
++    const responders: string[] = [];
++    const count = await requester.sendDiscoveryRequest("alice", "query", (response) =>
++        responders.push(response.instanceId)
++    );
++    assert.equal(count, 2);
++    assert.deepEqual(responders.sort(), ["first", "second"]);
++    await requester.unsubscribeFromDiscoveryResponses("query");
++    first.publishDiscoveryResponse("query", { instanceId: "late", sessions: [] });
++    assert.deepEqual(responders.sort(), ["first", "second"]);
++});
++
++test("unsubscribing a session retains the user's other task channels", async (t) => {
++    const owner = transport(t);
++    const caller = transport(t);
++    await owner.subscribeToTasks("alice", "first", () => {});
++    await owner.subscribeToTasks("alice", "second", () => {});
++    await owner.unsubscribeFromTasks("alice", "first");
++    assert.equal(
++        await caller.sendTaskRequest("alice", "first", { id: "first", task: "test", params: {} }, () => {}),
++        0
++    );
++    assert.equal(
++        await caller.sendTaskRequest("alice", "second", { id: "second", task: "test", params: {} }, () => {}),
++        1
++    );
++    await caller.unsubscribeFromResponse("second");
++});
++
++test("a failed discovery subscription is cleaned up and can be retried", async (t) => {
++    const owner = transport(t);
++    const caller = transport(t);
++    failDiscoverySubscription = true;
++    await assert.rejects(
++        owner.subscribeToDiscovery("alice", () => {}),
++        /Subscription failed/
++    );
++    assert.equal(await caller.sendDiscoveryRequest("alice", "after-failure", () => {}), 0);
++    await caller.unsubscribeFromDiscoveryResponses("after-failure");
++    await owner.subscribeToDiscovery("alice", ({ id }) => {
++        owner.publishDiscoveryResponse(id, { instanceId: "owner", sessions: [] });
++    });
++    assert.equal(await caller.sendDiscoveryRequest("alice", "retry", () => {}), 1);
++    await caller.unsubscribeFromDiscoveryResponses("retry");
++});
++
++let port = 18_700;
++function instance(t: TestContext) {
++    const redis = new RedisBridge("redis://localhost:6379", "test");
++    const wsPort = ++port;
++    const bridge = new PluginBridge(
++        {
++            host: "127.0.0.1",
++            isMultiUserMode: () => true,
++            getSessionContext: () => ({ userToken: "alice" }),
++        } as PenpotMcpServer,
++        wsPort,
++        0.1,
++        redis
++    );
++    const sockets: WebSocket[] = [];
++    t.after(async () => {
++        for (const socket of sockets) socket.terminate();
++        await bridge.close();
++        await redis.close();
++    });
++    const connect = async (
++        sessionId: string,
++        outcome: "success" | "error" | "silent" = "success",
++        reply: string = sessionId
++    ) => {
++        const socket = new WebSocket(`ws://127.0.0.1:${wsPort}?userToken=alice`);
++        sockets.push(socket);
++        await once(socket, "open");
++        const initialized = once(socket, "message", { signal: AbortSignal.timeout(2000) });
++        socket.send(JSON.stringify({ type: "initialize", session: { sessionId, fileId: "file", fileName: "Design" } }));
++        await initialized;
++        socket.on("message", (raw) => {
++            const request = JSON.parse(raw.toString());
++            if (outcome !== "silent") {
++                socket.send(
++                    JSON.stringify({
++                        id: request.id,
++                        success: outcome === "success",
++                        data: reply,
++                        error: "Plugin execution failed",
++                    })
++                );
++            }
++        });
++        return socket;
++    };
++    return { bridge, connect };
++}
++
++test("full Redis forwarding resolves the selected WebSocket's result", async (t) => {
++    const owner = instance(t);
++    const requester = instance(t);
++    await owner.connect("first");
++    await owner.connect("second");
++    assert.equal((await requester.bridge.executePluginTask(new PluginTask("test", {}), "second")).data, "second");
++    assert.equal((await owner.bridge.executePluginTask(new PluginTask("test", {}), "first")).data, "first");
++});
++
++test("full Redis discovery implicitly selects a sole remote WebSocket", async (t) => {
++    const owner = instance(t);
++    const requester = instance(t);
++    await owner.connect("only");
++    assert.equal((await requester.bridge.executePluginTask(new PluginTask("test", {}))).data, "only");
++});
++
++test("forwarded plugin failures retain the regular execution failure route", async (t) => {
++    const owner = instance(t);
++    const requester = instance(t);
++    await owner.connect("failing", "error");
++    await assert.rejects(
++        requester.bridge.executePluginTask(new PluginTask("test", {}), "failing"),
++        /Plugin execution failed/
++    );
++});
++
++test("forwarded task timeouts release their Redis response subscriptions", async (t) => {
++    const owner = instance(t);
++    const requester = instance(t);
++    await owner.connect("silent", "silent");
++    await assert.rejects(requester.bridge.executePluginTask(new PluginTask("test", {}), "silent"), /timed out/);
++    const responseSubscriptions = [...subscriptions].filter(([channel]) => channel.includes(".task.res."));
++    assert.ok(responseSubscriptions.every(([, subscribers]) => subscribers.size === 0));
++});
++
++test("a reconnect on another instance closes the previous instance's connection for the session", async (t) => {
++    const previous = instance(t);
++    const current = instance(t);
++    const requester = instance(t);
++    const previousSocket = await previous.connect("tab", "success", "previous");
++    const closed = once(previousSocket, "close");
++    await current.connect("tab", "success", "current");
++    assert.equal((await closed)[0], 1008);
++    assert.equal((await requester.bridge.executePluginTask(new PluginTask("test", {}))).data, "current");
++});
+diff --git a/mcp/packages/server/src/RedisBridge.ts b/mcp/packages/server/src/RedisBridge.ts
+index 89c01a4871c..b653c70faff 100644
+--- a/mcp/packages/server/src/RedisBridge.ts
++++ b/mcp/packages/server/src/RedisBridge.ts
+@@ -1,6 +1,43 @@
+ import Redis from "ioredis";
+-import { PluginTaskRequest, PluginTaskResponse } from "@penpot/mcp-common";
++import { PluginTaskRequest, PluginTaskResponse, PenpotSession } from "@penpot/mcp-common";
+ import { createLogger } from "./logger";
++import { z } from "zod";
++
++/** Query for the user's sessions held by each subscribed MCP instance. */
++export interface SessionDiscoveryRequest {
++    id: string;
++}
++
++/** One MCP instance's current sessions for the queried user. */
++export interface SessionDiscoveryResponse {
++    instanceId: string;
++    sessions: PenpotSession[];
++}
++
++/** Announcement that an MCP instance holds a new connection for a Penpot session. */
++export interface SessionClaim {
++    instanceId: string;
++    /** identifies the claiming connection, so an instance can recognize its own claims. */
++    claimId: string;
++    sessionId: string;
++}
++
++const sessionClaimSchema = z.object({
++    instanceId: z.string().min(1),
++    claimId: z.string().min(1),
++    sessionId: z.string().min(1).max(128),
++});
++
++const discoveryResponseSchema = z.object({
++    instanceId: z.string().min(1),
++    sessions: z.array(
++        z.object({
++            sessionId: z.string().min(1).max(128),
++            fileId: z.string().min(1).max(128),
++            fileName: z.string(),
++        })
++    ),
++});
+ 
+ /**
+  * Handler invoked for a task request arriving on a subscribed request channel.
+@@ -25,7 +62,7 @@ export type TaskResponseHandler = (response: PluginTaskResponse<any>) => void;
+  *
+  * It enables a tool call handled on one instance to be executed against a plugin
+  * whose WebSocket connection lives on another instance: the request is published on a
+- * channel keyed by user token (to which the instance holding the plugin connection is
++ * channel keyed by user token and session ID (to which the instance holding the plugin connection is
+  * subscribed), and the response is published on a channel keyed by task ID (to which
+  * the issuing instance subscribes).
+  *
+@@ -64,14 +101,19 @@ export class RedisBridge {
+             if (handler) {
+                 handler(rawMessage);
+             } else {
+-                this.logger.warn(`Received message on channel with no registered handler: ${channel}`);
++                this.logger.debug("Received Redis message without a registered handler");
+             }
+         });
+     }
+ 
+-    /** Builds the Redis Pub/Sub channel name for a task request addressed to a user token. */
+-    private requestChannel(userToken: string): string {
+-        return `penpot.mcp.${this.tenant}.task.req.${userToken}`;
++    /** Builds a task channel scoped to both the user and the Penpot session. */
++    private requestChannel(userToken: string, sessionId: string): string {
++        return `penpot.mcp.${this.tenant}.task.req.${this.channelKey(userToken)}.${this.channelKey(sessionId)}`;
++    }
++
++    /** Encodes identifiers without ambiguous channel-name separators. */
++    private channelKey(value: string): string {
++        return Buffer.from(value).toString("base64url");
+     }
+ 
+     /** Builds the Redis Pub/Sub channel name for a task response keyed by task ID. */
+@@ -81,7 +123,7 @@ export class RedisBridge {
+ 
+     /**
+      * Subscribes to the response channel for the given task ID and publishes the task
+-     * request to the given user token's request channel.
++     * request to the given user's session channel.
+      *
+      * The response subscription is established *before* the request is published, to
+      * avoid a race in which the response would be published before the subscription is
+@@ -89,20 +131,22 @@ export class RedisBridge {
+      * removed automatically upon delivery (response channels are single-use).
+      *
+      * @param userToken - The user token identifying the target plugin's request channel
++     * @param sessionId - The Penpot session identifying the target connection
+      * @param request - The serialized plugin task request, passed through verbatim
+      * @param onResponse - Handler invoked with the response when it arrives
+      * @returns The number of instances that received the request. A count of 0 means no
+-     *   instance is subscribed to the token's request channel (i.e. the plugin is not
++     *   instance is subscribed to the session's request channel (i.e. the plugin is not
+      *   connected anywhere); the request was dropped, no response will ever arrive, and
+      *   the response subscription has already been released.
+      */
+     async sendTaskRequest(
+         userToken: string,
++        sessionId: string,
+         request: PluginTaskRequest,
+         onResponse: TaskResponseHandler
+     ): Promise<number> {
+         const responseChannel = this.responseChannel(request.id);
+-        const requestChannel = this.requestChannel(userToken);
++        const requestChannel = this.requestChannel(userToken, sessionId);
+ 
+         this.handlers.set(responseChannel, (rawMessage) => {
+             // a response channel is single-use: remove the handler and unsubscribe on delivery
+@@ -158,19 +202,22 @@ export class RedisBridge {
+      */
+     publishTaskResponse(taskId: string, response: PluginTaskResponse<any>): void {
+         const responseChannel = this.responseChannel(taskId);
+-        void this.publisher.publish(responseChannel, JSON.stringify(response));
++        void this.publisher
++            .publish(responseChannel, JSON.stringify(response))
++            .catch((error) => this.logger.error(error, "Failed to publish task response"));
+     }
+ 
+     /**
+-     * Subscribes to task requests for the given user token.
++     * Subscribes to task requests for the given user's Penpot session.
+      *
+-     * The handler is invoked for each request arriving on the token's request channel.
++     * The handler is invoked for each request arriving on the session's request channel.
+      *
+      * @param userToken - The user token whose request channel to subscribe to
++     * @param sessionId - The Penpot session whose task channel to subscribe to
+      * @param handler - The handler to invoke for incoming requests
+      */
+-    async subscribeToTasks(userToken: string, handler: TaskRequestHandler): Promise<void> {
+-        const requestChannel = this.requestChannel(userToken);
++    async subscribeToTasks(userToken: string, sessionId: string, handler: TaskRequestHandler): Promise<void> {
++        const requestChannel = this.requestChannel(userToken, sessionId);
+         this.handlers.set(requestChannel, (rawMessage) => {
+             try {
+                 handler(JSON.parse(rawMessage) as PluginTaskRequest);
+@@ -182,19 +229,121 @@ export class RedisBridge {
+     }
+ 
+     /**
+-     * Unsubscribes from task requests for the given user token.
++     * Unsubscribes from task requests for the given user's Penpot session.
+      *
+      * @param userToken - The user token whose request channel to unsubscribe from
++     * @param sessionId - The Penpot session whose task channel to unsubscribe from
+      */
+-    async unsubscribeFromTasks(userToken: string): Promise<void> {
+-        const requestChannel = this.requestChannel(userToken);
++    async unsubscribeFromTasks(userToken: string, sessionId: string): Promise<void> {
++        const requestChannel = this.requestChannel(userToken, sessionId);
+         this.handlers.delete(requestChannel);
+         await this.subscriber.unsubscribe(requestChannel);
+     }
+ 
++    private discoveryChannel(userToken: string): string {
++        return `penpot.mcp.${this.tenant}.discovery.req.${this.channelKey(userToken)}`;
++    }
++
++    private discoveryResponseChannel(requestId: string): string {
++        return `penpot.mcp.${this.tenant}.discovery.res.${this.channelKey(requestId)}`;
++    }
++
++    /** Subscribes to replies before publishing; returns the actual recipient count. */
++    async sendDiscoveryRequest(
++        userToken: string,
++        requestId: string,
++        onResponse: (response: SessionDiscoveryResponse) => void
++    ): Promise<number> {
++        const channel = this.discoveryResponseChannel(requestId);
++        this.handlers.set(channel, (raw) => {
++            try {
++                onResponse(discoveryResponseSchema.parse(JSON.parse(raw)));
++            } catch (error) {
++                this.logger.error(error, "Invalid discovery response");
++            }
++        });
++        try {
++            await this.subscriber.subscribe(channel);
++            return await this.publisher.publish(this.discoveryChannel(userToken), JSON.stringify({ id: requestId }));
++        } catch (error) {
++            await this.unsubscribeFromDiscoveryResponses(requestId);
++            throw error;
++        }
++    }
++
++    async unsubscribeFromDiscoveryResponses(requestId: string): Promise<void> {
++        const channel = this.discoveryResponseChannel(requestId);
++        this.handlers.delete(channel);
++        await this.subscriber.unsubscribe(channel);
++    }
++
++    /** Registers one discovery responder for this user's local connections. */
++    async subscribeToDiscovery(userToken: string, handler: (request: SessionDiscoveryRequest) => void): Promise<void> {
++        const channel = this.discoveryChannel(userToken);
++        this.handlers.set(channel, (raw) => {
++            try {
++                handler(z.object({ id: z.string().min(1) }).parse(JSON.parse(raw)));
++            } catch (error) {
++                this.logger.error(error, "Invalid discovery request");
++            }
++        });
++        try {
++            await this.subscriber.subscribe(channel);
++        } catch (error) {
++            await this.unsubscribeFromDiscovery(userToken);
++            throw error;
++        }
++    }
++
++    async unsubscribeFromDiscovery(userToken: string): Promise<void> {
++        const channel = this.discoveryChannel(userToken);
++        this.handlers.delete(channel);
++        await this.subscriber.unsubscribe(channel);
++    }
++
++    publishDiscoveryResponse(requestId: string, response: SessionDiscoveryResponse): void {
++        void this.publisher
++            .publish(this.discoveryResponseChannel(requestId), JSON.stringify(response))
++            .catch((error) => this.logger.error(error, "Failed to publish discovery response"));
++    }
++
++    private sessionClaimChannel(userToken: string): string {
++        return `penpot.mcp.${this.tenant}.session.claim.${this.channelKey(userToken)}`;
++    }
++
+     /**
+-     * Closes both Redis connections. Call on server shutdown.
++     * Subscribes to the session claims of the given user.
++     *
++     * Claims are delivered in publication order, including the subscribing instance's own claims.
+      */
++    async subscribeToSessionClaims(userToken: string, handler: (claim: SessionClaim) => void): Promise<void> {
++        const channel = this.sessionClaimChannel(userToken);
++        this.handlers.set(channel, (raw) => {
++            try {
++                handler(sessionClaimSchema.parse(JSON.parse(raw)));
++            } catch (error) {
++                this.logger.error(error, "Invalid session claim");
++            }
++        });
++        try {
++            await this.subscriber.subscribe(channel);
++        } catch (error) {
++            await this.unsubscribeFromSessionClaims(userToken);
++            throw error;
++        }
++    }
++
++    async unsubscribeFromSessionClaims(userToken: string): Promise<void> {
++        const channel = this.sessionClaimChannel(userToken);
++        this.handlers.delete(channel);
++        await this.subscriber.unsubscribe(channel);
++    }
++
++    async publishSessionClaim(userToken: string, claim: SessionClaim): Promise<void> {
++        await this.publisher.publish(this.sessionClaimChannel(userToken), JSON.stringify(claim));
++    }
++
++    /** Closes both Redis connections. Call on server shutdown. */
+     async close(): Promise<void> {
+         await this.subscriber.quit();
+         await this.publisher.quit();
+diff --git a/mcp/packages/server/src/Tool.ts b/mcp/packages/server/src/Tool.ts
+index df4e1f22665..6ec44f2cb6a 100644
+--- a/mcp/packages/server/src/Tool.ts
++++ b/mcp/packages/server/src/Tool.ts
+@@ -20,6 +20,16 @@ export class EmptyToolArgs {
+  * @template TArgs - The strongly-typed arguments class for this tool
+  */
+ export abstract class Tool<TArgs extends object> {
++    public static readonly SESSION_ID_SCHEMA = z
++        .string()
++        .min(1)
++        .max(128)
++        .optional()
++        .describe(
++            "Penpot session to use. Optional when exactly one session is connected. " +
++                "If several sessions are listed in an error, ask the user to select one and pass its sessionId."
++        );
++
+     private readonly logger = createLogger("Tool");
+ 
+     /** monotonically increasing counter for unique tool execution IDs */
+diff --git a/mcp/packages/server/src/UserPenpotConnections.ts b/mcp/packages/server/src/UserPenpotConnections.ts
+new file mode 100644
+index 00000000000..b9b816049d2
+--- /dev/null
++++ b/mcp/packages/server/src/UserPenpotConnections.ts
+@@ -0,0 +1,43 @@
++import type { PenpotSession } from "@penpot/mcp-common";
++import type { PenpotConnection } from "./PenpotConnection";
++import { WebSocket } from "ws";
++
++/** Local Penpot connections belonging to one user, indexed by session ID. */
++export class UserPenpotConnections {
++    private readonly connectionsBySessionId = new Map<string, PenpotConnection>();
++
++    get size(): number {
++        return this.connectionsBySessionId.size;
++    }
++
++    /** Registers a connection, returning the connection it replaces for the same session, if any. */
++    add(connection: PenpotConnection): PenpotConnection | undefined {
++        const { sessionId } = connection.session;
++        const replaced = this.connectionsBySessionId.get(sessionId);
++        this.connectionsBySessionId.set(sessionId, connection);
++        return replaced;
++    }
++
++    remove(connection: PenpotConnection): void {
++        const { sessionId } = connection.session;
++        if (this.connectionsBySessionId.get(sessionId) === connection) {
++            this.connectionsBySessionId.delete(sessionId);
++        }
++    }
++
++    /** Returns the registered connection for a session, whether or not it is ready. */
++    getRegistered(sessionId: string): PenpotConnection | undefined {
++        return this.connectionsBySessionId.get(sessionId);
++    }
++
++    get(sessionId: string): PenpotConnection | undefined {
++        const connection = this.connectionsBySessionId.get(sessionId);
++        return connection?.ready && connection.socket.readyState === WebSocket.OPEN ? connection : undefined;
++    }
++
++    getSessions(): PenpotSession[] {
++        return [...this.connectionsBySessionId.values()]
++            .filter((connection) => connection.ready && connection.socket.readyState === WebSocket.OPEN)
++            .map((connection) => ({ ...connection.session }));
++    }
++}
+diff --git a/mcp/packages/server/src/dispatch/MultiInstanceTaskDispatcher.test.ts b/mcp/packages/server/src/dispatch/MultiInstanceTaskDispatcher.test.ts
+new file mode 100644
+index 00000000000..4c1b1539166
+--- /dev/null
++++ b/mcp/packages/server/src/dispatch/MultiInstanceTaskDispatcher.test.ts
+@@ -0,0 +1,371 @@
++import assert from "node:assert/strict";
++import test from "node:test";
++import type { PenpotSession, PluginTaskRequest, PluginTaskResponse } from "@penpot/mcp-common";
++import type { PenpotConnection } from "../PenpotConnection";
++import { PluginTask, type AbstractPluginTask } from "../PluginTask";
++import type { RedisBridge, SessionClaim, SessionDiscoveryRequest, SessionDiscoveryResponse } from "../RedisBridge";
++import { UserPenpotConnections } from "../UserPenpotConnections";
++import { MultiInstanceTaskDispatcher } from "./MultiInstanceTaskDispatcher";
++import { SessionDiscoveryError, type TaskDispatchHost } from "./TaskDispatcher";
++
++/** In-memory Pub/Sub transport retaining Redis's per-subscriber delivery count. */
++class RedisNetwork {
++    readonly tasks = new Map<string, Map<RedisPeer, (request: PluginTaskRequest) => void>>();
++    readonly discovery = new Map<string, Map<RedisPeer, (request: SessionDiscoveryRequest) => void>>();
++    readonly taskResponses = new Map<string, (response: PluginTaskResponse<unknown>) => void>();
++    readonly discoveryResponses = new Map<string, (response: SessionDiscoveryResponse) => void>();
++    readonly claims = new Map<string, Map<RedisPeer, (claim: SessionClaim) => void>>();
++    failDiscovery = false;
++    dropClaims = false;
++    beforeDiscoveryPublish?: () => Promise<void>;
++    beforeClaimPublish?: () => Promise<void>;
++}
++
++/** One MCP instance's connection to the test Pub/Sub network. */
++class RedisPeer {
++    replyToDiscovery = true;
++    repeatDiscoveryReplies = false;
++
++    constructor(readonly network: RedisNetwork) {}
++
++    asBridge(): RedisBridge {
++        return this as unknown as RedisBridge;
++    }
++
++    async subscribeToTasks(token: string, session: string, handler: (request: PluginTaskRequest) => void) {
++        const key = JSON.stringify([token, session]);
++        const subscribers = this.network.tasks.get(key) ?? new Map();
++        subscribers.set(this, handler);
++        this.network.tasks.set(key, subscribers);
++    }
++
++    async unsubscribeFromTasks(token: string, session: string) {
++        this.network.tasks.get(JSON.stringify([token, session]))?.delete(this);
++    }
++
++    async sendTaskRequest(
++        token: string,
++        session: string,
++        request: PluginTaskRequest,
++        onResponse: (response: PluginTaskResponse<unknown>) => void
++    ) {
++        this.network.taskResponses.set(request.id, onResponse);
++        const subscribers = this.network.tasks.get(JSON.stringify([token, session])) ?? new Map();
++        for (const handler of subscribers.values()) handler(request);
++        if (!subscribers.size) this.network.taskResponses.delete(request.id);
++        return subscribers.size;
++    }
++
++    publishTaskResponse(id: string, response: PluginTaskResponse<unknown>) {
++        const handler = this.network.taskResponses.get(id);
++        this.network.taskResponses.delete(id);
++        handler?.(response);
++    }
++
++    async subscribeToDiscovery(token: string, handler: (request: SessionDiscoveryRequest) => void) {
++        const subscribers = this.network.discovery.get(token) ?? new Map();
++        subscribers.set(this, handler);
++        this.network.discovery.set(token, subscribers);
++    }
++
++    async unsubscribeFromDiscovery(token: string) {
++        this.network.discovery.get(token)?.delete(this);
++    }
++
++    async sendDiscoveryRequest(token: string, id: string, onResponse: (response: SessionDiscoveryResponse) => void) {
++        if (this.network.failDiscovery) throw new Error("Redis unavailable for discovery");
++        this.network.discoveryResponses.set(id, onResponse);
++        await this.network.beforeDiscoveryPublish?.();
++        const subscribers = this.network.discovery.get(token) ?? new Map();
++        for (const [peer, handler] of subscribers) {
++            if (peer.replyToDiscovery) {
++                handler({ id });
++                if (peer.repeatDiscoveryReplies) handler({ id });
++            }
++        }
++        return subscribers.size;
++    }
++
++    publishDiscoveryResponse(id: string, response: SessionDiscoveryResponse) {
++        this.network.discoveryResponses.get(id)?.(response);
++    }
++
++    async unsubscribeFromDiscoveryResponses(id: string) {
++        this.network.discoveryResponses.delete(id);
++    }
++
++    async subscribeToSessionClaims(token: string, handler: (claim: SessionClaim) => void) {
++        const subscribers = this.network.claims.get(token) ?? new Map();
++        subscribers.set(this, handler);
++        this.network.claims.set(token, subscribers);
++    }
++
++    async unsubscribeFromSessionClaims(token: string) {
++        this.network.claims.get(token)?.delete(this);
++    }
++
++    async publishSessionClaim(token: string, claim: SessionClaim) {
++        await this.network.beforeClaimPublish?.();
++        if (this.network.dropClaims) return;
++        for (const handler of [...(this.network.claims.get(token)?.values() ?? [])]) handler(claim);
++    }
++}
++
++/** Local registry and execution endpoint used with the real dispatchers. */
++class Instance implements TaskDispatchHost {
++    readonly users = new Map<string, UserPenpotConnections>();
++    readonly redis: RedisPeer;
++    readonly dispatcher: MultiInstanceTaskDispatcher;
++    readonly executions: string[] = [];
++    readonly displaced: string[] = [];
++
++    constructor(network: RedisNetwork) {
++        this.redis = new RedisPeer(network);
++        this.dispatcher = new MultiInstanceTaskDispatcher(this, this.redis.asBridge(), 20);
++    }
++
++    async connect(token: string, sessionId: string, fileName = "Design") {
++        const session: PenpotSession = { sessionId, fileId: "same-file", fileName };
++        const connection = { userToken: token, session, ready: false, socket: { readyState: 1 } } as PenpotConnection;
++        const connections = this.users.get(token) ?? new UserPenpotConnections();
++        this.users.set(token, connections);
++        connections.add(connection);
++        await this.dispatcher.onNewConnection(connection);
++        connection.ready = true;
++        return connection;
++    }
++
++    async disconnect(connection: PenpotConnection) {
++        this.users.get(connection.userToken!)!.remove(connection);
++        connection.ready = false;
++        await this.dispatcher.onConnectionClosed(connection);
++    }
++
++    displaceConnection(connection: PenpotConnection) {
++        this.displaced.push(connection.session.sessionId);
++        void this.disconnect(connection);
++    }
++
++    getUserConnections(token: string | null) {
++        return this.users.get(token!);
++    }
++
++    sendLocalTask(task: AbstractPluginTask, connection: PenpotConnection) {
++        if (!connection.ready) throw new Error("Plugin disconnected");
++        this.executions.push(connection.session.sessionId);
++        task.resolveWithResult({ data: connection.session.sessionId });
++    }
++
++    sendRemoteTask(task: AbstractPluginTask, token: string, sessionId: string) {
++        void this.redis
++            .sendTaskRequest(token, sessionId, task.toRequest(), (response) => {
++                if (response.success) task.resolveWithResult({ data: response.data });
++                else task.rejectWithError(new Error(response.error));
++            })
++            .then((count) => {
++                if (!count) task.rejectWithError(new Error("Session not connected"));
++            });
++    }
++
++    async execute(token: string, sessionId?: string) {
++        const task = new PluginTask("test", {});
++        await this.dispatcher.dispatch(task, token, sessionId);
++        return await task.getResultPromise();
++    }
++}
++
++test("discovers all sessions across instances, including several tabs for one file", async () => {
++    const network = new RedisNetwork();
++    const first = new Instance(network);
++    const second = new Instance(network);
++    await first.connect("alice", "one");
++    await first.connect("alice", "two");
++    await second.connect("alice", "three");
++    await second.connect("bob", "private");
++    const sessions = await new Instance(network).dispatcher.discoverSessions("alice");
++    assert.deepEqual(sessions.map((session) => session.sessionId).sort(), ["one", "three", "two"]);
++    assert.equal(network.discoveryResponses.size, 0);
++});
++
++test("explicit sessions dispatch remotely without discovery", async () => {
++    const network = new RedisNetwork();
++    const owner = new Instance(network);
++    const requester = new Instance(network);
++    await owner.connect("alice", "selected");
++    network.failDiscovery = true;
++    assert.equal((await requester.execute("alice", "selected")).data, "selected");
++});
++
++test("explicit sessions work through Redis on their owning instance too", async () => {
++    const network = new RedisNetwork();
++    const owner = new Instance(network);
++    await owner.connect("alice", "selected");
++    network.failDiscovery = true;
++    assert.equal((await owner.execute("alice", "selected")).data, "selected");
++});
++
++test("explicit session IDs cannot route tasks across user boundaries", async () => {
++    const network = new RedisNetwork();
++    const owner = new Instance(network);
++    await owner.connect("bob", "private");
++    await assert.rejects(new Instance(network).execute("alice", "private"), /not connected/);
++    assert.deepEqual(owner.executions, []);
++});
++
++test("complete discovery dispatches when exactly one session exists", async () => {
++    const network = new RedisNetwork();
++    const owner = new Instance(network);
++    await owner.connect("alice", "only");
++    assert.equal((await new Instance(network).execute("alice")).data, "only");
++});
++
++test("complete discovery requires selection when more than one session exists", async () => {
++    const network = new RedisNetwork();
++    await new Instance(network).connect("alice", "first", "First file");
++    await new Instance(network).connect("alice", "second", "Second file");
++    await assert.rejects(new Instance(network).execute("alice"), (error: Error) => {
++        assert.match(error.message, /Ask the user/);
++        assert.match(error.message, /first.*First file/);
++        assert.match(error.message, /second.*Second file/);
++        return true;
++    });
++});
++
++test("zero discovery subscribers reports no connected sessions", async () => {
++    await assert.rejects(new Instance(new RedisNetwork()).execute("alice"), /No Penpot sessions/);
++});
++
++test("incomplete discovery never dispatches even when it yields exactly one session", async () => {
++    const network = new RedisNetwork();
++    const responsive = new Instance(network);
++    const slow = new Instance(network);
++    await responsive.connect("alice", "visible");
++    await slow.connect("alice", "hidden");
++    slow.redis.replyToDiscovery = false;
++    await assert.rejects(new Instance(network).execute("alice"), (error: Error) => {
++        assert.ok(error instanceof SessionDiscoveryError);
++        assert.match(error.message, /temporary server load.*retry/);
++        return true;
++    });
++    assert.deepEqual(responsive.executions, []);
++    assert.equal(network.discoveryResponses.size, 0);
++});
++
++test("duplicate replies from one instance do not substitute for a missing reply", async () => {
++    const network = new RedisNetwork();
++    const responsive = new Instance(network);
++    const slow = new Instance(network);
++    await responsive.connect("alice", "visible");
++    await slow.connect("alice", "hidden");
++    responsive.redis.repeatDiscoveryReplies = true;
++    slow.redis.replyToDiscovery = false;
++    await assert.rejects(new Instance(network).execute("alice"), SessionDiscoveryError);
++});
++
++test("discovery transport failures use the retryable discovery error", async () => {
++    const network = new RedisNetwork();
++    network.failDiscovery = true;
++    await assert.rejects(new Instance(network).execute("alice"), SessionDiscoveryError);
++});
++
++test("disconnecting one tab retains discovery and dispatch for the remaining tab", async () => {
++    const network = new RedisNetwork();
++    const owner = new Instance(network);
++    const first = await owner.connect("alice", "first");
++    await owner.connect("alice", "second");
++    await owner.disconnect(first);
++    assert.equal((await new Instance(network).execute("alice")).data, "second");
++});
++
++test("disconnecting the last tab removes its discovery subscription", async () => {
++    const network = new RedisNetwork();
++    const owner = new Instance(network);
++    const connection = await owner.connect("alice", "only");
++    await owner.disconnect(connection);
++    assert.equal(network.discovery.get("alice")?.size, 0);
++    await assert.rejects(new Instance(network).execute("alice"), /No Penpot sessions/);
++});
++
++test("concurrent discoveries keep response channels and users separate", async () => {
++    const network = new RedisNetwork();
++    const owner = new Instance(network);
++    const requester = new Instance(network);
++    await owner.connect("alice", "alice-tab");
++    await owner.connect("bob", "bob-tab");
++    const results = await Promise.all([requester.execute("alice"), requester.execute("bob")]);
++    assert.deepEqual(
++        results.map((result) => result.data),
++        ["alice-tab", "bob-tab"]
++    );
++    assert.equal(network.discoveryResponses.size, 0);
++});
++
++test("a publish completing after timeout cannot dispatch or retain its response subscription", async () => {
++    const network = new RedisNetwork();
++    const owner = new Instance(network);
++    await owner.connect("alice", "late");
++    let release!: () => void;
++    network.beforeDiscoveryPublish = () =>
++        new Promise<void>((resolve) => {
++            release = resolve;
++        });
++    await assert.rejects(new Instance(network).execute("alice"), SessionDiscoveryError);
++    release();
++    await new Promise<void>((resolve) => setImmediate(resolve));
++    assert.deepEqual(owner.executions, []);
++    assert.equal(network.discoveryResponses.size, 0);
++});
++
++test("a newer connection for a session on another instance displaces the older one", async () => {
++    const network = new RedisNetwork();
++    const previous = new Instance(network);
++    const current = new Instance(network);
++    await previous.connect("alice", "tab");
++    await current.connect("alice", "tab");
++    assert.deepEqual(previous.displaced, ["tab"]);
++    assert.deepEqual(current.displaced, []);
++    assert.equal((await new Instance(network).execute("alice")).data, "tab");
++    assert.deepEqual(previous.executions, []);
++    assert.deepEqual(current.executions, ["tab"]);
++});
++
++test("a claim published before a local connection's own claim does not displace it", async () => {
++    const network = new RedisNetwork();
++    const owner = new Instance(network);
++    const other = new Instance(network);
++    await owner.connect("alice", "sibling");
++    let release!: () => void;
++    network.beforeClaimPublish = () =>
++        new Promise<void>((resolve) => {
++            release = resolve;
++        });
++    const pending = owner.connect("alice", "tab");
++    await new Promise<void>((resolve) => setImmediate(resolve));
++    network.beforeClaimPublish = undefined;
++    // the other instance's claim is delivered first, so the owner's connection is the newer one
++    await other.connect("alice", "tab");
++    release();
++    await pending;
++    assert.deepEqual(owner.displaced, []);
++    assert.deepEqual(other.displaced, ["tab"]);
++});
++
++test("discovery lists a session reported by several instances once", async () => {
++    const network = new RedisNetwork();
++    network.dropClaims = true;
++    await new Instance(network).connect("alice", "tab");
++    await new Instance(network).connect("alice", "tab");
++    const sessions = await new Instance(network).dispatcher.discoverSessions("alice");
++    assert.deepEqual(
++        sessions.map((session) => session.sessionId),
++        ["tab"]
++    );
++});
++
++test("disconnecting the last tab removes its session claim subscription", async () => {
++    const network = new RedisNetwork();
++    const owner = new Instance(network);
++    const connection = await owner.connect("alice", "only");
++    await owner.disconnect(connection);
++    assert.equal(network.claims.get("alice")?.size, 0);
++});
+diff --git a/mcp/packages/server/src/dispatch/MultiInstanceTaskDispatcher.ts b/mcp/packages/server/src/dispatch/MultiInstanceTaskDispatcher.ts
+new file mode 100644
+index 00000000000..10c895e659b
+--- /dev/null
++++ b/mcp/packages/server/src/dispatch/MultiInstanceTaskDispatcher.ts
+@@ -0,0 +1,216 @@
++import { randomUUID } from "node:crypto";
++import type { PenpotSession, PluginTaskRequest } from "@penpot/mcp-common";
++import type { PenpotConnection } from "../PenpotConnection";
++import type { AbstractPluginTask } from "../PluginTask";
++import { RemotePluginTask } from "../RemotePluginTask";
++import type { RedisBridge, SessionClaim, SessionDiscoveryResponse } from "../RedisBridge";
++import { createLogger } from "../logger";
++import { SessionDiscoveryError, TaskDispatcher, type TaskDispatchHost } from "./TaskDispatcher";
++
++/** Routes tasks over Redis and discovers live sessions across MCP instances. */
++export class MultiInstanceTaskDispatcher extends TaskDispatcher {
++    private readonly logger = createLogger("MultiInstanceTaskDispatcher");
++    private readonly instanceId = randomUUID();
++    private readonly subscribedUsers = new Set<string>();
++    private readonly connectionChanges = new Map<string, Promise<void>>();
++    private readonly pendingDiscoveries = new Map<string, () => void>();
++    private readonly claimIds = new WeakMap<PenpotConnection, string>();
++    /** local connections whose own claim has been delivered back to this instance. */
++    private readonly confirmedClaims = new WeakSet<PenpotConnection>();
++
++    constructor(
++        private readonly host: TaskDispatchHost,
++        private readonly redisBridge: RedisBridge,
++        private readonly discoveryTimeoutMs = 5000
++    ) {
++        super();
++    }
++
++    async dispatch(task: AbstractPluginTask, userToken: string | null, sessionId?: string): Promise<void> {
++        const token = this.requireUserToken(userToken);
++        const targetId = sessionId ?? this.selectOnlySession(await this.discoverSessions(token));
++        this.host.sendRemoteTask(task, token, targetId);
++    }
++
++    async discoverSessions(userToken: string | null): Promise<PenpotSession[]> {
++        const token = this.requireUserToken(userToken);
++        const requestId = randomUUID();
++        const responses = new Map<string, PenpotSession[]>();
++        let expectedResponses: number | undefined;
++        let settled = false;
++        let resolve!: (sessions: PenpotSession[]) => void;
++        let reject!: (error: Error) => void;
++        const result = new Promise<PenpotSession[]>((res, rej) => {
++            resolve = res;
++            reject = rej;
++        });
++        const fail = () => {
++            if (!settled) {
++                settled = true;
++                reject(new SessionDiscoveryError());
++            }
++        };
++        const complete = () => {
++            if (!settled && expectedResponses !== undefined && responses.size === expectedResponses) {
++                settled = true;
++                resolve(this.uniqueSessions([...responses.values()].flat()));
++            }
++        };
++        const timeout = setTimeout(fail, this.discoveryTimeoutMs);
++        this.pendingDiscoveries.set(requestId, fail);
++        const releaseResponses = () => {
++            void this.redisBridge
++                .unsubscribeFromDiscoveryResponses(requestId)
++                .catch((error) => this.logger.error(error, "Failed to release discovery response subscription"));
++        };
++        // Replies can arrive before publish returns its recipient count.
++        void this.redisBridge
++            .sendDiscoveryRequest(token, requestId, (response: SessionDiscoveryResponse) => {
++                if (settled) return;
++                responses.set(response.instanceId, response.sessions);
++                complete();
++            })
++            .then((count) => {
++                expectedResponses = count;
++                complete();
++                // A slow subscribe/publish may finish after the discovery timeout.
++                if (settled) releaseResponses();
++            })
++            .catch(fail);
++        try {
++            return await result;
++        } finally {
++            clearTimeout(timeout);
++            this.pendingDiscoveries.delete(requestId);
++            releaseResponses();
++        }
++    }
++
++    async onNewConnection(connection: PenpotConnection): Promise<void> {
++        const token = this.requireUserToken(connection.userToken);
++        return this.changeConnections(token, async () => {
++            // subscribe to this session's Redis request channel so that task requests
++            // issued by other instances are dispatched to this instance
++            await this.redisBridge.subscribeToTasks(token, connection.session.sessionId, (request) =>
++                this.dispatchForwardedTask(connection, request)
++            );
++            if (!this.subscribedUsers.has(token)) {
++                await this.redisBridge.subscribeToDiscovery(token, (request) => {
++                    this.redisBridge.publishDiscoveryResponse(request.id, {
++                        instanceId: this.instanceId,
++                        sessions: this.host.getUserConnections(token)?.getSessions() ?? [],
++                    });
++                });
++                try {
++                    await this.redisBridge.subscribeToSessionClaims(token, (claim) =>
++                        this.handleSessionClaim(token, claim)
++                    );
++                } catch (error) {
++                    await this.redisBridge.unsubscribeFromDiscovery(token);
++                    throw error;
++                }
++                this.subscribedUsers.add(token);
++            }
++            // announce the connection so that other instances close older connections for the session
++            const claimId = randomUUID();
++            this.claimIds.set(connection, claimId);
++            try {
++                await this.redisBridge.publishSessionClaim(token, {
++                    instanceId: this.instanceId,
++                    claimId,
++                    sessionId: connection.session.sessionId,
++                });
++            } catch (error) {
++                this.logger.error(error, "Failed to publish session claim");
++            }
++        });
++    }
++
++    /**
++     * Closes the local connection for a claimed session when the claim comes from a newer connection.
++     *
++     * Claims arrive in publication order, so a foreign claim arriving after the local connection's own
++     * claim comes from a newer connection. A foreign claim arriving earlier comes from an older
++     * connection, which its instance closes when the local claim reaches it.
++     */
++    private handleSessionClaim(userToken: string, claim: SessionClaim): void {
++        const local = this.host.getUserConnections(userToken)?.getRegistered(claim.sessionId);
++        if (!local) return;
++        if (claim.instanceId === this.instanceId) {
++            if (this.claimIds.get(local) === claim.claimId) this.confirmedClaims.add(local);
++            return;
++        }
++        if (this.confirmedClaims.has(local)) {
++            this.host.displaceConnection(local);
++        }
++    }
++
++    /** Removes repeated sessions reported while a displaced connection is being closed. */
++    private uniqueSessions(sessions: PenpotSession[]): PenpotSession[] {
++        const unique = new Map<string, PenpotSession>();
++        for (const session of sessions) {
++            if (!unique.has(session.sessionId)) unique.set(session.sessionId, session);
++        }
++        return [...unique.values()];
++    }
++
++    async onConnectionClosed(connection: PenpotConnection): Promise<void> {
++        const token = this.requireUserToken(connection.userToken);
++        return this.changeConnections(token, async () => {
++            await this.redisBridge.unsubscribeFromTasks(token, connection.session.sessionId);
++            if (!this.host.getUserConnections(token)?.size && this.subscribedUsers.has(token)) {
++                this.subscribedUsers.delete(token);
++                await this.redisBridge.unsubscribeFromDiscovery(token);
++                await this.redisBridge.unsubscribeFromSessionClaims(token);
++            }
++        });
++    }
++
++    async close(): Promise<void> {
++        for (const fail of this.pendingDiscoveries.values()) fail();
++        await Promise.allSettled(this.connectionChanges.values());
++    }
++
++    /**
++     * Dispatches a task request received over Redis to the locally-connected plugin.
++     *
++     * Invoked on the instance subscribed to a session's request channel when another
++     * instance (or this one) issues a task request. A {@link RemotePluginTask} is created
++     * so that, once the plugin responds, the outcome is published back to the issuing
++     * instance's Redis response channel via the standard response-handling path.
++     *
++     * On failure to dispatch (e.g. the plugin is not connected here), an error response
++     * is published immediately so the requester need not wait for its timeout.
++     *
++     * @param connection - The local connection owning the session's request channel
++     * @param request - The serialized task request, passed through from Redis
++     */
++    private dispatchForwardedTask(connection: PenpotConnection, request: PluginTaskRequest): void {
++        // The response is published on the channel keyed by the original request ID.
++        const task = new RemotePluginTask(request.task, request.params, this.redisBridge, request.id);
++        this.logger.debug("Dispatching remote task %s as %s to Penpot via WebSocket", request.id, task.id);
++
++        try {
++            this.host.sendLocalTask(task, connection);
++        } catch (error) {
++            task.rejectWithError(error instanceof Error ? error : new Error(String(error)));
++        }
++    }
++
++    /** Serializes subscription changes for a user across connects and disconnects. */
++    private changeConnections(userToken: string, change: () => Promise<void>): Promise<void> {
++        const previous = this.connectionChanges.get(userToken) ?? Promise.resolve();
++        const current = previous.catch(() => {}).then(change);
++        this.connectionChanges.set(userToken, current);
++        const cleanup = () => {
++            if (this.connectionChanges.get(userToken) === current) this.connectionChanges.delete(userToken);
++        };
++        void current.then(cleanup, cleanup);
++        return current;
++    }
++
++    private requireUserToken(userToken: string | null): string {
++        if (!userToken) throw new Error("Multi-instance task routing requires a user token.");
++        return userToken;
++    }
++}
+diff --git a/mcp/packages/server/src/dispatch/SingleInstanceTaskDispatcher.ts b/mcp/packages/server/src/dispatch/SingleInstanceTaskDispatcher.ts
+new file mode 100644
+index 00000000000..60ed0521050
+--- /dev/null
++++ b/mcp/packages/server/src/dispatch/SingleInstanceTaskDispatcher.ts
+@@ -0,0 +1,27 @@
++import type { PenpotSession } from "@penpot/mcp-common";
++import type { AbstractPluginTask } from "../PluginTask";
++import { TaskDispatcher, type TaskDispatchHost } from "./TaskDispatcher";
++
++/** Routes tasks to connections held by this MCP server instance. */
++export class SingleInstanceTaskDispatcher extends TaskDispatcher {
++    constructor(private readonly host: TaskDispatchHost) {
++        super();
++    }
++
++    async discoverSessions(userToken: string | null): Promise<PenpotSession[]> {
++        return this.host.getUserConnections(userToken)?.getSessions() ?? [];
++    }
++
++    async dispatch(task: AbstractPluginTask, userToken: string | null, sessionId?: string): Promise<void> {
++        const targetId = sessionId ?? this.selectOnlySession(await this.discoverSessions(userToken));
++        const connection = this.host.getUserConnections(userToken)?.get(targetId);
++        if (!connection) {
++            throw new Error(`Penpot session ${JSON.stringify(targetId)} is not connected for this user.`);
++        }
++        this.host.sendLocalTask(task, connection);
++    }
++
++    async onNewConnection(): Promise<void> {}
++    async onConnectionClosed(): Promise<void> {}
++    async close(): Promise<void> {}
++}
+diff --git a/mcp/packages/server/src/dispatch/TaskDispatcher.ts b/mcp/packages/server/src/dispatch/TaskDispatcher.ts
+new file mode 100644
+index 00000000000..b9fdcf17aa7
+--- /dev/null
++++ b/mcp/packages/server/src/dispatch/TaskDispatcher.ts
+@@ -0,0 +1,49 @@
++import type { PenpotSession } from "@penpot/mcp-common";
++import type { PenpotConnection } from "../PenpotConnection";
++import type { AbstractPluginTask } from "../PluginTask";
++import type { UserPenpotConnections } from "../UserPenpotConnections";
++
++/** Local connection access and tracked task execution provided by PluginBridge. */
++export interface TaskDispatchHost {
++    getUserConnections(userToken: string | null): UserPenpotConnections | undefined;
++    sendLocalTask(task: AbstractPluginTask, connection: PenpotConnection): void;
++    sendRemoteTask(task: AbstractPluginTask, userToken: string, sessionId: string): void;
++    displaceConnection(connection: PenpotConnection): void;
++}
++
++/** Session discovery, task routing, and connection subscription lifecycle. */
++export abstract class TaskDispatcher {
++    abstract discoverSessions(userToken: string | null): Promise<PenpotSession[]>;
++    abstract dispatch(task: AbstractPluginTask, userToken: string | null, sessionId?: string): Promise<void>;
++    abstract onNewConnection(connection: PenpotConnection): Promise<void>;
++    abstract onConnectionClosed(connection: PenpotConnection): Promise<void>;
++    abstract close(): Promise<void>;
++
++    /** Selects the sole session from a complete discovery result. */
++    protected selectOnlySession(sessions: PenpotSession[]): string {
++        if (sessions.length === 0) {
++            throw new Error("No Penpot sessions are connected. Please connect the Penpot MCP plugin and retry.");
++        }
++        if (sessions.length !== 1) {
++            throw new Error(
++                "Multiple Penpot sessions are connected. Ask the user to select one of the active sessions, " +
++                    "then retry with its sessionId:\n" +
++                    sessions
++                        .map(
++                            (session) =>
++                                `${session.sessionId}: ${JSON.stringify(session.fileName)} (file ${session.fileId})`
++                        )
++                        .join("\n")
++            );
++        }
++        return sessions[0].sessionId;
++    }
++}
++
++/** Error returned when discovery cannot establish the complete set of sessions. */
++export class SessionDiscoveryError extends Error {
++    constructor() {
++        super("Penpot session discovery failed. This may be due to temporary server load. You can retry the request.");
++        this.name = "SessionDiscoveryError";
++    }
++}
+diff --git a/mcp/packages/server/src/tools/ExecuteCodeTool.ts b/mcp/packages/server/src/tools/ExecuteCodeTool.ts
+index 6a514e0cf47..ee15401005a 100644
+--- a/mcp/packages/server/src/tools/ExecuteCodeTool.ts
++++ b/mcp/packages/server/src/tools/ExecuteCodeTool.ts
+@@ -16,12 +16,15 @@ export class ExecuteCodeArgs {
+             .string()
+             .min(1, "Code cannot be empty")
+             .describe("The JavaScript code to execute in the plugin context."),
++        sessionId: Tool.SESSION_ID_SCHEMA,
+     };
+ 
+     /**
+      * The JavaScript code to execute in the plugin context.
+      */
+     code!: string;
++
++    sessionId?: string;
+ }
+ 
+ /**
+@@ -67,7 +70,7 @@ export class ExecuteCodeTool extends Tool<ExecuteCodeArgs> {
+     protected async executeCore(args: ExecuteCodeArgs): Promise<ToolResponse> {
+         const taskParams: ExecuteCodeTaskParams = { code: args.code };
+         const task = new ExecuteCodePluginTask(taskParams);
+-        const result = await this.mcpServer.pluginBridge.executePluginTask(task);
++        const result = await this.mcpServer.pluginBridge.executePluginTask(task, args.sessionId);
+ 
+         if (result.data !== undefined) {
+             return new TextResponse(JSON.stringify(result.data, null, 2));
+diff --git a/mcp/packages/server/src/tools/ExportShapeTool.ts b/mcp/packages/server/src/tools/ExportShapeTool.ts
+index 0d84df9380a..7eb3e321c9a 100644
+--- a/mcp/packages/server/src/tools/ExportShapeTool.ts
++++ b/mcp/packages/server/src/tools/ExportShapeTool.ts
+@@ -36,6 +36,7 @@ export class ExportShapeArgs {
+                 "Optional file path to save the exported image to. If not provided, " +
+                     "the image data is returned directly for you to see."
+             ),
++        sessionId: Tool.SESSION_ID_SCHEMA,
+     };
+ 
+     shapeId!: string;
+@@ -45,6 +46,8 @@ export class ExportShapeArgs {
+     mode: "shape" | "fill" = "shape";
+ 
+     filePath?: string;
++
++    sessionId?: string;
+ }
+ 
+ /**
+@@ -151,7 +154,7 @@ export class ExportShapeTool extends Tool<ExportShapeArgs> {
+ 
+         // execute the code and obtain the image data
+         const task = new ExecuteCodePluginTask({ code: code });
+-        const result = await this.mcpServer.pluginBridge.executePluginTask(task);
++        const result = await this.mcpServer.pluginBridge.executePluginTask(task, args.sessionId);
+         const imageData = result.data!.result;
+ 
+         // handle output and return response
+diff --git a/mcp/packages/server/src/tools/ImportImageTool.ts b/mcp/packages/server/src/tools/ImportImageTool.ts
+index 7581aaf525d..d5ffb5eb9b3 100644
+--- a/mcp/packages/server/src/tools/ImportImageTool.ts
++++ b/mcp/packages/server/src/tools/ImportImageTool.ts
+@@ -30,6 +30,7 @@ export class ImportImageArgs {
+             .describe(
+                 "Optional height for the rectangle. If only height is provided, width is calculated to maintain aspect ratio."
+             ),
++        sessionId: Tool.SESSION_ID_SCHEMA,
+     };
+ 
+     filePath!: string;
+@@ -41,6 +42,8 @@ export class ImportImageArgs {
+     width?: number;
+ 
+     height?: number;
++
++    sessionId?: string;
+ }
+ 
+ /**
+@@ -116,7 +119,7 @@ export class ImportImageTool extends Tool<ImportImageArgs> {
+             return { shapeId: rectangle.id };
+             `;
+         const task = new ExecuteCodePluginTask({ code: code });
+-        const executionResult = await this.mcpServer.pluginBridge.executePluginTask(task);
++        const executionResult = await this.mcpServer.pluginBridge.executePluginTask(task, args.sessionId);
+ 
+         return new TextResponse(JSON.stringify(executionResult.data?.result, null, 2));
+     }

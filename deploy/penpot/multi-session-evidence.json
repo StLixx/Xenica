@@ -1,0 +1,57 @@
+{
+  "date": "2026-10-16",
+  "kind": "agent-observed-and-infra-tested",
+  "upstreamBase": "ff7a66f51938b2293260ea27a64e2c4e0833b5e3",
+  "upstreamFeature": "8efbd9b5d3fc7f3b0b174efcc6c665033318dcad",
+  "backportPatchSha256": "32579566ecf0a10d47c23c4d105d53606733ef3b3ce37bb241dab95c4883a9a7",
+  "frontend": "sha256:cafee5958514cc0648c3b1989f1b70f740e6d6bdf58de0cefc6ac32cbed2bd94",
+  "mcp": "sha256:10ccd195bfa6c735bbd1c19716ce4b259da1c174b93adee453dfb15938f68f73",
+  "frontendCacheTag": "2.18.3-ms11927-r2",
+  "imageArchiveSha256": "767cab3b0e4513c8d61592ec4beb283b217544ac645e38099b6d2d7c20c91f8e",
+  "imageArchive": "/mnt/HDD/penpot/artifacts/2.18.3-ms11927-r2.tar",
+  "imageCopies": ["Infra", "core", "drive02:PG-operations-v1/penpot-artifacts/2.18.3-ms11927-r2"],
+  "offsiteImageCheck": "rclone check: 0 differences, 2 matching files",
+  "preDeploymentBackup": "20261016T044603Z",
+  "postDeploymentBackup": "20261016T072948Z",
+  "postDeploymentInventory": { "profiles": 1, "files": 9, "media": 4 },
+  "schemaChanged": false,
+  "automated": {
+    "oldSessionTest": "failed-before-fix",
+    "mcpTests": 68,
+    "pluginTests": 28,
+    "frontendTests": 11,
+    "frontendAssertions": 44,
+    "mcpTypes": "passed",
+    "frontendFormatAndLint": "passed",
+    "pageAndCompiledTag": "passed",
+    "cleanStablePatchApply": "passed",
+    "builtServerHttp": ["published-schema", "explicit-target", "multiple-file-choice", "token-isolation", "closed-session-rejected", "single-session-fallback"]
+  },
+  "isolatedRestore": {
+    "backupChecksums": "passed",
+    "inventory": { "profiles": 1, "files": 8, "media": 3 },
+    "originalAccountLogin": "passed",
+    "originalFileRead": "passed",
+    "twoImageRollback": "passed"
+  },
+  "liveConnectorAndBrowser": [
+    "Three real files connected concurrently; explicit sessionId read the requested file",
+    "No sessionId returned a choice with file names and identifiers",
+    "Original blank file remained empty; original Demo boards were readable",
+    "Top-left menu disconnected only its file and reconnected successfully",
+    "Dedicated test file was modified and exported through the connector",
+    "Wrong-file export did not retrieve the target shape",
+    "Official external avatar was imported, visibly rendered and included in PNG export",
+    "Reload preserved board and image; a new sessionId worked and old sessionId was rejected",
+    "MCP service restart automatically reconnected the active browser without clicking Connect"
+  ],
+  "externalImageSource": "https://avatars.githubusercontent.com/u/30179644?v=4",
+  "screenshotSha256": "b5570c876afaa3d7626e7c1b83fe2d417c80d022942967437ade9e030f4ec42a",
+  "limitations": [
+    "Browser focus does not select the agent target",
+    "Reload requires connecting again and can change the sessionId",
+    "A suspended browser process must be resumed before plugin code can execute",
+    "GitHub raw image URL returned a connection reset from Infra; official avatar URL succeeded"
+  ],
+  "userExperienceAcceptance": "pending"
+}
