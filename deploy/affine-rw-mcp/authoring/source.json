@@ -1,0 +1,9 @@
+{
+  "repository": "https://github.com/DAWNCR0W/affine-mcp-server.git",
+  "commit": "a4cc2ef87684b46326b406d572b8c2ef09f3f2ca",
+  "version": "3.9.1",
+  "license": "MIT",
+  "affineCompatibility": "0.27.4",
+  "overlay": "adapter.mjs",
+  "nativeMindmapImageNodes": false
+}

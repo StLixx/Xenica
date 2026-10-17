@@ -4,6 +4,7 @@ SDK validates protocol, client authentication, redirects and PKCE. This provider
 binds user consent to the existing AFFiNE owner session and persists grants.
 It never forwards a client's bearer token to AFFiNE or accepts a workspace URL.
 """
+import asyncio
 import html
 import json
 import os
@@ -35,11 +36,15 @@ BASE = CONFIG['public_url'].rstrip('/')
 RESOURCE = BASE + '/rw-mcp'
 ISSUER = BASE + '/rw-oauth'
 SCOPES = ['affine:read', 'affine:write']
-READ_TOOLS = {'list_documents', 'doc_search', 'read_document'}
+AUTHORING_POLICY = json.loads((Path(__file__).parent/'authoring'/'policy.json').read_text())
+READ_TOOLS = {'list_documents', 'doc_search', 'read_document'} | set(AUTHORING_POLICY['read'])
+AUTHORING_TOOLS = set(AUTHORING_POLICY['read'] + AUTHORING_POLICY['write'])
+LEGACY_TOOLS = {'list_documents', 'doc_search', 'read_document', 'create_document', 'update_document', 'update_document_meta'}
 UPSTREAM = CONFIG['upstream_url'].rstrip('/')
 WORKSPACE = CONFIG['workspace_id']
 OWNER = CONFIG['owner_id']
 STORE = Store(os.environ.get('AFFINE_MCP_STORE', '/state/oauth.sqlite3'))
+WORKSPACE_LOCK = asyncio.Lock()
 COOKIE = '__Host-affine-rw-consent'
 REGISTRATION = ClientRegistrationOptions(enabled=True, valid_scopes=SCOPES, default_scopes=SCOPES)
 REVOCATION = RevocationOptions(enabled=True)
@@ -151,7 +156,7 @@ async def consent(request):
         pending['consent_nonce'] = digest(nonce)
         STORE.put('pending',tx,pending,time.time()+300)
         requested = ', '.join(pending['params']['scopes']) if 'params' in pending else ''
-        response = page('<p>申请权限：'+html.escape(requested)+'</p><p>允许此应用按申请的权限搜索、阅读、新建及修改本工作区文档。连接有效期最长 30 天，可随时撤销。</p><p>不会开放删除、跨工作区或模型调用权限。复杂图片、数据库和白板内容受保护。</p><form method="post"><input type="hidden" name="tx" value="'+html.escape(tx)+'"><input type="hidden" name="csrf" value="'+nonce+'"><button name="decision" value="allow">允许文档连接</button> <button name="decision" value="deny">取消</button></form>')
+        response = page('<p>申请权限：'+html.escape(requested)+'</p><p>允许此应用按申请的权限搜索、阅读文档及图片、新建和编辑原生块、数据库、导图、白板与资料整理。仅限本工作区，连接有效期最长 30 天，可随时撤销。</p><p>不开放永久删除、公开发布、账号管理、跨工作区或模型调用权限。简单 Markdown 正文替换仍保护复杂内容。</p><form method="post"><input type="hidden" name="tx" value="'+html.escape(tx)+'"><input type="hidden" name="csrf" value="'+nonce+'"><button name="decision" value="allow">允许文档连接</button> <button name="decision" value="deny">取消</button></form>')
         script_nonce=secrets.token_urlsafe(24)
         script="""<script nonce="%s">document.querySelector('form').addEventListener('submit',async event=>{event.preventDefault();const form=event.currentTarget;const data=new FormData(form);data.set('decision',event.submitter.value);const buttons=form.querySelectorAll('button');buttons.forEach(b=>b.disabled=true);try{const response=await fetch('/rw-oauth/consent',{method:'POST',body:data,headers:{Accept:'application/json'},credentials:'same-origin'});const result=await response.json();if(!response.ok||!result.redirect)throw Error('授权提交失败，请返回连接应用重新连接');location.assign(result.redirect);}catch(error){const message=document.createElement('p');message.textContent=error.message;form.append(message);buttons.forEach(b=>b.disabled=false);}});</script>""" % script_nonce
         response.body+=script.encode()
@@ -222,7 +227,7 @@ async def mcp(request):
     def error(code,message):
         return JSONResponse({'jsonrpc':'2.0','id':ident,'error':{'code':code,'message':message}})
     if method=='initialize':
-        return rpc({'protocolVersion':(body.get('params',{}).get('protocolVersion') if isinstance(body.get('params'),dict) and body['params'].get('protocolVersion') in ('2024-11-05','2025-03-26','2025-06-18','2025-11-25') else '2025-06-18'),'capabilities':{'tools':{}},'serverInfo':{'name':'AFFiNE Read Write','version':'0.1.0'},'instructions':'Read documents before editing and use expected_revision. Use one unique idempotency_key per write; reuse exactly the same arguments and key on an uncertain result. No deletion or rich canvas/database/image editing.'})
+        return rpc({'protocolVersion':(body.get('params',{}).get('protocolVersion') if isinstance(body.get('params'),dict) and body['params'].get('protocolVersion') in ('2024-11-05','2025-03-26','2025-06-18','2025-11-25') else '2025-06-18'),'capabilities':{'tools':{}},'serverInfo':{'name':'AFFiNE Read Write','version':'0.2.0' if CONFIG.get('authoring_url') else '0.1.0'},'instructions':'Native tools: read_doc before content writes and use expectedRevision; legacy tools use read_document/expected_revision. Use a unique idempotency_key per write, identical args/key for replay. Uncertain writes must be inspected; never repeat with a new key. inspect_document_assets then read_image returns actual image pixels. Only advertised tools are enabled; no permanent deletion, publication, account administration, or cross-workspace access. Native mindmap nodes are text shapes; images are separate document blocks.'})
     if method in ('notifications/initialized','notifications/cancelled'):
         return Response(status_code=202)
     if method=='ping':
@@ -238,6 +243,8 @@ async def mcp(request):
             return error(-32600,'Tool calls require a request id')
         if not isinstance(tool,str):
             return error(-32602,'Tool name required')
+        if tool not in LEGACY_TOOLS and (tool not in AUTHORING_TOOLS or not CONFIG.get('authoring_url')):
+            return error(-32602,'Unknown or disabled tool')
         if tool not in READ_TOOLS and 'affine:write' not in token.scopes:
             return rpc({'isError':True,'content':[{'type':'text','text':'WRITE_SCOPE_REQUIRED'}]})
         if 'affine:read' not in token.scopes:
@@ -245,17 +252,29 @@ async def mcp(request):
     action={'action':'tools'} if method=='tools/list' else {'action':'call','tool':tool,'args':params.get('arguments',{}),'actor':token.client_id}
     try:
         async with httpx.AsyncClient(timeout=120,trust_env=False) as client:
-            response=await client.post(CONFIG['bridge_url']+'/rpc',headers={'Authorization':'Bearer '+CONFIG['bridge_secret']},json=action)
+            target=CONFIG['authoring_url'] if method=='tools/call' and tool in AUTHORING_TOOLS else CONFIG['bridge_url']
+            async with WORKSPACE_LOCK:
+                response=await client.post(target+'/rpc',headers={'Authorization':'Bearer '+CONFIG['bridge_secret']},json=action)
+            if method=='tools/list' and CONFIG.get('authoring_url'):
+                native=await client.post(CONFIG['authoring_url']+'/rpc',headers={'Authorization':'Bearer '+CONFIG['bridge_secret']},json={'action':'tools'})
+                native.raise_for_status()
         response.raise_for_status()
         data=response.json()
         if method=='tools/list':
+            definitions=data['tools']
+            if CONFIG.get('authoring_url'):
+                definitions += native.json()['tools']
             tools=[]
-            for item in data['tools']:
+            for item in definitions:
+                if item['name'] not in LEGACY_TOOLS | AUTHORING_TOOLS:
+                    continue
                 if item['name'] not in READ_TOOLS and 'affine:write' not in token.scopes:
                     continue
                 scope=['affine:read'] if item['name'] in READ_TOOLS else SCOPES
                 tools.append({**item,'securitySchemes':[{'type':'oauth2','scopes':scope}]})
             return rpc({'tools':tools})
+        if 'mcp' in data:
+            return rpc(data['mcp'])
         if 'error' in data:
             return rpc({'isError':True,'content':[{'type':'text','text':data['error']}]})
         return rpc({'content':[{'type':'text','text':json.dumps(data['result'],ensure_ascii=False)}],'structuredContent':data['result']})
@@ -271,7 +290,15 @@ class Protection(BaseHTTPMiddleware):
             length=int(request.headers.get('content-length','0') or 0)
         except ValueError:
             return Response(status_code=400)
-        if length<0 or length>150000:return Response(status_code=413)
+        limit=8*1024*1024 if request.url.path=='/rw-mcp' else 150000
+        if length<0 or length>limit:return Response(status_code=413)
+        size=0
+        chunks=[]
+        async for chunk in request.stream():
+            size+=len(chunk)
+            if size>limit:return Response(status_code=413)
+            chunks.append(chunk)
+        request._body=b''.join(chunks)
         if request.url.path.endswith('/token'):
             await request.body()
             form=await request.form()

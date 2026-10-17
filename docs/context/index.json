@@ -101,9 +101,7 @@
       "status": "unverified",
       "summary": "本轮修复接口与交付体系，新 Notion 模型会话验收继续延期，尚未证明任何新会话自动具备全部访问能力。",
       "origin": "用户选择本轮先修复接口，稍后验收 Notion；本轮计划明确延期",
-      "references": [
-        "specs/54-delivery-system/continuation.md"
-      ]
+      "references": ["specs/54-delivery-system/continuation.md"]
     },
     {
       "id": "private-test-workspace",
@@ -288,6 +286,22 @@
         "deploy/affine-rw-mcp/evidence.json"
       ],
       "task": 79,
+      "implementation": "deployed-agent-verified-awaiting-user-acceptance"
+    },
+    {
+      "id": "affine-native-authoring-mcp",
+      "status": "confirmed",
+      "summary": "用户确认扩展原生块、图片/附件、数据库、导图/白板及资料整理并回复开始；保留 0.27.4 和既有 OAuth 入口。独立适配后端与固定工具清单先在隔离环境验证，交互成果需最后体验验收。",
+      "origin": "2026-10-17 当前用户会话复述范围后明确回复开始",
+      "references": [
+        "specs/91-affine-mcp-authoring/spec.md",
+        "docs/adr/0021-affine-native-authoring.md",
+        "deploy/affine-rw-mcp/authoring/source.json",
+        "deploy/affine-rw-mcp/authoring/policy.json",
+        "deploy/affine-rw-mcp/authoring/README.md",
+        "deploy/affine-rw-mcp/authoring/evidence.json"
+      ],
+      "task": 91,
       "implementation": "deployed-agent-verified-awaiting-user-acceptance"
     }
   ],

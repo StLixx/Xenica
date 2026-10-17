@@ -9,7 +9,10 @@ import time
 BASE='https://affine.truebigsand.top'
 def check():
     results=[]
-    for name in ['affine-rw-mcp-bridge-1','affine-rw-mcp-gateway-1']:
+    names=['affine-rw-mcp-bridge-1','affine-rw-mcp-gateway-1']
+    config=json.loads(Path('/etc/affine-rw-mcp/gateway.json').read_text())
+    if config.get('authoring_url'):names.append('affine-rw-mcp-authoring-1')
+    for name in names:
         info=json.loads(subprocess.check_output(['docker','inspect',name]))[0]
         assert info['State']['Running'] and info['State'].get('Health',{}).get('Status')=='healthy',name+' is not healthy'
         results.append(name)

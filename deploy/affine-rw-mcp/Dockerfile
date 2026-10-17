@@ -4,6 +4,7 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY gateway.py store.py ./
+COPY authoring/policy.json ./authoring/policy.json
 CMD ["uvicorn","gateway:app","--host","0.0.0.0","--port","8891","--no-access-log"]
 
 USER 65532:65532

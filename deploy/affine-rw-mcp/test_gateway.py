@@ -130,6 +130,48 @@ class OAuthTests(unittest.TestCase):
             self.assertIn('code' if decision=='allow' else 'error',values)
             self.assertIsNone(g.STORE.get('pending',tx))
 
+    def native_token(self, scopes=None):
+        g.STORE.put('grant','native-grant',{'client_id':self.info['client_id']},__import__('time').time()+100)
+        token=g.PROVIDER.issue(self.info['client_id'],'native-grant',scopes or g.SCOPES)
+        return {'authorization':'Bearer '+token.access_token}
+
+    def test_native_readonly_scope_and_unknown_tools(self):
+        headers=self.native_token(['affine:read'])
+        mocked=AsyncMock(side_effect=[httpx_response({'tools':[{'name':'read_document'},{'name':'create_document'}]}),httpx_response({'tools':[{'name':'read_image'},{'name':'append_block'},{'name':'publish_doc'}]})])
+        with patch.dict(g.CONFIG,{'authoring_url':'http://native:8893'}),patch('httpx.AsyncClient.post',mocked):
+            r=self.client.post('/rw-mcp',headers=headers,json={'jsonrpc':'2.0','id':1,'method':'tools/list'})
+            self.assertEqual([t['name'] for t in r.json()['result']['tools']],['read_document','read_image'])
+            r=self.client.post('/rw-mcp',headers=headers,json={'jsonrpc':'2.0','id':2,'method':'tools/call','params':{'name':'append_block','arguments':{}}})
+            self.assertIn('WRITE_SCOPE_REQUIRED',r.text)
+            r=self.client.post('/rw-mcp',headers=headers,json={'jsonrpc':'2.0','id':3,'method':'tools/call','params':{'name':'publish_doc','arguments':{}}})
+            self.assertEqual(r.json()['error']['code'],-32602)
+            self.assertEqual(mocked.call_count,2)
+
+    def test_native_image_content_and_structured_errors_are_preserved(self):
+        headers=self.native_token(['affine:read'])
+        result={'content':[{'type':'text','text':'image metadata'},{'type':'image','mimeType':'image/png','data':'aW1hZ2U='}],'structuredContent':{'size':5}}
+        mocked=AsyncMock(return_value=httpx_response({'mcp':result}))
+        with patch.dict(g.CONFIG,{'authoring_url':'http://native:8893'}),patch('httpx.AsyncClient.post',mocked):
+            r=self.client.post('/rw-mcp',headers=headers,json={'jsonrpc':'2.0','id':4,'method':'tools/call','params':{'name':'read_image','arguments':{'docId':'doc','blockId':'image'}}})
+        self.assertEqual(r.json()['result'],result)
+        self.assertEqual(mocked.call_args.args[0],'http://native:8893/rpc')
+        self.assertEqual(mocked.call_args.kwargs['json']['actor'],self.info['client_id'])
+        self.assertNotIn(headers['authorization'],str(mocked.call_args))
+
+    def test_native_upload_body_bounds_and_disabled_route(self):
+        headers=self.native_token()
+        body={'jsonrpc':'2.0','id':5,'method':'tools/call','params':{'name':'upload_blob','arguments':{'content':'a'*200000}}}
+        mocked=AsyncMock(return_value=httpx_response({'mcp':{'content':[{'type':'text','text':'uploaded'}],'structuredContent':{'ok':True}}}))
+        with patch.dict(g.CONFIG,{'authoring_url':'http://native:8893'}),patch('httpx.AsyncClient.post',mocked):
+            self.assertEqual(self.client.post('/rw-mcp',headers=headers,json=body).status_code,200)
+            self.assertEqual(mocked.call_count,1)
+            self.assertEqual(self.client.post('/rw-mcp',headers=headers,content=b'x'*(8*1024*1024+1)).status_code,413)
+            self.assertEqual(self.client.post('/rw-oauth/token',content=b'x'*150001).status_code,413)
+        with patch('httpx.AsyncClient.post',AsyncMock()) as blocked:
+            r=self.client.post('/rw-mcp',headers=headers,json=body)
+            self.assertEqual(r.json()['error']['code'],-32602)
+            blocked.assert_not_called()
+
     def test_notion_callback_host_and_redirect_validation(self):
         valid='https://www.notion.so/api/v3/aiConnectorOAuthCallback'
         self.assertEqual(self.client.post('/rw-oauth/register',json={**self.registration,'redirect_uris':[valid]}).status_code,201)

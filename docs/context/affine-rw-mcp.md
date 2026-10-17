@@ -2,7 +2,13 @@
 
 2026-10-17（Asia/Shanghai）用户重新授权实现读写，先 ChatGPT Plugin / Chat，再 Notion AI，要求自主完成、不要提问。#76/#77 稳定部署已独立完成合并；本任务使用 #79、Xenica PR #80 与 AFFiNE Fork PR #1，未修改另一会话工作树。交互体验仍待用户本人确认，不自行合并或登记产品验收。
 
-## 当前结果
+## 原生创作扩展（#91 / #92）
+
+2026-10-17 用户确认扩展并回复「开始」。原生块、图片/附件、数据库、原生导图/白板、标签/集合/文件夹由独立适配服务提供，保留固定入口和原 6 项工具；新增 57 项，总计 63 项。当前实现、精确部署和客户端验证以 [适配手册](../../deploy/affine-rw-mcp/authoring/README.md)、[证据](../../deploy/affine-rw-mcp/authoring/evidence.json) 与 [ADR 0021](../adr/0021-affine-native-authoring.md) 为准。任务 #91 的结束体验验收另行进行，不能用本轮开始确认代替。
+
+下面是 #79 / #80 初版交付时的历史记录；其中待验收表述与能力边界均为该时点快照，不代表 #91 的当前能力。
+
+## 初版交付结果
 
 - 固定 HTTPS MCP：`https://affine.truebigsand.top/rw-mcp`，OAuth；插件名 `AFFiNE Read Write`。ChatGPT 旧的 `AFFiNE` 只读试验条目保留，不混用。
 - ChatGPT Chat 与 Notion AI 均已真实完成中文搜索、读取、新建、改正文、改标题、最终回读；服务重启后双向读取另一端文档通过，授权持续有效。AFFiNE 网页实际显示两份最终文档，刷新后保留。

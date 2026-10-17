@@ -1,0 +1,54 @@
+name: affine-mcp-91-sandbox
+services:
+  postgres:
+    image: ${POSTGRES_IMAGE:?fixed image}
+    mem_limit: 384m
+    cpus: 1
+    env_file: ${SANDBOX_ROOT:?private sandbox}/postgres.env
+    volumes: ["${SANDBOX_ROOT}/postgres:/var/lib/postgresql"]
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U affine -d affine"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  redis:
+    image: ${REDIS_IMAGE:?fixed image}
+    mem_limit: 128m
+    command: [redis-server, --maxmemory, 80mb, --maxmemory-policy, noeviction]
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  migration:
+    image: ${AFFINE_IMAGE:?fixed 0.27.4 image}
+    mem_limit: 768m
+    env_file: ${SANDBOX_ROOT}/server.env
+    command: [node, ./scripts/self-host-predeploy.js]
+    volumes:
+      - ${SANDBOX_ROOT}/config:/root/.affine/config
+      - ${SANDBOX_ROOT}/storage:/root/.affine/storage
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+  affine:
+    image: ${AFFINE_IMAGE:?fixed 0.27.4 image}
+    mem_limit: 1536m
+    cpus: 1.5
+    env_file: ${SANDBOX_ROOT}/server.env
+    volumes:
+      - ${SANDBOX_ROOT}/config:/root/.affine/config
+      - ${SANDBOX_ROOT}/storage:/root/.affine/storage
+    depends_on:
+      migration: { condition: service_completed_successfully }
+  relay:
+    image: ${NODE_IMAGE:?fixed node image}
+    mem_limit: 64m
+    command: [node, /relay.mjs]
+    volumes: ["./sandbox-relay.mjs:/relay.mjs:ro"]
+    ports: ["127.0.0.1:3091:3010"]
+    networks: [default, ingress]
+    depends_on: [affine]
+networks:
+  default: { internal: true }
+  ingress: {}
