@@ -1,0 +1,9 @@
+/* Canvas HTML tools share the native toolbar, including narrow viewports. */
+.toolbar {
+  max-inline-size: calc(100% - 16px);
+}
+.toolbar-options {
+  max-inline-size: 100%;
+  flex-wrap: wrap;
+  justify-content: center;
+}

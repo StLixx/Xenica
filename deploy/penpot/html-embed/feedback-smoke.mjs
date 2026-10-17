@@ -62,6 +62,7 @@ try {
           z = el.context.zoom,
           v = el.context.vbox;
         return {
+          logicalWidth: s.width,
           finite: [s.x, s.y, s.width, s.height].every(Number.isFinite),
           position: Math.max(
             Math.abs(box.x - host.x - (s.points[0].x - v.x) * z),
@@ -75,6 +76,14 @@ try {
         };
       });
     assert.ok(result.finite);
+    const innerWidth = await page
+      .frameLocator('iframe[title="HTML 交互块"]')
+      .locator("html")
+      .evaluate(() => window.innerWidth);
+    assert.ok(
+      Math.abs(innerWidth - result.logicalWidth) <= 1,
+      "HTML logical viewport must survive canvas zoom",
+    );
     assert.ok(result.position < 2, JSON.stringify(result));
     assert.ok(result.size < 2, JSON.stringify(result));
     report.samples++;

@@ -24,7 +24,7 @@ try {
         : "text/html",
       body: route.request().url().endsWith(".js")
         ? script
-        : '<html><head><script type="module" src="/overlay.js"></script></head><body><div data-testid="viewport" style="position:relative;margin-left:250px;height:900px;overflow:hidden;pointer-events:none"><div style="position:absolute;inset:0;pointer-events:auto"></div><xenica-html-embed-layer></xenica-html-embed-layer></div></body></html>',
+        : "<html><head><meta charset=\"utf-8\"><script type=\"module\" src=\"/overlay.js\"></script></head><body><button onclick=\"window.dispatchEvent(new CustomEvent('xenica-html-command',{detail:{action:'insert',id:'one'}}))\">＋ HTML</button><button onclick=\"window.dispatchEvent(new CustomEvent('xenica-html-command',{detail:{action:'enter',id:'one'}}))\">进入交互</button><button onclick=\"window.dispatchEvent(new CustomEvent('xenica-html-command',{detail:{action:'exit',id:'one'}}))\">返回画布</button><button onclick=\"window.dispatchEvent(new CustomEvent('xenica-html-command',{detail:{action:'edit',id:'one'}}))\">编辑 HTML</button><div data-testid=\"viewport\" style=\"position:relative;margin-left:250px;height:900px;overflow:hidden;pointer-events:none\"><div style=\"position:absolute;inset:0;pointer-events:auto\"></div><xenica-html-embed-layer></xenica-html-embed-layer></div></body></html>",
     }),
   );
   await page.goto("http://embed.test/");
@@ -72,6 +72,19 @@ try {
   await page.mouse.dblclick(initialBox.x + 40, initialBox.y + 40);
   await page.getByRole("button", { name: "返回画布", exact: true }).waitFor();
   const frame = page.frameLocator('iframe[title="HTML 交互块"]');
+  const clickInFrame = async (label) => {
+    const outer = await page.locator("iframe").boundingBox();
+    const inner = await frame
+      .getByRole("button", { name: label, exact: true })
+      .evaluate((el) => el.getBoundingClientRect().toJSON());
+    const width = await frame.locator("html").evaluate(() => window.innerWidth);
+    const scale = outer.width / width;
+    await page.mouse.click(
+      outer.x + (inner.x + inner.width / 2) * scale,
+      outer.y + (inner.y + inner.height / 2) * scale,
+    );
+  };
+
   await frame.getByLabel("我的想法").fill("刷新后仍在");
   await frame.getByRole("button", { name: "点击 +1", exact: true }).click();
   await frame.getByRole("button", { name: "点击 +1", exact: true }).click();
@@ -117,24 +130,32 @@ try {
         .evaluate((el) => el.getBoundingClientRect().width)) - 320,
     ) <= 2,
   );
-  await page
-    .frameLocator("iframe")
-    .getByRole("button", { name: "点击 +1", exact: true })
-    .click();
+  await clickInFrame("点击 +1");
   assert.equal(
     await page.frameLocator("iframe").locator("#count").innerText(),
     "3",
   );
   let expected = 3;
-  for (const zoom of [1.1, 1.0954545454545455, 1.3, 2]) {
+  for (const zoom of [0.08, 0.25, 0.5, 1.1, 1.0954545454545455, 1.3, 2]) {
     await page.evaluate((z) => {
       window.ctx.zoom = z;
       document.querySelector("xenica-html-embed-layer").setContext(window.ctx);
     }, zoom);
-    await page
-      .frameLocator("iframe")
-      .getByRole("button", { name: "点击 +1", exact: true })
-      .click();
+    assert.equal(
+      await page
+        .frameLocator("iframe")
+        .locator("html")
+        .evaluate(() => window.innerWidth),
+      640,
+    );
+    assert.equal(
+      await page
+        .frameLocator("iframe")
+        .locator("html")
+        .evaluate(() => matchMedia("(min-width:600px)").matches),
+      true,
+    );
+    await clickInFrame("点击 +1");
     assert.equal(
       await page.frameLocator("iframe").locator("#count").innerText(),
       String(++expected),
@@ -154,14 +175,14 @@ try {
     window.ctx.paletteSize = 80;
     document.querySelector("xenica-html-embed-layer").setContext(window.ctx);
   });
-  const bottomGap = await page
-    .locator("xenica-html-embed-layer")
-    .evaluate(
-      (el) =>
-        el.getBoundingClientRect().bottom -
-        el.shadowRoot.querySelector(".bar").getBoundingClientRect().bottom,
-    );
-  assert.ok(bottomGap >= 96, "toolbar must clear native palette");
+  assert.equal(
+    await page
+      .locator("xenica-html-embed-layer")
+      .evaluate(
+        (el) => getComputedStyle(el.shadowRoot.querySelector(".bar")).display,
+      ),
+    "none",
+  );
   assert.deepEqual(errors, []);
   console.log(
     JSON.stringify({

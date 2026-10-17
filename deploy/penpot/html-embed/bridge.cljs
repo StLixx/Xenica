@@ -6,6 +6,7 @@
    [app.common.geom.matrix :as gmt]
    [app.common.geom.point :as gpt]
    [app.common.geom.shapes :as gsh]
+   [app.common.types.shape :as cts]
    [app.common.uuid :as uuid]
    [app.main.data.helpers :as dsh]
    [app.main.data.plugins :as dp]
@@ -63,10 +64,12 @@
                                 :x (:x shape) :y (:y shape) :points (:points shape)
                                 :html (get (embed-data shape) "html")
                                 :state (get (embed-data shape) "state" "{}")}))))
-        create (fn [source]
+        create (fn [source target-id]
                  (when-not read-only
                    (let [frames (filter #(and (= :frame (:type %)) (not= (:id %) uuid/zero)) (vals objects))
-                         chosen (get objects (first selected))
+                         current (dsh/lookup-page-objects @st/state page-id)
+                         current-selected (dsh/lookup-selected @st/state)
+                         chosen (get current (if target-id (uuid/uuid target-id) (first current-selected)))
                          frame (or (when (= :frame (:type chosen)) chosen)
                                    (when (= 1 (count frames)) (first frames)))
                          center (if frame (gpt/point (+ (:x frame) (/ (:width frame) 2))
@@ -78,7 +81,14 @@
                                  frame (assoc :x (:x frame) :y (:y frame)
                                               :width (:width frame) :height (:height frame)
                                               :constraints-h :leftright :constraints-v :topbottom))]
-                     (st/emit! (shapes/create-and-add-shape :rect (:x center) (:y center) attrs)))))
+                     (st/emit! (shapes/add-shape
+                                (cts/setup-shape
+                                 (assoc attrs :type :rect
+                                        :x (if frame (:x frame) (- (:x center) 320))
+                                        :y (if frame (:y frame) (- (:y center) 210))
+                                        :frame-id (if frame (:id frame) uuid/zero)
+                                        :parent-id (if frame (:id frame) uuid/zero)))
+                                {:skip-edition? true})))))
         fit (fn [raw-id]
               (when (and (not read-only) (= file-id (:current-file-id @st/state))
                          (= page-id (:current-page-id @st/state)))

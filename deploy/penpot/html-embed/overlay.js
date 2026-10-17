@@ -4,7 +4,7 @@ const MAX_STATE = 16384;
 const sample = `<style>
 *{box-sizing:border-box}body{margin:0;padding:28px;background:#16181d;color:#eceef4;font:15px system-ui}h1{font-size:25px;margin:12px 0}p{color:#a7afbf;line-height:1.6}.tag{color:#8fe1c0;font-size:12px;letter-spacing:2px}label{display:block;margin:22px 0 8px}input,button{font:inherit;border-radius:9px;border:1px solid #424958;padding:12px;background:#222630;color:inherit}input{width:100%}button{cursor:pointer;background:#a9efd1;color:#12271e;border:0;margin:20px 8px 8px 0}.count{font-size:32px;font-weight:700}.tip{font-size:12px}</style>
 <div class="tag">HTML · 画板内交互</div><h1>在设计里，直接试一试</h1><p>输入一条想法，再点几次按钮。返回画布后移动或调整大小；保存完成后刷新，继续刚才的状态。</p>
-<label for="idea">我的想法</label><input id="idea" placeholder="例如：让节点拖动更顺手"><button id="add">点击 +1</button><button id="reset">重置</button><span class="count" id="count">0</span><p class="tip">使用底部「返回画布」退出交互。块的位置、HTML 和示例状态随文件保存。</p>
+<label for="idea">我的想法</label><input id="idea" placeholder="例如：让节点拖动更顺手"><button id="add">点击 +1</button><button id="reset">重置</button><span class="count" id="count">0</span><p class="tip">双击内容进入交互，按 Esc 返回画布。块的位置、HTML 和示例状态随文件保存。</p>
 <script>
 const state = Object.assign({count:0,idea:''}, window.penpotEmbed.state);
 const idea=document.getElementById('idea'), count=document.getElementById('count');
@@ -23,8 +23,6 @@ function documentFor(html, rawState, zoom = 1) {
   }
   const encoded = JSON.stringify(state).replaceAll("<", "\\u003c");
   const bootstrap = `window.penpotEmbed={state:${encoded},save(state){parent.postMessage({type:'xenica-html-state',state},'*')}};
-document.documentElement.style.zoom=${JSON.stringify(zoom)};
-window.addEventListener('message',e=>{if(e.source===parent&&e.data?.type==='xenica-html-zoom'&&Number.isFinite(e.data.zoom)&&e.data.zoom>0&&e.data.zoom<=256)document.documentElement.style.zoom=e.data.zoom});
 window.addEventListener('keydown',e=>{if(e.key==='Escape')parent.postMessage({type:'xenica-html-exit'},'*')});`;
   return `<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: https:; font-src data:; connect-src 'none'; form-action 'none'; base-uri 'none'"><style>html,body{margin:0;min-height:100%;box-sizing:border-box}body{font-family:system-ui}</style><script>${bootstrap}<\/script></head><body>${html}</body></html>`.replace(
     "<\\/script>",
@@ -152,9 +150,10 @@ class HtmlEmbedLayer extends HTMLElement {
     this.active = null;
     this.shadowRoot.innerHTML = `<style>
 :host{position:absolute;inset:0;overflow:clip;pointer-events:none;z-index:2;font:13px system-ui;color:#eceef4}
-*{box-sizing:border-box}.bar{position:absolute;bottom:var(--embed-bottom,16px);left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:8px;padding:8px;background:#222630;border:1px solid #454b59;border-radius:12px;box-shadow:0 4px 24px #0005;pointer-events:auto;white-space:nowrap;max-width:calc(100% - 24px)}button{font:inherit;color:inherit;background:#343a47;border:1px solid #50596a;border-radius:7px;padding:8px 12px;cursor:pointer}button:hover{background:#464e60}button:focus-visible,textarea:focus-visible{outline:2px solid #a9efd1;outline-offset:2px}.primary{background:#a9efd1;color:#14271e;border-color:#a9efd1}.primary:hover{background:#c3f5e0}.hint{color:#bcc4d3}.clip{position:absolute;inset:0;pointer-events:none}.card{position:absolute;left:0;top:0;transform-origin:0 0;overflow:hidden;border:1px solid #667180;background:#16181d;pointer-events:none}.card[data-active=true]{outline:2px solid #a9efd1}.select-embed{position:absolute;right:8px;top:8px;pointer-events:auto;font-size:11px;padding:5px 8px;background:#293b36;color:#b8f4d8;border-color:#698d7c}.card[data-active=true] .select-embed{display:none}.card iframe{width:100%;height:100%;border:0;display:block;pointer-events:none}.card[data-active=true] iframe{pointer-events:auto}.dialog{position:absolute;inset:16px;margin:auto;max-width:780px;max-height:650px;background:#20232c;border:1px solid #596273;border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:12px;pointer-events:auto;box-shadow:0 12px 60px #0009}.dialog h2{margin:0;font-size:20px}.dialog p{color:#bdc5d4;margin:0;line-height:1.6}.dialog textarea{width:100%;flex:1;min-height:150px;resize:none;background:#11141a;color:#e9edf5;border:1px solid #50596a;border-radius:8px;padding:14px;font:13px/1.6 monospace}.actions{display:flex;gap:8px;justify-content:flex-end}.error{color:#ffb0b0;min-height:18px}.shade{position:absolute;inset:0;background:#0006;pointer-events:auto}.badge{font-size:11px;color:#a9efd1}@media(max-width:600px){.hint{display:none}.bar{gap:4px;padding:6px}button{padding:8px}.dialog{inset:8px;padding:14px}}
+*{box-sizing:border-box}.bar{display:none!important;position:absolute;bottom:var(--embed-bottom,16px);left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:8px;padding:8px;background:#222630;border:1px solid #454b59;border-radius:12px;box-shadow:0 4px 24px #0005;pointer-events:auto;white-space:nowrap;max-width:calc(100% - 24px)}button{font:inherit;color:inherit;background:#343a47;border:1px solid #50596a;border-radius:7px;padding:8px 12px;cursor:pointer}button:hover{background:#464e60}button:focus-visible,textarea:focus-visible{outline:2px solid #a9efd1;outline-offset:2px}.primary{background:#a9efd1;color:#14271e;border-color:#a9efd1}.primary:hover{background:#c3f5e0}.hint{color:#bcc4d3}.clip{position:absolute;inset:0;pointer-events:none}.card{position:absolute;left:0;top:0;transform-origin:0 0;overflow:hidden;border:0;background:#16181d;pointer-events:none}.card[data-active=true]{outline:2px solid #a9efd1}.select-embed{position:absolute;right:8px;top:8px;pointer-events:auto;font-size:11px;padding:5px 8px;background:#293b36;color:#b8f4d8;border-color:#698d7c}.card[data-active=true] .select-embed{display:none}.card iframe{width:100%;height:100%;border:0;display:block;pointer-events:none}.card[data-active=true] iframe{pointer-events:auto}.dialog{position:absolute;inset:16px;margin:auto;max-width:780px;max-height:650px;background:#20232c;border:1px solid #596273;border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:12px;pointer-events:auto;box-shadow:0 12px 60px #0009}.dialog h2{margin:0;font-size:20px}.dialog p{color:#bdc5d4;margin:0;line-height:1.6}.dialog textarea{width:100%;flex:1;min-height:150px;resize:none;background:#11141a;color:#e9edf5;border:1px solid #50596a;border-radius:8px;padding:14px;font:13px/1.6 monospace}.actions{display:flex;gap:8px;justify-content:flex-end}.error{color:#ffb0b0;min-height:18px}.shade{position:absolute;inset:0;background:#0006;pointer-events:auto}.badge{font-size:11px;color:#a9efd1}@media(max-width:600px){.hint{display:none}.bar{gap:4px;padding:6px}button{padding:8px}.dialog{inset:8px;padding:14px}}
 :host([data-compact]) .bar{bottom:max(104px,var(--embed-bottom,16px))}:host([data-compact]) .hint{display:none}
 </style><div class="cards"></div><div class="bar" role="toolbar" aria-label="HTML 嵌入工具"><span class="badge">HTML EMBED</span></div>`;
+    this.onCommand = this.onCommand.bind(this);
     this.onMessage = this.onMessage.bind(this);
     this.onDoubleClick = this.onDoubleClick.bind(this);
     this.onNativePointerDown = this.onNativePointerDown.bind(this);
@@ -172,6 +171,7 @@ class HtmlEmbedLayer extends HTMLElement {
       true,
     );
     window.addEventListener("message", this.onMessage);
+    window.addEventListener("xenica-html-command", this.onCommand);
     this.sizeObserver = new ResizeObserver(() => {
       this.toggleAttribute("data-compact", this.clientWidth < 620);
     });
@@ -186,6 +186,7 @@ class HtmlEmbedLayer extends HTMLElement {
       true,
     );
     window.removeEventListener("message", this.onMessage);
+    window.removeEventListener("xenica-html-command", this.onCommand);
   }
   button(label, action, primary = false) {
     const b = document.createElement("button");
@@ -322,25 +323,12 @@ class HtmlEmbedLayer extends HTMLElement {
         iframe.title = "HTML 交互块";
         iframe.setAttribute("sandbox", "allow-scripts");
         iframe.referrerPolicy = "no-referrer";
-        const choose = this.button("HTML", () =>
-          this.context.select?.(shape.id),
-        );
-        choose.className = "select-embed";
-        choose.setAttribute("aria-label", "选择 HTML 嵌入块");
-        for (const type of ["pointerdown", "pointerup"])
-          choose.addEventListener(type, (e) => e.stopPropagation());
-        element.append(iframe, choose);
+        element.append(iframe);
         const root = document.createElement("div");
         root.className = "clip";
         root.append(element);
         this.shadowRoot.querySelector(".cards").append(root);
         c = { root, element, iframe, html: null };
-        iframe.addEventListener("load", () => {
-          iframe.contentWindow?.postMessage(
-            { type: "xenica-html-zoom", zoom: c.zoom || 1 },
-            "*",
-          );
-        });
         this.cards.set(shape.id, c);
       }
       if (c.html !== shape.html) {
@@ -366,17 +354,9 @@ class HtmlEmbedLayer extends HTMLElement {
         context.vbox || { x: 0, y: 0 },
         context.zoom || 1,
       );
-      const zoom = context.zoom || 1;
-      c.element.style.transform = `matrix(${[m[0] / zoom, m[1] / zoom, m[2] / zoom, m[3] / zoom, m[4], m[5]].join(",")})`;
-      c.element.style.width = `${Math.max(1, shape.width * zoom)}px`;
-      c.element.style.height = `${Math.max(1, shape.height * zoom)}px`;
-      if (c.zoom !== zoom) {
-        c.zoom = zoom;
-        c.iframe.contentWindow?.postMessage(
-          { type: "xenica-html-zoom", zoom },
-          "*",
-        );
-      }
+      c.element.style.transform = `matrix(${m.join(",")})`;
+      c.element.style.width = `${Math.max(1, shape.width)}px`;
+      c.element.style.height = `${Math.max(1, shape.height)}px`;
     }
     if (this.active && !ids.has(this.active)) this.active = null;
     this.updateActive();
@@ -389,75 +369,39 @@ class HtmlEmbedLayer extends HTMLElement {
       );
   }
   updateBar() {
-    const bar = this.shadowRoot.querySelector(".bar");
-    const chosen = this.context.shapes.find((s) =>
-      this.context.selected?.includes(s.id),
-    );
-    const signature = JSON.stringify([
-      this.context.fileId,
-      this.context.pageId,
-      this.context.readOnly,
-      this.context.viewer,
-      this.active,
-      chosen?.id,
-      chosen?.frameId,
-    ]);
-    if (this.barSignature === signature) return;
-    this.barSignature = signature;
-    bar.replaceChildren();
-    if (this.context.viewer) {
-      bar.style.display = "none";
-      return;
+    this.shadowRoot.querySelector(".bar").style.display = "none";
+    const active = this.active;
+    if (this.lastStatus !== active) {
+      this.lastStatus = active;
+      window.dispatchEvent(
+        new CustomEvent("xenica-html-status", { detail: { active } }),
+      );
     }
-    bar.style.display = "flex";
-    if (!this.context.readOnly)
-      bar.append(this.button("＋ HTML", () => this.edit(null)));
-
-    if (this.active) {
-      bar.append(
-        this.button(
-          "返回画布",
-          () => {
-            this.active = null;
-            this.updateActive();
-            this.updateBar();
-          },
-          true,
-        ),
-      );
-    } else if (chosen) {
-      bar.append(
-        this.button(
-          "进入交互",
-          () => {
-            this.active = chosen.id;
-            this.updateActive();
-            this.updateBar();
-          },
-          true,
-        ),
-      );
-      if (!this.context.readOnly)
-        bar.append(
-          this.button("编辑 HTML", () =>
-            this.edit(this.context.shapes.find((s) => s.id === chosen.id)),
-          ),
-        );
-    }
-    if (chosen?.frameId && !this.context.readOnly && !this.active)
-      bar.append(
-        this.button("适配 Board", () => this.context.fit?.(chosen.id)),
-      );
-    const hint = document.createElement("span");
-    hint.className = "hint";
-    hint.textContent = this.active
-      ? "操作内容 · Esc 返回画布"
-      : chosen
-        ? "拖动图形或调整边框大小"
-        : "插入后选中块，进入交互";
-    bar.append(hint);
   }
-  edit(shape) {
+  onCommand(event) {
+    if (!this.context || this.context.viewer) return;
+    const { action, id } = event.detail || {};
+    const chosen = this.context.shapes.find((s) => s.id === id);
+    if (action === "exit") {
+      this.active = null;
+    } else if (action === "insert" && !this.context.readOnly) {
+      this.edit(null, id || this.context.selected?.[0]);
+    } else if (chosen) {
+      if (action === "enter") {
+        this.context.select?.(id);
+        this.active = id;
+      } else if (action === "edit" && !this.context.readOnly) this.edit(chosen);
+      else if (action === "fit" && !this.context.readOnly)
+        this.context.fit?.(id);
+      else if (action === "select-board" && chosen.frameId) {
+        this.active = null;
+        this.context.select?.(chosen.frameId);
+      }
+    }
+    this.updateActive();
+    this.updateBar();
+  }
+  edit(shape, targetId) {
     this.active = null;
     this.updateActive();
     this.shadowRoot.querySelector(".shade")?.remove();
@@ -506,7 +450,7 @@ class HtmlEmbedLayer extends HTMLElement {
           if (shape) {
             this.context.save(shape.id, "state", "{}");
             this.context.save(shape.id, "html", html);
-          } else this.context.create(html);
+          } else this.context.create(html, targetId);
           close();
         },
         true,
