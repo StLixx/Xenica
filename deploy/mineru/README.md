@@ -40,6 +40,8 @@ backup.py 默认执行备份，先核对配置及实时 PostgreSQL 系统 ID、�
 
 timer 设为每天 Asia/Shanghai 03:45，允许 120 秒随机错峰和 Persistent 补跑。第一次备份、云端回取、隔离恢复、重启和权限拒绝都需记录实测结果后才声称通过。
 
+2026-10-17 已从实际云端重新下载最终集合 20261017T115359Z 的 6 份密文、解密并核对组件摘要，在随机隔离库恢复 4 张表并比较行数/行哈希，核对 24 份附件；归档 66 个应用文件与当前部署一致。证据见 [application-recovery.json](../../specs/87-mineru/evidence/application-recovery.json)，未覆盖正式库或附件。备份 timer 已启用；本次仍未演练整机丢失、角色重建或跨版本恢复。研究原件另存独立加密 namespace，其完整云回取因低速尚未完成，边界见 [research-freeze.json](../../specs/87-mineru/evidence/research-freeze.json)。
+
 ## Provider 凭据和运行边界
 
 优先使用已验证 Desktop 应用 Bearer + 既有设备 token。两者均只在服务端环境；不是用户个人管理页 Token 的同义值。本轮不部署识别模型。参数与额度边界及其证据见 ../../specs/87-mineru/protocol.md。

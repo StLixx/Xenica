@@ -194,7 +194,8 @@
         "specs/87-mineru/reverse-engineering.md",
         "specs/87-mineru/protocol.md",
         "docs/adr/0022-mineru-reader.md",
-        "deploy/mineru/README.md"
+        "deploy/mineru/README.md",
+        "specs/87-mineru/continuation.md"
       ]
     }
   ],

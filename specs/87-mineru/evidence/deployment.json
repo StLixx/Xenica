@@ -5,6 +5,29 @@
   "web_manifest_sha256": "450a5094e5eb6dda7b06500ea76d760eaf9f482af5e45b1eb9ca447b8d12f7ed",
   "product_id": "25073179478d5a892fb76f0018822452ab7063bde6021bb500bbe6308e5fbc79",
   "assets_verified": 64,
+  "source": {
+    "commit": "49ad09b1910d25375f3d4488fd8f66eb334f88b5",
+    "files": {
+      "deploy/mineru/migrations/202610170001_mineru.sql": "f039ad5a1b022e623337e2b1007d8f296a1cbf3d84da4fb77bc90f66b5cfa91a",
+      "deploy/mineru/server/Cargo.lock": "3d88f2713a84c9d664ba76528eef8f9e5ae5cdb478da0761e90277bd4d92232a",
+      "deploy/mineru/server/Cargo.toml": "95ab34a4bf17a2bcc12f301b53130526b13b92c393f3f7f5e689d89d81242f0f",
+      "deploy/mineru/server/src/main.rs": "450019be5dc7f1735a3db85720ea3b0e61364c3d568e03bc7fbd7207f37d4eab",
+      "deploy/mineru/server/src/normalize.rs": "399e083cc3c46d363a048a1e53478d1a37e8f9ffcbfb35904497731dab5c7b09",
+      "deploy/mineru/server/src/provider.rs": "15fd913cef7dc3be5a62ec90c67f15530a11e78deb0c5796b6124152cb1bf1b5",
+      "deploy/mineru/web/.gitignore": "7b49e621e5080bcf137d1ccdc23d5000cbc26a03d475a1a308370e64b3df3791",
+      "deploy/mineru/web/design-qa.md": "72a42c9f456414011233f3fc08d38cee19868094d8b62ebb047c93f08adb654b",
+      "deploy/mineru/web/index.html": "6914b953be218629890a0142f609aeadd729f939766c179adf2d790875870a4c",
+      "deploy/mineru/web/package.json": "80da4c69b365272643f1de1a4bf919568dda694fcce545249eea3da7e48a6796",
+      "deploy/mineru/web/pnpm-lock.yaml": "2a6df0e2158e8f049f93c73a1ac4f9ad28ab61d9ce19e75b8c6a645557c85bda",
+      "deploy/mineru/web/src/PdfPane.jsx": "a6919cf0a406d728e2c2c901139d7414f729eecf9b9e3a206fdc2fa51167b5fd",
+      "deploy/mineru/web/src/api.js": "cc995ba8d4a5d98a13d5b8ac12141af6ba3aee21afe536a315e8aa59065351b3",
+      "deploy/mineru/web/src/main.jsx": "85b4cf7bb109d7109417fa2ad41c0055f38592fff83e1b24d31af51169034454",
+      "deploy/mineru/web/src/render.jsx": "1da3819918fcb10c133c038a11565eeaf47310665568d92ebff1c4720a99193b",
+      "deploy/mineru/web/src/style.css": "56cdc25f29cf03561d38eeac0b30ed61a17155004b093752321a9c45e79400f6",
+      "deploy/mineru/web/vite.config.js": "9f89e76697a8612e62d3b24cb118cf137e59ee809c17cf2dae86c6143768fb02"
+    },
+    "sha256": "f94528460890eb2b91c885690b19abc40576df4f818fefbd06d74314d42ad34a"
+  },
   "checks": {
     "source_build_equals_runtime": true,
     "public_assets_equal": true,

@@ -1,0 +1,82 @@
+{
+  "schema": 1,
+  "stamp": "20261017T115359Z",
+  "checked_at": 1792238694.533944,
+  "verified": true,
+  "downloaded_from_cloud": true,
+  "ciphertext_files": 6,
+  "ciphertext_sha256": {
+    "application.tar.gz.gpg": "a401d8e58a20885812928511407ac3edb0a7f1c5aa67cad44f7c28c97d2987b5",
+    "configuration.tar.gz.gpg": "509e1464c2bbce8843b285b705cb2b79941d2e24873d566c92be9fccefc19d97",
+    "data.tar.gz.gpg": "3b89d04bb06d6bc5650f60e086e5d4cd6b1b5342b86e890f2d2e2f468f5b3c75",
+    "database.dump.gpg": "5496bf02323d797b54ecd284bc83441c7adacf76c4b11b2c8c148fbe63883104",
+    "roles.sql.gpg": "9424cf7c2acbf97d9372654467cd0fbcca756788d3cbb8ad24d1884ad47ce8a5",
+    "complete.json.gpg": "9bec69a841d1f5b463e274aea8151b7f937d333266eceba288b42a140df7e64f"
+  },
+  "plaintext_component_sha256": {
+    "configuration.tar.gz": "06c86625a94ec0736b513022cd7b3e96cc733037d6b5427717372ee446ade0ca",
+    "application.tar.gz": "f46235989c250786256716e44dd35e049273596b1708e3da34eb084997f7b411",
+    "data.tar.gz": "aa83a0f478177e303549bc86dd5d0e9e8b082b446064f3d691cf9e7e9adca163",
+    "roles.sql": "35a447e360296c1cdf7fdf6d2f1786a58f7717363556dc2821f2d998c2ff764a",
+    "database.dump": "8db6028e13108d63428739b8bb4f03abc5f3b80b8dc033b2a024bbb987f7f38e"
+  },
+  "manifest_sha256": "9660cb148b92b189b64adcacbe0fe1f71a8f7d905a58bbc9b4538fb3725df214",
+  "isolated_database_restore": {
+    "ok": true,
+    "stamp": "20261017T115359Z",
+    "completed": 1792238694.4267309,
+    "isolated_database": "mineru_restore_20a95c2a73df",
+    "inventory_and_row_hashes_verified": true,
+    "file_hashes_verified": true,
+    "files": 24,
+    "same_cluster_drill": true,
+    "production_overwritten": false
+  },
+  "runtime_artifact_match": {
+    "binary_sha256": "826b1f814e6d18426f2e000b6c9e1e90291fcf93f73ceed7926eca74206b3147",
+    "application_files_verified": 66,
+    "all_archived_files_equal_current_runtime": true,
+    "web_manifest_sha256": "450a5094e5eb6dda7b06500ea76d760eaf9f482af5e45b1eb9ca447b8d12f7ed",
+    "web_manifest_files_verified": 64,
+    "entry_js_path": "assets/index-BpkVP09M.js",
+    "entry_js_sha256": "ec5d76c9bbc00bef2265b697584afec83e75c381c8be9143307b3513a518038a"
+  },
+  "service_before": "active",
+  "service_after": "active",
+  "production_overwritten": false,
+  "boundaries": {
+    "same_cluster_drill": true,
+    "whole_machine_loss_tested": false,
+    "cross_version_tested": false,
+    "role_recreation_tested": false,
+    "configuration_redeployment_tested": false
+  },
+  "backup_timer": {
+    "enabled": "enabled",
+    "active": "active",
+    "next_at_asia_shanghai": "2026-10-18T03:45:42+08:00",
+    "schedule": "daily 03:45 Asia/Shanghai + randomized delay up to 120 seconds",
+    "last_trigger": "",
+    "backup_service_state": "inactive",
+    "application_service_state": "active",
+    "manual_new_backup_run": false
+  },
+  "post_backup_authenticated_access": {
+    "identity": {
+      "status": 200,
+      "bytes": 126
+    },
+    "document": {
+      "status": 200,
+      "bytes": 9830
+    },
+    "original": {
+      "status": 200,
+      "bytes": 1374
+    },
+    "export": {
+      "status": 200,
+      "bytes": 24111
+    }
+  }
+}

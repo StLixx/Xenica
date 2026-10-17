@@ -2,6 +2,7 @@
 import argparse
 import hashlib
 import json
+import subprocess
 from pathlib import Path
 import urllib.error
 import urllib.request
@@ -12,12 +13,18 @@ def sha(path):
         return hashlib.file_digest(source, "sha256").hexdigest()
 
 
-def verify(public):
+def verify(public, binary_build):
     root = Path(__file__).resolve().parent
     app = Path("/var/lib/mineru/app")
     manifest = json.loads((app / "deployment.json").read_text())
     if sha(app / "mineru-server") != manifest["binary_sha256"]:
         raise ValueError("Runtime binary differs from candidate")
+    if sha(binary_build) != manifest["binary_sha256"]:
+        raise ValueError("Current compiled binary differs from candidate")
+    checkout = root.parents[1]
+    names = subprocess.check_output(["git", "ls-files", "-z", "--", "deploy/mineru/server", "deploy/mineru/migrations", "deploy/mineru/web"], cwd=checkout).decode().split("\0")
+    source_files = {name: sha(checkout / name) for name in names if name}
+    source_identity = {"commit": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=checkout).decode().strip(), "files": source_files, "sha256": hashlib.sha256(json.dumps(source_files, sort_keys=True).encode()).hexdigest()}
     for name, digest in manifest["files"].items():
         relative = Path(name)
         if relative.is_absolute() or ".." in relative.parts:
@@ -48,15 +55,16 @@ def verify(public):
                 continue
         raise ValueError("Anonymous request was not rejected")
     identity = {"binary_sha256": manifest["binary_sha256"], "web_manifest_sha256": manifest["web_manifest_sha256"]}
-    return {"schema": 1, "public": public, **identity, "product_id": hashlib.sha256(json.dumps(identity, sort_keys=True).encode()).hexdigest(), "assets_verified": len(manifest["files"]), "checks": {"source_build_equals_runtime": True, "public_assets_equal": True, "certificate_verified": True, "health": True, "service_units_equal": True, "anonymous_rejections": rejected}, "status": "deployed-awaiting-user-acceptance"}
+    return {"schema": 1, "public": public, **identity, "product_id": hashlib.sha256(json.dumps(identity, sort_keys=True).encode()).hexdigest(), "assets_verified": len(manifest["files"]), "source": source_identity, "checks": {"source_build_equals_runtime": True, "public_assets_equal": True, "certificate_verified": True, "health": True, "service_units_equal": True, "anonymous_rejections": rejected}, "status": "deployed-awaiting-user-acceptance"}
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--public", default="https://mineru.truebigsand.top")
+    parser.add_argument("--binary-build", type=Path, default=Path("/mnt/HDD/xenica-private/build/mineru-target/release/mineru-server"))
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
-    result = verify(args.public.rstrip("/"))
+    result = verify(args.public.rstrip("/"), args.binary_build)
     text = json.dumps(result, ensure_ascii=False, indent=2) + "\n"
     if args.output:
         args.output.write_text(text)
