@@ -162,7 +162,11 @@
       "r4 previous frontend"
     ],
     "independentPath": "drive02:PG-operations-v1/penpot-artifacts/2.18.3-html81-r6",
-    "independentStatus": "transfer-in-progress"
+    "independentStatus": "verified",
+    "independentCheck": {
+      "matchingFiles": 2,
+      "differences": 0
+    }
   },
   "screenshots": [
     "evidence/desktop.png",
