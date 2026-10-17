@@ -1,0 +1,46 @@
+name: mineru
+
+on:
+  pull_request:
+    paths:
+      - "deploy/mineru/**"
+      - ".github/workflows/mineru.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  mineru-rust:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: deploy/mineru/server
+    steps:
+      - uses: actions/checkout@v5
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: deploy/mineru/server -> target
+      - run: cargo fmt --check
+      - run: cargo clippy --all-targets --locked -- -D warnings
+      - run: cargo test --locked
+      - name: 运维隔离与冲突保护
+        working-directory: .
+        run: python3 -S -m unittest discover -s deploy/mineru -p 'test_*.py'
+  mineru-web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: deploy/mineru/web
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: deploy/mineru/web/package.json
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: deploy/mineru/web/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
