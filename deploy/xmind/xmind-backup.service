@@ -1,0 +1,15 @@
+[Unit]
+Description=Private XMind snapshot with verified manifest
+
+[Service]
+Type=oneshot
+User=root
+UMask=0077
+ExecStart=/usr/bin/python3 /var/lib/xmind/app/backup_job.py
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/mnt/HDD/xenica-private/xmind /mnt/HDD/xenica-private/xmind-backups
+MemoryMax=384M
+TasksMax=8

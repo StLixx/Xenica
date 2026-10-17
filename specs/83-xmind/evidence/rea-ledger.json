@@ -1,0 +1,132 @@
+{
+  "evidence_id": "ev_28e1f41968229e2c8c3b857ee9dc5d4bbab4d620138a17b9c7643336828e5c8f",
+  "status": "static-only",
+  "facts": [
+    {
+      "path": "mjs.chunk.XnVMm1_0.js",
+      "sha256": "4e7872b6ba2e8d931cf861f8738ac17a19f170d70d836764bfe3ce5dc2d2abe1",
+      "anchors": [
+        {
+          "literal": "function T2(",
+          "offset_utf16": 1391506,
+          "line": 123,
+          "status": "observed"
+        },
+        {
+          "literal": "function V2(",
+          "offset_utf16": 1403592,
+          "line": 123,
+          "status": "observed"
+        },
+        {
+          "literal": "function O2(",
+          "offset_utf16": 1394495,
+          "line": 123,
+          "status": "observed"
+        },
+        {
+          "literal": "function f4(",
+          "offset_utf16": 1425107,
+          "line": 127,
+          "status": "observed"
+        },
+        {
+          "literal": "function h4(",
+          "offset_utf16": 1426308,
+          "line": 127,
+          "status": "observed"
+        },
+        {
+          "literal": "var Nje=",
+          "offset_utf16": 1566363,
+          "line": 129,
+          "status": "observed"
+        },
+        {
+          "literal": "oMe=",
+          "offset_utf16": 1569651,
+          "line": 129,
+          "status": "observed"
+        },
+        {
+          "literal": "prepareXapUrlByArrayBuffer:async",
+          "offset_utf16": 1626157,
+          "line": 130,
+          "status": "observed"
+        }
+      ]
+    },
+    {
+      "path": "snowmonster-ext.chunk.Cm6xzzpD.js",
+      "sha256": "4c0cb01709d21b20f3556e5d20395e935ff7e883a854bd51cbbb4566d5458f06",
+      "anchors": [
+        {
+          "literal": "async function ce(",
+          "offset_utf16": 18493,
+          "line": 2,
+          "status": "observed"
+        },
+        {
+          "literal": "async function K(",
+          "offset_utf16": 15902,
+          "line": 2,
+          "status": "observed"
+        },
+        {
+          "literal": "async function ue(",
+          "offset_utf16": 19605,
+          "line": 2,
+          "status": "observed"
+        }
+      ]
+    },
+    {
+      "path": "xmind.chunk.CiVbhhD5.js",
+      "sha256": "4b1d86cc72bee3927b071fff63931108e29121b5c971750487fdcf9a613505e8",
+      "anchors": [
+        {
+          "literal": "function Fe(",
+          "offset_utf16": 43167,
+          "line": 2,
+          "status": "observed"
+        },
+        {
+          "literal": "function _e(",
+          "offset_utf16": 32517,
+          "line": 2,
+          "status": "observed"
+        }
+      ]
+    },
+    {
+      "path": "xap-image.chunk.DdKUvsnD.js",
+      "sha256": "b97c5d40a6f0c0f4d5c9c1a9393c176f25d245663525c97d6d41718abd2cea15",
+      "anchors": [
+        {
+          "literal": "l=async",
+          "offset_utf16": 1047,
+          "line": 1,
+          "status": "observed"
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "Caller-selected source analysis leaves 1111 inventoried files outside analysis scope. Inventory identity covers the complete artifact; relationships through unselected sources remain unknown.",
+    "CommonJS and ESM binding relationships were recovered from inert syntax and resolved only within the inventoried artifact container.",
+    "Graph coverage is incomplete; unavailable facts remain explicit and must not be read as absence.",
+    "JavaScript and HTML were parsed as inert text; bundle bootstrap code was never executed.",
+    "Static imports, entrypoints, workers, endpoints, and storage relationships do not prove runtime execution.",
+    "Static paths and relationships may remain unresolved when expressions are dynamic or obfuscated.",
+    "Webpack/Rspack factories were recovered from AST literals; REA did not invoke push handlers or bundle bootstrap code."
+  ],
+  "source_selection": {
+    "requested_paths": [
+      "mjs.chunk.XnVMm1_0.js",
+      "snowmonster-ext.chunk.Cm6xzzpD.js",
+      "xmind.chunk.CiVbhhD5.js",
+      "xap-image.chunk.DdKUvsnD.js"
+    ],
+    "unselected_files": 1111
+  }
+}

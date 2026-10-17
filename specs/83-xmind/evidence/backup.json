@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "archive_sha256": "c92c68071f5a2710f772ae949ba7422b90ff8457d2c18c9abd64bd83983f0591",
+  "files": 498,
+  "bytes": 21759651,
+  "isolated_restore_passed": true,
+  "sessions_revoked": true,
+  "daily_unit": {
+    "result": "success",
+    "exit_status": 0
+  },
+  "image_bytes_equal": true,
+  "semantic_native_equal": true,
+  "semantic_native_sha256": "30601cf8283b68b3988c8972e6f768f42053cce9ceacef30c196381fc1176b5a"
+}
