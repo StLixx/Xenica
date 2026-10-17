@@ -1,0 +1,267 @@
+{
+  "started_at": "2026-10-17T11:48:38.499Z",
+  "origin": "https://mineru.truebigsand.top",
+  "api_mocked": false,
+  "checks": [
+    {
+      "name": "authenticated document and PDF loaded",
+      "passed": true
+    },
+    {
+      "name": "initial real document types",
+      "passed": true,
+      "types": [
+        "title",
+        "text",
+        "interline_equation",
+        "table_caption",
+        "table_body",
+        "image_body",
+        "image_caption",
+        "image_footnote"
+      ],
+      "blocks": 8,
+      "pages": 1
+    },
+    {
+      "name": "reuse already uploaded real document; no repeated API upload",
+      "passed": true
+    },
+    {
+      "name": "real API task reaches done",
+      "passed": true,
+      "blocks": 8,
+      "pages": 1
+    },
+    {
+      "name": "actual image table and formula rendered",
+      "passed": true
+    },
+    {
+      "name": "zoom percent maps to stored multiplier and survives refresh",
+      "passed": true,
+      "ui_percent": 120,
+      "stored_multiplier": 1.2,
+      "page_width_ratio_at_100_percent": 0.8323353293413174
+    },
+    {
+      "name": "source frame visibility toggle",
+      "passed": true
+    },
+    {
+      "name": "draggable comparison divider",
+      "passed": true
+    },
+    {
+      "name": "bidirectional selection and highlight",
+      "passed": true
+    },
+    {
+      "name": "raw layout JSON tab",
+      "passed": true
+    },
+    {
+      "name": "document and block favorites plus reading survive reload",
+      "passed": true
+    },
+    {
+      "name": "favorite source navigation including same-document target",
+      "passed": true
+    },
+    {
+      "name": "download Markdown",
+      "passed": true,
+      "filename": "result.md",
+      "bytes": 477
+    },
+    {
+      "name": "download JSON 版面数据",
+      "passed": true,
+      "filename": "result.json",
+      "bytes": 24111
+    },
+    {
+      "name": "download 完整解析包",
+      "passed": true,
+      "filename": "mineru-result.zip",
+      "bytes": 18973
+    },
+    {
+      "name": "VLM pipeline settings and browser persistence",
+      "passed": true
+    },
+    {
+      "name": "mobile source result task navigation",
+      "passed": true,
+      "horizontal_overflow": false
+    },
+    {
+      "name": "anonymous login gate",
+      "passed": true
+    }
+  ],
+  "errors": [],
+  "requests_failed": [
+    {
+      "url": "https://mineru.truebigsand.top/api/documents/01a149ab-5718-72a3-88ca-84a201a2e29e/original",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "url": "https://mineru.truebigsand.top/api/documents/01a149ab-5718-72a3-88ca-84a201a2e29e/original",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "url": "https://mineru.truebigsand.top/api/documents/01a149ab-5718-72a3-88ca-84a201a2e29e/original",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "url": "https://mineru.truebigsand.top/api/documents/01a149ab-5718-72a3-88ca-84a201a2e29e/original",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "url": "https://mineru.truebigsand.top/api/documents/01a149ab-5718-72a3-88ca-84a201a2e29e/original",
+      "error": "net::ERR_ABORTED"
+    }
+  ],
+  "created_document_id": "01a149ab-5718-72a3-88ca-84a201a2e29e",
+  "previous_run": {
+    "failure": "locator.click: Timeout 20000ms exceeded.\nCall log:\n  - waiting for getByRole('button', { name: '恢复适合页宽', exact: true })\n",
+    "checks": [
+      {
+        "name": "authenticated document and PDF loaded",
+        "passed": true
+      },
+      {
+        "name": "initial real document types",
+        "passed": true,
+        "types": [
+          "title",
+          "text",
+          "interline_equation",
+          "table_caption",
+          "table_body",
+          "image_body",
+          "image_caption",
+          "image_footnote"
+        ],
+        "blocks": 8,
+        "pages": 1
+      },
+      {
+        "name": "reuse already uploaded real document; no repeated API upload",
+        "passed": true
+      },
+      {
+        "name": "real API task reaches done",
+        "passed": true,
+        "blocks": 8,
+        "pages": 1
+      },
+      {
+        "name": "actual image table and formula rendered",
+        "passed": true
+      }
+    ]
+  },
+  "ui_upload_evidence": [
+    {
+      "name": "UI uploads real synthetic PDF",
+      "passed": true,
+      "document_id": "01a149ab-5718-72a3-88ca-84a201a2e29e"
+    }
+  ],
+  "finished_at": "2026-10-17T11:48:47.576Z",
+  "known_resource_cancellations": [
+    {
+      "url": "https://mineru.truebigsand.top/api/documents/01a149ab-5718-72a3-88ca-84a201a2e29e/original",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "url": "https://mineru.truebigsand.top/api/documents/01a149ab-5718-72a3-88ca-84a201a2e29e/original",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "url": "https://mineru.truebigsand.top/api/documents/01a149ab-5718-72a3-88ca-84a201a2e29e/original",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "url": "https://mineru.truebigsand.top/api/documents/01a149ab-5718-72a3-88ca-84a201a2e29e/original",
+      "error": "net::ERR_ABORTED"
+    },
+    {
+      "url": "https://mineru.truebigsand.top/api/documents/01a149ab-5718-72a3-88ca-84a201a2e29e/original",
+      "error": "net::ERR_ABORTED"
+    }
+  ],
+  "pass": true,
+  "deployment": {
+    "entry": "index-BpkVP09M.js",
+    "web_manifest_sha256": "450a5094e5eb6dda7b06500ea76d760eaf9f482af5e45b1eb9ca447b8d12f7ed"
+  },
+  "visual_review": {
+    "performed": true,
+    "method": "headless production screenshots retrieved as lightweight images and visually inspected; no desktop UI control",
+    "result": "passed",
+    "observed": "Desktop PDF uses page-width at 100%, source boxes align; mobile source/result/tasks fit 390x844; task navigation closes drawer",
+    "screenshots": [
+      {
+        "path": "output/playwright/mineru-live-desktop.png",
+        "width": 1692,
+        "height": 1504,
+        "sha256": "b98368a883452940ee256a071a74734d22ca4f8e7a8334fccf448fd12fd53886"
+      },
+      {
+        "path": "output/playwright/mineru-live-mobile-result.png",
+        "width": 390,
+        "height": 844,
+        "sha256": "838712ff24b91850c9a3fc35c3ac928824a972f8800f9abd9a07f6e0aff17724"
+      },
+      {
+        "path": "output/playwright/mineru-live-mobile-source.png",
+        "width": 390,
+        "height": 844,
+        "sha256": "b6f1ee457b0189bd89b697e512b04b42002c2e4dc2a719048d9afbdc4e4e55f5"
+      },
+      {
+        "path": "output/playwright/mineru-live-mobile-tasks.png",
+        "width": 390,
+        "height": 844,
+        "sha256": "e5e04c3a65036e23c93bea1f55b737c49389ae297abe8968e05014e3543c9b8c"
+      },
+      {
+        "path": "output/playwright/mineru-live-login.png",
+        "width": 405,
+        "height": 844,
+        "sha256": "ea2f423208e6a2c1afeb8975ec24e7da448b544d6af2d4791d5c42a1737fd30a"
+      }
+    ]
+  },
+  "regressions_fixed": [
+    {
+      "problem": "selection followed by immediate refresh lost reading state before 600ms debounce",
+      "fix": "selection writes immediately with fetch keepalive; continuous scroll remains debounced",
+      "verified": "real immediate reload retains exact selected_id"
+    },
+    {
+      "problem": "mobile task navigation left drawer covering task list",
+      "fix": "navigation closes mobile drawer",
+      "verified": "live mobile tasks screenshot unobstructed"
+    },
+    {
+      "problem": "same-document bookmark navigation did not trigger reader anchor update",
+      "fix": "dedicated jump generation triggers source selection independently from persisted reading updates",
+      "verified": "select different block then navigate saved block in same document and compare exact id"
+    },
+    {
+      "problem": "initial 15 functional checks omitted zoom contract and screenshot visual inspection then exposed source at 1%; backend zoom is multiplier but UI used percent",
+      "fix": "UI display multiplies backend zoom by 100; reading writes divide by 100",
+      "verified": "UI 120% persists as backend 1.2 across reload; reset100% yields source-page width >70% of pane, then desktop and mobile screenshots visually inspected",
+      "lesson": "functional count alone is insufficient; do not claim final visual pass before inspecting loaded final screenshots"
+    }
+  ],
+  "coverage_limits": [
+    "Only investigator-authored synthetic PDF was uploaded, not private original textbook",
+    "API merge_prev=true has not been observed; cross-page merge source relationships tested separately with synthetic relationships",
+    "Latest production live checks use real Rust/PG and API with no route mocking; earlier mock-only UI checks are separate"
+  ]
+}

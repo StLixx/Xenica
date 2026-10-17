@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "evidence_type": "real remote API response to investigator-authored synthetic PDF",
+  "file_sha256": "e6e9f1685411e1d37a6cddb352329f38c0a2f6804dcad2550096de276bb518d8",
+  "root_keys": [
+    "pdf_info",
+    "_backend",
+    "_effort",
+    "_ocr_enable",
+    "_version_name"
+  ],
+  "version_name": "3.4.4",
+  "page_count": 1,
+  "pages": [
+    {
+      "page_idx": 0,
+      "page_size": [595, 842],
+      "blocks": [
+        {
+          "type": "title",
+          "index": 0,
+          "bbox": [52, 52, 271, 76],
+          "keys": ["bbox", "type", "angle", "index", "lines", "level"],
+          "children": []
+        },
+        {
+          "type": "text",
+          "index": 1,
+          "bbox": [51, 100, 355, 138],
+          "keys": ["bbox", "type", "angle", "index", "lines", "merge_prev"],
+          "children": []
+        },
+        {
+          "type": "interline_equation",
+          "index": 2,
+          "bbox": [167, 185, 240, 205],
+          "keys": ["bbox", "type", "angle", "lines", "index"],
+          "children": []
+        },
+        {
+          "type": "table",
+          "index": 4,
+          "bbox": [54, 279, 455, 372],
+          "keys": ["type", "bbox", "blocks", "index"],
+          "children": [
+            {
+              "type": "table_caption",
+              "bbox": [52, 250, 227, 266],
+              "span_keys": [["bbox", "type", "content", "score"]]
+            },
+            {
+              "type": "table_body",
+              "bbox": [54, 279, 455, 372],
+              "span_keys": [["bbox", "type", "html", "image_path"]]
+            }
+          ]
+        },
+        {
+          "type": "image",
+          "index": 5,
+          "bbox": [98, 453, 332, 558],
+          "keys": ["type", "bbox", "blocks", "index"],
+          "children": [
+            {
+              "type": "image_body",
+              "bbox": [98, 453, 332, 558],
+              "span_keys": [["bbox", "type", "image_path"]]
+            },
+            {
+              "type": "image_caption",
+              "bbox": [86, 570, 252, 586],
+              "span_keys": [["bbox", "type", "content", "score"]]
+            },
+            {
+              "type": "image_footnote",
+              "bbox": [52, 619, 345, 637],
+              "span_keys": [["bbox", "type", "content", "score"]]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "One page demonstrates actual current response shape only; no cross-page continuation observed",
+    "merge_prev is present; semantics not established by this single sample",
+    "This is investigator-authored synthetic material, not the private historical textbook"
+  ]
+}

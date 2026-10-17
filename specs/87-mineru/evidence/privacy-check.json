@@ -1,0 +1,8 @@
+{
+  "checked_at": 1792238910.4985569,
+  "scanned_tracked_and_intended_new_files": 62,
+  "actual_provider_and_database_and_qa_secrets_compared": true,
+  "private_key_markers_checked": true,
+  "findings": [],
+  "private_original_books_published": false
+}

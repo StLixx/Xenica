@@ -1,0 +1,14 @@
+[
+  {
+    "operation": "read_own_fixture_batch",
+    "variant": "without_device_header",
+    "http": 200,
+    "code": -60012
+  },
+  {
+    "operation": "read_own_fixture_batch",
+    "variant": "without_bearer",
+    "http": 401,
+    "code": null
+  }
+]

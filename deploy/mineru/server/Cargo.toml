@@ -1,0 +1,28 @@
+[package]
+name = "mineru-web-server"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[[bin]]
+name = "mineru-server"
+path = "src/main.rs"
+
+[workspace]
+
+[dependencies]
+anyhow = "1"
+axum = { version = "0.8", features = ["multipart"] }
+tokio = { version = "1", features = ["full"] }
+tokio-util = { version = "0.7", features = ["io"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sqlx = { version = "0.9", default-features = false, features = ["runtime-tokio", "postgres", "uuid", "chrono", "json", "migrate", "macros"] }
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "json", "stream", "multipart"] }
+uuid = { version = "1", features = ["v4", "v7", "serde"] }
+sha2 = "0.10"
+hex = "0.4"
+chrono = { version = "0.4", features = ["serde"] }
+tower = { version = "0.5", features = ["util"] }
+tower-http = { version = "0.7", features = ["fs", "trace"] }
+zip = { version = "2", default-features = false, features = ["deflate"] }

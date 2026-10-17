@@ -1,0 +1,244 @@
+{
+  "schema_version": 1,
+  "target": "MinerU Desktop 0.14.1 selected shipped artifacts",
+  "operation": "analyze_javascript_application + focused inert source inspection",
+  "rea_evidence_id": "ev_29b73fea8064fa829e06d87a0ce5e1e1ee323f36087b52fec4ccf3371071924b",
+  "rea_evidence_file": "private:rea-block-ux.json",
+  "rea_evidence_sha256": "403026732c323801c793edd09747e383d83090085c96d3f94f2fc0537d45d323",
+  "source_selection": {
+    "requested_paths": [
+      "out/renderer/assets/index-DFiEwVQk.js",
+      "out/renderer/assets/index-DYdITyJr.js",
+      "out/renderer/assets/index-DMwH37_5.js",
+      "out/renderer/assets/index-Btm-sCfO.js",
+      "out/renderer/assets/index-CjNe4bfh.js"
+    ],
+    "unselected_files": 12
+  },
+  "rea_limitations": [
+    "Caller-selected source analysis leaves 12 inventoried files outside analysis scope. Inventory identity covers the complete artifact; relationships through unselected sources remain unknown.",
+    "CommonJS and ESM binding relationships were recovered from inert syntax and resolved only within the inventoried artifact container.",
+    "Graph coverage is incomplete; unavailable facts remain explicit and must not be read as absence.",
+    "JavaScript and HTML were parsed as inert text; bundle bootstrap code was never executed.",
+    "Static imports, entrypoints, workers, endpoints, and storage relationships do not prove runtime execution.",
+    "Static paths and relationships may remain unresolved when expressions are dynamic or obfuscated.",
+    "Webpack/Rspack factories were recovered from AST literals; REA did not invoke push handlers or bundle bootstrap code."
+  ],
+  "sources": [
+    {
+      "id": "loader-normalize-old",
+      "path": "out/renderer/assets/init.loader-t33rQ0l7.js",
+      "source_sha256": "b5cb41586581e18cd1c4d94ef47e702e0ed46f7c683f61239057beee7bde9240",
+      "char_range": [1296100, 1304095],
+      "utf8_byte_range": [1314601, 1322596],
+      "range_end_exclusive": true,
+      "range_sha256": "416f68e588bec9aa50b0a7c44386484ef186840a74bf70e55127f4117d118e88",
+      "finding": "bX stable index ordering; Om text/math; JVe old layout adapter; Hbt pages/discarded",
+      "evidence_type": "inert packaged source inspection",
+      "execution_observed": false
+    },
+    {
+      "id": "loader-normalize-vlm",
+      "path": "out/renderer/assets/init.loader-t33rQ0l7.js",
+      "source_sha256": "b5cb41586581e18cd1c4d94ef47e702e0ed46f7c683f61239057beee7bde9240",
+      "char_range": [1304095, 1309623],
+      "utf8_byte_range": [1322596, 1328124],
+      "range_end_exclusive": true,
+      "range_sha256": "bf7cb33d4ea4050fe06b60887ed61dcef82177c6cf66fbac9c0836f17c632f33",
+      "finding": "Eu/YVe/jbt recent VLM adapter and special block flattening",
+      "evidence_type": "inert packaged source inspection",
+      "execution_observed": false
+    },
+    {
+      "id": "loader-flatten-merge",
+      "path": "out/renderer/assets/init.loader-t33rQ0l7.js",
+      "source_sha256": "b5cb41586581e18cd1c4d94ef47e702e0ed46f7c683f61239057beee7bde9240",
+      "char_range": [1309623, 1314400],
+      "utf8_byte_range": [1328124, 1332905],
+      "range_end_exclusive": true,
+      "range_sha256": "83bae2cd92ae5e398f35147d73315ddbaa1873452c82c10c17ee13aa8e1fd4a5",
+      "finding": "zbt child captions/footnotes, block_position; Vbt continuation groups; M1r markdown export",
+      "evidence_type": "inert packaged source inspection",
+      "execution_observed": false
+    },
+    {
+      "id": "loader-position-types",
+      "path": "out/renderer/assets/init.loader-t33rQ0l7.js",
+      "source_sha256": "b5cb41586581e18cd1c4d94ef47e702e0ed46f7c683f61239057beee7bde9240",
+      "char_range": [1322802, 1324500],
+      "utf8_byte_range": [1342819, 1344517],
+      "range_end_exclusive": true,
+      "range_sha256": "2649f549712152cd6f6d0d2288e1b3a6bc8c8b47118135aa9f699835f2df023c",
+      "finding": "Wbt lookup; AT source position; zJ collection types",
+      "evidence_type": "inert packaged source inspection",
+      "execution_observed": false
+    },
+    {
+      "id": "loader-state",
+      "path": "out/renderer/assets/init.loader-t33rQ0l7.js",
+      "source_sha256": "b5cb41586581e18cd1c4d94ef47e702e0ed46f7c683f61239057beee7bde9240",
+      "char_range": [2660000, 2667400],
+      "utf8_byte_range": [2703125, 2710531],
+      "range_end_exclusive": true,
+      "range_sha256": "dce099c7e12f075c6dd5bfd0f887fe6d4e833ab99b4343a6d9d9d717083e4162",
+      "finding": "g2 remote/Co local block data stores and edit by source position",
+      "evidence_type": "inert packaged source inspection",
+      "execution_observed": false
+    },
+    {
+      "id": "loader-collections",
+      "path": "out/renderer/assets/init.loader-t33rQ0l7.js",
+      "source_sha256": "b5cb41586581e18cd1c4d94ef47e702e0ed46f7c683f61239057beee7bde9240",
+      "char_range": [3909400, 3914000],
+      "utf8_byte_range": [3952581, 3957181],
+      "range_end_exclusive": true,
+      "range_sha256": "ccffdf8c7a78ae30564c26db1a1383d1fdcd76dc3dc8df59c1aa2636054c3745",
+      "finding": "desktop/web collection route choice and optimistic per-page cache",
+      "evidence_type": "inert packaged source inspection",
+      "execution_observed": false
+    },
+    {
+      "id": "loader-block-toolbar",
+      "path": "out/renderer/assets/init.loader-t33rQ0l7.js",
+      "source_sha256": "b5cb41586581e18cd1c4d94ef47e702e0ed46f7c683f61239057beee7bde9240",
+      "char_range": [5885000, 5893200],
+      "utf8_byte_range": [5947125, 5955337],
+      "range_end_exclusive": true,
+      "range_sha256": "5dd58b2c4740fa622bee9ae85acbff3195349b6e8db519d90b91df7cc6beed45",
+      "finding": "copy/edit/collect, typed toolbar, source position in saved collection",
+      "evidence_type": "inert packaged source inspection",
+      "execution_observed": false
+    },
+    {
+      "id": "loader-pdf-shape",
+      "path": "out/renderer/assets/init.loader-t33rQ0l7.js",
+      "source_sha256": "b5cb41586581e18cd1c4d94ef47e702e0ed46f7c683f61239057beee7bde9240",
+      "char_range": [5973300, 5977800],
+      "utf8_byte_range": [6036118, 6040639],
+      "range_end_exclusive": true,
+      "range_sha256": "ff5fab316a4bf2e4f8d527f0b1839d1917d41ec86eeb8fc62e36dfd5a8b2a5fe",
+      "finding": "Jxa SVG group rect and stable data attributes; hit testing",
+      "evidence_type": "inert packaged source inspection",
+      "execution_observed": false
+    },
+    {
+      "id": "loader-pdf-events-merge",
+      "path": "out/renderer/assets/init.loader-t33rQ0l7.js",
+      "source_sha256": "b5cb41586581e18cd1c4d94ef47e702e0ed46f7c683f61239057beee7bde9240",
+      "char_range": [5978000, 5989200],
+      "utf8_byte_range": [6040839, 6052217],
+      "range_end_exclusive": true,
+      "range_sha256": "8b02581e8caaf84204ec29bbb00e59290c4f3b24b95218258ef7a8503c7595fa",
+      "finding": "PDF click/hover events and dashed merge path placement",
+      "evidence_type": "inert packaged source inspection",
+      "execution_observed": false
+    },
+    {
+      "id": "loader-pdf-viewer",
+      "path": "out/renderer/assets/init.loader-t33rQ0l7.js",
+      "source_sha256": "b5cb41586581e18cd1c4d94ef47e702e0ed46f7c683f61239057beee7bde9240",
+      "char_range": [5991000, 5997300],
+      "utf8_byte_range": [6054017, 6060337],
+      "range_end_exclusive": true,
+      "range_sha256": "122d3462526b3196936b26080ace7dedb4d0df347c9232e43c4e9d93f2982e91",
+      "finding": "PDF.js viewer, page width scale, annotations, source-position jump",
+      "evidence_type": "inert packaged source inspection",
+      "execution_observed": false
+    },
+    {
+      "id": "loader-bidirectional",
+      "path": "out/renderer/assets/init.loader-t33rQ0l7.js",
+      "source_sha256": "b5cb41586581e18cd1c4d94ef47e702e0ed46f7c683f61239057beee7bde9240",
+      "char_range": [6009916, 6015100],
+      "utf8_byte_range": [6072953, 6078193],
+      "range_end_exclusive": true,
+      "range_sha256": "496005124892dd3beba91233ebc9a4ce0bec714438b790afda88750cefa2edce",
+      "finding": "wwa PDF/Markdown bidirectional hover/click and scroll-to-block",
+      "evidence_type": "inert packaged source inspection",
+      "execution_observed": false
+    },
+    {
+      "id": "loader-markdown-block",
+      "path": "out/renderer/assets/init.loader-t33rQ0l7.js",
+      "source_sha256": "b5cb41586581e18cd1c4d94ef47e702e0ed46f7c683f61239057beee7bde9240",
+      "char_range": [6386174, 6390200],
+      "utf8_byte_range": [6449282, 6453308],
+      "range_end_exclusive": true,
+      "range_sha256": "94c2cbd4c161b53430b8e2202f5f7c7867693c6b564e6cbac750a5cfdab08e14",
+      "finding": "P_a/kXt/l3 typed content renderer and source mapping",
+      "evidence_type": "inert packaged source inspection",
+      "execution_observed": false
+    },
+    {
+      "id": "loader-markdown-pages",
+      "path": "out/renderer/assets/init.loader-t33rQ0l7.js",
+      "source_sha256": "b5cb41586581e18cd1c4d94ef47e702e0ed46f7c683f61239057beee7bde9240",
+      "char_range": [8059000, 8065000],
+      "utf8_byte_range": [8129534, 8135534],
+      "range_end_exclusive": true,
+      "range_sha256": "ba43c3bc009774872d4bdd0eb4fd229f2b8ad3ead616d6aa65ca8c42aa2e5681",
+      "finding": "XGa per-page render and local edit persistence",
+      "evidence_type": "inert packaged source inspection",
+      "execution_observed": false
+    },
+    {
+      "id": "loader-desktop-load",
+      "path": "out/renderer/assets/init.loader-t33rQ0l7.js",
+      "source_sha256": "b5cb41586581e18cd1c4d94ef47e702e0ed46f7c683f61239057beee7bde9240",
+      "char_range": [8122200, 8126400],
+      "utf8_byte_range": [8193192, 8197392],
+      "range_end_exclusive": true,
+      "range_sha256": "8a6b65c2e363e90ab781515251f99f55e35819def0086938110fab72f9d7d0d2",
+      "finding": "HYa loads layout and cached block_list, JSON uses raw layout",
+      "evidence_type": "inert packaged source inspection",
+      "execution_observed": false
+    },
+    {
+      "id": "web-preview-load",
+      "path": "out/renderer/assets/index-DFiEwVQk.js",
+      "source_sha256": "55c5a539e2fbe81fde4e2e1c5f1475d55de1a4cbf4b0d3785e9a00f747657996",
+      "char_range": [164000, 178500],
+      "utf8_byte_range": [164008, 178512],
+      "range_end_exclusive": true,
+      "range_sha256": "052bdbf8ce64b8a46e1924a4909a4eba27c94dac247fb1988528b450fc261c59",
+      "finding": "coordinate rescale Fm, web preview, raw JSON and layout fallback",
+      "evidence_type": "inert packaged source inspection",
+      "execution_observed": false
+    },
+    {
+      "id": "collection-view",
+      "path": "out/renderer/assets/index-DMwH37_5.js",
+      "source_sha256": "ed6fb9682db1f1932df799b789d8f1f53d301c6780bbfe2430fb92d44171ec29",
+      "char_range": [2900, 15134],
+      "utf8_byte_range": [2900, 15134],
+      "range_end_exclusive": true,
+      "range_sha256": "45b462d0e32500bbe33b7db2882344564aad48d25e9b4ed763fc928563143eca",
+      "finding": "typed collection cards and source block_position navigation",
+      "evidence_type": "inert packaged source inspection",
+      "execution_observed": false
+    },
+    {
+      "id": "batch-export",
+      "path": "out/renderer/assets/index-DYdITyJr.js",
+      "source_sha256": "bba444f75fd15c5b4febf23d9b2e89e351cd62cd038b0e169be97617d8a3d96e",
+      "char_range": [76500, 79000],
+      "utf8_byte_range": [76576, 79092],
+      "range_end_exclusive": true,
+      "range_sha256": "8ecf470760bb931352dc0623cb1a136682441ea1db9ffb97ae092c776d652f57",
+      "finding": "Markdown from block cache; JSON copies layout",
+      "evidence_type": "inert packaged source inspection",
+      "execution_observed": false
+    }
+  ],
+  "limitations": [
+    "selected-app is a selected ASAR extraction, not the full installed application",
+    "init.loader was added after the 5-module REA analysis and is covered here by hashed inert source ranges, not claimed as analyzed by that REA Evidence ID",
+    "No Electron CDP or real app UI behavior captured by this worker",
+    "Private fixture metadata observations establish this one historical parse only; no inference of current model accuracy"
+  ],
+  "supplementary_rea": {
+    "evidence_id": "ev_45f5be313acf9940afa15bee80791e51c6ece7cd3bea785639f20103868341fb",
+    "private_file": "protocol-rea-loader.json",
+    "coverage": "package.json and init.loader selected; graph incomplete after semantic-stage default 1GB heap exhaustion; no claim of complete semantic coverage"
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "schema": 1,
+  "namespace": "mineru-research",
+  "stamp": "20261017T114331Z",
+  "checked_at": "2026-10-17T12:02:26.569362+00:00",
+  "verified": false,
+  "verified_scope": "local archive file inventory and identical independent core ciphertext",
+  "verified_from_cloud": false,
+  "cloud_full_recovery": "pending_slow_readback",
+  "file_count": 110,
+  "total_bytes": 1820424942,
+  "manifest_sha256": "ef10a65ff065ec46ecf46cd675f5f6bb3cca1b04fe0402c64208300014fb819a",
+  "archive_sha256": "14e4b29dbc6c8285fb97223a5a801dd082c95d3e93fde088d291f35be7f0221f",
+  "archive_bytes": 1057251228,
+  "encrypted_sha256": "20f3b285399675f7e176fbfdda5476084dd568fed0ea9b64e66e445a906e5ec2",
+  "encrypted_bytes": 1057251316,
+  "local_archive_file_hashes_verified": true,
+  "core_ciphertext": {
+    "sha256": "20f3b285399675f7e176fbfdda5476084dd568fed0ea9b64e66e445a906e5ec2",
+    "bytes": 1057251316,
+    "verified": true
+  },
+  "cloud_copy_acknowledged": true,
+  "cloud_partial_readback": {
+    "cloud_complete_manifest_decrypted_and_equal": true,
+    "cloud_ciphertext_prefix_bytes": 7335936,
+    "cloud_ciphertext_prefix_sha256": "80fef54df36599dd946ebc06329f7bcfea430ff780da325974c873dc4270ca22",
+    "prefix_equal_local": true,
+    "full_cloud_archive_decrypted": false,
+    "full_cloud_file_inventory_verified": false,
+    "single_connection_probe_seconds": 70.02
+  },
+  "reconstructed_artifact_identity": {
+    "installer": {
+      "sha256": "e063b1c54417ef0c5529a64ee3678975b10cdff0898ca933835a1cb2b95b8820",
+      "size": 893516760
+    },
+    "app_asar": {
+      "sha256": "6389483031602359aa4b0c129886b6f76c82279f5cec8b7d3b228175fbfc69cc",
+      "size": 945600942
+    },
+    "executable": {
+      "sha256": "e838f2bea39f42b58814399d97900d986894a14b0a7d7270f520431abba9b550",
+      "size": 199385912
+    }
+  },
+  "original_evidence_sha256": {
+    "protocol-rea-excerpts.json": "5215ccd3045ad56d29d9110c18bc157a604fcf4fb34f59a392eb1f38fe36e7bc",
+    "protocol-rea-loader.json": "cce90c1152bda6d890aa6da5137d34293453c72373cbc31f5a57d097d1151c74",
+    "rea-block-ux.json": "403026732c323801c793edd09747e383d83090085c96d3f94f2fc0537d45d323",
+    "rea-main.json": "d906cc72b8b03613b13934e2535f9e914a0c93ca214048a7fb5525a18aacd54d",
+    "rea-original-asar.json": "d26abc219f687999f3878a77510973cd6cd5a7cd426782dc187295be271720b8",
+    "rea-original-summary-5120.json": "4653d37225d4c05eec63a9f77b98978bc2638a9d9156b92b150bc20b1a64c1c4",
+    "rea-original-summary.json": "b3c7c6ccafb3edf14b201be70e489d454b597b316b6ca5d7977271812c5596ca",
+    "rea-renderer.json": "e6e26b28df810fea8358b9bc4ba019e1eaace5e66a0ba0ced390202f4794607d"
+  },
+  "local_and_core_verified": true,
+  "remaining_verification": "Full cloud archive download, AES256 decryption and every-file verification remain pending; uploaded metadata or a prefix are not substitutes."
+}
