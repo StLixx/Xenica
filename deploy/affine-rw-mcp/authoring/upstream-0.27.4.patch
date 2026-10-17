@@ -1,0 +1,56 @@
+diff --git a/src/tools/docs.ts b/src/tools/docs.ts
+index 8c0bb6a..5c66f9a 100644
+--- a/src/tools/docs.ts
++++ b/src/tools/docs.ts
+@@ -2545,6 +2545,10 @@ export function registerDocTools(
+     column.set("name", input.name);
+     column.set("type", input.type);
+     column.set("width", input.width ?? 200);
++    // AFFiNE 0.27.4 renderers require native property-data defaults.
++    column.set("data", input.type === "number"
++      ? new Y.Map<any>([["decimal", 0], ["format", "number"]])
++      : new Y.Map<any>());
+ 
+     if ((input.type === "select" || input.type === "multi-select") && input.options?.length) {
+       const data = new Y.Map<any>();
+@@ -9133,6 +9137,10 @@ export function registerDocTools(
+       column.set("name", parsed.name);
+       column.set("type", parsed.type || "rich-text");
+       column.set("width", parsed.width || 200);
++    // AFFiNE 0.27.4 renderers require native property-data defaults.
++    column.set("data", parsed.type === "number"
++      ? new Y.Map<any>([["decimal", 0], ["format", "number"]])
++      : new Y.Map<any>());
+ 
+       // For select/multi-select, create options
+       if ((parsed.type === "select" || parsed.type === "multi-select") && parsed.options?.length) {
+diff --git a/src/tools/mindmap.ts b/src/tools/mindmap.ts
+index 646e5fd..f52fe95 100644
+--- a/src/tools/mindmap.ts
++++ b/src/tools/mindmap.ts
+@@ -137,7 +137,10 @@ function resizeLabel(element: Values, label: string) {
+   const fontSize = Number(element.get("fontSize")) || 20;
+   const padding = element.get("padding") ?? [10, 20];
+   const max = typeof element.get("maxWidth") === "number" ? element.get("maxWidth") : 512;
+-  const widths = label.split("\n").map(line => [...line].length * fontSize * 0.65);
++  // CJK/emoji fallback glyphs are wider than Latin text in the native editor.
++  const widths = label.split("\n").map(line => [...line].reduce(
++    (sum, glyph) => sum + fontSize * (/[^\u0000-\u024f]/u.test(glyph) ? 1.1 : 0.65), 0,
++  ));
+   const width = Math.min(max, Math.max(100, ...widths.map(w => w + padding[1] * 2)));
+   const lines = widths.reduce((sum, w) => sum + Math.max(1, Math.ceil(w / Math.max(1, width - padding[1] * 2))), 0);
+   element.set("xywh", JSON.stringify([x, y, width, Math.max(30, lines * fontSize * 1.4 + padding[0] * 2)]));
+@@ -285,6 +288,13 @@ export function mutateNativeMindmap(values: Values, operation: Operation, p: Rec
+   }
+   const tree = readTree(values, mindmapId); // Validate before layout/persistence.
+   if (["create", "add", "reparent", "style"].includes(operation)) styleTree(tree);
++  // Native toggleCollapse also persists each descendant shape's hidden field.
++  // Topology metadata alone leaves orphan-looking shapes visible after reload.
++  const visibility = (node: Node, hidden: boolean) => {
++    if (node !== tree.root) node.element.set("hidden", hidden);
++    node.children.forEach(child => visibility(child, hidden || Boolean(node.detail.collapsed)));
++  };
++  visibility(tree.root, false);
+   layoutTree(tree);
+   return { ...readNativeMindmap(values, mindmapId), ...(nodeId ? { nodeId } : {}) };
+ }

@@ -184,6 +184,17 @@
         "deploy/affine-rw-mcp/README.md",
         "deploy/affine-rw-mcp/evidence.json"
       ]
+    },
+    {
+      "id": "affine-native-authoring-mcp",
+      "title": "用户确认扩展原生块、图片/附件、数据库、导图/白板及资料整理并回复开始；保留 0.27.4 和既有 OAuth 入口。独立适配后端与固定工具清单先在隔离环境验证，交互成果需最后体验验收。",
+      "source": "docs/context/index.json",
+      "references": [
+        "specs/91-affine-mcp-authoring/spec.md",
+        "docs/adr/0021-affine-native-authoring.md",
+        "deploy/affine-rw-mcp/authoring/source.json",
+        "deploy/affine-rw-mcp/authoring/policy.json"
+      ]
     }
   ],
   "components": [

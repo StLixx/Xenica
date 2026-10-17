@@ -34,10 +34,13 @@ def backup():
     ROOT.mkdir(parents=True,exist_ok=True,mode=0o700)
     with tempfile.TemporaryDirectory(prefix='rw-backup-',dir=ROOT) as tmp:
         tmp=Path(tmp)
-        for name,source in [('writes.sqlite3','bridge/writes.sqlite3'),('oauth.sqlite3','gateway/oauth.sqlite3')]:snapshot(ROOT.parent/source,tmp/name)
+        databases=[('writes.sqlite3','bridge/writes.sqlite3'),('oauth.sqlite3','gateway/oauth.sqlite3')]
+        config=json.loads(Path('/etc/affine-rw-mcp/gateway.json').read_text())
+        if config.get('authoring_url'):databases.append(('authoring.sqlite3','authoring/authoring.sqlite3'))
+        for name,source in databases:snapshot(ROOT.parent/source,tmp/name)
         archive=tmp/'state.tar.gz'
         with tarfile.open(archive,'w:gz') as t:
-            for name in ['writes.sqlite3','oauth.sqlite3']:t.add(tmp/name,arcname='state/'+name)
+            for name,_ in databases:t.add(tmp/name,arcname='state/'+name)
             t.add('/etc/affine-rw-mcp',arcname='private')
             t.add('/opt/stacks/affine-rw-mcp',arcname='deployment')
         encrypted=ROOT/(stamp+'.tar.gz.gpg')
@@ -63,11 +66,11 @@ print(json.dumps({'independent':True,'cloud_download_sha256':hashlib.sha256(data
         restored=tmp/'restored.tar.gz'
         run(['gpg','--batch','--yes','--pinentry-mode','loopback','--passphrase-file','/etc/pg-ops/backup.key','--output',str(restored),'--decrypt',str(recovered)])
         with tarfile.open(restored) as t:
-            for name in ['writes.sqlite3','oauth.sqlite3']:
+            for name,_ in databases:
                 target=tmp/('restore-'+name);target.write_bytes(t.extractfile('state/'+name).read())
                 with sqlite3.connect(target) as db:
                     if db.execute('PRAGMA integrity_check').fetchone()[0]!='ok':raise RuntimeError('Restored SQLite failed')
-        report={'ok':True,'stamp':stamp,'completed':time.time(),'online_snapshot':True,'independent_copy':True,'cloud_roundtrip':True,'decrypted_sqlite_integrity':True,'sha256':sha(encrypted)}
+        report={'ok':True,'stamp':stamp,'completed':time.time(),'online_snapshot':True,'independent_copy':True,'cloud_roundtrip':True,'decrypted_sqlite_integrity':True,'databases':[name for name,_ in databases],'sha256':sha(encrypted)}
         (STATE/'backup.json').write_text(json.dumps(report,indent=2))
         return report
 if __name__=='__main__':
