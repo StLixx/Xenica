@@ -23,9 +23,9 @@ for template in [root / "frontend/resources/templates/index.mustache", root / "f
     if not template.exists():
         continue
     source = template.read_text()
-    source = re.sub(r'/js/xenica-html-embed\.js[^\"]*', '/js/xenica-html-embed.js?v=81-r9', source)
+    source = re.sub(r'/js/xenica-html-embed\.js[^\"]*', '/js/xenica-html-embed.js?v=81-r10', source)
     if "xenica-html-embed.js" not in source:
-        source = source.replace("</head>", '<script type="module" src="/js/xenica-html-embed.js?v=81-r9"></script>\n</head>')
+        source = source.replace("</head>", '<script type="module" src="/js/xenica-html-embed.js?v=81-r10"></script>\n</head>')
     template.write_text(source)
 print("Applied HTML embed workspace patch")
 

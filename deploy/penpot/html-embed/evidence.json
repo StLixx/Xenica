@@ -4,17 +4,17 @@
   "upstream": "ff7a66f51938b2293260ea27a64e2c4e0833b5e3",
   "multiSessionSource": "1a82a80abd369eaa0983dd91cdd8324cfa383517",
   "baseImageId": "sha256:cafee5958514cc0648c3b1989f1b70f740e6d6bdf58de0cefc6ac32cbed2bd94",
-  "imageId": "sha256:04bb2ca3b50379e918d600af06de68d7d2c16050461d46a995575185144511bf",
-  "pageVersion": "2.18.3-html81-r9",
+  "imageId": "sha256:2c3bca55d25c3ecc988b08b7a72a7afe4e65518bff65a8ccebdecd63e71acfff",
+  "pageVersion": "2.18.3-html81-r10",
   "schemaChange": false,
   "sourceHashes": {
     "bridge.cljs": "adc6059e6a6ef29d42f09616901aedd9dc822a0ce9cdd375ddf361df28f705ea",
     "overlay.js": "d541fdc7e9ac49f81c4bd92432dda903fe8f28802ca4b1f87cf3b88caa7de361",
     "controls.cljs": "8f9e3054a76b29dcb30aab345e21531927a9beba211905dfb8041700320e55cd",
-    "controls.scss": "c77ba960285a28d8135a430edd48b1eb766ca22370ba3e4ed413ba27bea3e10f",
-    "toolbar.scss": "100ddcaae8095a55b48f0d71da7cc02fcde842e31c9b2edb5045ae49def22779",
-    "apply.py": "b21ee4b2d39ed4713d2687420310a20436841a758f3eb85773b5d61ec9096b4f",
-    "Dockerfile": "b4bf0107a2855e6f894d54df46d5bb3cfc7b1993b9b21c4507a6e241b3cbdc24"
+    "controls.scss": "a73c264dd81648af4e4daa35094e2b6950858175ac934b32c372cb67ebbb1d30",
+    "toolbar.scss": "4b11d89565438e63b4dcaa4ac2b48aa1a90deb93e5318aca5e09eb298d2e12ef",
+    "apply.py": "0cb660bdb7f5e1e1ed36954a229d74cc6954ae32fbdbd45db5061b9d6e0fa0e1",
+    "Dockerfile": "645e385c8190f7b1a6950d4a0e3abac358e5b5d5b00ef032054c194d7cd2db64"
   },
   "experienceUrl": "https://penpot.truebigsand.top/#/workspace?team-id=8fa64b17-9fc4-8078-8008-c9bd47e80f37&file-id=21312d73-8dbe-8051-8008-cd4942b4b991&page-id=21312d73-8dbe-8051-8008-cd4942b4b992&board-id=13fe1aba-db42-8012-8008-cd496d70b0d2",
   "candidateReport": {
@@ -32,7 +32,7 @@
       "prototype viewer remains interactive without writing viewer actions to file"
     ],
     "errors": [],
-    "url": "https://penpot.truebigsand.top/#/workspace?team-id=8fa64b17-9fc4-8078-8008-c9bd47e80f37&file-id=21312d73-8dbe-8051-8008-cdab0ae7a2cb&page-id=21312d73-8dbe-8051-8008-cd4942b4b992&board-id=13fe1aba-db42-8012-8008-cd496d70b0d2"
+    "url": "https://penpot.truebigsand.top/#/workspace?team-id=8fa64b17-9fc4-8078-8008-c9bd47e80f37&file-id=21312d73-8dbe-8051-8008-cdae2b4480a1&page-id=21312d73-8dbe-8051-8008-cd4942b4b992&board-id=13fe1aba-db42-8012-8008-cd496d70b0d2"
   },
   "publicReport": {
     "ok": true,
@@ -49,7 +49,7 @@
       "prototype viewer remains interactive without writing viewer actions to file"
     ],
     "errors": [],
-    "url": "https://penpot.truebigsand.top/#/workspace?team-id=8fa64b17-9fc4-8078-8008-c9bd47e80f37&file-id=21312d73-8dbe-8051-8008-cdabb921d702&page-id=21312d73-8dbe-8051-8008-cd4942b4b992&board-id=13fe1aba-db42-8012-8008-cd496d70b0d2"
+    "url": "https://penpot.truebigsand.top/#/workspace?team-id=8fa64b17-9fc4-8078-8008-c9bd47e80f37&file-id=21312d73-8dbe-8051-8008-cdae2b4480a1&page-id=21312d73-8dbe-8051-8008-cd4942b4b992&board-id=13fe1aba-db42-8012-8008-cd496d70b0d2"
   },
   "checks": {
     "javascriptTests": 9,
@@ -71,7 +71,10 @@
     "mcpButtonPreserved": true,
     "architecture": true,
     "context": true,
-    "docsBudget": true
+    "docsBudget": true,
+    "cssLintErrors": 0,
+    "desktopToolbarSingleRow": true,
+    "narrowToolbarMenuReachable": true
   },
   "feedbackRegression": {
     "continuousGestures": {
@@ -119,7 +122,8 @@
       "no floating bottom toolbar or HTML badge"
     ],
     "insertTarget": "explicit Board captured by dialog and resolved from current native file state",
-    "logicalViewport": "iframe logical size with outer canvas matrix; no document zoom"
+    "logicalViewport": "iframe logical size with outer canvas matrix; no document zoom",
+    "continuousGesturesRun": "r9; overlay.js identical in r10, sha256 d541fdc7e9ac49f81c4bd92432dda903fe8f28802ca4b1f87cf3b88caa7de361"
   },
   "localBackup": "20261017T111403Z",
   "independentBackup": {
@@ -133,34 +137,34 @@
   },
   "promotion": {
     "schema": 1,
-    "previousImage": "sha256:0b51ef0841a09deabe52125b053fb45f6d26cb89029f7ca9e77ed653a7da1c6e",
-    "candidateImage": "sha256:04bb2ca3b50379e918d600af06de68d7d2c16050461d46a995575185144511bf",
-    "rollbackPath": "/mnt/HDD/penpot/rollback/html81-20261017T112747Z",
+    "previousImage": "sha256:04bb2ca3b50379e918d600af06de68d7d2c16050461d46a995575185144511bf",
+    "candidateImage": "sha256:2c3bca55d25c3ecc988b08b7a72a7afe4e65518bff65a8ccebdecd63e71acfff",
+    "rollbackPath": "/mnt/HDD/penpot/rollback/html81-20261017T114054Z",
     "schemaChange": false,
-    "pageVersion": "2.18.3-html81-r9",
+    "pageVersion": "2.18.3-html81-r10",
     "promoted": true
   },
   "artifactArchive": {
-    "path": "/mnt/HDD/penpot/artifacts/html-embed-81-r9/frontend-images.tar.gz",
-    "sha256": "7b0e1cd59b86ce29ea20c942e5513ebe229092291f6cfee35fc50ad9c8bd0e56",
+    "path": "/mnt/HDD/penpot/artifacts/html-embed-81-r10/frontend-images.tar.gz",
+    "sha256": "a4d58aabf7a25a8c39de5b7ea621da1392f84182a13d4911bd03102d3d498a96",
     "contains": [
-      "r9 candidate frontend",
-      "r8 previous frontend"
+      "r10 candidate frontend",
+      "r9 previous frontend"
     ],
-    "managedIndependentSource": "/var/lib/pg-ops/encrypted/penpot-artifacts/2.18.3-html81-r9",
-    "independentPath": "drive02:PG-operations-v1/penpot-artifacts/2.18.3-html81-r9",
+    "managedIndependentSource": "/var/lib/pg-ops/encrypted/penpot-artifacts/2.18.3-html81-r10",
+    "independentPath": "drive02:PG-operations-v1/penpot-artifacts/2.18.3-html81-r10",
     "independentStatus": "verified",
     "independentCheck": {
       "matchingFiles": 2,
       "differences": 0,
-      "checkedAt": "2026-10-17T19:29:43+08:00"
+      "checkedAt": "2026-10-17T19:39:43+08:00"
     },
     "synchronization": "shared cloud.lock with managed PG cloud sync"
   },
   "previous": {
-    "imageId": "sha256:120014dfa8a9033b83681f603f0b28f80bae7ae57c3017f9cfb8f239ef9ef8d5",
-    "pageVersion": "2.18.3-html81-r7",
-    "source": "aed1bfe078ad60306d7b0e8753b13c935a662780"
+    "imageId": "sha256:04bb2ca3b50379e918d600af06de68d7d2c16050461d46a995575185144511bf",
+    "pageVersion": "2.18.3-html81-r9",
+    "source": "c3e9078f8cae583a3e8a9ef2d147b0c8c6dcfb8f"
   },
   "screenshots": [
     "evidence/native-ui.png",

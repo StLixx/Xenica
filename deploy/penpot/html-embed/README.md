@@ -4,7 +4,7 @@
 
 ## 当前体验
 
-顶部原生「更多工具 → 嵌入 HTML」，可将入口固定到工具栏；选中 Board 后，右侧原生属性面板提供「在此 Board 插入 HTML」。选中 HTML 或包含 HTML 的 Board 后，可进入交互、编辑源码、适配 Board；HTML 子块也可选择所属 Board。双击进入网页，Esc 返回画布；原生画布/手柄操作退出交互。底部独立工具条及块上的悬浮按钮已移除。窄窗口内原生工具栏换行。
+顶部原生「更多工具 → 嵌入 HTML」，可将入口固定到工具栏；选中 Board 后，右侧原生属性面板提供「在此 Board 插入 HTML」。选中 HTML 或包含 HTML 的 Board 后，可进入交互、编辑源码、适配 Board；HTML 子块也可选择所属 Board。双击进入网页，Esc 返回画布；原生画布/手柄操作退出交互。底部独立工具条及块上的悬浮按钮已移除。桌面保持单行，窄窗口内原生工具栏换行，菜单向画布内展开。
 
 插入时明确保存目标 Board，不依赖打开对话框前的旧选择或仅按位置猜测父级。Board 保留标题拖动、边框双向缩放；HTML 子块也可独立调整。适配操作对齐四角并设置双向伸缩约束，HTML 层继承祖先 Board 裁剪，使用原生可撤销文件变更。已有路径从四角恢复显示几何，无需转换或删除用户内容。
 
@@ -16,7 +16,7 @@ HTML 的 iframe 保留逻辑尺寸，通过外部矩阵呈现画布缩放。修�
 
 `bridge.cljs` 接入原生图形、plugin-data、几何预览与原型；`overlay.js` 管理隔离 iframe 和源码对话框；`controls.cljs/.scss` 使用 Penpot 原生按钮、菜单和属性面板；`toolbar.scss` 只补充窄窗口换行。`apply.py <Penpot源码根目录>` 可重复装入固定构建源，包含 SVG/WASM 两个调用点、原型层、原生工具栏和设计属性面板。原构建源 build-source 不改，独立源在 Infra `/opt/penpot-multi-session/html-embed-source`。
 
-在官方 devenv 执行 CLJS 格式/lint；以同一 `VERSION_TAG=2.18.3-html81-r9 VERSION=2.18.3 NODE_ENV=production` 编译 `main worker`、调用 `_helpers.js` 的 `compileStyles()` 与 `compileTemplates()`、运行 `node scripts/build-libs.js`。workerpool 不兼容父进程的 `--input-type` 标志，使用保存的模块或 `node -e 'import(...).then(...)'`。`verify_artifact.py` 校验页面、编译版本与运行资源。
+在官方 devenv 执行 CLJS 格式/lint；以同一 `VERSION_TAG=2.18.3-html81-r10 VERSION=2.18.3 NODE_ENV=production` 编译 `main worker`、调用 `_helpers.js` 的 `compileStyles()` 与 `compileTemplates()`、运行 `node scripts/build-libs.js`。workerpool 不兼容父进程的 `--input-type` 标志，使用保存的模块或 `node -e 'import(...).then(...)'`。`verify_artifact.py` 校验页面、编译版本与运行资源。
 
 Dockerfile 上下文须包含 public/js、public/css、index.html/render.html/rasterizer.html 和原有已验证 MCP 插件 dist（plugin/）。保留旧插件地址并增加新版本地址，避免缓存误连。源码校验值与确切镜像见 evidence.json。部署命令 `python3 deploy.py <候选镜像ID> <预期当前镜像ID>`，比较运行身份和候选页面版本后才切换，失败只回退 frontend。
 

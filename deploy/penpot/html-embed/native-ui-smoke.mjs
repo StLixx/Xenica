@@ -37,7 +37,11 @@ try {
   p.on("pageerror", (e) => report.errors.push(e.message));
   await p.goto(testUrl);
   const l = p.locator("xenica-html-embed-layer");
-  await p.locator('iframe[title="HTML 交互块"]').first().waitFor();
+  await p.waitForFunction(
+    () =>
+      document.querySelector("xenica-html-embed-layer")?.context?.shapes
+        .length > 0,
+  );
   const snapshot = () =>
     l.evaluate((el) => ({
       selected: el.context.selected,
@@ -90,6 +94,7 @@ try {
   await p.getByTestId("viewport").click({ position: { x: 20, y: 180 } });
   await p.keyboard.press("Shift+1");
   await p.waitForTimeout(200);
+  await p.locator('iframe[title="HTML 交互块"]').first().waitFor();
   assert.equal(await l.locator(".select-embed").count(), 0);
   assert.equal(
     await l.evaluate(
@@ -104,6 +109,10 @@ try {
   await p.getByRole("button", { name: "嵌入 HTML", exact: true }).waitFor();
   report.scenarios.push(
     "native More menu and optional pinned toolbar tool replace floating UI",
+  );
+  assert.ok(
+    (await p.getByTestId("toolbar-options").boundingBox()).height <= 48,
+    "desktop native toolbar must remain one row",
   );
   const old = (await snapshot()).shapes[0];
   const fid = old.frameId;
