@@ -184,6 +184,18 @@
         "deploy/affine-rw-mcp/README.md",
         "deploy/affine-rw-mcp/evidence.json"
       ]
+    },
+    {
+      "id": "mineru-desktop-reconstruction",
+      "title": "用户批准先标准逆向MinerU Desktop PDF分块与对照UX，再以Rust后端/Infra现有PostgreSQL复刻独立Web，优先Desktop免费API、不自托管模型。禁止全局Computer Use；交互成果待本人体验确认后合并。",
+      "source": "docs/context/index.json",
+      "references": [
+        "specs/87-mineru/spec.md",
+        "specs/87-mineru/reverse-engineering.md",
+        "specs/87-mineru/protocol.md",
+        "docs/adr/0022-mineru-reader.md",
+        "deploy/mineru/README.md"
+      ]
     }
   ],
   "components": [

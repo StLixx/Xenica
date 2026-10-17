@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "evidence_type": "private result structural observation",
+  "fixture_files": [
+    {
+      "role": "block_list.json",
+      "sha256": "a7ba7f226fe3c71c5004fc476ac4aa0e2f1434708be85034afd54cbf7de50d59",
+      "bytes": 1808693
+    },
+    {
+      "role": "content_list.json",
+      "sha256": "1c2f3f12db578bbb7c6988e294cf8dfe8016571573c06544dc812581bc47c529",
+      "bytes": 1049739
+    },
+    {
+      "role": "layout.json",
+      "sha256": "746e20dd50169a25368ed763452cf9b0c6b0c88c892041d8203a4502664ad54e",
+      "bytes": 28504664
+    }
+  ],
+  "layout": {
+    "root_keys": ["pdf_info", "_parse_type", "_version_name"],
+    "pages": 340,
+    "parse_type": "ocr",
+    "version": "1.3.11",
+    "first_page_size": [373.5, 500.0625],
+    "para_types": {
+      "image": 176,
+      "list": 55,
+      "text": 2229,
+      "title": 364,
+      "table": 55,
+      "index": 15,
+      "interline_equation": 157
+    }
+  },
+  "content_list": {
+    "count": 3051,
+    "types": {
+      "image": 176,
+      "text": 2663,
+      "table": 55,
+      "equation": 157
+    },
+    "has_bbox": false
+  },
+  "block_list": {
+    "pages": 340,
+    "blocks": 3897,
+    "types": {
+      "image": 176,
+      "image_caption": 170,
+      "text": 2299,
+      "title": 364,
+      "": 618,
+      "table_caption": 56,
+      "table": 55,
+      "table_footnote": 6,
+      "equation": 153
+    },
+    "missing_bbox": 618,
+    "missing_or_empty_id": 618,
+    "parent_links": 232,
+    "lines_deleted": 193,
+    "merge_groups": 156,
+    "crosspage_merge_groups": 116,
+    "merge_group_size_histogram": {
+      "3": 9,
+      "2": 144,
+      "4": 1,
+      "12": 1,
+      "18": 1
+    }
+  },
+  "privacy": "No body text, original filename, image content, credentials or source pages retained in this summary"
+}

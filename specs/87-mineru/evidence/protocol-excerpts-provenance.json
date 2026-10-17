@@ -1,0 +1,29 @@
+[
+  {
+    "path": "api-core.js",
+    "original_path": "out/renderer/assets/init.loader-t33rQ0l7.js",
+    "original_sha256": "b5cb41586581e18cd1c4d94ef47e702e0ed46f7c683f61239057beee7bde9240",
+    "byte_range": [2701820, 2703302],
+    "transformation": "prefix const and suffix semicolon; inert syntax only",
+    "sha256": "977f58b29bab84351d3cf0baf9e5c9dd983b3f5a6d515cf8930e09bca57fa6af",
+    "unicode_codepoint_range": [2658711, 2660177]
+  },
+  {
+    "path": "task-api.js",
+    "original_path": "out/renderer/assets/init.loader-t33rQ0l7.js",
+    "original_sha256": "b5cb41586581e18cd1c4d94ef47e702e0ed46f7c683f61239057beee7bde9240",
+    "byte_range": [7546202, 7550138],
+    "transformation": "prefix const and suffix semicolon; inert syntax only",
+    "sha256": "a4eb0462e2f9215149fc68d113bc81ad6c3f8456da0633c48a25ca0134ffa59e",
+    "unicode_codepoint_range": [7476253, 7480009]
+  },
+  {
+    "path": "upload-flow.js",
+    "original_path": "out/renderer/assets/init.loader-t33rQ0l7.js",
+    "original_sha256": "b5cb41586581e18cd1c4d94ef47e702e0ed46f7c683f61239057beee7bde9240",
+    "byte_range": [7578549, 7581000],
+    "transformation": "prefix const and suffix semicolon; inert syntax only",
+    "sha256": "48d7a47f528625a004b9846d70dc91c791665de361c62774c466f558d44c15d9",
+    "unicode_codepoint_range": [7508220, 7510671]
+  }
+]

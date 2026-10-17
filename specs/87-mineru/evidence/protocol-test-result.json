@@ -1,0 +1,17 @@
+{
+  "operation": "download",
+  "http": 200,
+  "sha256": "5cc7bc3feb6dec1c852729132ba9feffe740188f2e5efd2b90adfd5a0d233271",
+  "bytes": 18973,
+  "members": [
+    "cfb61477-a34a-4b3b-a0bf-6e66320fe37e_model.json",
+    "cfb61477-a34a-4b3b-a0bf-6e66320fe37e_origin.pdf",
+    "cfb61477-a34a-4b3b-a0bf-6e66320fe37e_content_list_v2.json",
+    "full.md",
+    "cfb61477-a34a-4b3b-a0bf-6e66320fe37e_content_list.json",
+    "layout.json",
+    "images/9381f46fa86f3472bed648aa8f3e9f23402864ba83880f479e9365e6411e7768.jpg",
+    "images/e81a964d076c458951728cb6f884b65318e060b724f5467f46392334bab52bd2.jpg",
+    "images/da5c694fd8b6acd623badd6ea27670a7bd7fef33574bd9c133aa2616b84f1519.jpg"
+  ]
+}

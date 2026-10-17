@@ -1,0 +1,8 @@
+{
+  "schema": 1,
+  "result": "passed",
+  "changed_text_files_scanned": 53,
+  "private_value_patterns_checked": 5,
+  "private_key_markers_absent": true,
+  "values_logged": false
+}

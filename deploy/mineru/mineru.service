@@ -1,0 +1,31 @@
+[Unit]
+Description=Private MinerU document comparison application
+After=network-online.target tailscaled.service docker.service
+Wants=network-online.target
+
+[Service]
+User=mineru
+Group=mineru
+EnvironmentFile=/etc/mineru-ops/service.env
+WorkingDirectory=/var/lib/mineru/app
+ExecStart=/var/lib/mineru/app/mineru-server
+Restart=on-failure
+RestartSec=3
+TimeoutStopSec=45
+KillSignal=SIGTERM
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+BindPaths=/mnt/HDD/xenica-private/mineru:/var/lib/mineru/state
+ReadWritePaths=/var/lib/mineru/state
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+MemoryHigh=512M
+MemoryMax=768M
+TasksMax=128
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

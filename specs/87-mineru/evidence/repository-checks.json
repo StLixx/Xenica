@@ -1,0 +1,527 @@
+{
+  "schema": 1,
+  "started": 1792237189.861824,
+  "host": "infra-server",
+  "workspace": "/opt/xenica-workspace/worktrees/87-mineru",
+  "git_head": "54fe1e4e4218fede43ca0f3cbb11c8f2a6364445",
+  "development_database": {
+    "container": "xenica-dev-pg",
+    "system_id": "7694678660259917863",
+    "in_recovery": false,
+    "admin": "postgres",
+    "database": "xenica_mineru_checks",
+    "endpoint": "127.0.0.1:15432"
+  },
+  "steps": [
+    {
+      "name": "web-install",
+      "command": [
+        "pnpm",
+        "-C",
+        "web",
+        "install",
+        "--offline",
+        "--frozen-lockfile"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "log": "/mnt/HDD/xenica-private/research/mineru-20261017/repository-checks/web-install.log",
+      "log_sha256": "a9de02efb36ae54b669c3d8c9fdd3223d5dc24396984283ce23b110cfc9044e0",
+      "executed_before_runner": true
+    },
+    {
+      "name": "build-storybook",
+      "command": [
+        "pnpm",
+        "-C",
+        "web",
+        "build-storybook",
+        "--quiet"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "log": "/mnt/HDD/xenica-private/research/mineru-20261017/repository-checks/build-storybook.log",
+      "log_sha256": "dc4366fb2b3fbbb15025d8725797a77b273ede719a78e044c0549223d90d6e1c",
+      "executed_before_runner": true
+    },
+    {
+      "name": "generated-format",
+      "command": [
+        "pnpm",
+        "-C",
+        "web",
+        "exec",
+        "prettier",
+        "--write",
+        "../docs/context/index.json",
+        "src/api/design-catalog.json"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "log": "/mnt/HDD/xenica-private/research/mineru-20261017/repository-checks/generated-format.log",
+      "log_sha256": "3612fcde9c6476b449d8518c855b427807ee3d72c964140922fc0a8227e6c097",
+      "executed_before_runner": true
+    },
+    {
+      "name": "rust-fmt",
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--check"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "seconds": 0.21,
+      "log": "/mnt/HDD/xenica-private/research/mineru-20261017/repository-checks/rust-fmt.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "rust-clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--workspace",
+        "--all-targets",
+        "--locked",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "seconds": 45.36,
+      "log": "/mnt/HDD/xenica-private/research/mineru-20261017/repository-checks/rust-clippy.log",
+      "log_sha256": "2378459384a8fb4cf8753736f3b83f5de9b6bd784d0ba74114da872fac3275f9"
+    },
+    {
+      "name": "rust-test",
+      "command": [
+        "cargo",
+        "test",
+        "--workspace",
+        "--locked"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "seconds": 90.53,
+      "log": "/mnt/HDD/xenica-private/research/mineru-20261017/repository-checks/rust-test.log",
+      "log_sha256": "9df13bcf36515074ffa4b3ca47d89d352681072f7051ed71fbb7a94f2d51883b"
+    },
+    {
+      "name": "architecture",
+      "command": [
+        "bash",
+        "scripts/check-arch.sh"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "seconds": 0.82,
+      "log": "/mnt/HDD/xenica-private/research/mineru-20261017/repository-checks/architecture.log",
+      "log_sha256": "207aef78c44d4db8058a2a559a2dfd056bb9af29e870f603d6e15a34e690ca21"
+    },
+    {
+      "name": "documentation",
+      "command": [
+        "bash",
+        "scripts/check-docs.sh"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "seconds": 0.02,
+      "log": "/mnt/HDD/xenica-private/research/mineru-20261017/repository-checks/documentation.log",
+      "log_sha256": "5f4b53e35b74be3f08b004a498f9c27fc3fe90593136cc8e334d542346994bcb"
+    },
+    {
+      "name": "gate-tests",
+      "command": [
+        "bash",
+        "-c",
+        "node --test .github/scripts/tests/*.test.cjs"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "seconds": 0.5,
+      "log": "/mnt/HDD/xenica-private/research/mineru-20261017/repository-checks/gate-tests.log",
+      "log_sha256": "e6efbb0cb4d56f172e453094745c3dc5062bac312a7c3d81ce3491dbcc1d669f"
+    },
+    {
+      "name": "context",
+      "command": [
+        "node",
+        "scripts/check-context.cjs"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "seconds": 0.03,
+      "log": "/mnt/HDD/xenica-private/research/mineru-20261017/repository-checks/context.log",
+      "log_sha256": "44e7d746e7b820cd9089dd3d0d9fcf3fc800fa8060a8ee552abbf71d63e17469"
+    },
+    {
+      "name": "release",
+      "command": [
+        "node",
+        ".github/scripts/check-release.cjs"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "seconds": 0.06,
+      "log": "/mnt/HDD/xenica-private/research/mineru-20261017/repository-checks/release.log",
+      "log_sha256": "b9bfe5c38963c5828b1f5f21e3e4f953be03fc3a332d27d11fa41730421cf6ee"
+    },
+    {
+      "name": "archive-tests",
+      "command": [
+        "python3",
+        "scripts/test-excalidraw-archive.py"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "seconds": 0.06,
+      "log": "/mnt/HDD/xenica-private/research/mineru-20261017/repository-checks/archive-tests.log",
+      "log_sha256": "fe008aab760eb03ccac7578e2b84665b1b50b0d7f855b17a0c7a8d039435b658"
+    },
+    {
+      "name": "deployer-tests",
+      "command": [
+        "python3",
+        "scripts/test-deployer.py"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "seconds": 3.02,
+      "log": "/mnt/HDD/xenica-private/research/mineru-20261017/repository-checks/deployer-tests.log",
+      "log_sha256": "0a59d01eeaa20a8797f1eddd2b85b0b582e7e2bd87bce39dcda0ca7e0e97d7b3"
+    },
+    {
+      "name": "history-tests",
+      "command": [
+        "python3",
+        "scripts/test-history.py"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "seconds": 0.57,
+      "log": "/mnt/HDD/xenica-private/research/mineru-20261017/repository-checks/history-tests.log",
+      "log_sha256": "e0285cf16df973f33bab56e6622821863ca0fcad4249cd6ed92ab6eb84074f79"
+    },
+    {
+      "name": "workspace-tests",
+      "command": [
+        "python3",
+        "scripts/test-workspace.py"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "seconds": 0.22,
+      "log": "/mnt/HDD/xenica-private/research/mineru-20261017/repository-checks/workspace-tests.log",
+      "log_sha256": "f6c7556120a6df693f3accdf7acfcede1c908b087adda8a5cacd64abd63927b9"
+    },
+    {
+      "name": "release-deployment-tests",
+      "command": [
+        "python3",
+        "scripts/test-release-deployment.py"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "seconds": 0.11,
+      "log": "/mnt/HDD/xenica-private/research/mineru-20261017/repository-checks/release-deployment-tests.log",
+      "log_sha256": "fe008aab760eb03ccac7578e2b84665b1b50b0d7f855b17a0c7a8d039435b658"
+    },
+    {
+      "name": "preview-access-tests",
+      "command": [
+        "python3",
+        "scripts/test-preview-access.py"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "seconds": 0.17,
+      "log": "/mnt/HDD/xenica-private/research/mineru-20261017/repository-checks/preview-access-tests.log",
+      "log_sha256": "7ba600c131d14938fa296eb6eb208c575bf239a15b65439f37d0578df0fff9bf"
+    },
+    {
+      "name": "web-format-check",
+      "command": [
+        "pnpm",
+        "-C",
+        "web",
+        "format:check"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "seconds": 2.02,
+      "log": "/mnt/HDD/xenica-private/research/mineru-20261017/repository-checks/web-format-check.log",
+      "log_sha256": "1d66faad74f5e8709353f7288592866bd3a9095da1174a916e7aa632949971e2"
+    },
+    {
+      "name": "web-lint",
+      "command": [
+        "pnpm",
+        "-C",
+        "web",
+        "lint"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "seconds": 5.53,
+      "log": "/mnt/HDD/xenica-private/research/mineru-20261017/repository-checks/web-lint.log",
+      "log_sha256": "960f1eb37ac4d28430af9bef2c98f32333254854ffde619330f53d373ce0f632"
+    },
+    {
+      "name": "web-typecheck",
+      "command": [
+        "pnpm",
+        "-C",
+        "web",
+        "typecheck"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "seconds": 5.68,
+      "log": "/mnt/HDD/xenica-private/research/mineru-20261017/repository-checks/web-typecheck.log",
+      "log_sha256": "faeaa94bcf7012d86f91ca647580449f56a263fb7eaf572c54789764f60a9b8f"
+    },
+    {
+      "name": "web-test",
+      "command": [
+        "pnpm",
+        "-C",
+        "web",
+        "test"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "seconds": 4.01,
+      "log": "/mnt/HDD/xenica-private/research/mineru-20261017/repository-checks/web-test.log",
+      "log_sha256": "7b204eb24b9c7a0be4c31b0ed152fd33c47ca26e67acdeb4f8ddce4b544b9c01"
+    },
+    {
+      "name": "web-arch",
+      "command": [
+        "pnpm",
+        "-C",
+        "web",
+        "arch"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "seconds": 1.27,
+      "log": "/mnt/HDD/xenica-private/research/mineru-20261017/repository-checks/web-arch.log",
+      "log_sha256": "e88c3bec6435a42eddda4912c2d44e84443c7dda78fcb2985f0e885a5eda40a1"
+    },
+    {
+      "name": "web-build",
+      "command": [
+        "pnpm",
+        "-C",
+        "web",
+        "build"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "seconds": 8.23,
+      "log": "/mnt/HDD/xenica-private/research/mineru-20261017/repository-checks/web-build.log",
+      "log_sha256": "a4c756e688d90f3e5cb579a3591052d4bf6591c59dbf3c58bbd065ae43e7198d"
+    },
+    {
+      "name": "catalog-check",
+      "command": [
+        "node",
+        "scripts/generate-design-catalog.cjs",
+        "--check"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "seconds": 0.06,
+      "log": "/mnt/HDD/xenica-private/research/mineru-20261017/repository-checks/catalog-check.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "root-runtime-build",
+      "command": [
+        "cargo",
+        "build",
+        "--locked",
+        "-p",
+        "xenica-server",
+        "--bin",
+        "xenica"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "seconds": 2.77,
+      "log": "/mnt/HDD/xenica-private/research/mineru-20261017/repository-checks/root-runtime-build.log",
+      "log_sha256": "fc91898a8488318572b465e442c8ff08918ed0c942c37ddb8c83db15140f1e80"
+    },
+    {
+      "name": "root-e2e",
+      "command": [
+        "pnpm",
+        "-C",
+        "web",
+        "e2e",
+        "--workers=2"
+      ],
+      "exit_code": 1,
+      "status": "failed",
+      "seconds": 77.15,
+      "log": "/mnt/HDD/xenica-private/research/mineru-20261017/repository-checks/root-e2e.log",
+      "log_sha256": "d7fab4439f1fbc2899dab531519efbf1f6acce68845789bcf6b5a35c4741eb35",
+      "superseded_by": "root-e2e-https",
+      "diagnosis": "HTTP 127.0.0.1 APIRequestContext omitted the Secure session cookie; browser-side requests succeeded but test-side API GET returned 401. TLS-only environment correction; test and product code unchanged."
+    },
+    {
+      "name": "screenshots-selfcheck",
+      "command": [
+        "pnpm",
+        "-C",
+        "web",
+        "screenshots",
+        "--update-snapshots=all",
+        "--workers=2"
+      ],
+      "exit_code": 0,
+      "status": "passed",
+      "seconds": 13.71,
+      "log": "/mnt/HDD/xenica-private/research/mineru-20261017/repository-checks/screenshots-selfcheck.log",
+      "log_sha256": "8092e00f2acc301103eedd487202e25bee96e86de9fc0d3a0e94b3a68bc5f23e"
+    },
+    {
+      "name": "authoritative-screenshot-comparison",
+      "status": "not_run",
+      "exit_code": null,
+      "reason": "CI master baseline unavailable in this workspace; generated local snapshots are a self-check only."
+    },
+    {
+      "name": "root-e2e-https",
+      "command": [
+        "pnpm",
+        "-C",
+        "web",
+        "exec",
+        "playwright",
+        "test",
+        "--config",
+        "/mnt/HDD/xenica-private/research/mineru-20261017/repository-checks/playwright-https.config.ts",
+        "--workers=2"
+      ],
+      "exit_code": 1,
+      "status": "failed",
+      "seconds": 375.74,
+      "log": "/mnt/HDD/xenica-private/research/mineru-20261017/repository-checks/root-e2e-https.log",
+      "log_sha256": "2036b8ea3f15eb0dc4b902937e42f83d3e8be3c9fc4c32c920a720b27c5ad3b8",
+      "environment": {
+        "url": "https://localhost:18088",
+        "upstream": "http://127.0.0.1:18087",
+        "certificate": "ephemeral self-signed localhost only",
+        "ignoreHTTPSErrors": "headless task-only Playwright context; product and user browser unchanged"
+      }
+    }
+  ],
+  "limitations": [
+    "Logs are private and may contain detailed test diagnostics; public report excludes credentials.",
+    "Root repository checks do not establish MinerU interaction acceptance.",
+    "Playwright screenshot baselines require matching CI environment for authoritative comparison.",
+    "Research freeze archive remains pending: original installer/ASAR/full REA require an encrypted independent core/cloud copy by parent agent."
+  ],
+  "completed": 1792238188.4828608,
+  "all_executed_checks_passed": false,
+  "current_executed_checks_passed": false,
+  "authoritative_CI_screenshot_baseline_comparison": "not_run",
+  "baseline_comparison": {
+    "baseline": "098053ec1eb12bfac6fec835f2cd19d510159579",
+    "runtime_binary_shared_due_to_identical_crates": true,
+    "source_comparison": {
+      "crates_differences": [],
+      "e2e_differences": [],
+      "web_src_differences": [
+        "web/src/api/design-catalog.json"
+      ]
+    },
+    "master_catalog_regenerated_matches_tracked": true,
+    "runs": [
+      {
+        "name": "task-isolated-retry",
+        "tree": "/opt/xenica-workspace/worktrees/87-mineru",
+        "git_head": "54fe1e4e4218fede43ca0f3cbb11c8f2a6364445",
+        "database": "xenica_mineru_repeat_e6cd808f",
+        "clean_database": true,
+        "workers": 1,
+        "command": [
+          "pnpm",
+          "-C",
+          "/opt/xenica-workspace/worktrees/87-mineru/web",
+          "exec",
+          "playwright",
+          "test",
+          "--config",
+          "/mnt/HDD/xenica-private/research/mineru-20261017/repository-checks/task-isolated-retry.config.ts",
+          "canvas-persistence.spec.ts:68",
+          "embed.spec.ts:156",
+          "--workers=1"
+        ],
+        "exit_code": 1,
+        "status": "failed",
+        "seconds": 66.77,
+        "log": "/mnt/HDD/xenica-private/research/mineru-20261017/repository-checks/task-isolated-retry.log",
+        "log_sha256": "49fa29b3939caa932f1005660d0cf707067fbfd3642b8142042dcf3af184c528",
+        "config_overrides": [
+          "absolute testDir",
+          "private outputDir",
+          "baseURL=https://localhost:18088",
+          "ignoreHTTPSErrors=true in task headless context"
+        ],
+        "unchanged_original_settings": [
+          "projects",
+          "project.use",
+          "viewport",
+          "retries",
+          "timeouts",
+          "test source"
+        ]
+      },
+      {
+        "name": "master-baseline",
+        "tree": "/opt/xenica-workspace/worktrees/87-mineru-baseline",
+        "git_head": "098053ec1eb12bfac6fec835f2cd19d510159579",
+        "database": "xenica_mineru_baseline_36cddf4c",
+        "clean_database": true,
+        "workers": 1,
+        "command": [
+          "pnpm",
+          "-C",
+          "/opt/xenica-workspace/worktrees/87-mineru-baseline/web",
+          "exec",
+          "playwright",
+          "test",
+          "--config",
+          "/mnt/HDD/xenica-private/research/mineru-20261017/repository-checks/master-baseline.config.ts",
+          "canvas-persistence.spec.ts:68",
+          "embed.spec.ts:156",
+          "--workers=1"
+        ],
+        "exit_code": 1,
+        "status": "failed",
+        "seconds": 125.9,
+        "log": "/mnt/HDD/xenica-private/research/mineru-20261017/repository-checks/master-baseline.log",
+        "log_sha256": "8653544cfc8bfcfb52f596c29433839eb4813fa0e1f51ed4cb5561f1fe3aeb83",
+        "config_overrides": [
+          "absolute testDir",
+          "private outputDir",
+          "baseURL=https://localhost:18088",
+          "ignoreHTTPSErrors=true in task headless context"
+        ],
+        "unchanged_original_settings": [
+          "projects",
+          "project.use",
+          "viewport",
+          "retries",
+          "timeouts",
+          "test source"
+        ]
+      }
+    ]
+  }
+}

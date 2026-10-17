@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "public": "https://mineru.truebigsand.top",
+  "binary_sha256": "826b1f814e6d18426f2e000b6c9e1e90291fcf93f73ceed7926eca74206b3147",
+  "web_manifest_sha256": "450a5094e5eb6dda7b06500ea76d760eaf9f482af5e45b1eb9ca447b8d12f7ed",
+  "product_id": "25073179478d5a892fb76f0018822452ab7063bde6021bb500bbe6308e5fbc79",
+  "assets_verified": 64,
+  "checks": {
+    "source_build_equals_runtime": true,
+    "public_assets_equal": true,
+    "certificate_verified": true,
+    "health": true,
+    "service_units_equal": true,
+    "anonymous_rejections": [
+      "/api/me",
+      "/api/documents",
+      "/api/favorites",
+      "/api/provider/status",
+      "/api/documents/{owned-document}",
+      "/api/documents/{owned-document}/original",
+      "/api/documents/{owned-document}/assets/images/unknown.jpg",
+      "/api/documents/{owned-document}/export?format=json"
+    ]
+  },
+  "status": "deployed-awaiting-user-acceptance"
+}

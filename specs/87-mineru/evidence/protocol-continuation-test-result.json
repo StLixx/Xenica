@@ -1,0 +1,33 @@
+{
+  "operation": "continuation_result",
+  "http": 200,
+  "zip_sha256": "5cf81a0e2455f71a37ca36e78471c96f9f0fa94ff1574ccaa7baebef8c0ad1ce",
+  "pages": 3,
+  "page_blocks": [["text"], ["text"], ["text"]],
+  "merge_markers": [
+    {
+      "path": "/pdf_info/0/preproc_blocks/0/merge_prev",
+      "value": false
+    },
+    {
+      "path": "/pdf_info/0/para_blocks/0/merge_prev",
+      "value": false
+    },
+    {
+      "path": "/pdf_info/1/preproc_blocks/0/merge_prev",
+      "value": false
+    },
+    {
+      "path": "/pdf_info/1/para_blocks/0/merge_prev",
+      "value": false
+    },
+    {
+      "path": "/pdf_info/2/preproc_blocks/0/merge_prev",
+      "value": false
+    },
+    {
+      "path": "/pdf_info/2/para_blocks/0/merge_prev",
+      "value": false
+    }
+  ]
+}

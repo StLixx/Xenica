@@ -1,0 +1,10 @@
+[Unit]
+Description=MinerU consistent encrypted offsite backup
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 -S /opt/mineru-ops/backup.py
+UMask=0077
+TimeoutStartSec=3600

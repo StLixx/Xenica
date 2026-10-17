@@ -101,9 +101,7 @@
       "status": "unverified",
       "summary": "本轮修复接口与交付体系，新 Notion 模型会话验收继续延期，尚未证明任何新会话自动具备全部访问能力。",
       "origin": "用户选择本轮先修复接口，稍后验收 Notion；本轮计划明确延期",
-      "references": [
-        "specs/54-delivery-system/continuation.md"
-      ]
+      "references": ["specs/54-delivery-system/continuation.md"]
     },
     {
       "id": "private-test-workspace",
@@ -289,6 +287,21 @@
       ],
       "task": 79,
       "implementation": "deployed-agent-verified-awaiting-user-acceptance"
+    },
+    {
+      "id": "mineru-desktop-reconstruction",
+      "status": "confirmed",
+      "summary": "用户批准先标准逆向MinerU Desktop PDF分块与对照UX，再以Rust后端/Infra现有PostgreSQL复刻独立Web，优先Desktop免费API、不自托管模型。禁止全局Computer Use；交互成果待本人体验确认后合并。",
+      "origin": "2026-10-17 当前Codex会话范围复述、技术约束补充及用户回复开始",
+      "references": [
+        "specs/87-mineru/spec.md",
+        "specs/87-mineru/reverse-engineering.md",
+        "specs/87-mineru/protocol.md",
+        "docs/adr/0022-mineru-reader.md",
+        "deploy/mineru/README.md"
+      ],
+      "task": 87,
+      "implementation": "in-progress"
     }
   ],
   "references": [

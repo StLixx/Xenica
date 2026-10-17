@@ -1,0 +1,60 @@
+{
+  "schema": 1,
+  "checked_at": "2026-10-17T11:40:48.950163+00:00",
+  "host": "infra-server",
+  "toolchain": {
+    "rustc": "1.99.0",
+    "cargo": "1.99.0"
+  },
+  "commands": {
+    "fmt_check": "passed",
+    "clippy_all_targets_D_warnings": "passed",
+    "cargo_test": {
+      "passed": 3,
+      "failed": 0
+    },
+    "cargo_build_release": "passed"
+  },
+  "target_directory": "/mnt/HDD/xenica-private/build/mineru-target",
+  "binary": {
+    "path": "/mnt/HDD/xenica-private/build/mineru-target/release/mineru-server",
+    "sha256": "826b1f814e6d18426f2e000b6c9e1e90291fcf93f73ceed7926eca74206b3147"
+  },
+  "source_sha256": {
+    "deploy/mineru/migrations/202610170001_mineru.sql": "f039ad5a1b022e623337e2b1007d8f296a1cbf3d84da4fb77bc90f66b5cfa91a",
+    "deploy/mineru/server/Cargo.lock": "3d88f2713a84c9d664ba76528eef8f9e5ae5cdb478da0761e90277bd4d92232a",
+    "deploy/mineru/server/Cargo.toml": "95ab34a4bf17a2bcc12f301b53130526b13b92c393f3f7f5e689d89d81242f0f",
+    "deploy/mineru/server/src/main.rs": "450019be5dc7f1735a3db85720ea3b0e61364c3d568e03bc7fbd7207f37d4eab",
+    "deploy/mineru/server/src/normalize.rs": "399e083cc3c46d363a048a1e53478d1a37e8f9ffcbfb35904497731dab5c7b09",
+    "deploy/mineru/server/src/provider.rs": "15fd913cef7dc3be5a62ec90c67f15530a11e78deb0c5796b6124152cb1bf1b5"
+  },
+  "database": {
+    "source": "panel-main",
+    "system_id": "7689904531301453863",
+    "version": "18.6",
+    "database": "mineru",
+    "runtime_role": "mineru_app",
+    "owner_role": "mineru_app_owner",
+    "pool_max": 5,
+    "role_connection_limit": 20,
+    "cross_database": {
+      "mineru": "allowed",
+      "postgres": "rejected",
+      "penpot": "rejected",
+      "affine": "rejected"
+    }
+  },
+  "http_real_provider_smoke": {
+    "file": "backend-smoke.json",
+    "checks": 26,
+    "status": "passed",
+    "artifact": "debug build before final mechanical clippy fixes; release checked separately by deployment"
+  },
+  "temporary_service": {
+    "bind": "127.0.0.1:3067",
+    "stopped": true,
+    "verified": "ss and ps show no listener or mineru-server process"
+  },
+  "secrets": "only private server files, absent from source and this evidence",
+  "user_acceptance": "pending"
+}

@@ -1,0 +1,38 @@
+{
+  "schema": 1,
+  "application": "MinerU Desktop",
+  "version": "0.14.1",
+  "source": "user-installed Windows package",
+  "original_asar": {
+    "size": 945600942,
+    "sha256": "6389483031602359aa4b0c129886b6f76c82279f5cec8b7d3b228175fbfc69cc",
+    "full_copy_on_infra": true,
+    "retained_path": "/mnt/HDD/xenica-private/research/mineru-20261017/published/app.asar"
+  },
+  "original_executable": {
+    "size": 199385912,
+    "sha256": "e838f2bea39f42b58814399d97900d986894a14b0a7d7270f520431abba9b550"
+  },
+  "selection": {
+    "method": "raw byte ranges transported to Infra then verified against ASAR per-file integrity SHA256",
+    "header_size": 11861888,
+    "scope": "package.json, Electron main, renderer entry and selected chunks; all analysis on Infra"
+  },
+  "private_evidence_root": "/mnt/HDD/xenica-private/research/mineru-20261017",
+  "limitations": [
+    "Selected application directory is not a complete runnable Electron app.",
+    "Static evidence does not prove all branches executed.",
+    "Global Windows Computer Use stopped at user request; subsequent runtime checks only on Infra.",
+    "Vendor download config version labels are inconsistent; artifact identity uses PE/package version and verified SHA256, not its labels."
+  ],
+  "published_installer": {
+    "url": "https://webpub.shlab.tech/MinerU/latest/win/MinerU-0.14.1-setup.exe?t=1",
+    "size": 893516760,
+    "sha256": "e063b1c54417ef0c5529a64ee3678975b10cdff0898ca933835a1cb2b95b8820",
+    "identity_verification": "extracted x64 app.asar and MinerU.exe are byte-identical by SHA256 to installed originals"
+  },
+  "analysis_tools": {
+    "rea": "6.5.0",
+    "7zip": "26.00 installed on Infra for NSIS/7z inventory and extraction; no target execution"
+  }
+}

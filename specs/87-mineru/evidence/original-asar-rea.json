@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "kind": "bounded-metadata-extraction",
+  "evidence_id": "ev_611031768f7fcb1d8700c62cf00b464ab8ff1d7f384c599c0a8a73800da465cc",
+  "operation": "analyze_javascript_application",
+  "subject": {
+    "name": "app.asar",
+    "digest": {
+      "sha256": "6389483031602359aa4b0c129886b6f76c82279f5cec8b7d3b228175fbfc69cc"
+    },
+    "local_path": "/mnt/HDD/xenica-private/research/mineru-20261017/published/app.asar",
+    "format": "asar",
+    "architecture": null
+  },
+  "source_paths": [
+    "package.json",
+    "out/main/index.js",
+    "out/renderer/assets/index-DFiEwVQk.js"
+  ],
+  "full_record_bytes": 618139552,
+  "full_record_sha256": "d26abc219f687999f3878a77510973cd6cd5a7cd426782dc187295be271720b8",
+  "private_record": "/mnt/HDD/xenica-private/research/mineru-20261017/rea-original-asar.json",
+  "summary_projection": {
+    "status": "resource-constrained",
+    "attempts": [4096, 5120],
+    "reason": "REA inspect-analysis-view could not materialize complete 648MB inline Evidence input within declared heap headroom; producer was not repeated"
+  },
+  "findings_basis": "Use smaller selected-app Evidence IDs recorded in protocol and block-UX indices, corroborated by matching member digests. Original ASAR producer complete record is retained without trimming."
+}
