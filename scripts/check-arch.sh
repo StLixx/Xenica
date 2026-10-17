@@ -24,3 +24,6 @@ echo "architecture ok"
 python3 -S -m unittest discover -s deploy/pg-ops -p 'test_*.py'
 python3 -S -m unittest discover -s deploy/penpot -p 'test_*.py'
 python3 -S -m unittest discover -s deploy/affine -p 'test_*.py'
+
+# 画板 HTML 嵌入的坐标和脚本文档边界。
+node --test deploy/penpot/html-embed/test.mjs

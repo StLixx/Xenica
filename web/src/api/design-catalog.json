@@ -184,6 +184,17 @@
         "deploy/affine-rw-mcp/README.md",
         "deploy/affine-rw-mcp/evidence.json"
       ]
+    },
+    {
+      "id": "penpot-canvas-html-embed-prototype",
+      "title": "用户批准在 Penpot 画板内试作 HTML 交互块，支持交互、移动缩放和刷新保留；沿用稳定基线及已部署多会话补丁，不改数据库，交互体验确认前不合并。",
+      "source": "docs/context/index.json",
+      "references": [
+        "specs/81-penpot-html-embed/spec.md",
+        "docs/adr/0021-penpot-html-embed.md",
+        "deploy/penpot/html-embed/README.md",
+        "docs/context/penpot-html-embed.md"
+      ]
     }
   ],
   "components": [
