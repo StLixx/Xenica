@@ -267,6 +267,10 @@ window.addEventListener('keydown',event=>{
   let action;
   if(shortcut&&event.key.toLowerCase()==='n'){event.preventDefault();newMap().catch(e=>toast(e.message));return;}
   if(shortcut){action=({z:event.shiftKey?'redo':'undo',y:'redo',c:'copy',x:'cut',v:'paste',a:'mutate:selectAll'})[event.key.toLowerCase()];}
+  else if(event.key===' '&&!event.altKey&&!event.shiftKey){
+    event.preventDefault();event.stopPropagation();
+    apiEditor.startEditingTitle().catch(error=>toast(error.message));return;
+  }
   else action=({Tab:'mutate:insertSubtopicWithTask',Enter:event.shiftKey?'mutate:insertTopicBefore':'mutate:insertTopicAfter',Delete:'mutate:delete',Backspace:'mutate:delete',F2:'mutate:startEditingTopic'})[event.key];
   if(action){event.preventDefault();event.stopPropagation();run(action);}
 },true);

@@ -326,6 +326,25 @@ export async function openNative({ container, snapshot: initialSnapshot, id, onC
     return editor.executeAction(action);
   }
 
+  async function startEditingTitle() {
+    ensureActive();
+    const name = 'mutate:startEditingTopic';
+    if (editor.isEditingTitle.value || editor.actionStates.value[name]?.disabled) return;
+    run(name);
+    // 原生先挂载并聚焦文字输入框；空格进入编辑时全选，后续输入仍交回原生处理。
+    await new Promise(resolve => requestAnimationFrame(resolve));
+    ensureActive();
+    if (!editor.isEditingTitle.value) return;
+    const input = container.ownerDocument.activeElement;
+    if (!(input instanceof HTMLElement) || !container.contains(input) || !input.isContentEditable) return;
+    const selection = container.ownerDocument.getSelection();
+    if (!selection) return;
+    const range = container.ownerDocument.createRange();
+    range.selectNodeContents(input);
+    selection.removeAllRanges();
+    selection.addRange(range);
+  }
+
   function select(ids) {
     return run('mutate:selectTopics', undefined, { topics: ids, centerOn: false });
   }
@@ -442,7 +461,7 @@ export async function openNative({ container, snapshot: initialSnapshot, id, onC
     await waitUntil(() => editor.document.value === current && !!editor.activeSheetViewerInited.value);
     editor.markDocumentSaved();
     notifyState();
-    return { editor, native, snapshot, run, select, addImage, exportFile, importFile, dispose };
+    return { editor, native, snapshot, run, select, startEditingTitle, addImage, exportFile, importFile, dispose };
   } catch (error) {
     dispose();
     throw error;

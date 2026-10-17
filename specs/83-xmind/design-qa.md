@@ -22,4 +22,10 @@
 
 工程检查见 evidence/engineering.json：Infra Rust 70、Web 27、E2E 22 通过，历史部署一项因隔离环境无档案按既有规则跳过；宿主通用 Storybook 截图 4 过 20 平台差异如实保留，最终提交使用官方 CI 同款环境核验，不用候选截图替换 master 基准。
 
-功能性未解决问题：无。用户实际体验验收：待确认，禁止据“开始”登记为验收或合并。
+新增菜单/样式面板复刻、暗色模式仍待完成，按用户要求暂停；不以此前核心范围通过冒充新增范围通过。用户实际体验验收：待确认，禁止据“开始”登记为验收或合并。
+
+
+## 空格全选文字修复（2026-10-17）
+用户截图说明缺的是文字全选区，不是节点外框。修复前已在独立新建测试图复现：点击主题后按空格，输入框保持不可见（opacity 0）且内容为空；原版同流程显示选区，发布 editor.chunk.mi_2lXXb.js 将 Space 绑定 editor.showEditBox，后者映射 mutate:startEditingTopic。
+宿主遗漏此快捷键；同时原生一般已编辑标题进入编辑默认光标位于末尾，仅 titleUnedited 占位标题默认全选。空格入口现显式调用原生命令，输入框就绪后通过 DOM Range 全选，后续输入、组合输入和撤销仍交给原生。
+实测同视口：source-space-selection.png / candidate-space-before.png / candidate-space-after.png；后者完整蓝底白字。candidate-space-custom.png 证明非占位、多词标题也全选。中文替换后得到“空格全选回归 测试”，编辑中空格正常、Escape 退出、Ctrl Z 恢复“分支主题 1”；未操作用户当前图。宿主 43 项测试通过，部署逐文件指纹及匿名鉴权检查通过。此修复不代表菜单/样式追加范围或用户验收完成。

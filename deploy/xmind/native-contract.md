@@ -38,3 +38,7 @@
 剪贴板宿主必须注入 `globalConfigSetup.clipboard.read/write`：默认读取返回 null，默认写入无操作。适配标准浏览器 Clipboard API 的文字、HTML 和图片；结构及图片字节由原生 IndexedDB 缓存关联。复制、剪切、粘贴的 `run` 返回 Promise，调用方须等待完成；权限拒绝由浏览器决定并向调用方报告，未授予默认权限。
 
 选择状态：`editor.selection.value` 是 `{type,modelIds}` 摘要；宿主 `onState.selection` 提供 `activeSheetViewerState.value.selection` 原始 `{kind,topics}`，摘要另置 `selectionInfo`。文件菜单调用剪贴板动作前恢复 viewer 焦点，再等待动作状态更新；复制前检查所选片段引用的资源。未生成新片段、资源缺失和各阶段超时明确失败，不能将系统旧内容视为本次复制成功。
+
+
+### 空格入口
+Space 由宿主绑定到 startEditingTitle()，先执行 mutate:startEditingTopic，再在下一渲染帧全选已聚焦且属于当前画布的 contenteditable 内容。原生 titleUnedited 占位标题与普通标题的默认选区不同，不能只验证占位主题。编辑中、组合输入、输入控件和弹层不劫持空格。取消与撤销由原生保持。
