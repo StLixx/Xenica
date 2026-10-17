@@ -27,3 +27,5 @@ iframe 仅允许脚本，使用独立不透明来源；内联 HTML/CSS/JS 可运
 `node --test deploy/penpot/html-embed/test.mjs` 检查坐标和 HTML 文档边界。`browser-smoke.mjs` 在 Infra 浏览器中验证脚本、表单、恢复、隔离和校验；`live-smoke.mjs` 验证实际 Penpot 文件、原生拖动/尺寸、缩放和刷新。浏览器凭据从服务器私有文件加载，不写入仓库。
 
 部署前保存一致备份及原镜像，先在仅本机可见的候选前端验证，再在原固定网址更新前端。回退只恢复前端镜像；不恢复旧数据库覆盖新文件，不触碰其他用户设计。
+
+`native-regression.mjs` 在固定体验文件验证原生复制/删除/撤销、全新浏览器上下文恢复和 Dashboard 无嵌入工具条。当前独立镜像归档同时包含新旧前端，校验值和独立副本位置见 evidence.json；恢复时校验归档后 docker load，再按部署回执恢复旧前端环境并只重建 frontend，不还原数据库覆盖新内容。

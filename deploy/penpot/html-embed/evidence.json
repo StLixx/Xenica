@@ -158,11 +158,26 @@
     "contains": [
       "candidate frontend",
       "previous frontend"
-    ]
+    ],
+    "independentPath": "drive02:PG-operations-v1/penpot-artifacts/2.18.3-html81-r4",
+    "independentCheck": {
+      "differences": 0,
+      "matchingFiles": 2
+    }
   },
   "screenshots": [
     "evidence/desktop.png",
     "evidence/narrow.png",
     "evidence/viewer.png"
-  ]
+  ],
+  "nativeRegression": {
+    "ok": true,
+    "scenarios": [
+      "native duplication and undo preserve HTML and state",
+      "native delete and undo restore embedded block",
+      "fresh browser context restores saved file",
+      "dashboard has no canvas HTML toolbar"
+    ],
+    "errors": []
+  }
 }
